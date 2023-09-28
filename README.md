@@ -71,6 +71,8 @@ To get this code running properly you need:
 - Docker
 - to edit your .env file with values specific for your server and API
 - to create secrets and put them in the /secrets folder
+- to put apoc-5.7.0-core and extended jars in /neo4j/plugins folder
+- to put an ifcopenshell.zip in /api/app/ifcopenshell folder
 
 # License
 
