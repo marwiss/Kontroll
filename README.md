@@ -10,21 +10,6 @@ https://martin.wiss.se/data/bcf_ifc_graph.pdf
 
 # Code structure
 
-# Deployment
-
-To get this code running you need:
-
-- your own server
-- a domain name
-- a TLS-certificate for your domain name
-- a proxy server
-- to set up your proxy server to use HTTPS
-- Docker
-- to edit your .env file
-- to create secrets and put them in the /secrets folder
-
-# How to use the server
-
 /docker-compose.yml
 You bring up the project using this file.
 
@@ -72,6 +57,19 @@ Jinja2 templates used to generate some webpages necessary for OAuth2 flow and Do
 
 /api/app/requirements.txt
 Generated using pipreqs not pip freeze.
+
+# Deployment
+
+To get this code running you need:
+
+- your own server
+- a domain name
+- a TLS-certificate for your domain name
+- a proxy server
+- to set up your proxy server to use HTTPS
+- Docker
+- to edit your .env file
+- to create secrets and put them in the /secrets folder
 
 # License
 
