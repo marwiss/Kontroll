@@ -49,8 +49,9 @@ Models are arranged in files depending on if it is request or response
 or both (common) or not at all (other).
 
 /api/app/security
-Contains methods for OAuth2 and a method to obtains secrets used.
-You need to create your own secrets ad put them in the /secrets folder.
+Contains methods for OAuth2 and a method to get the secrets used.
+You need to create your own secrets and put them in the /secrets folder.
+Secrets are more secure than environment values.
 
 /api/app/templets
 Jinja2 templates used to generate some webpages necessary for OAuth2 flow and Documents API flow.
@@ -60,7 +61,7 @@ Generated using pipreqs not pip freeze.
 
 # Deployment
 
-To get this code running you need:
+To get this code running properly you need:
 
 - your own server
 - a domain name
@@ -68,7 +69,7 @@ To get this code running you need:
 - a proxy server
 - to set up your proxy server to use HTTPS
 - Docker
-- to edit your .env file
+- to edit your .env file with values specific for your server and API
 - to create secrets and put them in the /secrets folder
 
 # License
