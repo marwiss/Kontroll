@@ -96,7 +96,7 @@ Solibri Office can only connect to pre-registered servers. This means that you c
 connect to your server using a regular version of Solibri Office. If you want to use Solibri,
 then you will have to first kindly ask Solibri if they want to add your server
 to the list of registered servers. An alternative is to develop your own BCF client
-or to use this existing console BCF client for python:
+or to use this existing BCF API client module for python to build your own client script:
 
 https://pypi.org/project/bcf-client/
 
