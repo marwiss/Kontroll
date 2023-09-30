@@ -121,7 +121,7 @@ Suggested improvements:
 - More complete documentation of pydantic models
 - Improvements on IFC-graph
 - BCF event logging
-- Implement also the routes that Solibri does not support
+- Implement also the routes that Solibri Office does not support
 - Replace hard coded values with .env values
 - Improve security before any kind of deployment in production
 - Making full use of native IFC (for example allowing BCF API to edit IFC directly using BIM snippets)
