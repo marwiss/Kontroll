@@ -150,6 +150,9 @@ https://neo4j.com/docs/cypher-manual/current/introduction/
 - Using Neo4j from python
 https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/
 
+- Building Neo4j Applications with Python
+https://graphacademy.neo4j.com/courses/app-python/
+
 ### OpenCDE APIs
 
 - BCF API
