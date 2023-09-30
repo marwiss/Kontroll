@@ -122,7 +122,7 @@ This code was developed and tested on a system using:
 
 ## Suggested reading
 
-### FastAPI
+### API
 
 - FastAPI documentation
   https://fastapi.tiangolo.com/
@@ -138,6 +138,9 @@ This code was developed and tested on a system using:
 
 - Pydantic docs
 https://docs.pydantic.dev/latest/
+
+- OData v4
+https://www.odata.org/documentation/
 
 ### OAuth2
 
@@ -160,6 +163,9 @@ https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/
 
 - Building Neo4j Applications with Python
 https://graphacademy.neo4j.com/courses/app-python/
+
+- The Property Graph Model
+https://neo4j.com/developer/graph-database/#property-graph
 
 ### OpenCDE APIs
 
@@ -186,9 +192,6 @@ https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 - Certbot documentation
 https://eff-certbot.readthedocs.io/en/stable/
 
-- OData v4
-https://www.odata.org/documentation/
-
 ### IFC
 
 - Native IFC
@@ -199,6 +202,9 @@ https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
 
 - IFC-graph for facilitating building information access and query
 https://www.sciencedirect.com/science/article/pii/S0926580523000389
+
+- IFCOpenShell documentation
+https://blenderbim.org/docs-python/
 
 ### Frontend
 
