@@ -186,6 +186,9 @@ https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 - Certbot documentation
 https://eff-certbot.readthedocs.io/en/stable/
 
+- OData v4
+https://www.odata.org/documentation/
+
 ### IFC
 
 - Native IFC
