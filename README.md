@@ -178,6 +178,9 @@ https://github.com/buildingSMART/documents-API
 - Foundation API
 https://github.com/buildingSMART/foundation-API
 
+- Open CDE APIs OAuth2 Example
+https://github.com/buildingSMART/foundation-API/blob/v1.0/OAuth2Examples.md
+
 ### Server
 
 - Docker documentation
