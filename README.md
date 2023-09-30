@@ -104,6 +104,48 @@ This code was developed and tested on a system using:
 - Lets encrypt, certbot
 - Docker 20
 
+## Suggested reading
+
+### FastAPI
+
+- FastAPI documentation
+  https://fastapi.tiangolo.com/
+
+- Building Python Microservices with FastAPI
+  https://www.packtpub.com/product/building-python-microservices-with-fastapi/9781803245966
+
+- Building Python Web APIs with FastAPI
+  https://www.packtpub.com/product/building-python-web-apis-with-fastapi/9781801076630
+
+- Building Data Science Applications with FastAPI - Second Edition
+  https://www.packtpub.com/product/building-data-science-applications-with-fastapi-second-edition/9781837632749
+
+### OAuth2
+
+- Mastering OAuth 2.0
+https://www.packtpub.com/product/mastering-oauth-20/9781784395407
+
+- OAuth 2.0 Cookbook
+https://www.packtpub.com/product/oauth-20-cookbook/9781788295963
+
+### Neo4j and cypher
+
+- Neo4j Cypher Manual
+https://neo4j.com/docs/cypher-manual/current/introduction/
+
+- Using Neo4j from python
+https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/
+
+### BCF
+
+- BCF REST API
+https://github.com/buildingSMART/BCF-API
+
+### IFC-graph
+
+- IFC-graph for facilitating building information access and query
+https://www.sciencedirect.com/science/article/pii/S0926580523000389
+
 ## License
 
 The GNU Affero General Public License is a free,
