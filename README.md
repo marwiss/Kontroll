@@ -94,6 +94,7 @@ Suggested improvements:
 - More complete documentation of pydantic models
 - Improvements on IFC-graph
 - Replace hard coded values with .env values
+- Improve security before deployment in production
 
 ## Prototype
 
