@@ -150,7 +150,7 @@ https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/
 
 ### OpenCDE APIs
 
-- BCF REST API
+- BCF API
 https://github.com/buildingSMART/BCF-API
 
 - Documents API
