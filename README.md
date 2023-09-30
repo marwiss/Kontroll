@@ -77,13 +77,13 @@ To get this code running properly you need:
 - to set up your proxy server to use HTTPS
 - to use proxy as bridge between docker network and remote
 - proxy and uvicorn should access same TLS certificate
-- Docker
 - to edit your .env file with values specific for your server and API
 - to replace hard coded values in code with  specific values for your server and API
 - to create three secrets and put them in the /secrets folder
 - to put apoc-5.7.0-core and apoc-5.7.0-extended jars in /neo4j/plugins folder
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
 - a BCF client, registered with client ID and secret
+- Docker and Neo4j software
 
 ## TODO
 
