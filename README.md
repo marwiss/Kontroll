@@ -144,6 +144,9 @@ https://www.packtpub.com/product/mastering-oauth-20/9781784395407
 - OAuth 2.0 Cookbook
 https://www.packtpub.com/product/oauth-20-cookbook/9781788295963
 
+- OAuth2 with Password (and hashing), Bearer with JWT tokens
+https://fastapi.tiangolo.com/ur/tutorial/security/oauth2-jwt/
+
 ### Neo4j and Cypher
 
 - Neo4j Cypher Manual
