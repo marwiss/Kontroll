@@ -205,6 +205,9 @@ https://docs.docker.com/
 - Docker Compose overview
 https://docs.docker.com/compose/
 
+- How to use secrets in Docker Compose
+https://docs.docker.com/compose/use-secrets/
+
 - NGINX Reverse Proxy documentation
 https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 
