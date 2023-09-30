@@ -1,8 +1,4 @@
-/api/app/data/bitmaps/*
-/api/app/data/document_parts/*
-/api/app/data/models/*
-/api/app/data/snapshots/*
-/api/app/ifcopenshell/
+/api/app/ifcopenshell/*
 /api/app/logs/
 /api/app/favicon.ico
 /data/
