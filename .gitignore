@@ -13,7 +13,6 @@
 /neo4j/plugins/
 /secrets/
 /.env
-/restart.sh
 /TODO.txt
 /venv/
 /.idea/
