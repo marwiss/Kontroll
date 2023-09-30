@@ -93,6 +93,15 @@ Suggested improvements:
 - Improvements on IFC-graph
 - Replace hard coded values with .env values
 
+# Prototype
+
+This code was developed and tested on a system using:
+
+- Ubuntu 20
+- Nginx 1.18
+- Lets encrypt, certbot
+- Docker 20
+
 # License
 
 The GNU Affero General Public License is a free,
