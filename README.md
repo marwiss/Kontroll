@@ -86,10 +86,14 @@ To get this code running properly you need:
 - to create three secrets and put them in the /secrets folder
 - to put apoc-5.7.0-core and apoc-5.7.0-extended jars in /neo4j/plugins folder
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
-- a BCF client, registered with client ID and secret
 - Docker and Neo4j software
 - a favicon at /favicon.ico
 - to run "bash restart.sh" to restart containers
+- a BCF client, registered with client ID and secret
+
+This code was developed and tested using Solibri Office as BCF client, however:
+Solibri Office can only connect to pre-registered servers. This means that you cannot
+connect to your server using a regular version of Solibri Office.
 
 ## TODO
 
