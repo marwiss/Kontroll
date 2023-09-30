@@ -85,6 +85,9 @@ To get this code running properly you need:
 
 ## TODO
 
+This code was just made to create a prototype for personal use.
+Improvements are needed to use this code for collaboration or deployment.
+
 Suggested improvements:
 
 - General code structure refactoring
