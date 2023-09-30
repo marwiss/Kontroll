@@ -16,6 +16,10 @@ You can read some background information about the project here:
 
 https://martin.wiss.se/data/bcf_ifc_graph.pdf
 
+The name of this project is Kontroll BCF API server because it was originally
+developed as a POC prototype to test if BCF API could be used for digital inspection plans
+for building permits (translated as "kontroll-plan" in Swedish language).
+
 ## Code structure
 
 /docker-compose.yml
