@@ -88,6 +88,8 @@ To get this code running properly you need:
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
 - Docker and Neo4j software
 - a favicon at /favicon.ico
+- BCF event logging
+- Implement also the routes that Solibri does not support
 - to run "bash restart.sh" to restart containers
 - a BCF client, registered with client ID and secret
 
