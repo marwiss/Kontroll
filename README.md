@@ -35,7 +35,7 @@ Contains the server application.
 /api/app/main.py
 This is where the application starts.
 The FastAPI-container will run this script on uvicorn.
-main.py will load routes from scripts in the api folder.
+main.py will load routes from scripts in the /api/app/api folder.
 
 /api/app/api
 This is where the FastAPI routes are defined.
