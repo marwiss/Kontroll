@@ -100,7 +100,7 @@ Suggested improvements:
 - Easier deployment
 - User registration and admin system
 - BCF client registration functionality
-- OData to CYPHER converter
+- OData to Cypher converter
 - Documents API and BCF API integration
 - More complete OpenAPI documentation of routes
 - More complete documentation of pydantic models
@@ -142,7 +142,7 @@ https://www.packtpub.com/product/mastering-oauth-20/9781784395407
 - OAuth 2.0 Cookbook
 https://www.packtpub.com/product/oauth-20-cookbook/9781788295963
 
-### Neo4j and cypher
+### Neo4j and Cypher
 
 - Neo4j Cypher Manual
 https://neo4j.com/docs/cypher-manual/current/introduction/
