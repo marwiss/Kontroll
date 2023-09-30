@@ -87,7 +87,7 @@ To get this code running properly you need:
 
 ## TODO
 
-This intention of this code was just to create a prototype for personal use.
+The intention of the code was just to create a prototype for private testing.
 Improvements are needed to collaborate on this code or to deploy this system in production.
 
 Suggested improvements:
