@@ -93,7 +93,9 @@ To get this code running properly you need:
 
 This code was developed and tested using Solibri Office as BCF client, however:
 Solibri Office can only connect to pre-registered servers. This means that you cannot
-connect to your server using a regular version of Solibri Office.
+connect to your server using a regular version of Solibri Office. If you want to use Solibri,
+then you will have to first kindly ask Solibri, if they want to add your server
+to the list of registered servers.
 
 ## TODO
 
