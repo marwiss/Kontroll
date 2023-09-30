@@ -153,6 +153,12 @@ https://www.packtpub.com/product/oauth-20-cookbook/9781788295963
 - OAuth2 with Password (and hashing), Bearer with JWT tokens
 https://fastapi.tiangolo.com/ur/tutorial/security/oauth2-jwt/
 
+- Authorization Code Flow
+https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow
+
+- What is the OAuth 2.0 Authorization Code Grant Type?
+https://developer.okta.com/blog/2018/04/10/oauth-authorization-code-grant-type
+
 ### Neo4j and Cypher
 
 - Neo4j Cypher Manual
