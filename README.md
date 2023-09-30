@@ -136,6 +136,9 @@ This code was developed and tested on a system using:
 - Building Data Science Applications with FastAPI - Second Edition
   https://www.packtpub.com/product/building-data-science-applications-with-fastapi-second-edition/9781837632749
 
+- Pydantic docs
+https://docs.pydantic.dev/latest/
+
 ### OAuth2
 
 - Mastering OAuth 2.0
@@ -169,12 +172,7 @@ https://github.com/buildingSMART/documents-API
 - Foundation API
 https://github.com/buildingSMART/foundation-API
 
-### Pydantic
-
-- Pydantic docs
-https://docs.pydantic.dev/latest/
-
-### Docker
+### Server
 
 - Docker documentation
 https://docs.docker.com/
@@ -182,12 +180,8 @@ https://docs.docker.com/
 - Docker Compose overview
 https://docs.docker.com/compose/
 
-### Nginx
-
 - NGINX Reverse Proxy documentation
 https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
-
-### Certbot
 
 - Certbot documentation
 https://eff-certbot.readthedocs.io/en/stable/
