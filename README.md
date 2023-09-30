@@ -88,7 +88,7 @@ To get this code running properly you need:
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
 - Docker and Neo4j software
 - a favicon at /favicon.ico
-- to run "bash restart.sh" to restart containers
+- to run "bash restart.sh" to start and restart containers
 - a BCF client, registered with client ID and secret
 
 This code was developed and tested using Solibri Office as BCF client, however:
