@@ -72,8 +72,7 @@ Generated using pipreqs not pip freeze.
 To get this code running properly you need:
 
 - your own linux server, on premise or in the cloud
-- a domain name
-- a TLS-certificate for your domain name
+- a domain name and a TLS-certificate for your domain name
 - a proxy server, nginx was used
 - to set up your proxy server to use HTTPS
 - to use proxy as bridge between docker network and remote
