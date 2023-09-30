@@ -186,6 +186,11 @@ https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 - Certbot documentation
 https://eff-certbot.readthedocs.io/en/stable/
 
+### Jinja2
+
+- Jinja2 Documentation
+https://svn.python.org/projects/external/Jinja-2.1.1/docs/_build/html/index.html
+
 ## License
 
 The GNU Affero General Public License is a free,
