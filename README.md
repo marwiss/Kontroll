@@ -80,7 +80,7 @@ To get this code running properly you need:
 - a proxy server, nginx was used
 - to set up your proxy server to use HTTPS
 - to use proxy as bridge between docker network and remote
-- proxy and uvicorn should access same TLS certificate
+- proxy (outside container) and uvicorn (inside container) should access same TLS certificate
 - to edit your .env file with values specific for your server and API
 - to replace hard coded values in code with  specific values for your server and API
 - to create three secrets and put them in the /secrets folder
