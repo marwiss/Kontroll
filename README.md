@@ -146,6 +146,21 @@ https://github.com/buildingSMART/BCF-API
 - IFC-graph for facilitating building information access and query
 https://www.sciencedirect.com/science/article/pii/S0926580523000389
 
+### Docker
+
+- Docker documentation
+https://docs.docker.com/
+
+### Nginx
+
+- NGINX Revers Proxy documentation
+https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
+
+### Certbot
+
+- Certbot documentation
+https://eff-certbot.readthedocs.io/en/stable/
+
 ## License
 
 The GNU Affero General Public License is a free,
