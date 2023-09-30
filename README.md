@@ -123,7 +123,7 @@ Suggested improvements:
 - BCF event logging
 - Implement also the routes that Solibri does not support
 - Replace hard coded values with .env values
-- Improve security before deployment in production
+- Improve security before any kind of deployment in production
 - Making full use of native IFC (for example allowing BCF API to edit IFC directly using BIM snippets)
 - Integrate BCF API BIM snippets editing with GIT commits
 
