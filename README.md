@@ -194,6 +194,14 @@ https://eff-certbot.readthedocs.io/en/stable/
 - Jinja2 Documentation
 https://svn.python.org/projects/external/Jinja-2.1.1/docs/_build/html/index.html
 
+### IFC
+
+- Native IFC
+https://github.com/brunopostle/ifcmerge/blob/main/docs/whitepaper.rst
+
+- IFC Specifications Database
+https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
+
 ## License
 
 The GNU Affero General Public License is a free,
