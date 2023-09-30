@@ -88,8 +88,6 @@ To get this code running properly you need:
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
 - Docker and Neo4j software
 - a favicon at /favicon.ico
-- BCF event logging
-- Implement also the routes that Solibri does not support
 - to run "bash restart.sh" to restart containers
 - a BCF client, registered with client ID and secret
 
@@ -119,6 +117,8 @@ Suggested improvements:
 - More complete OpenAPI documentation of routes
 - More complete documentation of pydantic models
 - Improvements on IFC-graph
+- BCF event logging
+- Implement also the routes that Solibri does not support
 - Replace hard coded values with .env values
 - Improve security before deployment in production
 - Making full use of native IFC (for example allowing BCF API to edit IFC directly using BIM snippets)
