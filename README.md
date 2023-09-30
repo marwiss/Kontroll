@@ -153,7 +153,7 @@ https://docs.docker.com/
 
 ### Nginx
 
-- NGINX Revers Proxy documentation
+- NGINX Reverse Proxy documentation
 https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 
 ### Certbot
