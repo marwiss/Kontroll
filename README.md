@@ -73,8 +73,32 @@ To get this code running properly you need:
 - to create secrets and put them in the /secrets folder
 - to put apoc-5.7.0-core and extended jars in /neo4j/plugins folder
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
+- a BCF client, registered with client ID and secret
+
+# TODO
+
+Suggested improvements:
+
+- General code structure refactoring
+- Better commenting
+- Testing scripts, unit testing
+- Better error handling
+- More consistent logging
+- Easier deployment
+- User registration and admin system
+- OData to CYPHER converter
+- Documents API and BCF API integration
+- More complete OpenAPI documentation of routes
+- More complete documentation of pydantic models
+- Improvements on IFC-graph
+- Replace hard coded values with .env values
 
 # License
+
+The GNU Affero General Public License is a free,
+copyleft license for software and other kinds of works,
+specifically designed to ensure cooperation with the community
+in the case of network server software.
 
 https://www.gnu.org/licenses/agpl-3.0.en.html
 
