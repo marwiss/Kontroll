@@ -1,14 +1,16 @@
-# What is this
+# Kontroll BCF API server - OpenCDE APIs
+
+## What is this
 
 OpenCDE APIs Foundation API, BCF API, Documents API implemented in python, the FastAPI framework and the Neo4j graph database.
 
-# Background
+## Background
 
 You can read some background information about the project here:
 
 https://martin.wiss.se/data/bcf_ifc_graph.pdf
 
-# Code structure
+## Code structure
 
 /docker-compose.yml
 You bring up the project using this file.
@@ -59,7 +61,7 @@ Jinja2 templates used to generate some webpages necessary for OAuth2 flow and Do
 /api/app/requirements.txt
 Generated using pipreqs not pip freeze.
 
-# Deployment
+## Deployment
 
 To get this code running properly you need:
 
@@ -75,7 +77,7 @@ To get this code running properly you need:
 - to put an ifcopenshell.zip in /api/app/ifcopenshell folder
 - a BCF client, registered with client ID and secret
 
-# TODO
+## TODO
 
 Suggested improvements:
 
@@ -93,7 +95,7 @@ Suggested improvements:
 - Improvements on IFC-graph
 - Replace hard coded values with .env values
 
-# Prototype
+## Prototype
 
 This code was developed and tested on a system using:
 
@@ -102,7 +104,7 @@ This code was developed and tested on a system using:
 - Lets encrypt, certbot
 - Docker 20
 
-# License
+## License
 
 The GNU Affero General Public License is a free,
 copyleft license for software and other kinds of works,
