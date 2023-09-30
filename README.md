@@ -152,6 +152,17 @@ https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/
 - BCF REST API
 https://github.com/buildingSMART/BCF-API
 
+- Documents API
+https://github.com/buildingSMART/documents-API
+
+- Foundation API
+https://github.com/buildingSMART/foundation-API
+
+### Pydantic
+
+- Pydantic docs
+https://docs.pydantic.dev/latest/
+
 ### IFC-graph
 
 - IFC-graph for facilitating building information access and query
