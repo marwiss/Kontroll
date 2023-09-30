@@ -171,15 +171,13 @@ https://github.com/buildingSMART/foundation-API
 - Pydantic docs
 https://docs.pydantic.dev/latest/
 
-### IFC-graph
-
-- IFC-graph for facilitating building information access and query
-https://www.sciencedirect.com/science/article/pii/S0926580523000389
-
 ### Docker
 
 - Docker documentation
 https://docs.docker.com/
+
+- Docker Compose overview
+https://docs.docker.com/compose/
 
 ### Nginx
 
@@ -191,11 +189,6 @@ https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 - Certbot documentation
 https://eff-certbot.readthedocs.io/en/stable/
 
-### Jinja2
-
-- Jinja2 Documentation
-https://svn.python.org/projects/external/Jinja-2.1.1/docs/_build/html/index.html
-
 ### IFC
 
 - Native IFC
@@ -203,6 +196,20 @@ https://github.com/brunopostle/ifcmerge/blob/main/docs/whitepaper.rst
 
 - IFC Specifications Database
 https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
+
+- IFC-graph for facilitating building information access and query
+https://www.sciencedirect.com/science/article/pii/S0926580523000389
+
+### Frontend
+
+- Jinja2 Documentation
+https://svn.python.org/projects/external/Jinja-2.1.1/docs/_build/html/index.html
+
+- Bootstrap
+https://getbootstrap.com/docs/4.1/getting-started/introduction/
+
+- jQuery
+https://api.jquery.com/
 
 ## License
 
