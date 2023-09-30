@@ -125,6 +125,7 @@ Suggested improvements:
 - Replace hard coded values with .env values
 - Improve security before deployment in production
 - Making full use of native IFC (for example allowing BCF API to edit IFC directly using BIM snippets)
+- To integrate BCF API BIM snippets editing with GIT commits
 
 ## Prototype
 
