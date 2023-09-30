@@ -97,6 +97,7 @@ Suggested improvements:
 - More consistent logging
 - Easier deployment
 - User registration and admin system
+- BCF client registration functionality
 - OData to CYPHER converter
 - Documents API and BCF API integration
 - More complete OpenAPI documentation of routes
