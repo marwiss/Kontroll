@@ -100,6 +100,12 @@ or to use this existing BCF API client module for python to build your own clien
 
 https://pypi.org/project/bcf-client/
 
+I do not know of any working BCF API client plugins for Revit or Archicad that allows
+connecting to arbitrary BCF API servers. It seems like most plugins instead were developed to
+only connect to a specific BCF server. I think that is contradictory because BCF is an open standard
+intended to facilitate communication between multiple clients and servers.
+A BCF API client that can connect to multiple arbitrary BCF API servers would be a good thing to develop.
+
 ## TODO
 
 The original intention of the code was just to create a prototype for private testing.
