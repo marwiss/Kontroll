@@ -16,6 +16,11 @@ You can read some background information about the project here:
 
 https://martin.wiss.se/data/bcf_ifc_graph.pdf
 
+This video show how to deploy the Kontroll API server on Ubuntu server
+and how to use it together with Solibri Office as a BCF and Documents API client.
+
+https://www.youtube.com/watch?v=MuFz9WPxbDM
+
 The name of this project is Kontroll BCF API server because it was originally
 developed as a POC prototype to test if BCF API could be used for digital inspection plans
 for building permits (translated as "kontroll-plan" in Swedish language).
