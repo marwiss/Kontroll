@@ -216,7 +216,9 @@ the Dataspatium side:
 2. Glossary and language keys, with the token file copied under the same
    names (items 4 and 5) — Dataspatium 2.34.
 3. Error codes: a stable `code` field in the Foundation `{"message"}` body,
-   translated by the app; no second error format.
+   translated by the app; no second error format. Server side done
+   2026-11-05 (thirteen codes, `docs/client-guide.md` §6); the app translates
+   them in 2.34.
 4. Shared test data: `tests/fixtures/three_walls_gtin.ifc` (three walls with
    `Reuse`/`GTIN` 1–3 and known GlobalIds) becomes the pair's fixture on both
    sides; the seed gets known BCF guids.

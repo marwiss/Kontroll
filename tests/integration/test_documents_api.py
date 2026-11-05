@@ -130,7 +130,7 @@ def test_upload_flow_versions_and_queries(client: TestClient, world: World) -> N
         json={"files": [{"session_file_id": "f1", "size_in_bytes": 2 * 1024**4}]},
         headers=editor.headers,
     )
-    assert too_big.status_code == 400
+    assert too_big.status_code == 413 and too_big.json()["code"] == "upload_too_large"
     unknown_file = client.post(
         instructions_url, json={"files": [{"session_file_id": "nope", "size_in_bytes": 10}]}, headers=editor.headers
     )

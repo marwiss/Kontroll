@@ -159,7 +159,43 @@ and the caller, never bodies or tokens. The JSON administration API is served
 while `OPENCDE_ADMIN_API_ENABLED` is true (the default), independently of the
 HTML administration; the capabilities document (§1) tells you whether it is on.
 
-## 6. Testing against this server
+## 6. Errors
+
+Every failure answers with the Foundation API 1.6 body, `{"message": "..."}`,
+and never with stack traces or echoed input. As an extension, every error the
+server shapes itself also carries a stable `code` that your application can
+act on or translate, while `message` stays an English sentence for people:
+
+```json
+{"message": "This operation needs the 'admin' scope", "code": "insufficient_scope"}
+```
+
+| `code` | Status | When | What a client does |
+|---|---|---|---|
+| `validation_error` | 400 | The body or query failed validation, an OData expression could not be compiled, a value is not in the project's extensions, a `Content-Range` or upload instruction is wrong, a snapshot or bitmap is not PNG or JPEG; `message` names the field | Fix the request |
+| `unauthenticated` | 401 | No bearer token | Sign in |
+| `invalid_token` | 401 | The token is unknown, expired or revoked (`WWW-Authenticate: Bearer error="invalid_token"`) | Refresh, then sign in again |
+| `insufficient_scope` | 403 | The token lacks the scope the route needs, such as `admin` | Authorize again with that scope |
+| `forbidden` | 403 | The user's role in the project does not allow the action (Foundation API 1.5), or the user is not an administrator on the administration API | Show the message |
+| `reauthentication_required` | 403 | A dangerous administration action and the sign-in is older than ten minutes (planned with the administration API) | Authorize again, then repeat the call |
+| `not_found` | 404 | No such resource, a resource outside the user's projects, or a feature that is off (registration, request log, administration API) | Show the message, refresh lists |
+| `conflict` | 409 | A guid that already exists, or a duplicate link | Fetch again |
+| `payload_too_large` | 413 | The request body is over the server's limit, or a BCF binary is over `max_image_bytes`/`max_upload_bytes` | Fix the request |
+| `upload_too_large` | 413 | A chosen file or part is over the upload limit (`max_size_in_bytes` in the upload instructions) | Tell the user the limit |
+| `rate_limited` | 429 | Too many requests from one address; `Retry-After` says when | Wait and retry |
+| `internal_error` | 500 | An unexpected error; `message` is always "Internal server error" | Report with the `X-Request-ID` |
+| `unavailable` | 503 | The graph database cannot be reached | Retry later |
+
+The list is closed: a code you do not know is treated like a missing one, and
+you show `message`. Statuses the framework answers on its own (405, 415) carry
+no code. The OAuth2 token endpoint keeps RFC 6749's own format
+(`{"error": "invalid_grant", "error_description": "..."}`), as the
+specification requires, so act on `error` there (`invalid_request`,
+`invalid_client`, `invalid_grant`, `unauthorized_client`,
+`unsupported_grant_type`, `invalid_scope`). The capabilities document (§1)
+is served by every server that emits codes.
+
+## 7. Testing against this server
 
 [Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
 developed together with this server; its OpenCDE source (sign-in, BCF tables,
