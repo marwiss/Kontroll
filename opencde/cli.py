@@ -27,9 +27,11 @@ app = typer.Typer(no_args_is_help=True, help="Kontroll OpenCDE server.", rich_ma
 user_app = typer.Typer(no_args_is_help=True, help="Manage users and their project roles.")
 project_app = typer.Typer(no_args_is_help=True, help="Manage projects, members and BCF extensions.")
 client_app = typer.Typer(no_args_is_help=True, help="Manage OAuth2 clients.")
+ifcgraph_app = typer.Typer(no_args_is_help=True, help="Inspect and prune the imported IFC models.")
 app.add_typer(user_app, name="user")
 app.add_typer(project_app, name="project")
 app.add_typer(client_app, name="client")
+app.add_typer(ifcgraph_app, name="ifcgraph")
 
 T = TypeVar("T")
 
@@ -517,6 +519,58 @@ def client_rotate_secret(client_id: str) -> None:
             raise _fail(str(exc)) from None
 
     print(f"OK      new client_secret {_run(work)}  (shown once)")
+
+
+@client_app.command("prune")
+def client_prune(
+    all_dynamic: Annotated[
+        bool, typer.Option("--all-dynamic", help="Delete every self-registered client, not only the expired ones.")
+    ] = False,
+) -> None:
+    """Delete self-registered clients unused for OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS, with their tokens.
+    The server does this on its own timer as well; this command does it now."""
+    from opencde.auth.clients import ClientRepository
+
+    async def work(graph, settings):
+        repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
+        return await repo.prune_dynamic(all_dynamic=all_dynamic)
+
+    print(f"OK      deleted {_run(work)} self-registered client(s)")
+
+
+# --------------------------------------------------------------------------- IFC-graph
+
+
+@ifcgraph_app.command("list")
+def ifcgraph_list(project_id: Annotated[str | None, typer.Option("--project")] = None) -> None:
+    """List imported models with their state."""
+    from opencde.ifcgraph.maintenance import list_models
+
+    for model in _run(lambda graph, _settings: list_models(graph, project_id=project_id)):
+        document = model.get("document_id") or model.get("bcf_document_guid") or "-"
+        version = model.get("version_index")
+        moment = model.get("done_at") or model.get("failed_at") or model.get("created_at") or ""
+        print(
+            f"{model['id']}  {model['state']:8} {model.get('file_name', ''):32} project {model['project_id']}  "
+            f"document {document}{f' v{version}' if version is not None else ''}  {moment}"
+        )
+
+
+@ifcgraph_app.command("prune")
+def ifcgraph_prune(
+    project_id: Annotated[str | None, typer.Option("--project")] = None,
+    everything: Annotated[
+        bool, typer.Option("--all", help="Delete every model of the project (needs --project).")
+    ] = False,
+) -> None:
+    """Delete failed models and finished models superseded by a newer version of the same document.
+    Queued and running models and the documents themselves stay."""
+    from opencde.ifcgraph.maintenance import prune_models
+
+    if everything and not project_id:
+        raise _fail("--all needs --project")
+    result = _run(lambda graph, _settings: prune_models(graph, project_id=project_id, everything=everything))
+    print(f"OK      deleted {result['models']} model(s) and {result['entities']} entities")
 
 
 if __name__ == "__main__":

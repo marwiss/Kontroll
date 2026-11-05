@@ -24,6 +24,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Passwords, codes and tokens never appear in logs | OWASP ASVS 7.1 | `test_security_oauth2::test_passwords_and_codes_never_reach_the_logs`, `test_logging` |
 | Argon2id password hashing; policy (length, zxcvbn, no user name) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |
 | Dynamic registration off by default; https or loopback redirects only; public clients (RFC 7591 `token_endpoint_auth_method: "none"`) get no secret and must use PKCE like every client; only the code and refresh grants can be registered | Foundation API 2.2.3, RFC 7591 | `test_oauth2::test_dynamic_registration_when_enabled`, `::test_registration_is_404_when_disabled` |
+| Self-registered clients that issue no token for `dynamic_client_unused_days` are deleted with their tokens (cleaner and `opencde client prune`); manual clients never expire | Data minimisation | `test_maintenance::test_unused_self_registered_clients_expire_and_can_be_pruned`, `test_oauth2::test_dynamic_registration_when_enabled` |
 | Bearer only on the API; HTTP Basic refused | Foundation API 2.2.1 | `test_foundation::test_current_user_requires_a_bearer_token` |
 | Pages: strict CSP, no inline code, no framing, no caching | OWASP ASVS 14.4 | `test_foundation::test_authorize_without_client_shows_an_error_page_and_never_redirects` |
 

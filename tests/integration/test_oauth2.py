@@ -1,13 +1,16 @@
 # This file was generated with the assistance of an AI coding tool.
 """The OAuth2 authorization code flow end to end, against a real database."""
 
+import time
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
+from neo4j import GraphDatabase
 
 from opencde.auth import pkce
 from opencde.settings import Settings
+from opencde.timeutil import later_iso
 from tests.conformance.schemas import validate
 from tests.integration.conftest_accounts import World, build_world
 from tests.integration.helpers import authorize, basic_auth, exchange, sign_in
@@ -243,6 +246,20 @@ def test_dynamic_registration_when_enabled(graph_target, tmp_path, clean_databas
         registered = public.json()
         assert "client_secret" not in registered and registered["token_endpoint_auth_method"] == "none"
         assert registered["redirect_uris"] == [redirect] and isinstance(registered["client_id_issued_at"], int)
+
+        # Self-registered clients expire when unused; a token issuance moves the expiry forward.
+        def expiry(client_id: str) -> str:
+            with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
+                rows, _, _ = driver.execute_query(
+                    "MATCH (c:Client {client_id: $id}) RETURN c.expires_at AS e",
+                    id=client_id,
+                    database_=settings.database_name,
+                )
+                return rows[0]["e"]
+
+        before = expiry(registered["client_id"])
+        assert before > later_iso(29 * 86400), "about 30 days (OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS)"
+        time.sleep(0.01)
         code, _query, verifier = authorize(
             client, client_id=registered["client_id"], redirect_uri=redirect, username="editor", password=world.password
         )
@@ -251,6 +268,7 @@ def test_dynamic_registration_when_enabled(graph_target, tmp_path, clean_databas
             client, code=code, verifier=verifier, client_id=registered["client_id"], redirect_uri=redirect
         )
         assert client.get("/foundation/1.0/current-user", headers=session.headers).json()["id"] == "editor"
+        assert expiry(registered["client_id"]) > before, "the exchange touched the registration"
         for invalid in ({"grant_types": ["implicit"]}, {"token_endpoint_auth_method": "private_key_jwt"}):
             rejected = client.post(
                 "/foundation/oauth2/reg", json={"client_name": "x", "redirect_uris": [redirect], **invalid}

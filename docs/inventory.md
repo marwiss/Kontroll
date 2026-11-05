@@ -35,7 +35,7 @@ project plan. This file is updated with every stage.
 | `GET /foundation/1.0/current-user` | returned internal user fields | keep; `id` and `name` per `user_GET.json` | 2 |
 | Authorization endpoint (sign-in and consent page) | `GET /foundation/oauth2/auth` + `GET .../code` with password in the URL | reshape: `GET` renders the page, `POST` verifies and redirects (302) with `code`, `state`, `iss`; PKCE S256 required | 2 |
 | Token endpoint | `POST /foundation/oauth2/token`, JWT, non-expiring | reshape: opaque hashed tokens, one-time rotating refresh tokens, 201, `Cache-Control: no-store` | 2 |
-| Dynamic client registration (spec 2.2.3) | commented out | new; off by default; `token_endpoint_auth_method: "none"` registers a public client without a secret (RFC 7591 §2), the response carries the RFC 7591 §3.2.1 metadata | 2, 11 |
+| Dynamic client registration (spec 2.2.3) | commented out | new; off by default; `token_endpoint_auth_method: "none"` registers a public client without a secret (RFC 7591 §2), the response carries the RFC 7591 §3.2.1 metadata; registrations unused for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` expire (`opencde client prune` does it at once) | 2, 11 |
 | Token revocation (RFC 7009) | no | new (extension) | 2 |
 | Single hard-coded client from environment variables | yes | reshape: clients in the graph, managed by CLI and admin UI | 2, 6 |
 | Scopes `test`, `user`, `admin`, undocumented `test` required everywhere | yes | reshape: server-defined scopes per route | 2 |
@@ -134,6 +134,7 @@ project plan. This file is updated with every stage.
 | Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | done (owner history kept for the `IfcProject` only) | 9 |
 | Synchronous py2neo `merge` during upload (hours for a normal model) | done: separate worker process with time, memory and entity limits, batched `UNWIND … CREATE`, status on the `IfcModel` node | 9 |
 | `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | done; linked when a viewpoint is created and again for every existing component when a model finishes importing; property set and property configurable; `files_information` shows the `IfcProject` guid | 9, 11 |
+| Housekeeping of imported models | no | new: `opencde ifcgraph list` and `opencde ifcgraph prune` (failed and superseded models, or a whole project); documents and files stay | 11 |
 
 ## 8. Web pages
 

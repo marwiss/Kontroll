@@ -39,6 +39,7 @@ class Client:
     created_at: str
     created_by: str | None
     dynamic: bool
+    expires_at: str | None = None  # self-registered clients only: deleted once unused past this moment
 
     @property
     def is_confidential(self) -> bool:
@@ -57,10 +58,14 @@ def _client(row: dict[str, Any]) -> Client:
         created_at=row["created_at"],
         created_by=row.get("created_by"),
         dynamic=bool(row.get("dynamic", False)),
+        expires_at=row.get("expires_at"),
     )
 
 
-FIELDS = "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, .dynamic}"
+FIELDS = (
+    "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, "
+    ".dynamic, .expires_at}"
+)
 
 
 def validate_redirect_uri(uri: str, *, allow_localhost: bool = False) -> str:
@@ -130,8 +135,13 @@ class ClientRepository:
         created_by: str | None = None,
         dynamic: bool = False,
         client_id: str | None = None,
+        expires_at: str | None = None,
     ) -> tuple[Client, str | None]:
-        """Create a client. Returns the client and, for confidential clients, the secret (shown once)."""
+        """Create a client. Returns the client and, for confidential clients, the secret (shown once).
+
+        ``expires_at`` is set for self-registered clients: the cleaner deletes them once it has passed, and
+        every token issuance moves it forward (:meth:`touch`), so only unused registrations disappear.
+        """
         name = name.strip()
         if not name or len(name) > 200:
             raise ClientError("client name: 1-200 characters")
@@ -145,7 +155,8 @@ class ClientRepository:
             CREATE (c:Client {{
                 client_id: $client_id, name: $name, description: $description, url: $url,
                 redirect_uris: $redirect_uris, is_public: $public, secret_hash: $secret_hash,
-                disabled: false, created_at: $now, created_by: $created_by, dynamic: $dynamic
+                disabled: false, created_at: $now, created_by: $created_by, dynamic: $dynamic,
+                expires_at: $expires_at
             }})
             RETURN {FIELDS} AS client
             """,
@@ -159,6 +170,7 @@ class ClientRepository:
             now=now_iso(),
             created_by=created_by,
             dynamic=dynamic,
+            expires_at=expires_at if dynamic else None,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
             raise ClientError("client was not created")
@@ -247,3 +259,22 @@ class ClientRepository:
             return counters.nodes_deleted
 
         return await self.graph.write(work) > 0
+
+    async def touch(self, client_id: str, *, expires_at: str) -> None:
+        """A self-registered client was used: it may live until ``expires_at`` again. Manual clients are untouched."""
+        await self.graph.run(
+            "MATCH (c:Client {client_id: $id}) WHERE c.dynamic = true SET c.expires_at = $expires_at",
+            id=client_id,
+            expires_at=expires_at,
+        )
+
+    async def prune_dynamic(self, *, all_dynamic: bool = False) -> int:
+        """Delete expired self-registered clients (or all of them) with their codes and tokens. Returns the count."""
+        rows = await self.graph.run(
+            "MATCH (c:Client) WHERE c.dynamic = true AND ($all OR c.expires_at < $now) RETURN c.client_id AS id",
+            all=all_dynamic,
+            now=now_iso(),
+        )
+        for row in rows:
+            await self.delete(row["id"])
+        return len(rows)

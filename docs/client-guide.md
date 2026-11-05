@@ -69,6 +69,11 @@ metadata. A confidential client (the default `token_endpoint_auth_method`,
 `client_secret_expires_at: 0`. Redirect URIs follow the rules above, and only
 the authorization code and refresh token grants exist.
 
+Register once per installation and store the `client_id`: a self-registered
+client that issues no token for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` (30 by
+default) is deleted together with its tokens. When the token endpoint then
+answers `invalid_client`, register again.
+
 ## 3. BCF API
 
 - Everything under `/bcf/3.0/projects/{project_id}` is scoped to a project
