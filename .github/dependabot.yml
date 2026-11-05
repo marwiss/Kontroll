@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Wait before adopting a new release: freshly published versions are where
+    # compromised packages show up first (supply-chain hygiene, zizmor audit).
+    cooldown:
+      default-days: 7
     groups:
       python-minor-and-patch:
         update-types: ["minor", "patch"]
@@ -11,7 +15,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
