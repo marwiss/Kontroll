@@ -1,49 +1,66 @@
-<img src="../../opencde/ui/static/icon.svg" alt="" width="72" height="72" align="left">
+[Svenska](../sv/README.md) · [Dansk](../da/README.md) · [Norsk bokmål](../nb/README.md) · [Norsk nynorsk](../nn/README.md) · **Suomi** · [Íslenska](../is/README.md) · [English](../../README.md)
+
+<img src="../../opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
 # Kontroll OpenCDE-palvelin
 
-*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · [Norsk bokmål](../nb/README.md) · [Norsk nynorsk](../nn/README.md) · Suomi · [Íslenska](../is/README.md)*
+Kontroll on palvelin buildingSMARTin **OpenCDE-rajapinnoille** (Foundation
+API 1.0, BCF API 3.0 ja Documents API 1.0). Se on rakennettu
+graafitietokannan päälle, siinä on selainpohjainen hallinta ja valinnainen
+IFC-graafimoduuli, joka yhdistää BCF-komponentit rakennusosiin, joihin ne
+viittaavat. Se sai alkunsa vuoden 2023 tutkimusprototyypistä Ruotsin
+rakennuslupien digitaalisia tarkastussuunnitelmia varten ja kirjoitettiin
+uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
 
-Palvelin buildingSMARTin **OpenCDE-rajapinnoille**, rakennettu graafitietokannan päälle:
+![Kontroll-palvelimen hallinnan yleiskuva: käyttäjien, projektien, asiakkaiden, asioiden ja asiakirjojen määrät, tietokannan tila ja viimeisimmät tapahtumalokin merkinnät](../images/admin-overview.png)
 
-- **Foundation API 1.0**: palvelujen löytäminen, OAuth2 authorization code ja PKCE, nykyinen käyttäjä
-- **BCF API 3.0**: projektit, extensions-arvot, asiat, kommentit, viewpoint-näkymät, tiedostot, asiakirjaviittaukset, asiakirjat, tapahtumat
-- **Documents API 1.0**: asiakirjojen valinta ja lataus, lähetys osissa, versiokyselyt
+**Sisältö**
 
-sekä selainkäyttöliittymä käyttäjien, OAuth2-asiakkaiden ja projektien
-hallintaan ja valinnainen IFC-graafimoduuli, joka muuttaa lähetetyt
-IFC-mallit graafidataksi, jotta BCF-komponentit voidaan yhdistää
-rakennusosiin, joihin ne viittaavat.
+- [Lataa ja aloita](#lataa-ja-aloita)
+- [Vaatimukset](#vaatimukset)
+- [Mitä voit tehdä](#mitä-voit-tehdä)
+- [Kontroll ja Dataspatium](#kontroll-ja-dataspatium)
+- [Lue lisää](#lue-lisää)
+- [Rajoitukset lyhyesti](#rajoitukset-lyhyesti)
+- [Virheet ja ehdotukset](#virheet-ja-ehdotukset)
+- [Kehitys](#kehitys)
+- [Lisenssi](#lisenssi)
 
-Projekti sai alkunsa vuoden 2023 tutkimusprototyypistä, jolla kokeiltiin,
-voivatko BCF API ja IFC-graafi kantaa Ruotsin rakennuslupiin vaadittavat
-digitaaliset tarkastussuunnitelmat. Tämä repo on prototyypin uudelleenkirjoitus
-alusta alkaen samoilla toiminnoilla, nykyaikaisilla riippuvuuksilla ja
-tietoturva ensimmäisenä vaatimuksena. Tila: **suunnitelman kaikki 11 vaihetta
-on toteutettu** (kolme rajapintaa, hallintakäyttöliittymä, asiakaskirjasto,
-käyttöönotto, IFC-graafi, hyväksymistarkistuslista ja tietoturvan kovennus);
-osallistuminen IfcOpenShelliin odottaa ylläpitäjien vastausta (luonnokset
-kansiossa [docs/upstream/](../upstream/)). Katso
-[docs/inventory.md](../inventory.md): mitä prototyyppi teki ja missä kukin
-toiminto on uudessa koodissa.
+## Lataa ja aloita
 
-## Pika-aloitus (paikallisesti, Docker)
+### Pika-aloitus (paikallisesti, Docker)
 
-Vaatimukset: Docker (Desktop Windowsissa/macOS:ssä, Engine Linuxissa) ja
-[uv](https://docs.astral.sh/uv/).
+1. **Lataa.** Kloonaa repo tai hae julkaistu image
+   `ghcr.io/marwiss/opencdeserver` (useita arkkitehtuureja, skannattu ja
+   SBOM:n kanssa jokaisessa julkaisussa):
 
-```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
-cp .env.example .env            # aseta OPENCDE_GRAPH_PASSWORD (vähintään 16 merkkiä)
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-```
+   ```sh
+   git clone https://github.com/marwiss/Kontroll.git
+   cd Kontroll
+   ```
 
-Avaa sitten <http://localhost:8000/docs> (vuorovaikutteinen
-API-dokumentaatio), <http://localhost:8000/readyz> (valmiustarkistus) ja
-<http://localhost:7484> (Neo4j Browser; Bolt osoitteessa `localhost:7697`;
-kehitysylikerros välttää Neo4j:n oletusportit, jotka toinen Neo4j samalla
-koneella usein varaa). `docker compose logs -f api` näyttää palvelimen lokin.
+2. **Määritä.** Kopioi `.env.example` tiedostoksi `.env` ja aseta
+   `OPENCDE_GRAPH_PASSWORD` (vähintään 16 merkkiä). Jokainen asetus selitetään
+   tiedostossa [.env.example](../../.env.example).
+3. **Käynnistä.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+   käynnistää palvelimen osoitteessa <http://localhost:8000> ja
+   Neo4j-tietokannan. `docker compose logs -f api` näyttää palvelimen lokin.
+4. **Katsele ympärillesi.** <http://localhost:8000/docs> on vuorovaikutteinen
+   API-dokumentaatio, <http://localhost:8000/readyz> valmiustarkistus ja
+   <http://localhost:7484> Neo4j Browser (Bolt osoitteessa `localhost:7697`;
+   kehitysylikerros välttää Neo4j:n oletusportit, jotka toinen Neo4j samalla
+   koneella usein varaa).
+5. **Lisää demodata ja kirjaudu.**
+   `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
+   luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran.
+   Kirjaudu osoitteessa <http://localhost:8000/signin> käyttäjänä `admin` ja
+   avaa `/admin`.
+6. **Yhdistä asiakasohjelma.** Rekisteröi sovelluksesi kohdassa *Clients*
+   (tai anna sen rekisteröityä itse, kun
+   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se osoitteeseen
+   `http://localhost:8000`; [Dataspatium](#kontroll-ja-dataspatium) ja
+   Python-kirjasto kansiossa [client/](../../client/) ovat valmiita
+   asiakasohjelmia.
 
 Ilman Dockeria itse palvelimelle (tietokanta tarvitaan edelleen):
 
@@ -53,11 +70,9 @@ uv run opencde doctor            # tarkistaa määritykset ja tietokannan
 uv run opencde serve             # http://127.0.0.1:8000
 ```
 
-## Käyttöönotto
+### Käyttöönotto
 
-Yksi compose-tiedosto ja yksi ylikerros per skenaario sekä julkaistu
-usean arkkitehtuurin image (`ghcr.io/marwiss/opencdeserver`, skannattu ja
-SBOM:n kanssa jokaisessa julkaisussa):
+Yksi compose-tiedosto ja yksi ylikerros per skenaario:
 
 | Skenaario | Ohje |
 |---|---|
@@ -72,80 +87,158 @@ SBOM:n kanssa jokaisessa julkaisussa):
 tuotannon `.env`-tiedoston uusilla salaisuuksilla; `opencde doctor`
 tarkistaa tuloksen.
 
-## Määritykset
+### Määritykset
 
-Kaikki luetaan ympäristömuuttujista etuliitteellä `OPENCDE_`, `.env`-
-tiedostosta tai Docker-salaisuuksista polusta `/run/secrets/opencde_<nimi>`.
-Kommentoitu luettelo on tiedostossa [.env.example](../../.env.example).
-Oletusarvot ovat turvallisia: tuotanto ei käynnisty ilman julkista
-`https`-osoitetta ja tietokannan salasanaa.
+Kaikki luetaan ympäristömuuttujista etuliitteellä `OPENCDE_`,
+`.env`-tiedostosta tai Docker-salaisuuksista polusta
+`/run/secrets/opencde_<nimi>`. Kommentoitu luettelo on tiedostossa
+[.env.example](../../.env.example). Oletusarvot ovat turvallisia: tuotanto ei
+käynnisty ilman julkista `https`-osoitetta ja tietokannan salasanaa, eikä
+mikään ole auki ennen kuin se on määritetty.
 
-## Dokumentaatio
+## Vaatimukset
 
-Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
-(bokmål ja nynorsk), suomeksi ja islanniksi ovat suunnitelmissa.
+- Windows, macOS tai Linux ja Docker (Desktop Windowsissa/macOS:ssä, Engine
+  Linuxissa), tai Python 3.11 tai uudempi, [uv](https://docs.astral.sh/uv/) ja
+  oma Neo4j 5.26- tai Memgraph 3.14 -tietokanta.
+- Noin 1 Gt muistia tietokantakontille (`NEO4J_HEAP` ja `NEO4J_PAGECACHE`
+  tiedostossa `.env`), enemmän IFC-graafimoduulin kanssa.
+- Paikallisesti: portti 8000 palvelimelle ja 7484/7697 tietokannalle, kaikki
+  sidottuina osoitteeseen `127.0.0.1`. Tuotannossa: portit 80 ja 443
+  tavoitettavissa internetistä ja DNS-nimi palvelimelle.
+- Asiakasohjelmat tarvitsevat tuotannossa `https`-osoitteen; paikallisesti
+  `http://localhost` hyväksytään redirect-URI:ksi asetuksella
+  `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
-- [docs/inventory.md](../inventory.md): vuoden 2023 prototyypin
-  toimintoluettelo ja tilanne uudelleenkirjoituksessa sekä huomioita
-  spesifikaatioiden erikoisuuksista
-- [docs/client-guide.md](../client-guide.md) ja [docs/examples/](../examples/):
-  miten asiakasohjelma rakennetaan; ajettavia esimerkkejä Python-kirjastolla kansiossa [client/](../../client/)
-- [docs/flows/](../flows/): OAuth2- ja Documents API -kulkujen sekvenssikaaviot
-- [docs/graph-schema.md](../graph-schema.md): graafimalli
-- [docs/ifcgraph.md](../ifcgraph.md): valinnainen IFC-graafimoduuli ja esimerkkejä Cypher-kyselyistä
-- [docs/ui-styleguide.md](../ui-styleguide.md): palvelimen sivujen säännöt
-- [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
-  tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium)
-- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
-  Kontroll ja Dataspatium jakavat ja mitä muuta sovitetaan yhteen, omistajan päätöksin
-- [docs/adr/](../adr/): arkkitehtuuripäätökset (graafitietokanta, läpinäkymättömät
-  tokenit, siirrettävä Cypher, kehyksetön selainkäyttöliittymä, repostrategia)
-- [docs/security/](../security/): uhkamalli, testeihin kytketyt kontrollit,
-  OWASP ASVS tason 2 tarkistuslista ja skannerien ajaminen
-- [docs/upstream/](../upstream/): luonnokset IfcOpenShellin issueksi ja pull
-  requestiksi (ei lähetetty)
-- [spec/SOURCES.md](../../spec/SOURCES.md): tarkat spesifikaatioversiot,
-  joita vastaan palvelin testataan
+## Mitä voit tehdä
 
-## Hallinta
-
-Kirjaudu osoitteessa `/signin` järjestelmänvalvojan tilillä ja avaa `/admin`
-hallitaksesi käyttäjiä ja heidän projektiroolejaan, projekteja ja niiden
-BCF-extensions-arvoja, OAuth2-asiakkaita, istuntoja, tapahtumalokia,
-valinnaista pyyntölokia ja palvelimen kuntotarkistuksia. Jokaisella
-käyttäjällä on `/account` omaa salasanaa, omia sovelluksia ja omia istuntoja
-varten. Komentorivi (`uv run opencde --help`) tekee saman terminaalista, ja
-hallinta-asiakkaat, joilla on `admin`-oikeus (scope), voivat lukea pyyntölokin
-osoitteesta `/admin/api/requests`.
+- **Foundation API 1.0**: palvelujen löytäminen, OAuth2 authorization code ja
+  PKCE jokaiselle asiakkaalle, nykyinen käyttäjä, tokenien peruutus ja
+  dynaaminen asiakasrekisteröinti julkisine asiakkaineen (oletuksena pois
+  päältä).
+- **BCF API 3.0**: projektit, extensions-arvot, asiat OData-kyselyineen,
+  kommentit, viewpoint-näkymät kuvakaappauksineen, bittikarttoineen ja
+  komponentteineen, tiedostot, asiakirjaviittaukset, asiakirjat ja
+  tapahtumalokit, kaikki validoituina buildingSMARTin skeemoja vasten.
+- **Documents API 1.0**: asiakirjojen valinta ja lataus, lähetys osissa
+  palvelimen metatieto- ja valintasivujen avulla, versiokyselyt ETag-tunnistein.
+- **Hallinta** selaimessa: kirjaudu osoitteessa `/signin` järjestelmänvalvojan
+  tilillä ja avaa `/admin` hallitaksesi käyttäjiä ja heidän projektiroolejaan,
+  projekteja ja niiden BCF-extensions-arvoja, OAuth2-asiakkaita, istuntoja,
+  tapahtumalokia, valinnaista pyyntölokia ja palvelimen kuntotarkistuksia.
+  Jokaisella käyttäjällä on `/account` omaa salasanaa, omia sovelluksia ja
+  omia istuntoja varten. Komentorivi (`uv run opencde --help`) tekee saman
+  terminaalista.
+- **Spesifikaatioiden ulkopuoliset laajennukset**, jokainen sellaiseksi
+  merkittynä: kyvykkyysasiakirja osoitteessa `/.well-known/kontroll`, joka
+  kertoo asiakkaalle, mitkä laajennukset ovat päällä, pysyvä `code`
+  jokaisessa virhevastauksessa, pyyntöloki asiakasohjelmien vianetsintään
+  (`/admin/requests`, `GET /admin/api/requests` `admin`-oikeudella) ja
+  IFC-graafimoduuli, joka muuttaa lähetetyt IFC-mallit BCF-komponentteihin
+  yhdistetyksi graafidataksi.
+- **Asiakaskirjasto** Pythonille ([client/](../../client/), LGPL) ajettavine
+  esimerkkeineen sekä Dockerfile, compose-ylikerrokset ja julkaistu image
+  jokaista käyttöönottoskenaariota varten.
+- **Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
+  rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-graafi,
+  hyväksymistarkistuslista ja tietoturvan kovennus); osallistuminen
+  IfcOpenShelliin odottaa ylläpitäjien vastausta (luonnokset kansiossa
+  [docs/upstream/](../upstream/)). [docs/inventory.md](../inventory.md)
+  kertoo, mitä vuoden 2023 prototyyppi teki ja missä kukin toiminto on
+  uudessa koodissa.
 
 ## Kontroll ja Dataspatium
 
 Kontroll (palvelin) ja [Dataspatium](https://github.com/marwiss/Dataspatium)
 (kokonaan selaimessa toimiva datasovellus) on kehitetty toimimaan yhdessä
-palvelimena ja asiakkaana. Dataspatium lisää Kontroll-palvelimen lähteeksi:
-sovellus löytää rajapinnat osoitteesta `/foundation/versions`, kirjautuu
-OAuth2 authorization code -kululla ja PKCE:llä ja rekisteröi itsensä
-julkiseksi asiakkaaksi, kun itserekisteröinti on päällä, luettelee projektin
-mallit ja asiakirjat, lukee ja kirjoittaa BCF-asioita kommentteineen ja
-3D-näkymästään otettuine viewpoint-näkymineen, lähettää datamäärät, tiedostot
-ja työtilapaketit Documents API:n kautta, kyselee IFC-graafia Cypherillä
-Boltin yli, kun operaattori julkaisee sen, ja lähettää jokaisessa kutsussa
+palvelimena ja asiakkaana, ja sama julkaisunumero molemmissa tarkoittaa, että
+ne toimivat yhdessä: Dataspatium 2.0.0 toimii Kontroll 2.0.0:n kanssa.
+Dataspatium lisää Kontroll-palvelimen lähteeksi: sovellus löytää rajapinnat
+osoitteesta `/foundation/versions`, kirjautuu OAuth2 authorization code
+-kululla ja PKCE:llä ja rekisteröi itsensä julkiseksi asiakkaaksi, kun
+dynaaminen rekisteröinti on päällä, luettelee projektin mallit ja asiakirjat,
+lukee ja kirjoittaa BCF-asioita kommentteineen ja 3D-näkymästään otettuine
+viewpoint-näkymineen, lähettää datamäärät, tiedostot ja työtilapaketit
+Documents API:n kautta, kyselee IFC-graafia Cypherillä Boltin yli, kun
+operaattori julkaisee sen, ja lähettää jokaisessa kutsussa
 `X-Request-ID`-otsakkeen, jotta pyyntöloki täällä ja sovelluksen loki
 näyttävät saman keskustelun. Sovellus lukee palvelimen kyvykkyysasiakirjan
-(`/.well-known/kontroll`) nähdäkseen, mitkä laajennukset ovat päällä, ja
-toimii palvelimen virhevastauksiinsa lisäämien pysyvien virhekoodien mukaan.
-Graafikyselyjä, hallintarajapintaa, kyvykkyysasiakirjaa ja virhekoodeja
-lukuun ottamatta, jotka ovat spesifikaatioiden ulkopuolisia laajennuksia,
-kaikki, mitä Dataspatium tekee palvelinta vastaan, kulkee kolmen
-OpenCDE-rajapinnan kautta, joten muutkin OpenCDE-asiakkaat toimivat, ja
-Kontroll palvelee mitä tahansa OpenCDE-asiakasta. Kaksi tuotetta asennetaan
-erikseen: tämä repo ei niputa Dataspatiumia mukaansa (lisenssit eroavat, AGPL
-täällä ja PolyForm Strict siellä), ja Dataspatiumin README kertoo, miten
-sovellus ladataan. Asiakaspuoli kuvataan Dataspatiumin README-tiedostossa ja
-sen dokumentaatiossa (`docs/kallor.md`, `docs/cad-bim.md`); parin
-hyväksymisajot ovat täällä tiedostossa [docs/acceptance.md](../acceptance.md),
-ja se, mitä kaksi projektia sovittavat yhteen, on tiedostossa
+nähdäkseen, mitkä laajennukset ovat päällä, ja toimii palvelimen
+virhevastauksiin lisäämien virhekoodien mukaan.
+
+Merkittyjä laajennuksia lukuun ottamatta kaikki, mitä Dataspatium tekee
+palvelinta vastaan, kulkee kolmen OpenCDE-rajapinnan kautta, joten muutkin
+OpenCDE-asiakkaat toimivat, ja Kontroll palvelee mitä tahansa
+OpenCDE-asiakasta. Kaksi tuotetta asennetaan erikseen: tämä repo ei niputa
+Dataspatiumia mukaansa (lisenssit eroavat, AGPL täällä ja PolyForm Strict
+siellä), ja Dataspatiumin README kertoo, miten sovellus ladataan.
+Asiakaspuoli kuvataan Dataspatiumin README-tiedostossa ja sen
+dokumentaatiossa; parin hyväksymisajot ovat täällä tiedostossa
+[docs/acceptance.md](../acceptance.md), ja se, mitä kaksi projektia
+sovittavat yhteen, on tiedostossa
 [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
+
+## Lue lisää
+
+- [docs/client-guide.md](../client-guide.md) ja [docs/examples/](../examples/):
+  miten asiakasohjelma rakennetaan, kyvykkyysasiakirja, virhekoodit ja
+  ajettavia esimerkkejä Python-kirjastolla kansiossa [client/](../../client/).
+- [docs/flows/](../flows/): OAuth2- ja Documents API -kulkujen sekvenssikaaviot.
+- [docs/graph-schema.md](../graph-schema.md): graafimalli.
+- [docs/ifcgraph.md](../ifcgraph.md): valinnainen IFC-graafimoduuli ja esimerkkejä Cypher-kyselyistä.
+- [docs/ui-styleguide.md](../ui-styleguide.md): palvelimen sivujen ja tunnuksen säännöt.
+- [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
+  tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
+- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
+  Kontroll ja Dataspatium jakavat, mitä muuta sovitetaan yhteen ja omistajan päätökset.
+- [docs/inventory.md](../inventory.md): vuoden 2023 prototyypin
+  toimintoluettelo ja tilanne uudelleenkirjoituksessa sekä huomioita
+  spesifikaatioiden erikoisuuksista.
+- [docs/adr/](../adr/): arkkitehtuuripäätökset (graafitietokanta, läpinäkymättömät
+  tokenit, siirrettävä Cypher, kehyksetön selainkäyttöliittymä, repostrategia).
+- [docs/security/](../security/): uhkamalli, testeihin kytketyt kontrollit,
+  OWASP ASVS tason 2 tarkistuslista ja skannerien ajaminen.
+- [docs/upstream/](../upstream/): luonnokset IfcOpenShellin issueksi ja pull
+  requestiksi (ei lähetetty).
+- [spec/SOURCES.md](../../spec/SOURCES.md): tarkat spesifikaatioversiot,
+  joita vastaan palvelin testataan.
+
+Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
+(bokmål ja nynorsk), suomeksi ja islanniksi ovat suunnitelmissa.
+
+## Rajoitukset lyhyesti
+
+- Palvelin toteuttaa BCF API 3.0:n, ei 2.1:tä; vanhemmille asiakkaille on vain
+  kolme vanhaa löytämisaliasta polun `/bcf/` alla.
+- Projektin vienti BCFzip-tiedostoksi jää asiakasohjelmille; palvelin
+  tallentaa asiat, kommentit ja viewpoint-näkymät rajapinnan määrittelemässä
+  muodossa.
+- Neo4j:n ja Memgraphin community-versioissa ei ole vain lukuun oikeutettuja
+  tietokantakäyttäjiä, joten julkaistu Bolt-portti antaa täydet oikeudet
+  salasanan haltijalle. Portti pysyy kiinni, ellei järjestelmänvalvoja julkaise
+  sitä tarkoituksella; sen sijaan on suunnitteilla vain lukeva kyselyrajapinta.
+- IFC-graafin tuonti ajetaan erillisessä prosessissa muisti- ja aikarajoin
+  (`OPENCDE_IFCGRAPH_*`); hyvin suuret mallit hylätään sen sijaan, että ne
+  jäisivät puoliksi tuoduiksi.
+- Selainsivut palvelevat järjestelmänvalvojia sekä OAuth2- ja Documents API
+  -kulkuja; loppukäyttäjät työskentelevät asiakasohjelmassa, kuten
+  Dataspatiumissa tai Bonsaissa.
+- Sivut ovat toistaiseksi englanniksi; tämän README-tiedoston seitsemän kielen
+  kielikerros rakennetaan yhdessä Dataspatiumin kanssa.
+- Ulkoista auditointia ei ole vielä tehty. Tiedostossa
+  [docs/security/pentest-howto.md](../security/pentest-howto.md) kuvatut
+  OAuch- ja testssl-ajot ovat operaattorin askeleet ennen tuotantokäyttöönottoa.
+
+## Virheet ja ehdotukset
+
+Ilmoita virheet ja toiveet *Issues*-kohdassa täällä GitHubissa. Kerro, mitä
+palvelinversiota käytät (`version` osoitteessa `/.well-known/kontroll` tai
+`/healthz`), mitä asiakasohjelmaa käytit ja epäonnistuneen kutsun
+`X-Request-ID`; pyyntöloki ja asiakasohjelman loki jakavat sen. Älä liitä
+henkilötietoja tai salaisuuksia. Se, miten muutokset otetaan vastaan, kerrotaan
+tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md). Tietoturvahaavoittuvuudesta
+ilmoitetaan tiedoston [SECURITY.md](../../SECURITY.md) mukaisesti, ei
+issuena.
 
 ## Kehitys
 
@@ -164,12 +257,11 @@ tyyli noudattaa. README on englanniksi, ruotsiksi, tanskaksi, norjaksi
 (bokmål ja nynorsk), suomeksi ja islanniksi (`docs/<kieli>/README.md`, sama
 rakenne kuin Dataspatiumissa); dokumentaation ja selainkäyttöliittymän on
 tarkoitus olla saatavilla samoilla kielillä, englanti aina yhtenä
-vaihtoehtona, ja yhteiset termit noudattavat Dataspatiumin sanastoa.
-
-## Tietoturva
-
-Katso [SECURITY.md](../../SECURITY.md): miten haavoittuvuudesta ilmoitetaan ja
-mitä projekti tekee pysyäkseen turvallisena.
+vaihtoehtona, ja yhteiset termit noudattavat Dataspatiumin sanastoa. Jokainen
+push ajaa lintauksen, tyyppitarkistuksen, testisarjat kolmella
+Python-versiolla, selaintestit axe-corella ja staattiset tietoturvatarkistukset;
+yölliset ajot suorittavat OWASP ZAP:n, Schemathesisin ja Trivyn. Katso
+[CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Lisenssi
 
@@ -178,4 +270,6 @@ uudemmalla ([LICENSE](../../LICENSE)): se on palvelinohjelmisto, ja AGPL:n
 verkkolauseke pitää hostattujen asennusten parannukset avoimina.
 Asiakaskirjasto kansiossa [client/](../../client/) on LGPL-3.0-or-later.
 Spesifikaatiotiedostot kansiossa [spec/](../../spec/) ovat © buildingSMART
-International, ja niitä jaetaan muuttamattomina testausta varten.
+International, ja niitä jaetaan muuttamattomina testausta varten. Katso
+[SECURITY.md](../../SECURITY.md): miten haavoittuvuudesta ilmoitetaan ja mitä
+projekti tekee pysyäkseen turvallisena.
