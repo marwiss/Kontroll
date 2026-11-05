@@ -31,6 +31,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["admin_api"] == {"enabled": True, "version": 1, "url": "/admin/api", "scope": "admin"}
     assert extensions["ifcgraph"] == {"enabled": False, "bolt": None}
     assert extensions["graph_query"] == {"enabled": False}
+    assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0
     assert body["links"] == {"dataspatium": None}
     secret_like = ("test-password", "test-secret-key", "bolt://127.0.0.1:9", "secret", "password")
@@ -45,13 +46,32 @@ def test_capabilities_reflect_the_settings_and_the_admin_api_can_be_off(tmp_path
         dataspatium_url="https://app.example/",
         graph_public_bolt_url="bolt://cde.example.org:7687",
         admin_api_enabled=False,
+        graph_query_enabled=True,
     )
     with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
         body = client.get("/.well-known/kontroll").json()
         assert body["extensions"]["request_log"]["enabled"] is True
         assert body["extensions"]["dynamic_client_registration"]["enabled"] is True
         assert body["extensions"]["admin_api"]["enabled"] is False
+        assert body["extensions"]["graph_query"] == {"enabled": False}, "the graph query needs the admin API"
         assert body["extensions"]["ifcgraph"]["bolt"] == "bolt://cde.example.org:7687"
         assert body["links"]["dataspatium"] == "https://app.example/"
         assert client.get("/admin/api/requests").status_code == 404, "the API is not mounted"
+        assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404
         assert client.get("/admin/requests", follow_redirects=False).status_code == 302, "the page still is"
+
+
+def test_the_graph_query_is_announced_with_its_limits_when_on(tmp_path: Path) -> None:
+    settings = make_settings(
+        tmp_path, graph_query_enabled=True, graph_query_max_rows=50, graph_query_timeout_seconds=2.5
+    )
+    with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+        body = client.get("/.well-known/kontroll").json()
+        assert body["extensions"]["graph_query"] == {
+            "enabled": True,
+            "url": "/admin/api/graph/query",
+            "max_rows": 50,
+            "timeout_seconds": 2.5,
+        }
+        refused = client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"})
+        assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"

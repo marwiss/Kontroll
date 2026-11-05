@@ -5,9 +5,11 @@ sits on the private compose network and only the server talks to it. Some
 clients want to query the IFC graph directly with Cypher over Bolt, as
 Dataspatium's graph view does against the development stack. This page is how
 an administrator publishes the port on purpose, what it costs, and how to
-close it again. The planned alternative, a read-only query endpoint in the
-server that keeps the database private, is coordination item 10 in
-[dataspatium-coordination.md](../dataspatium-coordination.md).
+close it again. The alternative that keeps the database private is the
+server's read-only graph query for administrators,
+`POST /admin/api/graph/query` behind `OPENCDE_GRAPH_QUERY_ENABLED`
+([client-guide.md §7](../client-guide.md)); publish the port only when a
+client needs Bolt itself.
 
 ## What an open port means
 

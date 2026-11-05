@@ -80,6 +80,21 @@ read-only Cypher endpoint under the administration API, limited to the
 caller's projects, with the `graph` scope, a statement allow-list and a time
 limit. The second keeps the "every query starts at the user node" rule and
 needs no open database port. Decision for the owner (item A below).
+**Status: both exist.** The Bolt overlay (`compose.bolt.yaml`) for operators
+who publish the port on purpose, and `POST /admin/api/graph/query`
+(`OPENCDE_GRAPH_QUERY_ENABLED`, off by default) for administrators holding
+the `admin` scope: one reading statement in a read transaction, answered as
+`{columns, rows, truncated}` with nodes `{identity, labels, properties}`,
+relationships `{identity, type, start, end, properties}` and paths `{nodes,
+relationships, length}`, within `max_rows` and `timeout_seconds` that the
+capabilities document announces (`extensions.graph_query`). It differs from
+the sketch above in two agreed points: it is for administrators (the
+Administration tab's "Graph query" card) rather than per-project with a
+`graph` scope, so the "starts at the user node" rule is replaced by the
+administrator fences (writing clauses and non-schema procedures refused,
+protected properties refused and kept out of answers, every call audited);
+and the answer is tabular, Dataspatium builds graphs from tables itself.
+`docs/client-guide.md` §7.
 
 ### 4. One language layer, one glossary (K + D, medium)
 
@@ -260,11 +275,12 @@ the Dataspatium side:
 7. `software_id`/`software_version` at registration (item 2) — Dataspatium
    2.33 sends them.
 8. A joint quick start (item 8).
-9. The administration API (item 12) — Dataspatium 2.35. Read endpoints done
-   2026-11-05 (`docs/client-guide.md` §7) together with `auth_time` on token
-   families, `last_sign_in_at`, `last_used_at` and the request id on audit
-   events; the write endpoints follow.
-10. The graph query endpoint (item 3) after decision A.
+9. The administration API (item 12) — Dataspatium 2.35. Read and write
+   endpoints done 2026-11-05 in the shapes of Dataspatium's resource list
+   (`docs/client-guide.md` §7) together with `auth_time` on token families,
+   `last_sign_in_at`, `last_used_at` and the request id on audit events.
+10. The graph query endpoint (item 3) after decision A. Done 2026-11-05
+    (`POST /admin/api/graph/query`, off by default; item 3 has the shape).
 11. A shared security and personal-data page: what the app keeps in the
     browser, what the server stores and for how long, one half each, cross-linked.
 12. `CONTRIBUTING.md` in Kontroll and the licence terms of the shared pieces
@@ -289,7 +305,8 @@ All four were taken on 2026-11-05.
   settings page shows it, and production refuses a published address without
   TLS. The community editions of Neo4j and Memgraph have no read-only
   database users, so an open port gives full access to whoever holds the
-  database password; the deployment guide says so.
+  database password; the deployment guide says so. Both parts are
+  implemented (item 3 above has the endpoint's shape and fences).
 - **B. Licences and bundling**: Kontroll is AGPL-3.0-or-later, Dataspatium is
   PolyForm Strict. Nothing stops them from working together over the network,
   but code and assets cannot move between the repositories, and Kontroll's

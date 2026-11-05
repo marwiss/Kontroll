@@ -14,6 +14,13 @@ a client can see; internal changes are in the commit history.
   raw values under `raw`, `PUT` beside `PATCH`, `POST …/reset-password`,
   `POST …/rotate-secret`, and `initial_password` in the answer to a created
   user without a given password.
+- A read-only graph query for administrators, off by default
+  (`OPENCDE_GRAPH_QUERY_ENABLED`): `POST /admin/api/graph/query` with
+  `{cypher, params}` answers `{columns, rows, truncated}`, nodes,
+  relationships and paths as JSON objects, within `max_rows` and
+  `timeout_seconds` announced in the capabilities document; writing clauses,
+  procedures other than the schema procedures and protected properties are
+  refused, and every call is audited.
 
 ## 2.0.0 — 2026-11-05
 
