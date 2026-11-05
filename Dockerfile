@@ -22,7 +22,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 
 FROM python:3.13-slim-trixie AS runtime
-RUN groupadd --system --gid 10001 opencde \
+# Apply the distribution's security updates and remove pip: the runtime needs no
+# package manager, and pip's vendored libraries are what image scanners flag
+# between rebuilds of the base image.
+RUN apt-get update && apt-get -y upgrade --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall -y pip \
+    && groupadd --system --gid 10001 opencde \
     && useradd --system --uid 10001 --gid opencde --home-dir /app --shell /usr/sbin/nologin opencde \
     && mkdir -p /data && chown opencde:opencde /data
 WORKDIR /app

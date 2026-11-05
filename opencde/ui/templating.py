@@ -58,6 +58,7 @@ def render(
         "request": request,
         "product": "OpenCDE server",
         "server_host": settings.public_url.removeprefix("https://").removeprefix("http://"),
+        "docs_enabled": settings.api_docs_on,
     }
     base_context.update(context or {})
     html = _env.get_template(template).render(base_context)
