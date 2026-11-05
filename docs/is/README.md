@@ -167,6 +167,8 @@ og það sem verkefnin tvö samræma er í
 
 ## Lærðu meira
 
+- [docs/quickstart.md](quickstart.md): Kontroll og Dataspatium saman á tuttugu
+  mínútum, frá tómri tölvu að máli sem er búið til í þrívíddarsýninni.
 - [docs/client-guide.md](../client-guide.md) og [docs/examples/](../examples/):
   hvernig biðlari er smíðaður, getuskjalið, villukóðarnir og keyranleg dæmi
   með Python-safninu í [client/](../../client/).

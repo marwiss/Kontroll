@@ -167,6 +167,8 @@ coordinate is in
 
 ## Learn more
 
+- [docs/quickstart.md](docs/quickstart.md): Kontroll and Dataspatium together
+  in twenty minutes, from an empty machine to an issue created in the 3D view.
 - [docs/client-guide.md](docs/client-guide.md) and [docs/examples/](docs/examples/):
   how to build a client, the capabilities document, the error codes, and
   runnable examples with the Python library in [client/](client/).

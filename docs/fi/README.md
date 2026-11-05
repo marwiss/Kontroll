@@ -180,6 +180,8 @@ sovittavat yhteen, on tiedostossa
 
 ## Lue lisää
 
+- [docs/quickstart.md](quickstart.md): Kontroll ja Dataspatium yhdessä
+  kahdessakymmenessä minuutissa, tyhjästä koneesta 3D-näkymässä luotuun asiaan.
 - [docs/client-guide.md](../client-guide.md) ja [docs/examples/](../examples/):
   miten asiakasohjelma rakennetaan, kyvykkyysasiakirja, virhekoodit ja
   ajettavia esimerkkejä Python-kirjastolla kansiossa [client/](../../client/).
