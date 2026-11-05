@@ -63,6 +63,10 @@ Compose-projektinimen `kontroll`, joten toinen tarvitsee `.env`-tiedostoonsa
 
 ## 3. Yhdistä ne
 
+Sovelluksen on oltava avattuna osoitteesta `http://localhost:8080` (vaihe 2).
+Kansiosta avattuna se ei voi rekisteröidä itseään, vaan silloin kenttään on
+täytettävä asiakastunnus osoitteesta `/admin/clients`.
+
 Dataspatiumissa: tila *Inhämta* (Tuo) → painike *Lägg till källa* (Lisää
 lähde) → kortti *Lägg till databaskälla* (Lisää tietokantalähde) →
 *Typ av tjänst* (Palvelun tyyppi): *OpenCDE (BCF, Documents)* →

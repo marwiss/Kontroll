@@ -62,6 +62,10 @@ Compose-projektnavnet `kontroll`, så det andet skal have
 
 ## 3. Forbind de to
 
+Appen skal være åbnet via `http://localhost:8080` (trin 2). Åbnet fra mappen
+kan den ikke registrere sig selv, og så skal et klient-id fra
+`/admin/clients` udfyldes i stedet.
+
 I Dataspatium: tilstanden *Inhämta* (Importér) → knappen *Lägg till källa*
 (Tilføj kilde) → kortet *Lägg till databaskälla* (Tilføj databasekilde) →
 *Typ av tjänst* (Tjenestetype): *OpenCDE (BCF, Documents)*

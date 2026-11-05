@@ -64,6 +64,10 @@ Compose-projektnamnet `kontroll`, så den andra behöver
 
 ## 3. Koppla ihop dem
 
+Appen måste vara öppnad via `http://localhost:8080` (steg 2). Öppnad från
+mappen kan den inte registrera sig själv, utan då måste ett klient-id från
+`/admin/clients` fyllas i.
+
 I Dataspatium: läget *Inhämta* → knappen *Lägg till källa* → kortet *Lägg
 till databaskälla* → *Typ av tjänst*: *OpenCDE (BCF, Documents)* → *Adress*: `http://localhost:8000` →
 *Lägg till*. Källan öppnas i *Inhämta*: tryck *Logga in* och logga in som
