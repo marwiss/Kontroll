@@ -59,7 +59,7 @@ def test_datetime_without_timezone_is_utc_and_dates_expand() -> None:
         "topic_status eq 'a' or 1 eq 1",  # literal vs literal
         "index eq 'text'",  # wrong type
         "creation_date gt 'not a date'",
-        "labels eq 'Architecture'",  # list compared directly
+        "labels gt 'Architecture'",  # lists support eq, ne and any/all only
         "topic_status/any(x: x eq 'a')",  # any on a scalar
         "length(topic_status) gt 3",  # unsupported function
         "topic_status eq 'a' and",  # syntax error
@@ -70,6 +70,12 @@ def test_datetime_without_timezone_is_utc_and_dates_expand() -> None:
 def test_rejected_filters(expression: str) -> None:
     with pytest.raises(ODataError):
         compile_filter(expression, TOPIC_FIELDS)
+
+
+def test_list_membership_with_eq_and_ne() -> None:
+    where, params = compile_filter("labels eq 'Safety' and labels ne 'Reuse'", TOPIC_FIELDS)
+    assert params == {"od0": "Safety", "od1": "Reuse"}
+    assert where == "($od0 IN coalesce(t.labels, []) AND NOT $od1 IN coalesce(t.labels, []))"
 
 
 def test_filter_length_limit() -> None:

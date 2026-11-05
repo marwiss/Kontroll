@@ -204,7 +204,13 @@ class _CypherVisitor(NodeVisitor):
                 return _Clause(f"{left.cypher} IS NOT NULL")
             raise ODataError("null can only be compared with eq or ne")
         if left.kind == "string_list":
-            raise ODataError("list fields need labels/any(l: l eq 'value')")
+            # ``labels eq 'x'`` reads as "contains x", which is what event ``type`` filters need (BCF 3.9.1).
+            member = f"{self._param(self._coerce(left, right.value))} IN coalesce({left.cypher}, [])"
+            if operator == "=":
+                return _Clause(member)
+            if operator == "<>":
+                return _Clause(f"NOT {member}")
+            raise ODataError("list fields support eq, ne and any/all only")
         return _Clause(f"{left.cypher} {operator} {self._param(self._coerce(left, right.value))}")
 
     def visit_BoolOp(self, node: oast.BoolOp) -> _Clause:
