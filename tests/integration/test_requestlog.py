@@ -96,14 +96,11 @@ def test_requests_are_logged_without_bodies_and_served_to_administrators(logged:
     assert anonymous and all(entry["username"] is None and entry["client_id"] is None for entry in anonymous)
 
     # Authorization: scope and role, both; CORS applies to the administration API.
-    assert client.get("/admin/api/requests", headers=editor.headers).status_code == 403, "no admin scope"
+    no_scope = client.get("/admin/api/requests", headers=editor.headers)
+    assert no_scope.status_code == 403 and no_scope.json()["code"] == "insufficient_scope", "no admin scope"
     assert client.get("/admin/api/requests", headers=login_as(client, world, "admin").headers).status_code == 403
-    assert (
-        client.get(
-            "/admin/api/requests", headers=sign_in_with_scope(client, world, "editor", "admin").headers
-        ).status_code
-        == 403
-    )
+    not_admin = client.get("/admin/api/requests", headers=sign_in_with_scope(client, world, "editor", "admin").headers)
+    assert not_admin.status_code == 403 and not_admin.json()["code"] == "forbidden", "scope without the role"
     assert client.get("/admin/api/requests").status_code == 401
     preflight = client.options(
         "/admin/api/requests",

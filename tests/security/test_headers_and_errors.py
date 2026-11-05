@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from neo4j.exceptions import ServiceUnavailable
 
 from opencde.main import create_app
 from opencde.settings import Settings
@@ -30,13 +31,14 @@ def test_security_headers_on_every_response(client: TestClient, path: str) -> No
     assert "permissions-policy" in response.headers
 
 
-def test_not_found_uses_spec_error_body(client: TestClient) -> None:
+def test_not_found_uses_spec_error_body_with_a_code(client: TestClient) -> None:
     response = client.get("/nope")
     assert response.status_code == 404
-    assert set(response.json()) == {"message"}
+    assert response.json() == {"message": "Not Found", "code": "not_found"}
 
 
 def test_method_not_allowed_uses_spec_error_body(client: TestClient) -> None:
+    """Framework statuses outside the documented list carry no code; the body is still the spec's."""
     response = client.delete("/healthz")
     assert response.status_code == 405
     assert set(response.json()) == {"message"}
@@ -46,7 +48,7 @@ def test_oversized_body_is_rejected_before_parsing(client: TestClient) -> None:
     limit = client.app.state.settings.max_json_body_bytes  # type: ignore[attr-defined]
     response = client.post("/healthz", content=b"x", headers={"Content-Length": str(limit + 1)})
     assert response.status_code == 413
-    assert response.json() == {"message": f"Request body exceeds {limit} bytes"}
+    assert response.json() == {"message": f"Request body exceeds {limit} bytes", "code": "payload_too_large"}
 
 
 def test_chunked_body_over_the_limit_is_cut_off(client: TestClient) -> None:
@@ -64,7 +66,7 @@ def test_chunked_body_over_the_limit_is_cut_off(client: TestClient) -> None:
         "/foundation/oauth2/token", content=body(), headers={"Content-Type": "application/x-www-form-urlencoded"}
     )
     assert response.status_code == 413
-    assert response.json() == {"message": f"Request body exceeds {limit} bytes"}
+    assert response.json() == {"message": f"Request body exceeds {limit} bytes", "code": "payload_too_large"}
 
 
 def test_request_id_is_echoed_or_minted(client: TestClient) -> None:
@@ -112,9 +114,24 @@ def test_unhandled_errors_keep_cors_and_security_headers(settings: Settings) -> 
     with TestClient(app) as client:
         response = client.get("/bcf/3.0/boom", headers={"Origin": "https://viewer.example"})
     assert response.status_code == 500
-    assert response.json() == {"message": "Internal server error"}
+    assert response.json() == {"message": "Internal server error", "code": "internal_error"}
     assert response.headers["access-control-allow-origin"] == "*"
     assert response.headers["x-content-type-options"] == "nosniff"
+
+
+def test_database_outage_is_a_503_without_driver_details(settings: Settings) -> None:
+    """When the driver cannot reach the database the client gets `unavailable`, never hosts or ports."""
+    app = create_app(settings, startup_wait_seconds=0)
+
+    @app.get("/bcf/3.0/down")
+    async def down() -> None:
+        raise ServiceUnavailable("Couldn't connect to db.internal:7687 (resolved to ())")
+
+    with TestClient(app) as client:
+        response = client.get("/bcf/3.0/down")
+    assert response.status_code == 503
+    assert response.json() == {"message": "The database is not available right now", "code": "unavailable"}
+    assert "7687" not in response.text
 
 
 def test_icons_are_served_with_image_types(client: TestClient) -> None:
@@ -136,7 +153,8 @@ def test_icons_are_served_with_image_types(client: TestClient) -> None:
 def test_administration_api_needs_a_bearer_token(client: TestClient) -> None:
     """The administration API never accepts cookies; without a token it is 401 like the rest of the API."""
     response = client.get("/admin/api/requests")
-    assert response.status_code == 401 and response.json() == {"message": "Authentication required"}
+    assert response.status_code == 401
+    assert response.json() == {"message": "Authentication required", "code": "unauthenticated"}
     assert response.headers["www-authenticate"].startswith("Bearer")
     page = client.get("/admin/requests", follow_redirects=False)
     assert page.status_code == 302 and page.headers["location"].startswith("/signin?next=%2Fadmin%2Frequests")

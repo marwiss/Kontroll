@@ -40,6 +40,7 @@ project plan. This file is updated with every stage.
 | Single hard-coded client from environment variables | yes | reshape: clients in the graph, managed by CLI and admin UI | 2, 6 |
 | Scopes `test`, `user`, `admin`, undocumented `test` required everywhere | yes | reshape: server-defined scopes per route | 2 |
 | Legacy aliases `GET /bcf/versions`, `/bcf/3.0/auth`, `/bcf/3.0/current-user` | commented out | keep as thin aliases (clients such as openBCF use them) | 2 |
+| Error body `{"message"}` (Foundation 1.6) | FastAPI defaults (`detail`) | keep; every server-shaped error also carries a stable `code` (extension, closed list in `docs/client-guide.md` §6: `validation_error`, `unauthenticated`, `invalid_token`, `insufficient_scope`, `forbidden`, `reauthentication_required`, `not_found`, `conflict`, `payload_too_large`, `upload_too_large`, `rate_limited`, `internal_error`, `unavailable`); a database outage answers 503 `unavailable` without driver details | 1, 11 |
 
 ## 2. BCF API 3.0 (40 operations in the specification)
 

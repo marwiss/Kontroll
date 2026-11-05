@@ -78,7 +78,7 @@ def test_project_rename_needs_manager(client: TestClient, world: World) -> None:
     editor = login(client, world, "editor")
     manager = login(client, world, "manager")
     forbidden = client.put(f"/bcf/3.0/projects/{world.project_id}", json={"name": "Nope"}, headers=editor.headers)
-    assert forbidden.status_code == 403
+    assert forbidden.status_code == 403 and forbidden.json()["code"] == "forbidden"
     renamed = client.put(
         f"/bcf/3.0/projects/{world.project_id}", json={"name": "Building permit 2026"}, headers=manager.headers
     )
@@ -206,6 +206,7 @@ def test_topic_values_are_checked_against_extensions_and_guid_conflicts(client: 
     assert first.status_code == 201 and first.json()["guid"] == guid, "guid normalised to lower case"
     conflict = client.post(base, json={"title": "Again", "guid": guid}, headers=editor.headers)
     assert conflict.status_code == 409, "Foundation API 1.5.1"
+    assert conflict.json()["code"] == "conflict"
     assert client.get(f"{base}/{guid.upper()}", headers=editor.headers).status_code == 200
 
 

@@ -62,6 +62,7 @@ from opencde.documents.sessions import (
     UploadSession,
     UploadSessionsDep,
 )
+from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
 from opencde.etag import etag_for, matches
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
@@ -195,8 +196,10 @@ async def upload_instructions(
         if index is None:
             raise HTTPException(400, f"'{detail.session_file_id}' is not a file of this upload")
         if detail.size_in_bytes > settings.max_upload_bytes:
-            raise HTTPException(
-                400, f"'{detail.session_file_id}' exceeds the maximum of {settings.max_upload_bytes} bytes"
+            raise ApiError(
+                413,
+                f"'{detail.session_file_id}' exceeds the maximum of {settings.max_upload_bytes} bytes",
+                code=CODE_UPLOAD_TOO_LARGE,
             )
         if detail.size_in_bytes == 0:
             raise HTTPException(400, f"'{detail.session_file_id}' is empty")

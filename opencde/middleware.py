@@ -19,6 +19,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from opencde.errors import error_body
+
 REQUEST_ID_HEADER = b"x-request-id"
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
@@ -136,7 +138,7 @@ class UnhandledErrorMiddleware:
             structlog.get_logger("opencde.errors").exception(
                 "unhandled_error", path=scope["path"], error_type=type(exc).__name__
             )
-            response = JSONResponse({"message": "Internal server error"}, status_code=500)
+            response = JSONResponse(error_body(500, "Internal server error"), status_code=500)
             await response(scope, receive, send)
 
 
@@ -209,7 +211,7 @@ class BodySizeLimitMiddleware:
             except ValueError:
                 size = self.max_bytes + 1
             if size > self.max_bytes:
-                await _send_json(send, 413, {"message": message})
+                await _send_json(send, 413, error_body(413, message))
                 return
 
         received = 0

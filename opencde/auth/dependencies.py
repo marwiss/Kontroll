@@ -16,6 +16,7 @@ from fastapi import Depends, HTTPException, Request
 
 from opencde.auth.tokens import Principal, TokenRepository
 from opencde.deps import GraphDep, SettingsDep
+from opencde.errors import CODE_INSUFFICIENT_SCOPE, CODE_UNAUTHENTICATED, ApiError
 from opencde.graph.graph import Graph
 from opencde.settings import Settings
 
@@ -49,10 +50,10 @@ def _bearer(request: Request) -> str | None:
 async def current_principal(request: Request, tokens: TokensDep) -> Principal:
     token = _bearer(request)
     if token is None:
-        raise HTTPException(401, "Authentication required", headers=BEARER_CHALLENGE)
+        raise ApiError(401, "Authentication required", code=CODE_UNAUTHENTICATED, headers=BEARER_CHALLENGE)
     principal = await tokens.principal(token)
     if principal is None:
-        raise HTTPException(
+        raise HTTPException(  # code "invalid_token" follows from the status
             401,
             "Invalid or expired access token",
             headers={"WWW-Authenticate": 'Bearer realm="opencde", error="invalid_token"'},
@@ -69,9 +70,10 @@ def require_scope(scope: str) -> Callable[[Principal], Principal]:
 
     def check(principal: PrincipalDep) -> Principal:
         if not principal.has_scope(scope):
-            raise HTTPException(
+            raise ApiError(
                 403,
                 f"This operation needs the '{scope}' scope",
+                code=CODE_INSUFFICIENT_SCOPE,
                 headers={"WWW-Authenticate": f'Bearer realm="opencde", error="insufficient_scope", scope="{scope}"'},
             )
         return principal

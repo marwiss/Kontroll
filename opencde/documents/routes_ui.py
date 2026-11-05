@@ -34,6 +34,7 @@ from opencde.documents.sessions import (
     UploadSession,
     UploadSessionsDep,
 )
+from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.storage import TooLargeError, make_key
@@ -429,7 +430,7 @@ async def select_ui_upload(
             store_stream, storage, upload.file, key, settings.max_upload_bytes
         )
     except TooLargeError:
-        raise HTTPException(413, f"The file exceeds {settings.max_upload_bytes} bytes") from None
+        raise ApiError(413, f"The file exceeds {settings.max_upload_bytes} bytes", code=CODE_UPLOAD_TOO_LARGE) from None
     if size == 0:
         storage.delete(key)
         raise HTTPException(400, "The file is empty")

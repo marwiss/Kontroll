@@ -16,6 +16,8 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from opencde.errors import error_body
+
 # Requests per client address. Names describe the endpoint group they protect.
 RATE_SIGN_IN = "10/minute"
 RATE_EXCHANGE = "60/minute"  # the OAuth2 code and refresh exchanges
@@ -32,5 +34,5 @@ def install_rate_limiting(app: FastAPI, enabled: bool) -> None:
 
     @app.exception_handler(RateLimitExceeded)
     async def _too_many(_request: Request, exc: RateLimitExceeded) -> Response:
-        response = JSONResponse({"message": "Too many requests"}, status_code=429)
+        response = JSONResponse(error_body(429, "Too many requests"), status_code=429)
         return limiter._inject_headers(response, _request.state.view_rate_limit)
