@@ -39,7 +39,7 @@ of probing:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
-    "graph_query": {"enabled": false}
+    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
   "links": {"dataspatium": null}
@@ -49,9 +49,10 @@ of probing:
 A `404` means a server without extensions (another OpenCDE server, or an
 older Kontroll). Treat unknown keys as absent. `ifcgraph.bolt` is set only
 when the operator has deliberately published the graph database
-(`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `links.dataspatium` carries the address of
-a Dataspatium installation when the operator has set `OPENCDE_DATASPATIUM_URL`.
-Nothing in the document is secret.
+(`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `graph_query` is on only when the
+operator has set `OPENCDE_GRAPH_QUERY_ENABLED` (§7); `links.dataspatium`
+carries the address of a Dataspatium installation when the operator has set
+`OPENCDE_DATASPATIUM_URL`. Nothing in the document is secret.
 
 ## 2. Sign in (OAuth2 authorization code with PKCE)
 
@@ -246,6 +247,44 @@ meets by running the authorization flow again (a pop-up sign-in) and
 repeating the call. One-time values are returned exactly once and never
 logged; every write leaves an audit event (`admin.*`) with the caller, the
 client and the `X-Request-ID` of the call.
+
+### Graph query (off by default)
+
+When the operator sets `OPENCDE_GRAPH_QUERY_ENABLED=true`, the capabilities
+document announces `graph_query` with `url`, `max_rows` and
+`timeout_seconds`, and administrators holding the `admin` scope may run
+**reading** Cypher against the whole graph, the IFC graph included, without
+the database port being published:
+
+```http
+POST /admin/api/graph/query
+{"cypher": "MATCH (p:Project)<-[m:MEMBER_OF]-(u:User) RETURN p, m, u LIMIT 50", "params": {}}
+```
+
+```json
+{"columns": ["p", "m", "u"],
+ "rows": [[{"identity": "4:…:12", "labels": ["Project"], "properties": {"project_id": "…", "name": "Building permit"}},
+           {"identity": "5:…:3", "type": "MEMBER_OF", "start": "4:…:7", "end": "4:…:12", "properties": {"role": "editor"}},
+           {"identity": "4:…:7", "labels": ["User"], "properties": {"username": "editor"}}]],
+ "truncated": false}
+```
+
+Rows carry JSON values: nodes as `{identity, labels, properties}`,
+relationships as `{identity, type, start, end, properties}`, paths as
+`{nodes, relationships, length}`, temporal values as ISO 8601 strings,
+integers as numbers, points as `{srid, x, y, z}`, bytes as base64. The
+statement runs in a read transaction; the server refuses writing clauses
+and any procedure other than the schema procedures (`db.labels`,
+`db.relationshipTypes`, `db.propertyKeys`, `db.schema.*`), refuses
+statements and parameters that name a protected property (`password_hash`,
+`secret_hash`, `token_hash`, `code_hash`), removes those properties from
+every node, relationship and map in the answer and redacts any Argon2 hash
+that reaches it another way. The answer stops after `max_rows` rows
+(`truncated: true`) and the statement after `timeout_seconds`. A refused,
+failed or stopped statement answers `400` with `code: validation_error` and
+the reason, the database's own message included. Every call, refused or
+not, leaves an audit event `admin.graph.query` with the first 500 characters
+of the statement, never the parameters.
 
 ## 8. Testing against this server
 

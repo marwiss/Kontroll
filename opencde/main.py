@@ -19,8 +19,8 @@ from fastapi.staticfiles import StaticFiles
 
 from opencde import __version__, capabilities, health
 from opencde.admin import api as admin_api
+from opencde.admin import graph_query, routes_requests
 from opencde.admin import router as admin_router
-from opencde.admin import routes_requests
 from opencde.admin.access import install_page_handlers
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
@@ -179,6 +179,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     if settings.admin_api_enabled:
         app.include_router(routes_requests.api_router)
         app.include_router(admin_api.router)
+        if settings.graph_query_enabled:
+            app.include_router(graph_query.router)
     app.include_router(capabilities.router)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 

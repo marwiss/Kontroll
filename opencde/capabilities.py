@@ -53,7 +53,16 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 "scope": "admin",
             },
             "ifcgraph": {"enabled": settings.ifcgraph_enabled, "bolt": settings.graph_public_bolt_url or None},
-            "graph_query": {"enabled": False},
+            "graph_query": (
+                {
+                    "enabled": True,
+                    "url": "/admin/api/graph/query",
+                    "max_rows": settings.graph_query_max_rows,
+                    "timeout_seconds": settings.graph_query_timeout_seconds,
+                }
+                if settings.admin_api_enabled and settings.graph_query_enabled
+                else {"enabled": False}
+            ),
         },
         "limits": {
             "max_upload_bytes": settings.max_upload_bytes,

@@ -143,6 +143,18 @@ class Settings(BaseSettings):
         "document. Leave empty unless the database is deliberately published (the development overlay does on "
         "bolt://localhost:7697).",
     )
+    graph_query_enabled: bool = Field(
+        False,
+        description="Offer POST /admin/api/graph/query: read-only Cypher against the whole graph for administrators "
+        "holding the admin scope (an extension outside the specifications). Off unless an administration client "
+        "needs it.",
+    )
+    graph_query_max_rows: int = Field(
+        1000, ge=1, le=10_000, description="Rows a graph query may return; the rest is cut and marked truncated."
+    )
+    graph_query_timeout_seconds: float = Field(
+        10.0, gt=0, le=120, description="A graph query running longer than this is stopped."
+    )
     allow_localhost_redirects: bool = Field(
         False,
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",
