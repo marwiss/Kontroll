@@ -97,9 +97,11 @@ password.
 
 Sign in at `/signin` with an administrator account and open `/admin` to manage
 users and their project roles, projects and their BCF extension values, OAuth2
-clients, sessions, the audit log and the server's health checks. Every user
-has `/account` for their own password, applications and sessions. The CLI
-(`uv run opencde --help`) does the same from a terminal.
+clients, sessions, the audit log, the optional request log and the server's
+health checks. Every user has `/account` for their own password, applications
+and sessions. The CLI (`uv run opencde --help`) does the same from a terminal,
+and administration clients holding the `admin` scope can read the request log
+at `/admin/api/requests`.
 
 ## Development
 

@@ -91,10 +91,11 @@ project plan. This file is updated with every stage.
 | OpenAPI with tags and descriptions | yes | keep; descriptions from the specification | 0 |
 | CORS for all origins with credentials | yes | reshape: configurable origins, Bearer only, never credentials | 0 |
 | Request/response body logging to a file | yes | reshape: structured logs with request id and redaction, no bodies | 0 |
+| Request log for client debugging (extension outside the specifications) | bodies in `logs/info.log` | new, opt-in (`OPENCDE_REQUEST_LOG_ENABLED`): `RequestLog` nodes with method, path, operation, status, timing, request id, byte counts and caller, never bodies or tokens, expiring after `OPENCDE_REQUEST_LOG_RETENTION_HOURS`; page `/admin/requests`, JSON `GET /admin/api/requests` for bearer tokens with the explicit `admin` scope held by administrators | 11 |
 | `debug()` prints with jsonpickle | yes | drop: structured logging | 0 |
 | Liveness and readiness endpoints | no | new: `/healthz`, `/readyz` | 0 |
 | Web admin UI (users, clients, projects, audit log) | no (README TODO) | new, done: `/admin` for administrators (overview, users with roles and password reset, projects with members and extensions, clients with secret rotation, sessions, audit log with CSV, settings and health checks), `/account` for everyone; server-rendered, vanilla JS enhancements, axe-checked | 6 |
-| CLI (`init`, `doctor`, `seed`, `cleanup`, `user`, `project`, `client`, `backup`, `restore`, `revoke`) | no | new, done; backups are portable between Neo4j and Memgraph (ADR 0006) | 0, 1, 8 |
+| CLI (`init`, `doctor`, `seed`, `cleanup`, `user`, `project`, `client` incl. `prune`, `ifcgraph list|prune`, `backup`, `restore`, `revoke`) | no | new, done; backups are portable between Neo4j and Memgraph (ADR 0006) | 0, 1, 8, 11 |
 | Expiry of codes, tokens and sessions (prototype: APOC TTL) | APOC | reshape: `expires_at` + server-side cleanup, done | 1 |
 | OData `$filter/$orderby/$top/$skip` (prototype: none) | no | new: whitelist compiler to Cypher, done | 1 |
 

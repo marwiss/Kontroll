@@ -39,6 +39,7 @@ from opencde.middleware import (
     UnhandledErrorMiddleware,
 )
 from opencde.ratelimit import install_rate_limiting
+from opencde.requestlog import RequestLogMiddleware, RequestLogWriter
 from opencde.settings import Settings
 from opencde.ui.templating import STATIC_DIR, render
 from opencde.web import account as account_routes
@@ -59,6 +60,10 @@ OPENAPI_TAGS = [
     {"name": "BCF API", "description": "Issue management (BCF API 3.0)."},
     {"name": "Documents API", "description": "Document exchange (Documents API 1.0)."},
     {"name": "operations", "description": "Health endpoints for containers and monitoring."},
+    {
+        "name": "Administration (extension)",
+        "description": "Outside the OpenCDE specifications: administration for clients holding the `admin` scope.",
+    },
 ]
 
 
@@ -75,6 +80,11 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds, app.state.storage)
         app.state.ifcgraph = (
             IfcGraphService(app.state.graph, app.state.storage, settings) if settings.ifcgraph_enabled else None
+        )
+        app.state.requestlog = (
+            RequestLogWriter(app.state.graph, settings.request_log_retention_hours)
+            if settings.request_log_enabled
+            else None
         )
         log.info(
             "server_starting",
@@ -94,6 +104,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             await cleaner.stop()
             if app.state.ifcgraph is not None:
                 await app.state.ifcgraph.shutdown()
+            if app.state.requestlog is not None:
+                await app.state.requestlog.close()
             await app.state.graph.close()
             log.info("server_stopped")
 
@@ -119,7 +131,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.add_middleware(ETagMiddleware)
     app.add_middleware(
         ApiCORSMiddleware,
-        include_prefixes=("/foundation/", "/bcf/", "/documents/1.0/"),
+        include_prefixes=("/foundation/", "/bcf/", "/documents/1.0/", "/admin/api/"),
         exclude_patterns=documents_ui.PAGE_PATHS,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
@@ -142,6 +154,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         exempt_prefixes=("/documents/1.0/upload-part/",),
         exempt_patterns=(*bcf_router.BINARY_UPLOAD_PATHS, *documents_ui.BROWSER_UPLOAD_PATHS),
     )
+    app.add_middleware(RequestLogMiddleware)  # sees the final status; inside the request id so it can record it
     app.add_middleware(RequestIDMiddleware)
 
     app.include_router(health.router)

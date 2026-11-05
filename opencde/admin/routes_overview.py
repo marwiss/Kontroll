@@ -48,6 +48,8 @@ SAFE_SETTINGS = (
     "admin_ui_enabled",
     "server_assigned_id_prefix",
     "ifcgraph_enabled",
+    "request_log_enabled",
+    "request_log_retention_hours",
     "cors_origins",
     "trusted_proxies",
     "cleanup_interval_seconds",

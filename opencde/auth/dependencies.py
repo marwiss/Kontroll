@@ -81,3 +81,13 @@ def require_scope(scope: str) -> Callable[[Principal], Principal]:
 
 BcfPrincipal = Annotated[Principal, Depends(require_scope("bcf"))]
 DocumentsPrincipal = Annotated[Principal, Depends(require_scope("documents"))]
+
+
+def admin_principal(principal: Annotated[Principal, Depends(require_scope("admin"))]) -> Principal:
+    """The administration API: the ``admin`` scope and the administrator role, both."""
+    if not principal.is_admin:
+        raise HTTPException(403, "This operation needs an administrator account")
+    return principal
+
+
+AdminPrincipal = Annotated[Principal, Depends(admin_principal)]

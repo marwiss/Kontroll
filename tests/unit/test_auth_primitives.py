@@ -42,5 +42,7 @@ def test_scopes() -> None:
     assert parse_scope(None) == ["profile", "bcf", "documents"]
     assert parse_scope("bcf bcf profile") == ["bcf", "profile"]
     assert scope_string(["bcf", "documents"]) == "bcf documents"
+    assert parse_scope("profile admin") == ["profile", "admin"], "admin exists but is never granted by default"
+    assert "admin" not in parse_scope(None)
     with pytest.raises(ScopeError):
-        parse_scope("admin")
+        parse_scope("superuser")

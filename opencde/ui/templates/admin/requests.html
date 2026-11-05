@@ -1,0 +1,54 @@
+{% extends "admin/_page.html" %}
+{% block title %}Request log · {{ product }}{% endblock %}
+{% block admin %}
+<div class="toolbar">
+  <h1>Request log</h1>
+</div>
+{% if not enabled %}
+<p class="muted">The request log is off. Set <code>OPENCDE_REQUEST_LOG_ENABLED=true</code> to record every request (method, path, status, timing and caller; never bodies or tokens). Entries recorded earlier are shown below until they expire.</p>
+{% endif %}
+<form method="get" action="/admin/requests" class="toolbar toolbar--wrap" role="search">
+  <label class="sr-only" for="client_id">Client id</label>
+  <input class="input" id="client_id" name="client_id" type="search" value="{{ filters.client_id }}" placeholder="Client id" maxlength="64">
+  <label class="sr-only" for="user">User</label>
+  <input class="input" id="user" name="user" type="search" value="{{ filters.user }}" placeholder="User" maxlength="128">
+  <label class="sr-only" for="path">Path starts with</label>
+  <input class="input" id="path" name="path" type="search" value="{{ filters.path }}" placeholder="Path starts with, e.g. /bcf/3.0" maxlength="256">
+  <label class="sr-only" for="status">Status</label>
+  <input class="input input--short" id="status" name="status" type="number" min="100" max="599" value="{{ filters.status }}" placeholder="Status">
+  <label class="sr-only" for="since">Since (UTC)</label>
+  <input class="input" id="since" name="since" type="search" value="{{ filters.since }}" placeholder="Since, e.g. 2026-11-05T10:00:00Z" maxlength="40">
+  <label class="sr-only" for="request_id">Request id</label>
+  <input class="input" id="request_id" name="request_id" type="search" value="{{ filters.request_id }}" placeholder="X-Request-ID" maxlength="128">
+  <button class="btn btn--secondary" type="submit">Filter</button>
+</form>
+<p class="muted">The latest {{ limit }} matching requests; entries are kept for {{ retention_hours }} hours. The same data as JSON: <code>GET /admin/api/requests</code> with a bearer token holding the <code>admin</code> scope.</p>
+<div class="table-wrap">
+  <table class="table" data-filterable>
+    <thead><tr>
+      <th scope="col">When</th><th scope="col">Method</th><th scope="col">Path</th><th scope="col">Operation</th>
+      <th scope="col">Status</th><th scope="col">ms</th><th scope="col">Request id</th><th scope="col">In / out</th>
+      <th scope="col">User</th><th scope="col">Client</th><th scope="col">Address</th>
+    </tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ when(row.at) }}</td>
+        <td><code>{{ row.method }}</code></td>
+        <td><code class="wrap">{{ row.path }}</code></td>
+        <td>{{ row.operation or "" }}</td>
+        <td>{{ row.status }}</td>
+        <td>{{ row.duration_ms }}</td>
+        <td><code class="wrap">{{ row.request_id or "" }}</code></td>
+        <td>{{ row.bytes_in }} / {{ row.bytes_out }}</td>
+        <td>{{ row.username or "" }}</td>
+        <td><code class="wrap">{{ row.client_id or "" }}</code></td>
+        <td>{{ row.ip or "" }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="11" class="muted">No requests recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

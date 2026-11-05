@@ -117,6 +117,15 @@ def test_unhandled_errors_keep_cors_and_security_headers(settings: Settings) -> 
     assert response.headers["x-content-type-options"] == "nosniff"
 
 
+def test_administration_api_needs_a_bearer_token(client: TestClient) -> None:
+    """The administration API never accepts cookies; without a token it is 401 like the rest of the API."""
+    response = client.get("/admin/api/requests")
+    assert response.status_code == 401 and response.json() == {"message": "Authentication required"}
+    assert response.headers["www-authenticate"].startswith("Bearer")
+    page = client.get("/admin/requests", follow_redirects=False)
+    assert page.status_code == 302 and page.headers["location"].startswith("/signin?next=%2Fadmin%2Frequests")
+
+
 @pytest.mark.parametrize("path", ["/signin", "/", "/documents/1.0/select-ui/some-token", "/healthz"])
 def test_pages_are_never_shared_cross_origin(client: TestClient, path: str) -> None:
     """CORS belongs to the API (Foundation API 1.4); HTML pages and health checks stay same-origin."""

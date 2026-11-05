@@ -121,6 +121,12 @@ class Settings(BaseSettings):
         ge=1,
         description="A self-registered client that issues no token for this many days is deleted with its tokens.",
     )
+    request_log_enabled: bool = Field(
+        False,
+        description="Keep a log of every request (method, path, status, timing, caller; never bodies or tokens) "
+        "for /admin/requests and /admin/api/requests. An extension outside the specifications.",
+    )
+    request_log_retention_hours: int = Field(72, ge=1, description="How long request log entries are kept.")
     allow_localhost_redirects: bool = Field(
         False,
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",

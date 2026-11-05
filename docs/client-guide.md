@@ -98,7 +98,29 @@ The flows involve the user's browser; see [flows/documents.md](flows/documents.m
 Your client needs a callback URL the browser can reach (a loopback listener
 for desktop apps). The server never calls that URL itself.
 
-## 5. Testing against this server
+## 5. Correlating your log with the server's
+
+Send an `X-Request-ID` header (1–128 characters of `A-Za-z0-9._-`) with every
+request and the server echoes it in the response and binds it to its own log
+lines; without one the server mints an id and returns it. The header is allowed
+in CORS preflights and exposed to browser clients.
+
+When the operator has turned on the request log (`OPENCDE_REQUEST_LOG_ENABLED`,
+an extension outside the specifications), an administrator can see the server
+side of every call at `/admin/requests`, and an administration client can read
+the same entries as JSON:
+
+```http
+GET /admin/api/requests?client_id=<your client id>&since=2026-11-05T10:00:00Z&limit=200
+Authorization: Bearer <token with the admin scope>
+```
+
+The token must carry the `admin` scope, which a client asks for explicitly
+(`scope=profile bcf documents admin`), and the user must be an administrator.
+Entries hold method, path, operation, status, timing, request id, byte counts
+and the caller, never bodies or tokens.
+
+## 6. Testing against this server
 
 - `uv run opencde seed` fills an empty database with demo users and
   projects (passwords are printed once).
