@@ -113,7 +113,7 @@ JWTs to validate.
 | Client authentication; public clients without secrets | met | `test_client_authentication_failures` |
 | Token responses not cacheable | met | `test_token_response_is_never_cached_and_has_spec_fields` |
 | Consent screen names the client and the redirect target; the user can refuse | met | `test_deny_redirects_with_access_denied`, `auth/templates` |
-| Dynamic registration restricted | met | Off by default; https or loopback redirects only when on |
+| Dynamic registration restricted | met | Off by default; https or loopback redirects only when on; public registrations (RFC 7591 `none`) rely on PKCE and the consent page naming the client and its redirect host; rate limited |
 | Sender-constrained tokens (DPoP, mTLS) | not met | Level 3 item; listed under *Later* in the plan |
 | Compliance tested with an external tool | not met | OAuch run described in [pentest-howto.md](pentest-howto.md) §4, to be done before the first production deployment |
 
