@@ -1,0 +1,33 @@
+# Publish the graph database's Bolt port, with TLS, for clients that query the
+# IFC graph directly (Dataspatium's graph view, Neo4j Browser, scripts). This is
+# an explicit administrator action: nothing publishes the database unless this
+# overlay is added, and the server refuses to announce an address without TLS
+# in production. Read docs/deploy/bolt.md first: the community editions of
+# Neo4j and Memgraph have no read-only users, so whoever has the database
+# password can write.
+#
+#   mkdir -p certs/bolt            # public.crt + private.key for the server's host name
+#   OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687   (in .env)
+#   docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
+#
+# Remove the overlay from the command line (and restart) to close the port again.
+
+services:
+  graph:
+    ports:
+      - "${OPENCDE_BOLT_PORT:-7687}:7687"
+    environment:
+      # Bolt only over TLS, with the certificate the administrator put in certs/bolt/.
+      NEO4J_server_bolt_tls__level: REQUIRED
+      NEO4J_dbms_ssl_policy_bolt_enabled: "true"
+      NEO4J_dbms_ssl_policy_bolt_base__directory: /certs/bolt
+      NEO4J_dbms_ssl_policy_bolt_private__key: private.key
+      NEO4J_dbms_ssl_policy_bolt_public__certificate: public.crt
+      NEO4J_dbms_ssl_policy_bolt_client__auth: NONE
+    volumes:
+      - ./certs/bolt:/certs/bolt:ro
+
+  api:
+    environment:
+      # Announced in the capabilities document (/.well-known/kontroll, extensions.ifcgraph.bolt).
+      OPENCDE_GRAPH_PUBLIC_BOLT_URL: "${OPENCDE_GRAPH_PUBLIC_BOLT_URL:?Set OPENCDE_GRAPH_PUBLIC_BOLT_URL in .env, e.g. bolt+s://cde.example.org:7687}"
