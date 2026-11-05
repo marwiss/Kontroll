@@ -19,7 +19,7 @@ from opencde.auth.clients import ClientRepository
 from opencde.bootstrap import make_graph
 from opencde.graph.schema import apply_schema
 from opencde.settings import Settings
-from tests.integration.helpers import Session, sign_in
+from tests.integration.helpers import Session, authorize, exchange, sign_in
 
 PASSWORD = "a-long-and-strong-passphrase"
 REDIRECT = "http://127.0.0.1/callback"
@@ -94,3 +94,17 @@ def login_as(client: TestClient, world: World, username: str) -> Session:
         username=username,
         password=world.password,
     )
+
+
+def login_with_scope(client: TestClient, world: World, username: str, scope: str) -> Session:
+    """Like ``login_as`` but asking for an explicit scope string, e.g. ``"profile admin"``."""
+    code, _query, verifier = authorize(
+        client,
+        client_id=world.public_client_id,
+        redirect_uri=world.redirect,
+        username=username,
+        password=world.password,
+        scope=scope,
+    )
+    assert code is not None
+    return exchange(client, code=code, verifier=verifier, client_id=world.public_client_id, redirect_uri=world.redirect)

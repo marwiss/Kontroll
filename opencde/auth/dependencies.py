@@ -16,9 +16,10 @@ from fastapi import Depends, HTTPException, Request
 
 from opencde.auth.tokens import Principal, TokenRepository
 from opencde.deps import GraphDep, SettingsDep
-from opencde.errors import CODE_INSUFFICIENT_SCOPE, CODE_UNAUTHENTICATED, ApiError
+from opencde.errors import CODE_INSUFFICIENT_SCOPE, CODE_REAUTHENTICATION_REQUIRED, CODE_UNAUTHENTICATED, ApiError
 from opencde.graph.graph import Graph
 from opencde.settings import Settings
+from opencde.timeutil import later_iso
 
 BEARER_CHALLENGE = {"WWW-Authenticate": 'Bearer realm="opencde"'}
 
@@ -93,3 +94,20 @@ def admin_principal(principal: Annotated[Principal, Depends(require_scope("admin
 
 
 AdminPrincipal = Annotated[Principal, Depends(admin_principal)]
+
+# Dangerous administration calls need an authentication this recent: a refresh never renews it, only a new
+# authorization (the app opens the sign-in page again), which is what "fresh" means to the client.
+REAUTHENTICATION_WINDOW_SECONDS = 600
+
+
+def fresh_admin_principal(principal: AdminPrincipal) -> Principal:
+    if principal.auth_time is None or principal.auth_time < later_iso(-REAUTHENTICATION_WINDOW_SECONDS):
+        raise ApiError(
+            403,
+            "This operation needs a sign-in from the last ten minutes; authorize again and retry",
+            code=CODE_REAUTHENTICATION_REQUIRED,
+        )
+    return principal
+
+
+FreshAdminPrincipal = Annotated[Principal, Depends(fresh_admin_principal)]

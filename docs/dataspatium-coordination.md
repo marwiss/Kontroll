@@ -248,7 +248,10 @@ the Dataspatium side:
 7. `software_id`/`software_version` at registration (item 2) — Dataspatium
    2.33 sends them.
 8. A joint quick start (item 8).
-9. The administration API (item 12) — Dataspatium 2.35.
+9. The administration API (item 12) — Dataspatium 2.35. Read endpoints done
+   2026-11-05 (`docs/client-guide.md` §7) together with `auth_time` on token
+   families, `last_sign_in_at`, `last_used_at` and the request id on audit
+   events; the write endpoints follow.
 10. The graph query endpoint (item 3) after decision A.
 11. A shared security and personal-data page: what the app keeps in the
     browser, what the server stores and for how long, one half each, cross-linked.

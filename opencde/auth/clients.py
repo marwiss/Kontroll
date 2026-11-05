@@ -42,6 +42,7 @@ class Client:
     expires_at: str | None = None  # self-registered clients only: deleted once unused past this moment
     software_id: str | None = None  # RFC 7591: which software registered, and its version
     software_version: str | None = None
+    last_used_at: str | None = None  # the latest token issuance
 
     @property
     def is_confidential(self) -> bool:
@@ -63,12 +64,13 @@ def _client(row: dict[str, Any]) -> Client:
         expires_at=row.get("expires_at"),
         software_id=row.get("software_id"),
         software_version=row.get("software_version"),
+        last_used_at=row.get("last_used_at"),
     )
 
 
 FIELDS = (
     "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, "
-    ".dynamic, .expires_at, .software_id, .software_version}"
+    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at}"
 )
 
 
@@ -269,11 +271,16 @@ class ClientRepository:
         return await self.graph.write(work) > 0
 
     async def touch(self, client_id: str, *, expires_at: str) -> None:
-        """A self-registered client was used: it may live until ``expires_at`` again. Manual clients are untouched."""
+        """The client issued a token: note the time, and let a self-registered client live until ``expires_at``."""
         await self.graph.run(
-            "MATCH (c:Client {client_id: $id}) WHERE c.dynamic = true SET c.expires_at = $expires_at",
+            """
+            MATCH (c:Client {client_id: $id})
+            SET c.last_used_at = $now,
+                c.expires_at = CASE WHEN c.dynamic = true THEN $expires_at ELSE c.expires_at END
+            """,
             id=client_id,
             expires_at=expires_at,
+            now=now_iso(),
         )
 
     async def prune_dynamic(self, *, all_dynamic: bool = False) -> int:

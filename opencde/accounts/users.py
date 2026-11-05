@@ -36,6 +36,7 @@ class User:
     disabled: bool
     created_at: str
     must_change_password: bool = False
+    last_sign_in_at: str | None = None  # the latest browser sign-in or OAuth2 authorization
 
     @property
     def display_name(self) -> str:
@@ -52,10 +53,13 @@ def _user(row: dict[str, Any]) -> User:
         disabled=bool(row.get("disabled", False)),
         created_at=row["created_at"],
         must_change_password=bool(row.get("must_change_password", False)),
+        last_sign_in_at=row.get("last_sign_in_at"),
     )
 
 
-PUBLIC_FIELDS = "u {.id, .username, .email, .full_name, .is_admin, .disabled, .created_at, .must_change_password}"
+PUBLIC_FIELDS = (
+    "u {.id, .username, .email, .full_name, .is_admin, .disabled, .created_at, .must_change_password, .last_sign_in_at}"
+)
 
 
 class UserRepository:
@@ -132,6 +136,10 @@ class UserRepository:
     async def count(self) -> int:
         row = await self.graph.one("MATCH (u:User) RETURN count(u) AS n")
         return int(row["n"]) if row else 0
+
+    async def touch_sign_in(self, user_id: str) -> None:
+        """Remember when the user last authenticated (browser sign-in or OAuth2 authorization)."""
+        await self.graph.run("MATCH (u:User {id: $id}) SET u.last_sign_in_at = $now", id=user_id, now=now_iso())
 
     async def authenticate(self, username: str, password: str) -> User | None:
         """The user if the password matches and the account is enabled; None otherwise, in constant-ish time."""
