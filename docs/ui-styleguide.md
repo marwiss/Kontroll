@@ -55,7 +55,9 @@ Danger zones: `.card.card--danger` with one form per destructive action and
 ## Tokens
 
 Change the brand in `tokens.css` only: `--color-accent` and its `-strong` and
-`-soft` variants. Light and dark follow the system setting. Type scale
+`-soft` variants. The accent is the mark's blue, `#2b6cb0`, the same value
+Dataspatium uses (`--dm-accent`; hover `#245c96`, soft `#e6effa`), with a
+lighter blue in dark mode; light and dark follow the system setting. Type scale
 `--text-xs … --text-xl`, spacing `--space-1 … --space-7`, radii `--radius-sm/md/lg`.
 
 ## Mark

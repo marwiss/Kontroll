@@ -91,14 +91,15 @@ words. Planned as Dataspatium's "uniformity" release (2.34); Kontroll builds
 the language layer and the translations, Dataspatium delivers the glossary
 and the tokens.
 
-### 5. One look (K, small)
+### 5. One look (K, small) — accent done 2026-11-05, tokens with item 4
 
-The marks share the blue `#2b6cb0`, but Kontroll's pages still use the
-earlier teal accent (`#1f6f8b`) from `tokens.css`. Move the server's accent
-to the mark's blue (with the dark-mode variant and contrast re-checked by the
-axe tests), and align the type scale and radii with Dataspatium's tokens
-where they differ for no reason. The two projects stay separate code bases
-(different licences, see item B), so tokens are copied, not shared.
+The marks share the blue `#2b6cb0`, and since 2026-11-05 Kontroll's pages
+use it as their accent too (`tokens.css`: `#2b6cb0`, hover `#245c96`, soft
+`#e6effa`, a lighter blue in dark mode, focus ring from the same hue) instead
+of the earlier teal. Still to do with item 4: align the type scale and radii
+with Dataspatium's tokens where they differ for no reason. The two projects
+stay separate code bases (different licences, see item B), so token values are
+re-stated as facts, not copied as files.
 
 ### 6. Releases that can be matched (K, small; D, small)
 
