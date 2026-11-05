@@ -52,6 +52,7 @@ def live_server(graph_target: GraphTarget, clean_database: None, tmp_path: Path)
         graph_connect_timeout_seconds=10.0,
         cleanup_interval_seconds=3600,
         public_url=f"http://127.0.0.1:{port}",
+        upload_part_bytes=4096,  # several parts even for the small fixture model
     )
     world = build_world(live_settings)
     server = uvicorn.Server(

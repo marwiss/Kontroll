@@ -20,7 +20,7 @@ project plan. This file is updated with every stage.
 | 4 | BCF API: comments, viewpoints, related topics, document references, files, snippets, documents, comment events | done |
 | 5 | Documents API and browser sign-in | done |
 | 6 | Admin UI (users, projects, clients, sessions, audit log, settings) and account page | done |
-| 7 | Client library and end-to-end tests | |
+| 7 | Client library (`client/opencde_client`: discovery, PKCE, BCF, Documents, CLI, test helpers), examples and the end-to-end scenario | done |
 | 8 | Deployment | |
 | 9 | IFC-graph | |
 | 10 | Visual acceptance, Dataspatium | |

@@ -14,8 +14,10 @@ The project grew out of a 2023 research prototype that tested whether the BCF
 API and IFC-graph could carry the digital inspection plans required for
 building permits in Sweden. This repository is a rewrite from scratch of that
 prototype with the same functionality, modern dependencies and security as the
-first requirement. Status: **stage 0 of 11**, see [docs/inventory.md](docs/inventory.md)
-for what the prototype did and where each function stands in the new code.
+first requirement. Status: **stages 0–7 of 11 done** (all three APIs, the
+admin UI and the client library; deployment, IFC-graph, visual acceptance and
+hardening follow), see [docs/inventory.md](docs/inventory.md) for what the
+prototype did and where each function stands in the new code.
 
 ## Quick start (local, Docker)
 
@@ -54,20 +56,35 @@ password.
 ## Documentation
 
 - [docs/inventory.md](docs/inventory.md): functional inventory of the 2023
-  prototype and status in the rewrite
+  prototype and status in the rewrite, plus notes on specification quirks
+- [docs/client-guide.md](docs/client-guide.md) and [docs/examples/](docs/examples/):
+  how to build a client; runnable examples with the Python library in [client/](client/)
+- [docs/flows/](docs/flows/): sequence diagrams of the OAuth2 and Documents API flows
+- [docs/graph-schema.md](docs/graph-schema.md): the graph model
+- [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages
 - [docs/adr/](docs/adr/): architecture decision records (graph backend,
   opaque tokens, portable Cypher, vanilla web UI, repository strategy)
 - [docs/security/](docs/security/): threat model and controls
 - [spec/SOURCES.md](spec/SOURCES.md): the exact specification revisions the
   server is tested against
 
+## Administration
+
+Sign in at `/signin` with an administrator account and open `/admin` to manage
+users and their project roles, projects and their BCF extension values, OAuth2
+clients, sessions, the audit log and the server's health checks. Every user
+has `/account` for their own password, applications and sessions. The CLI
+(`uv run opencde --help`) does the same from a terminal.
+
 ## Development
 
 ```sh
 uv run pytest                    # unit, conformance and security tests
 uv run pytest -m integration     # starts Neo4j/Memgraph with testcontainers (Docker required)
+uv run pytest -m e2e             # the client library against a live server (Docker required)
+uv run pytest -m ui              # Playwright + axe-core (uv sync --group ui; playwright install chromium)
 uv run ruff format . && uv run ruff check .
-uv run ty check opencde
+uv run ty check opencde client/opencde_client
 ```
 
 Code, comments and documentation are in English. The style follows
