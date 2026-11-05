@@ -113,5 +113,6 @@ Every control has at least one automated test. "Suite" names the test module.
 | Streaming writes count bytes and enforce limits | `test_core_helpers::test_storage_stream_counts_bytes` |
 | Cypher stays parameterised and portable | `test_core_helpers::test_dialect_ddl_and_cypher_lint`, Memgraph contract run |
 | Expired secrets are deleted on a timer | `test_graph_core::test_expired_nodes_are_deleted_in_batches` |
+| The clock is compared with NTP in `opencde doctor` and on the settings page (expiry times depend on it) | `test_doctor` |
 | Dependency cooldown and pinned actions | `.github/workflows/ci.yml`, `pyproject.toml` |
 | Every documented operation survives generated valid and invalid input: no 5xx, responses match the OpenAPI schemas, invalid input gets a 4xx | `tests/e2e/test_schemathesis.py` (Schemathesis; `OPENCDE_SCHEMATHESIS_EXAMPLES` for the long nightly run) |

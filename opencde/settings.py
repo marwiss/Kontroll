@@ -69,6 +69,10 @@ class Settings(BaseSettings):
         ["*"],
         description="Origins allowed to call the API from browsers (Foundation API 1.4). Bearer tokens, never cookies.",
     )
+    ntp_server: str = Field(
+        "pool.ntp.org",
+        description="NTP server for the clock check of `opencde doctor` and the settings page. Empty disables it.",
+    )
 
     # --- graph database ---------------------------------------------------
     graph_dialect: GraphDialect = Field(GraphDialect.NEO4J, description="Which graph database the server talks to.")
