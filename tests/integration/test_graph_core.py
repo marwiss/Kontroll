@@ -1,6 +1,8 @@
 # This file was generated with the assistance of an AI coding tool.
 """Schema, cleanup and the account repositories against a real graph database."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 from neo4j.exceptions import ClientError as GraphClientError
@@ -12,7 +14,16 @@ from opencde.auth.clients import ClientError, ClientRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
-from opencde.seed import SeedError, seed
+from opencde.seed import (
+    SAMPLE_MODEL,
+    SEED_COMMENT_GUID,
+    SEED_DOCUMENT_ID,
+    SEED_TOPIC_GUID,
+    SEED_VIEWPOINT_GUID,
+    SeedError,
+    seed,
+)
+from opencde.storage import LocalStorage
 from opencde.timeutil import later_iso
 from tests.integration.conftest import GraphTarget
 
@@ -119,8 +130,9 @@ async def test_clients_secrets_and_redirects(graph: Graph) -> None:
     assert await clients.get(confidential.client_id) is None
 
 
-async def test_seed_only_fills_an_empty_database(graph: Graph) -> None:
-    result = await seed(graph, shared_password="demo-passphrase-for-tests")
+async def test_seed_only_fills_an_empty_database(graph: Graph, tmp_path: Path) -> None:
+    storage = LocalStorage(tmp_path / "storage")
+    result = await seed(graph, storage=storage, shared_password="demo-passphrase-for-tests")
     assert set(result.passwords) == {"admin", "officer", "developer", "inspection_manager", "inspector"}
     assert set(result.projects) == {"Building permit", "Demolition permit"}
     assert result.confidential_client_secret
@@ -128,5 +140,24 @@ async def test_seed_only_fills_an_empty_database(graph: Graph) -> None:
     officer = await users.get_by_username("officer")
     assert officer is not None
     assert len(await users.memberships(officer.id)) == 2
+
+    # The sample model and a topic with a viewpoint and a comment, all with the ids clients rely on.
+    content = await graph.one(
+        """
+        MATCH (p:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion),
+              (p)-[:HAS_TOPIC]->(t:Topic)
+        OPTIONAL MATCH (t)-[:HAS_VIEWPOINT]->(vp:Viewpoint)
+        OPTIONAL MATCH (t)-[:HAS_COMMENT]->(c:Comment)
+        RETURN d.document_id AS document, v.file_name AS file_name, v.sha256 AS sha256, t.guid AS topic,
+               t.server_assigned_id AS assigned, collect(DISTINCT vp.guid) AS viewpoints, collect(DISTINCT c.guid) AS comments
+        """,
+        project_id=result.projects["Building permit"],
+    )
+    assert content is not None
+    assert content["document"] == SEED_DOCUMENT_ID and content["file_name"] == "three_walls_gtin.ifc"
+    assert content["topic"] == SEED_TOPIC_GUID and content["assigned"] == "ISSUE-0001"
+    assert content["viewpoints"] == [SEED_VIEWPOINT_GUID] and content["comments"] == [SEED_COMMENT_GUID]
+    stored = next((tmp_path / "storage" / "documents").iterdir())
+    assert stored.read_bytes() == SAMPLE_MODEL.read_bytes()
     with pytest.raises(SeedError):
-        await seed(graph)
+        await seed(graph, storage=storage)

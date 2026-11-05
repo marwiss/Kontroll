@@ -4,20 +4,45 @@
 The seed tells the story the server was built for: a municipality's building
 permit with the people around it. Five users named after their roles in a
 Swedish building-permit process, two projects, OAuth2 clients to try the API
-with, and (from stage 5) the sample model with three walls. It only runs into
-an empty database, and it prints the generated passwords exactly once.
+with, the sample model with three walls as a document, and one topic with a
+viewpoint on the first wall and a comment. It only runs into an empty
+database, and it prints the generated passwords exactly once.
+
+The ids of the seeded document, topic, viewpoint and comment are fixed
+(``SEED_*`` below), so that clients and their test suites, Dataspatium's among
+them, can refer to them; the model's wall GlobalIds and GTINs are in
+``SAMPLE_MODEL_WALLS``.
 """
 
 from __future__ import annotations
 
 import secrets
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
 from opencde.accounts.users import UserRepository
 from opencde.auth.clients import ClientRepository
+from opencde.bcf.comments import CommentRepository
+from opencde.bcf.schemas import (
+    CommentPOST,
+    Component,
+    Components,
+    Direction,
+    PerspectiveCamera,
+    Point,
+    TopicPOST,
+    ViewpointPOST,
+    Visibility,
+)
+from opencde.bcf.topics import TopicRepository
+from opencde.bcf.viewpoints import ViewpointRepository
+from opencde.documents.assembly import store_stream
+from opencde.documents.repository import DocumentRepository, default_metadata
 from opencde.graph.graph import Graph
+from opencde.ids import new_id
+from opencde.storage import LocalStorage, make_key
 from opencde.timeutil import now_iso
 
 DEMO_USERS: tuple[tuple[str, str, str, bool], ...] = (
@@ -39,6 +64,23 @@ BUILDING_PERMIT_EXTENSIONS = {
     "custom_information": ["Custom value 1", "Custom value 2"],
 }
 
+# Known ids, shared with client test suites (docs/client-guide.md §7).
+SEED_DOCUMENT_ID = "6f5d3b2a-0000-4000-8000-000000000001"
+SEED_TOPIC_GUID = "6f5d3b2a-0000-4000-8000-000000000002"
+SEED_VIEWPOINT_GUID = "6f5d3b2a-0000-4000-8000-000000000003"
+SEED_COMMENT_GUID = "6f5d3b2a-0000-4000-8000-000000000004"
+
+# The sample model: an IFC2X3 Archicad export with three walls that carry property set Reuse / GTIN.
+# tests/fixtures/three_walls_gtin.ifc is the same file; a test keeps the two identical.
+SAMPLE_MODEL = Path(__file__).with_name("seed_data") / "three_walls_gtin.ifc"
+SAMPLE_MODEL_FILE_NAME = "three_walls_gtin.ifc"
+SAMPLE_MODEL_WALLS: dict[str, int] = {  # IfcWallStandardCase GlobalId -> GTIN
+    "1Xezbq735AdBO_4DerG66G": 3,
+    "3eT96F_cnDsOufCEsotwtp": 2,
+    "3k3LbXmTfDWODxdSuyCGYE": 1,
+}
+SAMPLE_MODEL_MAX_BYTES = 1_048_576
+
 
 @dataclass
 class SeedResult:
@@ -47,6 +89,10 @@ class SeedResult:
     public_client_id: str = ""
     confidential_client_id: str = ""
     confidential_client_secret: str = ""
+    document_id: str = SEED_DOCUMENT_ID
+    topic_guid: str = SEED_TOPIC_GUID
+    viewpoint_guid: str = SEED_VIEWPOINT_GUID
+    comment_guid: str = SEED_COMMENT_GUID
 
 
 class SeedError(RuntimeError):
@@ -69,9 +115,12 @@ async def wipe(graph: Graph) -> None:
 async def seed(
     graph: Graph,
     *,
+    storage: LocalStorage,
     shared_password: str | None = None,
     public_redirects: list[str] | None = None,
     allow_localhost_redirects: bool = False,
+    id_prefix: str = "ISSUE-",
+    max_image_bytes: int = 10_485_760,
 ) -> SeedResult:
     if not await is_empty(graph):
         raise SeedError("the database is not empty; seeding only runs into an empty database")
@@ -135,4 +184,86 @@ async def seed(
     result.public_client_id = public_client.client_id
     result.confidential_client_id = confidential_client.client_id
     result.confidential_client_secret = secret or ""
+
+    await _seed_content(
+        graph, storage, building_permit.project_id, id_prefix=id_prefix, max_image_bytes=max_image_bytes
+    )
     return result
+
+
+async def _seed_content(
+    graph: Graph, storage: LocalStorage, project_id: str, *, id_prefix: str, max_image_bytes: int
+) -> None:
+    """The sample model as a document, and a topic with a viewpoint on its first wall and a comment."""
+    documents = DocumentRepository(graph)
+    key = make_key("documents", new_id())
+    with SAMPLE_MODEL.open("rb") as source:
+        size, sha256 = store_stream(storage, source, key, SAMPLE_MODEL_MAX_BYTES)
+    await documents.create_version(
+        project_id=project_id,
+        document_id=None,
+        requested_document_id=SEED_DOCUMENT_ID,
+        title="Three walls (sample model)",
+        version_number="1",
+        file_name=SAMPLE_MODEL_FILE_NAME,
+        size_in_bytes=size,
+        sha256=sha256,
+        storage_key=key,
+        author="officer",
+        metadata=default_metadata(
+            file_name=SAMPLE_MODEL_FILE_NAME,
+            size_in_bytes=size,
+            sha256=sha256,
+            author="officer",
+            project_name="Building permit",
+        ),
+    )
+
+    topics = TopicRepository(graph, id_prefix=id_prefix)
+    first_wall = next(iter(SAMPLE_MODEL_WALLS))
+    await topics.create(
+        project_id=project_id,
+        author="officer",
+        body=TopicPOST(
+            guid=SEED_TOPIC_GUID,
+            title="Check the reuse marking of the first wall",
+            topic_type="Inspection",
+            topic_status="Open",
+            priority="Medium",
+            labels=["Reuse"],
+            assigned_to="inspector",
+            description=f"The wall {first_wall} carries GTIN {SAMPLE_MODEL_WALLS[first_wall]} in property set "
+            "Reuse. Confirm the marking on site before the inspection.",
+        ),
+    )
+    viewpoints = ViewpointRepository(graph, storage, topics, max_image_bytes=max_image_bytes)
+    await viewpoints.create(
+        project_id=project_id,
+        topic_guid=SEED_TOPIC_GUID,
+        author="officer",
+        body=ViewpointPOST(
+            guid=SEED_VIEWPOINT_GUID,
+            perspective_camera=PerspectiveCamera(
+                camera_view_point=Point(x=8.0, y=-6.0, z=4.0),
+                camera_direction=Direction(x=-0.6, y=0.7, z=-0.3),
+                camera_up_vector=Direction(x=0.0, y=0.0, z=1.0),
+                field_of_view=60.0,
+                aspect_ratio=1.5,
+            ),
+            components=Components(
+                selection=[Component(ifc_guid=first_wall, originating_system="Kontroll seed")],
+                visibility=Visibility(default_visibility=True),
+            ),
+        ),
+    )
+    comments = CommentRepository(graph, topics)
+    await comments.create(
+        project_id=project_id,
+        topic_guid=SEED_TOPIC_GUID,
+        author="inspector",
+        body=CommentPOST(
+            guid=SEED_COMMENT_GUID,
+            comment="Marking found on the wall, photo attached to the inspection plan.",
+            viewpoint_guid=SEED_VIEWPOINT_GUID,
+        ),
+    )
