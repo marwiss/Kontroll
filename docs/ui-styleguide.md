@@ -61,11 +61,12 @@ Change the brand in `tokens.css` only: `--color-accent` and its `-strong` and
 ## Mark
 
 The server's mark is the sibling of Dataspatium's: where Dataspatium shows
-three stacked sheets, Kontroll shows three connected nodes (a graph), one at
-the middle left and two at the right, white on the same blue plate `#2b6cb0`
-with corner radius 7 in a 32-unit square, lines at the same stroke width 2.2
-and dots of radius 3. The white ink keeps Dataspatium's margins exactly
-(x 7.4–24.6, y 5.08–26.92 of the box). The source is
+three stacked sheets, Kontroll shows three connected nodes (a graph): hollow
+rings of radius 2.6, one at the middle left joined by two lines to the two at
+the right, white on the same blue plate `#2b6cb0` with corner radius 7 in a
+32-unit square, everything at the same stroke width 2.2. The white ink keeps
+Dataspatium's margins exactly (x 7.4–24.6, y 5.08–26.92 of the box). The
+source is
 `opencde/ui/static/icon.svg`; `icon-32.png`, `icon-180.png`, `icon-192.png`,
 `icon-512.png` and `favicon.ico` are rendered from it (the PNGs with Edge
 headless on a transparent background, the ICO wrapping the 16, 32 and 48 px
