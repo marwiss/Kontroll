@@ -2,6 +2,8 @@
 
 # Kontroll OpenCDE server
 
+*English · [Svenska](README.sv.md)*
+
 A server for the buildingSMART **OpenCDE APIs**, built on a graph database:
 
 - **Foundation API 1.0**: service discovery, OAuth2 authorization code with PKCE, current user
@@ -136,9 +138,12 @@ uv run ruff format . && uv run ruff check .
 uv run ty check opencde client/opencde_client
 ```
 
-Code, comments and documentation are in English. The style follows
-IfcOpenShell's conventions (ruff, 120 columns) because the server and the
-client library are intended to be contributed there later.
+Code and comments are in English because the server and the client library
+are intended to be contributed to IfcOpenShell, whose conventions (ruff, 120
+columns) the style follows. The README exists in English and Swedish; the
+documentation and the web UI are to be available in Swedish, Norwegian,
+Danish, Finnish, Icelandic and English, with English always one of the
+choices.
 
 ## Security
 
