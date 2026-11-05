@@ -23,6 +23,10 @@ the commit history.
   `Cross-Origin-Opener-Policy: same-origin`, which cut the pop-up's link to
   the application and left the user on the callback page with its address;
   the administration and account pages keep the isolation.
+- Without `OPENCDE_SECRET_KEY` (allowed outside production) the server now
+  keeps its generated key in `OPENCDE_DATA_DIR/secret_key`, so that a
+  restart or a rebuild no longer answers every open sign-in form with "the
+  form has expired" and no longer ends every browser session.
 - The quick start names the demo user it signs in as, `inspection_manager`
   (the editor of *Building permit*), instead of a user that the seed does
   not create.
