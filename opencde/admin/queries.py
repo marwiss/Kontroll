@@ -95,3 +95,57 @@ async def membership_counts(graph: Graph) -> dict[str, int]:
         "MATCH (u:User) OPTIONAL MATCH (u)-[m:MEMBER_OF]->(:Project) RETURN u.id AS id, count(m) AS n"
     )
     return {row["id"]: int(row["n"]) for row in rows}
+
+
+async def memberships_by_user(graph: Graph) -> dict[str, list[dict[str, str]]]:
+    """``{user_id: [{"project_id", "role"}]}`` for every membership on the server."""
+    rows = await graph.run(
+        """
+        MATCH (u:User)-[m:MEMBER_OF]->(p:Project)
+        RETURN u.id AS user_id, p.project_id AS project_id, m.role AS role
+        ORDER BY p.name
+        """
+    )
+    result: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        result.setdefault(row["user_id"], []).append({"project_id": row["project_id"], "role": row["role"]})
+    return result
+
+
+async def members_by_project(graph: Graph) -> dict[str, list[dict[str, str]]]:
+    """``{project_id: [{"user_id", "username", "role"}]}`` for every membership on the server."""
+    rows = await graph.run(
+        """
+        MATCH (u:User)-[m:MEMBER_OF]->(p:Project)
+        RETURN p.project_id AS project_id, u.id AS user_id, u.username AS username, m.role AS role
+        ORDER BY u.username
+        """
+    )
+    result: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        result.setdefault(row["project_id"], []).append(
+            {"user_id": row["user_id"], "username": row["username"], "role": row["role"]}
+        )
+    return result
+
+
+async def model_counts(graph: Graph) -> dict[str, int]:
+    """Imported IFC models per project id (every state), plus the total under ``""``."""
+    rows = await graph.run("MATCH (m:IfcModel) RETURN m.project_id AS project_id, count(m) AS n")
+    counts = {str(row["project_id"] or ""): int(row["n"]) for row in rows}
+    counts[""] = sum(counts.values())
+    return counts
+
+
+async def request_log_rows(graph: Graph) -> int:
+    row = await graph.one("MATCH (r:RequestLog) RETURN count(r) AS n")
+    return int(row["n"]) if row else 0
+
+
+async def family_user(graph: Graph, family_id: str) -> str | None:
+    """The user of a refresh-token family, or None when no live token of it exists."""
+    row = await graph.one(
+        "MATCH (rt:RefreshToken {family_id: $family_id})-[:FOR]->(u:User) RETURN u.id AS user_id LIMIT 1",
+        family_id=family_id,
+    )
+    return row["user_id"] if row else None

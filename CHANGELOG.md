@@ -4,6 +4,17 @@ Kontroll takes the same release numbers as [Dataspatium](https://github.com/marw
 the same number on both means they work together. Every release lists what
 a client can see; internal changes are in the commit history.
 
+## Unreleased
+
+- The administration API follows the resource list agreed with Dataspatium
+  for its 2.35: a flat overview with `uptime_s` and `models`, users with
+  `name` and their project roles, projects with inline `members`, clients
+  with `public`, sessions with an `id` that `DELETE /admin/api/sessions/{id}`
+  accepts, `DELETE /admin/api/sessions?user=`, structured settings with the
+  raw values under `raw`, `PUT` beside `PATCH`, `POST …/reset-password`,
+  `POST …/rotate-secret`, and `initial_password` in the answer to a created
+  user without a given password.
+
 ## 2.0.0 — 2026-11-05
 
 The first tagged release. Works with Dataspatium 2.0.0.

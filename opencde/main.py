@@ -9,6 +9,7 @@ deliver them.
 
 from __future__ import annotations
 
+import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -81,6 +82,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         app.state.settings = settings
+        app.state.started_at = time.monotonic()  # the administration API reports the uptime from it
         app.state.graph = make_graph(settings)
         app.state.storage = make_storage(settings)
         cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds, app.state.storage)
