@@ -15,7 +15,7 @@ from the last ten minutes (``FreshAdminPrincipal``: ``403
 reauthentication_required`` otherwise), one-time values (an initial
 password, a client secret) are returned exactly once, and every write
 leaves an audit event with the caller, its client and the request id. The
-resource shapes were agreed with Dataspatium for its release 2.35
+resource shapes were agreed with Dataspatium for its release 2.2.0
 (docs/dataspatium-coordination.md, item 12; docs/client-guide.md §7).
 """
 
