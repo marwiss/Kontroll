@@ -26,7 +26,7 @@ from opencde.admin.access import (
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import GraphDep, ProjectsDep, UsersDep
 from opencde.ids import is_uuid
-from opencde.ui.i18n import tr
+from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
 
 router = APIRouter(prefix="/admin/users", include_in_schema=False)
@@ -117,7 +117,7 @@ async def user_create(request: Request, admin: AdminDep, users: UsersDep, graph:
         return render(
             request,
             "admin/user_new.html",
-            admin_context(request, admin, "users", form_token=form.token(), error=str(exc)),
+            admin_context(request, admin, "users", form_token=form.token(), error=tr_error(request, exc)),
             status_code=400,
         )
     await form.record(graph, "user.create", user_id=user.id, is_admin=user.is_admin)

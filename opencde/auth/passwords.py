@@ -8,6 +8,9 @@ passwords that contain the user name.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Any
+
 from pwdlib import PasswordHash
 from zxcvbn import zxcvbn
 
@@ -33,18 +36,38 @@ def verify_password(password: str, password_hash: str | None) -> bool:
         return False
 
 
-def password_problems(password: str, username: str = "", extra_inputs: list[str] | None = None) -> list[str]:
+@dataclass(frozen=True)
+class PasswordProblem:
+    """Why a password is not acceptable: the English text, and its catalogue key with the parameters."""
+
+    message: str
+    key: str
+    params: dict[str, Any] = field(default_factory=dict)
+
+    def __str__(self) -> str:
+        return self.message
+
+
+def password_problems(
+    password: str, username: str = "", extra_inputs: list[str] | None = None
+) -> list[PasswordProblem]:
     """Why a password is not acceptable; an empty list means it is fine."""
-    problems: list[str] = []
+    problems: list[PasswordProblem] = []
     if len(password) < MIN_PASSWORD_LENGTH:
-        problems.append(f"use at least {MIN_PASSWORD_LENGTH} characters")
+        problems.append(
+            PasswordProblem(
+                f"use at least {MIN_PASSWORD_LENGTH} characters",
+                "error.password.too_short",
+                {"min": MIN_PASSWORD_LENGTH},
+            )
+        )
     if len(password) > 256:
-        problems.append("use at most 256 characters")
+        problems.append(PasswordProblem("use at most 256 characters", "error.password.too_long", {"max": 256}))
     if username and username.lower() in password.lower():
-        problems.append("do not include the user name")
+        problems.append(PasswordProblem("do not include the user name", "error.password.contains_username"))
     if not problems:
         result = zxcvbn(password, user_inputs=[username, *(extra_inputs or [])])
         if result["score"] < MIN_SCORE:
             hint = result["feedback"].get("warning") or "it is too easy to guess"
-            problems.append(f"too weak: {hint}")
+            problems.append(PasswordProblem(f"too weak: {hint}", "error.password.too_weak", {"hint": hint}))
     return problems

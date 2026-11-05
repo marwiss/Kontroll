@@ -75,6 +75,26 @@ def tr(request: Request, key: str, **params: Any) -> str:
     return translate(negotiate(request), key, **params)
 
 
+def tr_error(request: Request, exc: Exception) -> str:
+    """A :class:`~opencde.errors.UserFacingError` in the request's language, or any other error's message."""
+    key = getattr(exc, "key", None)
+    if not key:
+        return str(exc)
+    lang = negotiate(request)
+    return _translate_value(lang, exc)
+
+
+def _translate_value(lang: str, value: Any) -> Any:
+    """Values that carry ``key`` and ``params`` are translated, lists of them joined; anything else passes through."""
+    if isinstance(value, list | tuple):
+        return "; ".join(str(_translate_value(lang, item)) for item in value)
+    key = getattr(value, "key", None)
+    if not key:
+        return value
+    params = {name: _translate_value(lang, item) for name, item in getattr(value, "params", {}).items()}
+    return translate(lang, key, **params)
+
+
 def _accept_language(header: str) -> list[str]:
     """Language tags from ``Accept-Language`` in preference order, lowercased, without quality values."""
     choices: list[tuple[float, int, str]] = []

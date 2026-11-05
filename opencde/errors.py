@@ -20,6 +20,8 @@ over the limit versus a chosen file over the limit).
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -65,6 +67,21 @@ class ApiError(HTTPException):
     def __init__(self, status_code: int, message: str, *, code: str, headers: dict[str, str] | None = None) -> None:
         super().__init__(status_code, message, headers)
         self.code = code
+
+
+class UserFacingError(ValueError):
+    """A request that cannot be fulfilled, with a message that is safe to show.
+
+    ``str(exc)`` is the English message, for the CLI and the API. ``key`` names the same text in
+    the UI catalogues (``error.*``) and ``params`` fills its placeholders, so that a page shows it
+    in the user's language (``opencde.ui.i18n.tr_error``). A parameter may itself carry ``key``
+    and ``params`` (a password problem, for instance), or be a list of such values.
+    """
+
+    def __init__(self, message: str, *, key: str | None = None, **params: Any) -> None:
+        super().__init__(message)
+        self.key = key
+        self.params = params
 
 
 def error_body(status_code: int, message: str, code: str | None = None) -> dict[str, str]:

@@ -15,7 +15,6 @@
   "nav.requests": "Førespurnadslogg",
   "nav.settings": "Innstillingar",
   "nav.my_account": "Kontoen min",
-
   "opencde.signin": "Logg inn",
   "opencde.signout": "Logg ut",
   "opencde.project": "Prosjekt",
@@ -66,7 +65,6 @@
   "common.danger_zone": "Faresone",
   "common.redirect_uris": "Redirect-URI-ar",
   "common.open_in_dataspatium": "Opne i Dataspatium",
-
   "js.filter_rows": "Filtrer rader",
   "js.filter_placeholder": "Filtrer rader…",
   "js.rows_match": "{shown} av {total} rader samsvarar",
@@ -74,13 +72,11 @@
   "js.confirm": "Stadfest",
   "js.copied": "Kopiert",
   "js.copy_failed": "Kopieringa mislukkast",
-
   "signin.lead": "Bruk kontoen din på denne serveren.",
   "signin.error.credentials": "Brukarnamnet eller passordet er ikkje rett.",
   "signin.error.expired": "Skjemaet har gått ut. Prøv igjen.",
   "signout.error.title": "Kan ikkje logge ut",
   "signout.error.expired": "Skjemaet har gått ut. Last sida på nytt.",
-
   "consent.asks": "ber om å handle på dine vegner på denne serveren.",
   "consent.will": "Applikasjonen vil kunne",
   "consent.redirect": "Når du har logga inn, blir du send tilbake til",
@@ -97,10 +93,8 @@
   "auth.error.no_client": "Førespurnaden oppgjev ingen klient (client_id).",
   "auth.error.no_redirect": "Førespurnaden oppgjev ingen redirect-URI, og klienten har fleire registrerte.",
   "auth.error.bad_redirect": "Redirect-URI-en er ikkje registrert for denne klienten.",
-
   "page.not_found.title": "Ikkje funne",
   "page.not_found.message": "Det finst inga slik side.",
-
   "account.title": "Kontoen min",
   "account.must_change": "Passordet ditt vart sett av ein administrator. Vel ditt eige før du held fram.",
   "account.administrator": "administrator",
@@ -118,7 +112,6 @@
   "account.this_browser": "denne nettlesaren",
   "account.sign_out_everywhere": "Logg ut overalt",
   "account.error.mismatch": "Dei to nye passorda er ulike.",
-
   "notice.saved": "Lagra.",
   "notice.created": "Oppretta.",
   "notice.deleted": "Sletta.",
@@ -132,13 +125,11 @@
   "notice.form_expired": "Skjemaet hadde gått ut; ingenting vart endra. Prøv igjen.",
   "notice.not_yourself": "Det kan du ikkje gjere med din eigen konto.",
   "notice.invalid": "Skjemaet var ikkje gyldig; ingenting vart endra.",
-
   "index.lead": "Ein buildingSMART OpenCDE-server: Foundation API 1.0, BCF API 3.0 og Documents API 1.0.",
   "index.discovery": "Oppdaging av tenester",
   "index.auth": "Autentisering",
   "index.auth_value": "OAuth2 authorization code med PKCE",
   "index.version": "Versjon",
-
   "docs.upload.title": "Last opp dokument",
   "docs.upload.lead": "Applikasjonen din vil laste opp {count} filer.",
   "docs.upload.lead.one": "Applikasjonen din vil laste opp éi fil.",
@@ -184,10 +175,8 @@
   "docs.message.other_account_hint": "Logg ut og logg inn som brukaren som starta han i applikasjonen.",
   "docs.message.callback_expired": "Lenkja til applikasjonen har gått ut",
   "docs.message.callback_expired_text": "Returlenkja til applikasjonen har gått ut, så du kan ikkje sendast tilbake til henne.",
-
   "macro.confirm_label": "Passordet ditt",
   "macro.confirm_hint": "Farlege handlingar spør etter ditt eige passord igjen.",
-
   "admin.title": "Administrasjon",
   "admin.overview.title": "Oversikt",
   "admin.overview.db_down": "Grafdatabasen svarar ikkje. Ingenting kan lesast eller endrast før han er tilbake.",
@@ -202,7 +191,6 @@
   "admin.overview.actor": "Aktør",
   "admin.overview.full_audit": "Heile revisjonsloggen",
   "admin.overview.no_events": "Ingen hendingar enno.",
-
   "admin.users.new": "Ny brukar",
   "admin.users.search": "Søk brukarar",
   "admin.users.search_placeholder": "Søk på brukarnamn, namn eller e-post",
@@ -235,7 +223,6 @@
   "admin.user_new.must_change": "Må byte passord ved fyrste innlogging",
   "admin.user_new.admin_hint": "Administratorar administrerer denne serveren. Dei har ingen prosjekttilgang før dei får ei rolle.",
   "admin.user_new.create": "Opprett brukar",
-
   "admin.secret.shown_once": "Vist éin gong.",
   "admin.secret.password_for": "Passord for {user}",
   "admin.secret.password_lead": "Gje brukaren dette passordet gjennom ein sikker kanal. Det blir vist éin gong og må bytast ved fyrste innlogging.",
@@ -248,7 +235,6 @@
   "admin.secret.client_secret_rotated_lead": "Den gamle løyndomen slutta å verke. Oppdater applikasjonen no.",
   "admin.secret.client_id": "Klient-id",
   "admin.secret.open_client": "Opne klienten",
-
   "admin.projects.new": "Nytt prosjekt",
   "admin.projects.none": "Ingen prosjekt enno.",
   "admin.project.id": "Prosjekt-id",
@@ -273,7 +259,6 @@
   "admin.project_new.name_hint": "Vist for alle medlemmer og for BCF-klientar.",
   "admin.project_new.defaults": "Prosjektet startar med standardverdiane for BCF-extensions (typar, statusar, etikettar, prioritetar, fasar); rediger dei etterpå.",
   "admin.project_new.create": "Opprett prosjekt",
-
   "admin.clients.title": "OAuth2-klientar",
   "admin.clients.register": "Registrer klient",
   "admin.clients.lead": "Ein klient er ein applikasjon som loggar brukarar inn gjennom denne serveren: eit BCF-tillegg, ein viewer, eit skript.",
@@ -300,13 +285,11 @@
   "admin.client_new.public_option": "Offentleg: native app eller nettlesarapp, ingen løyndom, PKCE krevst",
   "admin.client_new.confidential_option": "Konfidensiell: serverapplikasjon med ein løyndom",
   "admin.client_new.type_hint": "Begge typane må bruke PKCE. Løyndomen til ein konfidensiell klient blir vist éin gong etter registreringa.",
-
   "admin.sessions.apps": "Applikasjonar med tilgang",
   "admin.sessions.apps_lead": "Kvar rad er ein familie av refresh-tokens: éi innlogging av ein brukar gjennom ein applikasjon. Tilbakekalling avsluttar henne med ein gong.",
   "admin.sessions.no_apps": "Ingen applikasjon har ein token no.",
   "admin.sessions.browser": "Nettlesarsesjonar",
   "admin.sessions.no_browser": "Ingen nettlesarsesjonar.",
-
   "admin.audit.csv": "Last ned CSV",
   "admin.audit.type_label": "Hendingstypen byrjar med",
   "admin.audit.type_placeholder": "Filtrer på hendingstype, t.d. auth. eller admin.user",
@@ -315,7 +298,6 @@
   "admin.audit.no_secrets": "Løyndomar blir aldri viste her.",
   "admin.audit.details": "Detaljar",
   "admin.audit.none": "Ingen hendingar.",
-
   "admin.requests.off_1": "Førespurnadsloggen er av. Set",
   "admin.requests.off_2": "for å registrere kvar førespurnad (metode, sti, status, tid og kallar; aldri innhald eller tokens). Oppføringar som er registrerte tidlegare, blir viste nedanfor til dei går ut.",
   "admin.requests.client_id": "Klient-id",
@@ -332,7 +314,6 @@
   "admin.requests.ms": "ms",
   "admin.requests.in_out": "Inn / ut",
   "admin.requests.none": "Ingen førespurnader registrerte.",
-
   "admin.settings.health": "Helsekontrollar",
   "admin.settings.check": "Kontroll",
   "admin.settings.detail": "Detalj",
@@ -343,5 +324,37 @@
   "admin.settings.lead_2": ". Løyndomar blir aldri viste. Endre verdiar i miljøet eller i",
   "admin.settings.lead_3": "og start på nytt.",
   "admin.settings.setting": "Innstilling",
-  "admin.settings.value": "Verdi"
+  "admin.settings.value": "Verdi",
+  "error.redirect_uri.length": "Redirect-URI-en manglar eller er for lang.",
+  "error.redirect_uri.fragment": "Redirect-URI-en kan ikkje innehalde eit fragment.",
+  "error.redirect_uri.absolute": "Redirect-URI-en må vere absolutt.",
+  "error.redirect_uri.host": "Redirect-URI-en treng ein vert.",
+  "error.redirect_uri.http_loopback": "http-redirect-URI-ar er berre tillatne for loopback-adressa (127.0.0.1 eller [::1]).",
+  "error.redirect_uri.scheme": "Redirect-URI-en bruker eit utrygt skjema.",
+  "error.redirect_uri.required": "Minst éin redirect-URI krevst.",
+  "error.redirect_uri.too_many": "Høgst {max} redirect-URI-ar.",
+  "error.client.name_length": "Klientnamnet må vere 1–{max} teikn.",
+  "error.client.id_uuid": "client_id må vere ein UUID.",
+  "error.client.not_created": "Klienten vart ikkje oppretta.",
+  "error.client.not_found": "Det finst ingen slik klient.",
+  "error.client.public_no_secret": "Offentlege klientar har ingen løyndom.",
+  "error.user.name_invalid": "Brukarnamnet må vere 3–128 teikn: bokstavar, siffer og . _ @ + -",
+  "error.user.name_taken": "Brukarnamnet er alt teke.",
+  "error.user.not_created": "Brukaren vart ikkje oppretta.",
+  "error.user.not_found": "Det finst ingen slik brukar.",
+  "error.password.rejected": "Passordet vart avvist: {problems}.",
+  "error.password.too_short": "bruk minst {min} teikn",
+  "error.password.too_long": "bruk høgst {max} teikn",
+  "error.password.contains_username": "ikkje ta med brukarnamnet",
+  "error.password.too_weak": "for svakt: {hint}",
+  "error.project.values_strings": "{name}: verdiane må vere strengar.",
+  "error.project.values_length": "{name}: verdiane må vere 1–{max} teikn.",
+  "error.project.too_many_values": "{name}: høgst {max} verdiar.",
+  "error.project.name_length": "Prosjektnamnet må vere 1–{max} teikn.",
+  "error.project.id_uuid": "project_id må vere ein UUID.",
+  "error.project.id_exists": "project_id finst alt.",
+  "error.project.not_created": "Prosjektet vart ikkje oppretta.",
+  "error.project.not_found": "Det finst ikkje noko slikt prosjekt.",
+  "error.project.member_not_found": "Det finst ingen slik brukar eller noko slikt prosjekt.",
+  "error.project.unknown_extensions": "Ukjende utvidingslister: {names}."
 }

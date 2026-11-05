@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
 
+from opencde.errors import UserFacingError
 from opencde.graph.graph import Graph
 from opencde.ids import hash_secret, is_uuid, new_id, new_secret, normalize_guid, secrets_equal
 from opencde.timeutil import now_iso
@@ -23,8 +24,8 @@ MAX_REDIRECTS = 10
 LOOPBACK_HOSTS = ("127.0.0.1", "[::1]")
 
 
-class ClientError(ValueError):
-    """A client-management request that cannot be fulfilled; the message is safe to show."""
+class ClientError(UserFacingError):
+    """A client-management request that cannot be fulfilled; the message is safe to show, ``key`` names it."""
 
 
 @dataclass(frozen=True)
@@ -78,23 +79,26 @@ def validate_redirect_uri(uri: str, *, allow_localhost: bool = False) -> str:
     """Accept https URIs, loopback http URIs and private-use schemes of native apps; nothing else."""
     uri = uri.strip()
     if not uri or len(uri) > 2000:
-        raise ClientError("redirect URI missing or too long")
+        raise ClientError("redirect URI missing or too long", key="error.redirect_uri.length")
     parts = urlsplit(uri)
     if parts.fragment:
-        raise ClientError("redirect URI must not contain a fragment")
+        raise ClientError("redirect URI must not contain a fragment", key="error.redirect_uri.fragment")
     if not parts.scheme:
-        raise ClientError("redirect URI must be absolute")
+        raise ClientError("redirect URI must be absolute", key="error.redirect_uri.absolute")
     scheme = parts.scheme.lower()
     host = (parts.hostname or "").lower()
     if scheme == "https":
         if not host:
-            raise ClientError("redirect URI needs a host")
+            raise ClientError("redirect URI needs a host", key="error.redirect_uri.host")
     elif scheme == "http":
         loopback = host in ("127.0.0.1", "::1") or (allow_localhost and host == "localhost")
         if not loopback:
-            raise ClientError("http redirect URIs are only allowed for the loopback address (127.0.0.1 or [::1])")
+            raise ClientError(
+                "http redirect URIs are only allowed for the loopback address (127.0.0.1 or [::1])",
+                key="error.redirect_uri.http_loopback",
+            )
     elif scheme in ("javascript", "data", "vbscript", "file"):
-        raise ClientError("unsafe redirect URI scheme")
+        raise ClientError("unsafe redirect URI scheme", key="error.redirect_uri.scheme")
     # Any other scheme is a private-use scheme of a native application (RFC 8252 §7.1).
     return uri
 
@@ -120,9 +124,11 @@ class ClientRepository:
 
     def _clean_redirects(self, uris: list[str]) -> list[str]:
         if not uris:
-            raise ClientError("at least one redirect URI is required")
+            raise ClientError("at least one redirect URI is required", key="error.redirect_uri.required")
         if len(uris) > MAX_REDIRECTS:
-            raise ClientError(f"at most {MAX_REDIRECTS} redirect URIs")
+            raise ClientError(
+                f"at most {MAX_REDIRECTS} redirect URIs", key="error.redirect_uri.too_many", max=MAX_REDIRECTS
+            )
         cleaned: list[str] = []
         for uri in uris:
             value = validate_redirect_uri(uri, allow_localhost=self.allow_localhost)
@@ -152,10 +158,10 @@ class ClientRepository:
         """
         name = name.strip()
         if not name or len(name) > 200:
-            raise ClientError("client name: 1-200 characters")
+            raise ClientError("client name: 1-200 characters", key="error.client.name_length", max=200)
         if client_id is not None:
             if not is_uuid(client_id):
-                raise ClientError("client_id must be a UUID")
+                raise ClientError("client_id must be a UUID", key="error.client.id_uuid")
             client_id = normalize_guid(client_id)
         secret = None if public else new_secret()
         row = await self.graph.one(
@@ -183,7 +189,7 @@ class ClientRepository:
             software_version=(software_version or "").strip()[:50] or None,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
-            raise ClientError("client was not created")
+            raise ClientError("client was not created", key="error.client.not_created")
         return _client(row["client"]), secret
 
     async def get(self, client_id: str) -> Client | None:
@@ -214,9 +220,9 @@ class ClientRepository:
     async def rotate_secret(self, client_id: str) -> str:
         client = await self.get(client_id)
         if client is None:
-            raise ClientError("no such client")
+            raise ClientError("no such client", key="error.client.not_found")
         if client.is_public:
-            raise ClientError("public clients have no secret")
+            raise ClientError("public clients have no secret", key="error.client.public_no_secret")
         secret = new_secret()
         await self.graph.run(
             "MATCH (c:Client {client_id: $id}) SET c.secret_hash = $hash", id=client_id, hash=hash_secret(secret)
@@ -251,7 +257,7 @@ class ClientRepository:
             disabled=disabled,
         )
         if row is None:
-            raise ClientError("no such client")
+            raise ClientError("no such client", key="error.client.not_found")
         return _client(row["client"])
 
     async def delete(self, client_id: str) -> bool:

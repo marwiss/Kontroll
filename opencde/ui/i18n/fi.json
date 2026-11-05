@@ -15,7 +15,6 @@
   "nav.requests": "Pyyntöloki",
   "nav.settings": "Asetukset",
   "nav.my_account": "Oma tili",
-
   "opencde.signin": "Kirjaudu",
   "opencde.signout": "Kirjaudu ulos",
   "opencde.project": "Projekti",
@@ -66,7 +65,6 @@
   "common.danger_zone": "Vaaravyöhyke",
   "common.redirect_uris": "Redirect-URI:t",
   "common.open_in_dataspatium": "Avaa Dataspatiumissa",
-
   "js.filter_rows": "Suodata rivejä",
   "js.filter_placeholder": "Suodata rivejä…",
   "js.rows_match": "{shown} / {total} riviä täsmää",
@@ -74,13 +72,11 @@
   "js.confirm": "Vahvista",
   "js.copied": "Kopioitu",
   "js.copy_failed": "Kopiointi epäonnistui",
-
   "signin.lead": "Käytä tiliäsi tällä palvelimella.",
   "signin.error.credentials": "Käyttäjätunnus tai salasana ei ole oikein.",
   "signin.error.expired": "Lomake on vanhentunut. Yritä uudelleen.",
   "signout.error.title": "Uloskirjautuminen ei onnistu",
   "signout.error.expired": "Lomake on vanhentunut. Lataa sivu uudelleen.",
-
   "consent.asks": "pyytää lupaa toimia puolestasi tällä palvelimella.",
   "consent.will": "Sovellus voi",
   "consent.redirect": "Kirjautumisen jälkeen sinut ohjataan takaisin osoitteeseen",
@@ -97,10 +93,8 @@
   "auth.error.no_client": "Pyyntö ei nimeä asiakasta (client_id).",
   "auth.error.no_redirect": "Pyyntö ei nimeä redirect-URI:a, ja asiakkaalla on useita rekisteröityjä.",
   "auth.error.bad_redirect": "Redirect-URI:a ei ole rekisteröity tälle asiakkaalle.",
-
   "page.not_found.title": "Ei löydy",
   "page.not_found.message": "Tällaista sivua ei ole.",
-
   "account.title": "Oma tili",
   "account.must_change": "Järjestelmänvalvoja asetti salasanasi. Valitse oma salasana ennen kuin jatkat.",
   "account.administrator": "järjestelmänvalvoja",
@@ -118,7 +112,6 @@
   "account.this_browser": "tämä selain",
   "account.sign_out_everywhere": "Kirjaudu ulos kaikkialta",
   "account.error.mismatch": "Uudet salasanat eroavat toisistaan.",
-
   "notice.saved": "Tallennettu.",
   "notice.created": "Luotu.",
   "notice.deleted": "Poistettu.",
@@ -132,13 +125,11 @@
   "notice.form_expired": "Lomake oli vanhentunut; mitään ei muutettu. Yritä uudelleen.",
   "notice.not_yourself": "Et voi tehdä sitä omalle tilillesi.",
   "notice.invalid": "Lomake ei ollut kelvollinen; mitään ei muutettu.",
-
   "index.lead": "buildingSMARTin OpenCDE-palvelin: Foundation API 1.0, BCF API 3.0 ja Documents API 1.0.",
   "index.discovery": "Palvelujen löytäminen",
   "index.auth": "Todennus",
   "index.auth_value": "OAuth2 authorization code ja PKCE",
   "index.version": "Versio",
-
   "docs.upload.title": "Lähetä asiakirjoja",
   "docs.upload.lead": "Sovelluksesi haluaa lähettää {count} tiedostoa.",
   "docs.upload.lead.one": "Sovelluksesi haluaa lähettää yhden tiedoston.",
@@ -184,10 +175,8 @@
   "docs.message.other_account_hint": "Kirjaudu ulos ja kirjaudu sillä käyttäjällä, joka aloitti toiminnon sovelluksessa.",
   "docs.message.callback_expired": "Sovelluksen linkki on vanhentunut",
   "docs.message.callback_expired_text": "Sovelluksen paluulinkki on vanhentunut, joten sinua ei voi ohjata takaisin siihen.",
-
   "macro.confirm_label": "Salasanasi",
   "macro.confirm_hint": "Vaaralliset toiminnot kysyvät omaa salasanaasi uudelleen.",
-
   "admin.title": "Hallinta",
   "admin.overview.title": "Yleiskuva",
   "admin.overview.db_down": "Graafitietokanta ei vastaa. Mitään ei voi lukea tai muuttaa ennen kuin se palaa.",
@@ -202,7 +191,6 @@
   "admin.overview.actor": "Tekijä",
   "admin.overview.full_audit": "Koko tapahtumaloki",
   "admin.overview.no_events": "Ei vielä tapahtumia.",
-
   "admin.users.new": "Uusi käyttäjä",
   "admin.users.search": "Hae käyttäjiä",
   "admin.users.search_placeholder": "Hae käyttäjätunnuksella, nimellä tai sähköpostilla",
@@ -235,7 +223,6 @@
   "admin.user_new.must_change": "Salasana on vaihdettava ensimmäisellä kirjautumisella",
   "admin.user_new.admin_hint": "Järjestelmänvalvojat hallitsevat tätä palvelinta. Heillä ei ole pääsyä projekteihin ennen roolin saamista.",
   "admin.user_new.create": "Luo käyttäjä",
-
   "admin.secret.shown_once": "Näytetään kerran.",
   "admin.secret.password_for": "Salasana käyttäjälle {user}",
   "admin.secret.password_lead": "Anna tämä salasana käyttäjälle turvallista kanavaa pitkin. Se näytetään kerran, ja se on vaihdettava ensimmäisellä kirjautumisella.",
@@ -248,7 +235,6 @@
   "admin.secret.client_secret_rotated_lead": "Vanha salaisuus lakkasi toimimasta. Päivitä sovellus nyt.",
   "admin.secret.client_id": "Asiakkaan tunnus",
   "admin.secret.open_client": "Avaa asiakas",
-
   "admin.projects.new": "Uusi projekti",
   "admin.projects.none": "Ei vielä projekteja.",
   "admin.project.id": "Projektin tunnus",
@@ -273,7 +259,6 @@
   "admin.project_new.name_hint": "Näytetään kaikille jäsenille ja BCF-asiakkaille.",
   "admin.project_new.defaults": "Projekti alkaa BCF-extensions-oletusarvoilla (tyypit, tilat, nimikkeet, prioriteetit, vaiheet); muokkaa niitä jälkeenpäin.",
   "admin.project_new.create": "Luo projekti",
-
   "admin.clients.title": "OAuth2-asiakkaat",
   "admin.clients.register": "Rekisteröi asiakas",
   "admin.clients.lead": "Asiakas on sovellus, joka kirjaa käyttäjiä sisään tämän palvelimen kautta: BCF-lisäosa, katseluohjelma, skripti.",
@@ -300,13 +285,11 @@
   "admin.client_new.public_option": "Julkinen: natiivi- tai selainsovellus, ei salaisuutta, PKCE vaaditaan",
   "admin.client_new.confidential_option": "Luottamuksellinen: palvelinsovellus, jolla on salaisuus",
   "admin.client_new.type_hint": "Molempien tyyppien on käytettävä PKCE:tä. Luottamuksellisen asiakkaan salaisuus näytetään kerran rekisteröinnin jälkeen.",
-
   "admin.sessions.apps": "Sovellukset, joilla on pääsy",
   "admin.sessions.apps_lead": "Jokainen rivi on refresh-tokenien perhe: yhden käyttäjän kirjautuminen yhden sovelluksen kautta. Peruuttaminen lopettaa sen heti.",
   "admin.sessions.no_apps": "Millään sovelluksella ei ole tokenia juuri nyt.",
   "admin.sessions.browser": "Selainistunnot",
   "admin.sessions.no_browser": "Ei selainistuntoja.",
-
   "admin.audit.csv": "Lataa CSV",
   "admin.audit.type_label": "Tapahtumatyyppi alkaa",
   "admin.audit.type_placeholder": "Suodata tapahtumatyypillä, esim. auth. tai admin.user",
@@ -315,7 +298,6 @@
   "admin.audit.no_secrets": "Salaisuuksia ei koskaan näytetä täällä.",
   "admin.audit.details": "Tiedot",
   "admin.audit.none": "Ei tapahtumia.",
-
   "admin.requests.off_1": "Pyyntöloki on pois päältä. Aseta",
   "admin.requests.off_2": "tallentaaksesi jokaisen pyynnön (menetelmä, polku, tila, kesto ja kutsuja; ei koskaan sisältöä tai tokeneita). Aiemmin tallennetut merkinnät näytetään alla, kunnes ne vanhenevat.",
   "admin.requests.client_id": "Asiakkaan tunnus",
@@ -332,7 +314,6 @@
   "admin.requests.ms": "ms",
   "admin.requests.in_out": "Sisään / ulos",
   "admin.requests.none": "Pyyntöjä ei ole tallennettu.",
-
   "admin.settings.health": "Kuntotarkistukset",
   "admin.settings.check": "Tarkistus",
   "admin.settings.detail": "Tiedot",
@@ -343,5 +324,37 @@
   "admin.settings.lead_2": ". Salaisuuksia ei koskaan näytetä. Muuta arvoja ympäristössä tai tiedostossa",
   "admin.settings.lead_3": "ja käynnistä uudelleen.",
   "admin.settings.setting": "Asetus",
-  "admin.settings.value": "Arvo"
+  "admin.settings.value": "Arvo",
+  "error.redirect_uri.length": "Redirect-URI puuttuu tai on liian pitkä.",
+  "error.redirect_uri.fragment": "Redirect-URI ei saa sisältää fragmenttia.",
+  "error.redirect_uri.absolute": "Redirect-URIn on oltava absoluuttinen.",
+  "error.redirect_uri.host": "Redirect-URI tarvitsee isännän.",
+  "error.redirect_uri.http_loopback": "http-redirect-URIt sallitaan vain loopback-osoitteelle (127.0.0.1 tai [::1]).",
+  "error.redirect_uri.scheme": "Redirect-URI käyttää turvatonta skeemaa.",
+  "error.redirect_uri.required": "Vähintään yksi redirect-URI vaaditaan.",
+  "error.redirect_uri.too_many": "Enintään {max} redirect-URIa.",
+  "error.client.name_length": "Asiakkaan nimen on oltava 1–{max} merkkiä.",
+  "error.client.id_uuid": "client_id:n on oltava UUID.",
+  "error.client.not_created": "Asiakasta ei luotu.",
+  "error.client.not_found": "Asiakasta ei ole.",
+  "error.client.public_no_secret": "Julkisilla asiakkailla ei ole salaisuutta.",
+  "error.user.name_invalid": "Käyttäjätunnuksen on oltava 3–128 merkkiä: kirjaimia, numeroita ja . _ @ + -",
+  "error.user.name_taken": "Käyttäjätunnus on jo käytössä.",
+  "error.user.not_created": "Käyttäjää ei luotu.",
+  "error.user.not_found": "Käyttäjää ei ole.",
+  "error.password.rejected": "Salasana hylättiin: {problems}.",
+  "error.password.too_short": "käytä vähintään {min} merkkiä",
+  "error.password.too_long": "käytä enintään {max} merkkiä",
+  "error.password.contains_username": "älä sisällytä käyttäjätunnusta",
+  "error.password.too_weak": "liian heikko: {hint}",
+  "error.project.values_strings": "{name}: arvojen on oltava merkkijonoja.",
+  "error.project.values_length": "{name}: arvojen on oltava 1–{max} merkkiä.",
+  "error.project.too_many_values": "{name}: enintään {max} arvoa.",
+  "error.project.name_length": "Projektin nimen on oltava 1–{max} merkkiä.",
+  "error.project.id_uuid": "project_id:n on oltava UUID.",
+  "error.project.id_exists": "project_id on jo olemassa.",
+  "error.project.not_created": "Projektia ei luotu.",
+  "error.project.not_found": "Projektia ei ole.",
+  "error.project.member_not_found": "Käyttäjää tai projektia ei ole.",
+  "error.project.unknown_extensions": "Tuntemattomia laajennuslistoja: {names}."
 }
