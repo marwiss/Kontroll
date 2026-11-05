@@ -94,6 +94,7 @@ def settings(graph_target: GraphTarget, tmp_path: Path) -> Settings:
         graph_password=graph_target.password,
         graph_connect_timeout_seconds=10.0,
         cleanup_interval_seconds=3600,
+        upload_part_bytes=1024,  # small parts so multi-part uploads are exercised with small files
     )
 
 

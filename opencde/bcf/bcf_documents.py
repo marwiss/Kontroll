@@ -79,33 +79,61 @@ class BcfDocumentRepository:
         return DocumentGET(guid=node["guid"], filename=node["filename"])
 
     async def files_information(self, *, user_id: str, project_id: str, base_url: str) -> list[ProjectFileInformation]:
-        """One entry per project document, with the same display fields for every entry (BCF 3.3.1)."""
+        """One entry per file in the project (BCF documents and Documents API versions), with the same display
+        fields for every entry (BCF 3.3.1)."""
         rows = await self.graph.run(
             _SCOPE + " RETURN properties(d) AS document ORDER BY d.created_at, d.guid",
             user_id=user_id,
             project_id=project_id,
         )
-        result = []
-        for row in rows:
-            document = row["document"]
-            result.append(
-                ProjectFileInformation(
-                    display_information=[
-                        ProjectFileDisplayInformation(field_display_name="File name", field_value=document["filename"]),
-                        ProjectFileDisplayInformation(
-                            field_display_name="Uploaded", field_value=document["created_at"]
-                        ),
-                        ProjectFileDisplayInformation(field_display_name="Uploaded by", field_value=document["author"]),
-                        ProjectFileDisplayInformation(field_display_name="Source", field_value="BCF API document"),
-                    ],
-                    file=FileRef(
-                        filename=document["filename"],
-                        date=document["created_at"],
-                        reference=f"{base_url}/bcf/3.0/projects/{project_id}/documents/{document['guid']}",
-                    ),
-                )
+        entries = [
+            _entry(
+                filename=row["document"]["filename"],
+                date=row["document"]["created_at"],
+                author=row["document"]["author"],
+                source="BCF API document",
+                reference=f"{base_url}/bcf/3.0/projects/{project_id}/documents/{row['document']['guid']}",
             )
-        return result
+            for row in rows
+        ]
+        versions = await self.graph.run(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
+                  -[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
+            WITH d, v ORDER BY v.version_index DESC
+            WITH d, collect(v)[0] AS v
+            RETURN d.document_id AS document_id, properties(v) AS version
+            ORDER BY v.creation_date, d.document_id
+            """,
+            user_id=user_id,
+            project_id=project_id,
+        )
+        entries.extend(
+            _entry(
+                filename=row["version"]["file_name"],
+                date=row["version"]["creation_date"],
+                author=row["version"]["author"],
+                source="Documents API",
+                reference=(
+                    f"{base_url}/documents/1.0/documents/{row['document_id']}"
+                    f"/versions/{row['version']['version_index']}/download"
+                ),
+            )
+            for row in versions
+        )
+        return entries
+
+
+def _entry(*, filename: str, date: str, author: str, source: str, reference: str) -> ProjectFileInformation:
+    return ProjectFileInformation(
+        display_information=[
+            ProjectFileDisplayInformation(field_display_name="File name", field_value=filename),
+            ProjectFileDisplayInformation(field_display_name="Uploaded", field_value=date),
+            ProjectFileDisplayInformation(field_display_name="Uploaded by", field_value=author),
+            ProjectFileDisplayInformation(field_display_name="Source", field_value=source),
+        ],
+        file=FileRef(filename=filename, date=date, reference=reference),
+    )
 
 
 def bcf_document_repository(graph: GraphDep) -> BcfDocumentRepository:

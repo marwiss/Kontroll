@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "components.html" import alert, user_nav %}
+{% block title %}{{ title }} · {{ product }}{% endblock %}
+{% block body_class %}page--narrow{% endblock %}
+{% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
+{% block content %}
+<section class="card card--auth">
+  <h1 class="card__title">{{ title }}</h1>
+  {{ alert(kind or "error", message) }}
+  {% if hint %}<p class="muted">{{ hint }}</p>{% endif %}
+  {% if link_url %}<p><a class="btn btn--secondary" href="{{ link_url }}">{{ link_text or "Back" }}</a></p>{% endif %}
+</section>
+{% endblock %}

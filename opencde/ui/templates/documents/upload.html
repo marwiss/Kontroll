@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "components.html" import alert, button, user_nav %}
+{% block title %}Upload documents · {{ product }}{% endblock %}
+{% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h1 class="card__title">Upload documents</h1>
+  <p class="card__lead">
+    Your application wants to upload {{ files|length }} file{% if files|length != 1 %}s{% endif %}.
+    Give each one a title and a version number, choose the project, and save to continue in the application.
+  </p>
+
+  {% if error %}{{ alert("error", error) }}{% endif %}
+  {% if not projects %}
+  {{ alert("warning", "You are not allowed to add documents to any project. Ask a project manager for the editor role.") }}
+  {% endif %}
+
+  <form method="post" action="{{ action }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+
+    {% if projects %}
+    <div class="field">
+      <label class="field__label" for="project_id">Project</label>
+      <select class="select" id="project_id" name="project_id" required aria-describedby="project_id-hint">
+        {% for project in projects %}
+        <option value="{{ project.project_id }}" {% if project.project_id == selected_project %}selected{% endif %}>{{ project.name }}</option>
+        {% endfor %}
+      </select>
+      <p class="field__hint" id="project_id-hint">Projects where you may add documents.</p>
+    </div>
+    {% endif %}
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th scope="col">File</th><th scope="col">Title</th><th scope="col">Version</th></tr>
+        </thead>
+        <tbody>
+          {% for file in files %}
+          <tr>
+            <td>
+              <code>{{ file.file_name }}</code>
+              {% if file.document_id %}<br><span class="muted">New version of “{{ file.existing_title }}”</span>{% endif %}
+            </td>
+            <td>
+              <label class="sr-only" for="title_{{ loop.index0 }}">Title of {{ file.file_name }}</label>
+              <input class="input" id="title_{{ loop.index0 }}" name="title_{{ loop.index0 }}" value="{{ file.title }}"
+                     required maxlength="200" {% if file.document_id %}readonly{% endif %}>
+            </td>
+            <td>
+              <label class="sr-only" for="version_{{ loop.index0 }}">Version number of {{ file.file_name }}</label>
+              <input class="input" id="version_{{ loop.index0 }}" name="version_{{ loop.index0 }}"
+                     value="{{ file.version_number }}" required maxlength="50">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cluster">
+      {% if projects %}{{ button("Save and continue", name="action", value="save") }}{% endif %}
+      {{ button("Cancel", "secondary", name="action", value="cancel", formnovalidate=true) }}
+    </div>
+  </form>
+</section>
+{% endblock %}

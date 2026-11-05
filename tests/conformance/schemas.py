@@ -10,10 +10,12 @@ from __future__ import annotations
 
 import copy
 import json
+from functools import cache
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft3Validator
+import yaml
+from jsonschema import Draft3Validator, Draft7Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT3
 
@@ -61,3 +63,52 @@ def validate(instance: Any, relative_path: str, **options: Any) -> None:
     """Raise ``jsonschema.ValidationError`` if ``instance`` does not match the schema file."""
     validator = Draft3Validator(schema(relative_path, **options), registry=REGISTRY)
     validator.validate(instance)
+
+
+def _openapi_to_jsonschema(node: Any) -> Any:
+    """OpenAPI 3.0 schema objects as JSON Schema: ``nullable: true`` becomes a ``null`` type alternative."""
+    if isinstance(node, list):
+        return [_openapi_to_jsonschema(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+    converted = {key: _openapi_to_jsonschema(value) for key, value in node.items() if key != "nullable"}
+    if node.get("nullable") and isinstance(converted.get("type"), str):
+        converted["type"] = [converted["type"], "null"]
+    return converted
+
+
+def _relax_all_of(node: Any, components: dict[str, Any]) -> Any:
+    """Inline ``allOf`` branches and drop their ``additionalProperties: false``.
+
+    ``UploadFilePartInstruction`` is ``allOf: [LinkData, {...}]`` where ``LinkData`` forbids additional
+    properties; read literally (JSON Schema) no instance could ever satisfy it. OpenAPI tooling treats
+    ``allOf`` as composition, which is what the specification means, so the test validator does too.
+    """
+    if isinstance(node, list):
+        return [_relax_all_of(item, components) for item in node]
+    if not isinstance(node, dict):
+        return node
+    result = {key: _relax_all_of(value, components) for key, value in node.items()}
+    if isinstance(result.get("allOf"), list):
+        branches = []
+        for branch in result["allOf"]:
+            if isinstance(branch, dict) and "$ref" in branch:
+                branch = copy.deepcopy(components["schemas"][branch["$ref"].rsplit("/", 1)[-1]])
+            branch = dict(branch)
+            branch.pop("additionalProperties", None)
+            branches.append(branch)
+        result["allOf"] = branches
+    return result
+
+
+@cache
+def _documents_components() -> dict[str, Any]:
+    document = yaml.safe_load((SPEC_DIR / "documents-api" / "swagger.yaml").read_text(encoding="utf-8"))
+    components = _openapi_to_jsonschema(document["components"])
+    return _relax_all_of(components, components)
+
+
+def validate_documents(instance: Any, component: str) -> None:
+    """Validate against a component schema of the Documents API ``swagger.yaml`` (OpenAPI 3.0)."""
+    root = {"$ref": f"#/components/schemas/{component}", "components": _documents_components()}
+    Draft7Validator(root).validate(instance)
