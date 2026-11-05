@@ -66,6 +66,8 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("IfcEntity", "GlobalId"),
     ("IfcEntity", "model_id"),
     ("IfcModel", "project_id"),
+    ("RequestLog", "at"),
+    ("RequestLog", "expires_at"),
 )
 
 # Labels whose nodes carry ``expires_at`` and may be deleted once it has passed. Only self-registered
@@ -79,6 +81,7 @@ EXPIRING_LABELS: tuple[str, ...] = (
     "UploadPart",
     "SelectionSession",
     "Client",
+    "RequestLog",
 )
 
 

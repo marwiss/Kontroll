@@ -30,6 +30,7 @@ ADMIN_PAGES = (
     "/admin/sessions",
     "/admin/audit",
     "/admin/audit.csv",
+    "/admin/requests",
     "/admin/settings",
 )
 

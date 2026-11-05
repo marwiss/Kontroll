@@ -171,6 +171,7 @@ JWTs to validate.
 |---|---|---|
 | Structured logs with a request identifier and time in UTC | met | structlog JSON, `RequestIDMiddleware` |
 | Security events logged (sign-in, token issue, revocation, admin actions) | met | `AuditEvent` nodes, shown in `/admin/audit` with CSV export |
+| Request-level log for troubleshooting without sensitive data | met | Opt-in `RequestLog` (method, path, operation, status, timing, request id, bytes, caller; no query strings, headers or bodies), bounded retention, administrators only (`/admin/requests`, `/admin/api/requests` with the `admin` scope) |
 | Errors handled without leaking internals; unexpected errors logged | met | `errors.py`: spec body, 5xx logged with the request id |
 | Clock correctness for expiry checks | met | `opencde doctor` compares the clock with an NTP source |
 | Log protection, forwarding and alerting | not met | Left to the operator (compose logging driver, SIEM) |
