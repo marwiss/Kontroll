@@ -242,24 +242,45 @@ the server (item 10) and the inspection-plan domain (item 11).
 
 ## Decisions for the owner
 
+All four were taken on 2026-11-05.
+
 - **A. Graph access in production**: exposed Bolt with a read-only database
   user, or a server-side read-only query endpoint (item 3). The endpoint is
   more work but keeps the database private and the authorization model.
+  Decided: the server-side read-only query endpoint (item 10 of the agreed
+  order). Later, the administration UI gets an option for also announcing a
+  published Bolt address, so an operator who exposes the database
+  deliberately can keep that path open; the capabilities document already
+  carries `extensions.ifcgraph.bolt` for it.
 - **B. Licences and bundling**: Kontroll is AGPL-3.0-or-later, Dataspatium is
   PolyForm Strict. Nothing stops them from working together over the network,
   but code and assets cannot move between the repositories, and Kontroll's
   compose files cannot bundle Dataspatium. If a one-command install of both
   is wanted, Dataspatium's licence for that purpose has to be decided. The
   pieces the two projects want to share (the token file, the glossary JSON,
-  the test model, the quick-start text) need a separate permissive licence
-  (CC0 or MIT) stated in both repositories; otherwise Kontroll writes its own
-  files with the same values, which are facts, not copies.
+  the test model, the quick-start text) would need a separate permissive
+  licence (CC0 or MIT) stated in both repositories. Decided: the licences
+  stay as they are and no code or assets move between the repositories;
+  each project writes its own files with the same values (colour values,
+  term lists, test geometry), which are facts, not copies. No one-command
+  install of both. Users of either product download and install the other
+  separately, so both READMEs and the joint quick start (item 8) explain how
+  to get the other one.
 - **C. First Kontroll release**: when to tag `v0.1.0` (item 6). The code is
   there; what remains is the owner's acceptance runs A and B
   (`docs/acceptance.md`) and the OAuch/testssl runs before a production
-  deployment.
-- **D. Capabilities document**: confirm the shape of item 1 (a well-known
-  path outside the specifications) before Dataspatium builds on it.
+  deployment. Decided: before releases are coordinated across the
+  repositories, Dataspatium's release history is consolidated to far fewer
+  releases (its `1.0.0` becomes today's `1.18.1`, the latest release of each
+  major number stands for that number, and its README describes everything
+  the merged releases contained). The exact scheme is settled in the
+  Dataspatium project; Kontroll tags `v0.1.0` after that and keeps the same
+  sparseness (`1.0.0` after the acceptance runs and the OAuch/testssl runs).
+  Provisional compatibility line: "Dataspatium 2.0.0 or later works with
+  Kontroll 0.1.0 or later".
+- **D. Capabilities document**: the shape of item 1 (a well-known path outside
+  the specifications) was confirmed on 2026-11-05 and is implemented; the
+  Dataspatium side builds on it.
 
 ## How the plan is kept
 
