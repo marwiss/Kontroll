@@ -48,7 +48,10 @@ OAuth2 clients your applications need.
 
 ## 4. Hardening checklist
 
-- The database is not published; only Caddy listens on the host.
+- The database is not published; only Caddy listens on the host. Publishing
+  the Bolt port for graph clients is a deliberate step with its own overlay
+  and TLS, see [bolt.md](bolt.md); an open port gives full database access to
+  whoever has the password.
 - The API container is read-only, non-root, without capabilities; storage is a
   named volume.
 - `OPENCDE_TRUSTED_PROXIES` covers the compose network so the client address in

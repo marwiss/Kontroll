@@ -27,6 +27,21 @@ def test_production_requires_graph_password_and_secret_key() -> None:
     assert _settings(environment="production", **PROD).is_production
 
 
+def test_a_published_bolt_address_must_be_encrypted_in_production() -> None:
+    """An open database port carries the database password; production announces it only over TLS."""
+    for insecure in ("bolt://cde.example.com:7687", "neo4j+ssc://cde.example.com:7687"):
+        with pytest.raises(ValidationError, match="bolt\\+s://"):
+            _settings(environment="production", **PROD, graph_public_bolt_url=insecure)
+    secure = _settings(environment="production", **PROD, graph_public_bolt_url="bolt+s://cde.example.com:7687")
+    assert secure.graph_public_bolt_url == "bolt+s://cde.example.com:7687"
+    with pytest.raises(ValidationError, match="OPENCDE_GRAPH_PUBLIC_BOLT_URL"):
+        _settings(environment="development", graph_public_bolt_url="https://cde.example.com:7687")
+    local = _settings(environment="development", graph_public_bolt_url="bolt://localhost:7697")
+    assert local.graph_public_bolt_url == "bolt://localhost:7697", "plain Bolt is fine outside production"
+    blank = _settings(environment="development", graph_public_bolt_url="  ")
+    assert blank.graph_public_bolt_url is None, "blank means not published"
+
+
 def test_development_allows_http_localhost_and_generates_a_key() -> None:
     settings = _settings(environment="development", public_url="http://localhost:8000/")
     assert settings.public_url == "http://localhost:8000"  # trailing slash removed for safe concatenation

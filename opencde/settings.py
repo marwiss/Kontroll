@@ -25,6 +25,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 SECRETS_DIR = Path("/run/secrets")
 
 GRAPH_URI_SCHEMES = ("bolt://", "bolt+s://", "bolt+ssc://", "neo4j://", "neo4j+s://", "neo4j+ssc://")
+# A published Bolt address must be encrypted with a certificate clients can verify ("+ssc" trusts anything).
+SECURE_GRAPH_URI_SCHEMES = ("bolt+s://", "neo4j+s://")
 
 MIN_SECRET_KEY_LENGTH = 32
 MIN_PASSWORD_LENGTH = 12
@@ -186,6 +188,14 @@ class Settings(BaseSettings):
             raise ValueError(f"OPENCDE_GRAPH_URI must use one of {', '.join(GRAPH_URI_SCHEMES)}")
         return value
 
+    @field_validator("graph_public_bolt_url")
+    @classmethod
+    def _check_public_bolt_url(cls, value: str | None) -> str | None:
+        value = (value or "").strip() or None
+        if value is not None and not value.startswith(GRAPH_URI_SCHEMES):
+            raise ValueError(f"OPENCDE_GRAPH_PUBLIC_BOLT_URL must use one of {', '.join(GRAPH_URI_SCHEMES)}")
+        return value
+
     @model_validator(mode="after")
     def _production_guards(self) -> Self:
         if self.environment == "production":
@@ -193,6 +203,11 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "OPENCDE_PUBLIC_URL must be https in production "
                     "(set OPENCDE_ENVIRONMENT=development for local testing)"
+                )
+            if self.graph_public_bolt_url and not self.graph_public_bolt_url.startswith(SECURE_GRAPH_URI_SCHEMES):
+                # A published database port carries the database password; never announce it in the clear.
+                raise ValueError(
+                    "OPENCDE_GRAPH_PUBLIC_BOLT_URL must use bolt+s:// or neo4j+s:// in production (docs/deploy/bolt.md)"
                 )
             if not self.graph_password.get_secret_value():
                 raise ValueError("OPENCDE_GRAPH_PASSWORD is required in production")

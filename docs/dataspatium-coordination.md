@@ -251,10 +251,15 @@ All four were taken on 2026-11-05.
   user, or a server-side read-only query endpoint (item 3). The endpoint is
   more work but keeps the database private and the authorization model.
   Decided: the server-side read-only query endpoint (item 10 of the agreed
-  order). Later, the administration UI gets an option for also announcing a
-  published Bolt address, so an operator who exposes the database
-  deliberately can keep that path open; the capabilities document already
-  carries `extensions.ifcgraph.bolt` for it.
+  order), and in addition it must be *possible* to open the database port in
+  production, closed by default and only by an explicit administrator action:
+  the `compose.bolt.yaml` overlay publishes Bolt with TLS from certificates
+  the administrator provides, `OPENCDE_GRAPH_PUBLIC_BOLT_URL` announces the
+  address in the capabilities document (`extensions.ifcgraph.bolt`), the
+  settings page shows it, and production refuses a published address without
+  TLS. The community editions of Neo4j and Memgraph have no read-only
+  database users, so an open port gives full access to whoever holds the
+  database password; the deployment guide says so.
 - **B. Licences and bundling**: Kontroll is AGPL-3.0-or-later, Dataspatium is
   PolyForm Strict. Nothing stops them from working together over the network,
   but code and assets cannot move between the repositories, and Kontroll's
@@ -268,7 +273,9 @@ All four were taken on 2026-11-05.
   term lists, test geometry), which are facts, not copies. No one-command
   install of both. Users of either product download and install the other
   separately, so both READMEs and the joint quick start (item 8) explain how
-  to get the other one.
+  to get the other one. Kontroll never bundles Dataspatium; Dataspatium may
+  bundle or download Kontroll (the AGPL allows redistribution with source),
+  which is that project's choice.
 - **C. First Kontroll release**: when to tag `v0.1.0` (item 6). The code is
   there; what remains is the owner's acceptance runs A and B
   (`docs/acceptance.md`) and the OAuch/testssl runs before a production
@@ -287,7 +294,10 @@ All four were taken on 2026-11-05.
   compatibility line in both READMEs becomes "Dataspatium 2.0.0 works with
   Kontroll 2.0.0": the same number means the two work together. The owner's
   acceptance runs and the OAuch/testssl runs remain the gate for a production
-  deployment, not for the tag.
+  deployment, not for the tag. Confirmed by the owner in both sessions on
+  2026-11-05, together with the instruction to complete all twelve items in
+  the agreed order without further sign-off and to keep collecting
+  specification quirks from both sides.
 - **D. Capabilities document**: the shape of item 1 (a well-known path outside
   the specifications) was confirmed on 2026-11-05 and is implemented; the
   Dataspatium side builds on it.

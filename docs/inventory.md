@@ -126,6 +126,7 @@ project plan. This file is updated with every stage.
 | Secrets from `/run/secrets` with fixed names | reshape: pydantic-settings, `OPENCDE_*` variables, Docker secrets, `opencde init` generates them |
 | `.env` with `NEO4J_*`, `KONTROLL_*`, `SECURITY_*`, `SESSION_*` | reshape: `OPENCDE_*` with the same meanings and safer defaults |
 | Neo4j 5.7 with APOC, database ports published, 4-character passwords | reshape: Neo4j 5.26 LTS, no APOC, private network, 16-character minimum |
+| Database port always open | reshape: closed by default; `compose.bolt.yaml` publishes Bolt with TLS as an explicit administrator action, `OPENCDE_GRAPH_PUBLIC_BOLT_URL` announces it in the capabilities document and on the Settings page, and production refuses a plain `bolt://` address (`docs/deploy/bolt.md`) |
 | Python 3.10 image with `ifcopenshell.zip`, pip | reshape: Python 3.13 slim image, uv lockfile, IfcOpenShell from PyPI as optional extra, non-root, read-only |
 | `restart.sh` | drop: `docker compose` |
 
