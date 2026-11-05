@@ -55,11 +55,14 @@ model and seldom what a CDE query needs. `IfcOwnerHistory` is kept for the
 
 When a viewpoint is created with components, every component whose `ifc_guid`
 matches the `GlobalId` of an element in one of the project's imported models
-gets a `SAME_AS` relationship to it. If the element carries the configured
-property (`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`), its value is copied to the component as
-`gtin`. This is the use case of the 2023 research report: an inspection
-(BCF topic) pointing at building products identified by GTIN.
+gets a `SAME_AS` relationship to it. The same linking runs for every existing
+component of the project when a model finishes importing, so viewpoints created
+before the model was uploaded, or while it was still converting, are linked
+too. If the element carries the configured property
+(`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`),
+its value is copied to the component as `gtin`. This is the use case of the
+2023 research report: an inspection (BCF topic) pointing at building products
+identified by GTIN.
 
 ```cypher
 // Which products does this viewpoint point at, and what are their GTINs?
