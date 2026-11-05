@@ -179,14 +179,15 @@ first client (plans as documents, checkpoints as topics, reviewers as the
 designed, the data model should be reviewed by both sides before the first
 endpoint, and Dataspatium's document templates should be able to render it.
 
-### 12. The administration API (K, medium; D, medium) — Dataspatium 2.35
+### 12. The administration API (K, medium; D, medium) — Dataspatium 2.2.0
 
 Dataspatium has proposed the shape of a JSON administration API under
 `/admin/api/` from the client side (read: overview, users, projects, clients,
 sessions, audit, settings, health; write: users, projects and members,
 clients and secrets, sessions; dangerous actions behind a fresh sign-in;
 one-time values returned once). **Status: implemented in Kontroll** with the
-resource list Dataspatium wrote for its 2.35 (`docs/client-guide.md` §7,
+resource list Dataspatium wrote for its 2.2.0, the release after 2.1.0
+(called "2.35" before the release numbers were consolidated; `docs/client-guide.md` §7,
 tests `tests/integration/test_admin_api*.py`), with these agreed deviations
 from that list: errors keep the server's `{"message", "code"}` body; the
 overview is flat (`users`, `projects`, `clients`, `sessions`, `topics`,
@@ -275,7 +276,7 @@ the Dataspatium side:
 7. `software_id`/`software_version` at registration (item 2) — Dataspatium
    2.33 sends them.
 8. A joint quick start (item 8).
-9. The administration API (item 12) — Dataspatium 2.35. Read and write
+9. The administration API (item 12) — Dataspatium 2.2.0. Read and write
    endpoints done 2026-11-05 in the shapes of Dataspatium's resource list
    (`docs/client-guide.md` §7) together with `auth_time` on token families,
    `last_sign_in_at`, `last_used_at` and the request id on audit events.

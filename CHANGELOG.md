@@ -7,7 +7,7 @@ a client can see; internal changes are in the commit history.
 ## Unreleased
 
 - The administration API follows the resource list agreed with Dataspatium
-  for its 2.35: a flat overview with `uptime_s` and `models`, users with
+  for its 2.2.0: a flat overview with `uptime_s` and `models`, users with
   `name` and their project roles, projects with inline `members`, clients
   with `public`, sessions with an `id` that `DELETE /admin/api/sessions/{id}`
   accepts, `DELETE /admin/api/sessions?user=`, structured settings with the
