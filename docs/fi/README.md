@@ -76,12 +76,12 @@ Yksi compose-tiedosto ja yksi ylikerros per skenaario:
 
 | Skenaario | Ohje |
 |---|---|
-| Paikallinen testi omalla koneella | [docs/deploy/local.md](../deploy/local.md) |
-| Julkinen https-osoite asiakastesteihin ilman omaa palvelinta (tunneli) | [docs/deploy/tunnel.md](../deploy/tunnel.md) |
-| Tuotanto omalla palvelimella Caddyn (automaattinen TLS) ja öisten varmuuskopioiden kanssa | [docs/deploy/vps-caddy.md](../deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](../deploy/paas.md) |
-| Konttipalvelu ja hallittu Neo4j AuraDB tai Memgraph Cloud | [docs/deploy/cloud-aura.md](../deploy/cloud-aura.md) |
-| Varmuuskopiointi ja palautus (siirrettävä Neo4j:n ja Memgraphin välillä) | [docs/deploy/backup.md](../deploy/backup.md) |
+| Paikallinen testi omalla koneella | [docs/fi/deploy/local.md](deploy/local.md) |
+| Julkinen https-osoite asiakastesteihin ilman omaa palvelinta (tunneli) | [docs/fi/deploy/tunnel.md](deploy/tunnel.md) |
+| Tuotanto omalla palvelimella Caddyn (automaattinen TLS) ja öisten varmuuskopioiden kanssa | [docs/fi/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/fi/deploy/paas.md](deploy/paas.md) |
+| Konttipalvelu ja hallittu Neo4j AuraDB tai Memgraph Cloud | [docs/fi/deploy/cloud-aura.md](deploy/cloud-aura.md) |
+| Varmuuskopiointi ja palautus (siirrettävä Neo4j:n ja Memgraphin välillä) | [docs/fi/deploy/backup.md](deploy/backup.md) |
 
 `uv run opencde init --public-url https://cde.example.org` kirjoittaa
 tuotannon `.env`-tiedoston uusilla salaisuuksilla; `opencde doctor`

@@ -73,12 +73,12 @@ Ein compose-skrá auk eins yfirlags fyrir hverja aðstæðu:
 
 | Aðstæður | Leiðbeiningar |
 |---|---|
-| Staðbundin prófun á eigin tölvu | [docs/deploy/local.md](../deploy/local.md) |
-| Opinbert https-vistfang fyrir biðlaraprófanir án eigin þjóns (tunnel) | [docs/deploy/tunnel.md](../deploy/tunnel.md) |
-| Rekstur á eigin þjóni með Caddy (sjálfvirkt TLS) og næturlegum öryggisafritum | [docs/deploy/vps-caddy.md](../deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](../deploy/paas.md) |
-| Gámaþjónusta auk Neo4j AuraDB eða Memgraph Cloud í umsjón þjónustuaðila | [docs/deploy/cloud-aura.md](../deploy/cloud-aura.md) |
-| Öryggisafritun og endurheimt (flytjanleg milli Neo4j og Memgraph) | [docs/deploy/backup.md](../deploy/backup.md) |
+| Staðbundin prófun á eigin tölvu | [docs/is/deploy/local.md](deploy/local.md) |
+| Opinbert https-vistfang fyrir biðlaraprófanir án eigin þjóns (tunnel) | [docs/is/deploy/tunnel.md](deploy/tunnel.md) |
+| Rekstur á eigin þjóni með Caddy (sjálfvirkt TLS) og næturlegum öryggisafritum | [docs/is/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/is/deploy/paas.md](deploy/paas.md) |
+| Gámaþjónusta auk Neo4j AuraDB eða Memgraph Cloud í umsjón þjónustuaðila | [docs/is/deploy/cloud-aura.md](deploy/cloud-aura.md) |
+| Öryggisafritun og endurheimt (flytjanleg milli Neo4j og Memgraph) | [docs/is/deploy/backup.md](deploy/backup.md) |
 
 `uv run opencde init --public-url https://cde.example.org` skrifar
 `.env`-skrá fyrir rekstur með nýjum leyndarmálum; `opencde doctor` athugar

@@ -21,6 +21,10 @@ a client can see; internal changes are in the commit history.
   `timeout_seconds` announced in the capabilities document; writing clauses,
   procedures other than the schema procedures and protected properties are
   refused, and every call is audited.
+- The deployment guides (local test, tunnel, production with Caddy,
+  self-hosted platforms, managed database, backup and restore, the Bolt
+  port) exist in all seven languages under `docs/<lang>/deploy/`, linked
+  from each README.
 
 ## 2.0.0 — 2026-11-05
 
