@@ -279,8 +279,9 @@ def seed(
     reset: Annotated[bool, typer.Option(help="DELETE EVERYTHING in the database first. Development only.")] = False,
     yes: Annotated[bool, typer.Option("--yes", help="Confirm --reset without a prompt.")] = False,
 ) -> None:
-    """Load demonstration users, projects and clients into an empty database."""
+    """Load demonstration users, projects, clients, the sample model and a topic into an empty database."""
     from opencde import seed as seeding
+    from opencde.storage import LocalStorage
 
     async def work(graph, settings):
         if reset:
@@ -292,11 +293,14 @@ def seed(
         try:
             return await seeding.seed(
                 graph,
+                storage=LocalStorage(settings.data_dir),
                 shared_password=password,
                 public_redirects=["http://127.0.0.1/callback", "http://localhost:8080/callback"]
                 if settings.allow_localhost_redirects
                 else None,
                 allow_localhost_redirects=settings.allow_localhost_redirects,
+                id_prefix=settings.server_assigned_id_prefix,
+                max_image_bytes=settings.max_image_bytes,
             )
         except seeding.SeedError as exc:
             raise _fail(str(exc)) from None
@@ -311,6 +315,9 @@ def seed(
     print(
         f"  client    confidential         {result.confidential_client_id}  secret {result.confidential_client_secret}"
     )
+    print(f"  document  {seeding.SAMPLE_MODEL_FILE_NAME:20} {result.document_id}  (Building permit, version 1)")
+    print(f"  topic     {'ISSUE-0001':20} {result.topic_guid}  viewpoint {result.viewpoint_guid}")
+    print(f"  comment   {'':20} {result.comment_guid}")
 
 
 # --------------------------------------------------------------------------- users

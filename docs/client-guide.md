@@ -204,7 +204,20 @@ above, and its live test suites run against the development stack
 (see [acceptance.md](acceptance.md)).
 
 - `uv run opencde seed` fills an empty database with demo users and
-  projects (passwords are printed once).
+  projects (passwords are printed once), the sample model
+  `three_walls_gtin.ifc` as a document and one topic with a viewpoint and a
+  comment, all with fixed ids a test suite can rely on:
+
+  | What | Id |
+  |---|---|
+  | Document (Documents API, version 1, project *Building permit*) | `6f5d3b2a-0000-4000-8000-000000000001` |
+  | Topic (`ISSUE-0001`, type Inspection, status Open, label Reuse) | `6f5d3b2a-0000-4000-8000-000000000002` |
+  | Viewpoint (perspective camera, component wall `1Xezbq735AdBO_4DerG66G`) | `6f5d3b2a-0000-4000-8000-000000000003` |
+  | Comment (by `inspector`, referring to the viewpoint) | `6f5d3b2a-0000-4000-8000-000000000004` |
+
+  The model's walls are `1Xezbq735AdBO_4DerG66G` (GTIN 3),
+  `3eT96F_cnDsOufCEsotwtp` (GTIN 2) and `3k3LbXmTfDWODxdSuyCGYE` (GTIN 1),
+  in property set `Reuse`; the same file is `tests/fixtures/three_walls_gtin.ifc`.
 - `docker compose -f compose.yaml -f compose.dev.yaml up -d` gives you a
   server on `http://localhost:8000` with Neo4j Browser on `:7484`.
 - Register a client for your app in the admin UI (`/admin` → Clients) or with

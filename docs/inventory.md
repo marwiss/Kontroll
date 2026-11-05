@@ -154,8 +154,14 @@ project plan. This file is updated with every stage.
 ## 9. Test data
 
 The Archicad model with three walls carrying property set `Reuse` / `GTIN`
-1–3 (IFC2X3, 16 KB) is kept once as `tests/fixtures/three_walls_gtin.ifc`
-and used by the seed command and the end-to-end tests.
+1–3 (IFC2X3, 16 KB) is `tests/fixtures/three_walls_gtin.ifc` for the tests
+and, byte for byte the same, `opencde/seed_data/three_walls_gtin.ifc` for
+the seed, which stores it as document `6f5d3b2a-0000-4000-8000-000000000001`
+(version 1) in *Building permit* together with topic
+`…-000000000002`, viewpoint `…-000000000003` (component: wall
+`1Xezbq735AdBO_4DerG66G`, GTIN 3) and comment `…-000000000004`. The wall
+GlobalIds and GTINs are `SAMPLE_MODEL_WALLS` in `opencde/seed.py`; client
+test suites (Dataspatium's) rely on these ids.
 
 ## 10. Specification notes
 

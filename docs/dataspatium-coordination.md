@@ -222,7 +222,9 @@ the Dataspatium side:
    them in 2.34.
 4. Shared test data: `tests/fixtures/three_walls_gtin.ifc` (three walls with
    `Reuse`/`GTIN` 1–3 and known GlobalIds) becomes the pair's fixture on both
-   sides; the seed gets known BCF guids.
+   sides; the seed gets known BCF guids. Server side done 2026-11-05: the
+   seed stores the model as a document and creates a topic, viewpoint and
+   comment with fixed ids (client-guide §7, inventory §9).
 5. The pair's CI (item 7): Dataspatium's live suite from its release zip,
    headless, in Kontroll's nightly job; the same job in Dataspatium with a
    pinned server image.

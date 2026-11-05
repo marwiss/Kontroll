@@ -173,11 +173,16 @@ class DocumentRepository:
         storage_key: str,
         author: str,
         metadata: list[DocumentMetadataEntry],
+        requested_document_id: str | None = None,
     ) -> VersionRecord:
-        """A new document (``document_id`` None) or a new version of an existing one, in one transaction."""
+        """A new document (``document_id`` None) or a new version of an existing one, in one transaction.
+
+        ``requested_document_id`` gives a new document a known id (the seed uses it); it is ignored when
+        ``document_id`` names an existing document.
+        """
         now = now_iso()
         version_id = new_id()
-        new_document_id = document_id or new_id()
+        new_document_id = document_id or requested_document_id or new_id()
         metadata_json = json.dumps([entry.model_dump() for entry in metadata])
 
         async def work(tx: Tx) -> dict[str, Any]:
