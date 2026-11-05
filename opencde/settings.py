@@ -116,6 +116,11 @@ class Settings(BaseSettings):
     dynamic_client_registration: bool = Field(
         False, description="Offer POST /foundation/oauth2/reg (Foundation API 2.2.3). Off unless you need it."
     )
+    dynamic_client_unused_days: int = Field(
+        30,
+        ge=1,
+        description="A self-registered client that issues no token for this many days is deleted with its tokens.",
+    )
     allow_localhost_redirects: bool = Field(
         False,
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",

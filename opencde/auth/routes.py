@@ -39,6 +39,7 @@ from opencde.auth.tokens import GrantError
 from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.logging import get_logger
 from opencde.ratelimit import RATE_EXCHANGE, RATE_REGISTRATION, RATE_SIGN_IN, limiter
+from opencde.timeutil import later_iso
 from opencde.ui.templating import render
 
 log = get_logger(__name__)
@@ -325,6 +326,9 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
             )
         return _oauth_error(exc.status, exc.error, exc.description)
 
+    if client.dynamic:  # a self-registered client in use keeps its registration alive
+        settings = request.app.state.settings
+        await clients.touch(client.client_id, expires_at=later_iso(settings.dynamic_client_unused_days * 86400))
     return JSONResponse(
         {
             "access_token": pair.access_token,
@@ -407,6 +411,7 @@ async def register_client(
             description=body.client_description,
             url=body.client_url,
             dynamic=True,
+            expires_at=later_iso(settings.dynamic_client_unused_days * 86400),  # deleted if never used
         )
     except ClientError as exc:
         raise HTTPException(400, str(exc)) from None

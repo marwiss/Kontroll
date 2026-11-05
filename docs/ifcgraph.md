@@ -51,6 +51,32 @@ items, representations, profiles, placements and styles; they are most of a
 model and seldom what a CDE query needs. `IfcOwnerHistory` is kept for the
 `IfcProject` only.
 
+## Housekeeping
+
+Every upload of an IFC file adds an `IfcModel` with its entities, so a project
+that receives new versions accumulates graphs nobody queries. The command line
+lists and prunes them; the documents and their files always stay:
+
+```sh
+uv run opencde ifcgraph list --project <project id>
+uv run opencde ifcgraph prune                   # failed models, and finished models superseded by a newer
+                                                # finished version of the same document
+uv run opencde ifcgraph prune --project <id> --all   # every model of one project (a test stack, for example)
+```
+
+Queued and running models are never pruned. Queries that want one graph per
+document should pick the latest finished model themselves, since older
+versions stay until pruned:
+
+```cypher
+MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:IfcModel {state: 'done'})
+WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
+ORDER BY m.version_index DESC, m.done_at DESC
+WITH doc, collect(m)[0] AS latest
+MATCH (e:IfcProduct {model_id: latest.id})
+RETURN latest.file_name AS model, count(e) AS products
+```
+
 ## Linking BCF components
 
 When a viewpoint is created with components, every component whose `ifc_guid`

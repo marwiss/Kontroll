@@ -68,7 +68,8 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("IfcModel", "project_id"),
 )
 
-# Labels whose nodes carry ``expires_at`` and may be deleted once it has passed.
+# Labels whose nodes carry ``expires_at`` and may be deleted once it has passed. Only self-registered
+# clients carry it (unused ones expire); manually created clients have no ``expires_at`` and stay.
 EXPIRING_LABELS: tuple[str, ...] = (
     "AuthorizationCode",
     "AccessToken",
@@ -77,6 +78,7 @@ EXPIRING_LABELS: tuple[str, ...] = (
     "UploadSession",
     "UploadPart",
     "SelectionSession",
+    "Client",
 )
 
 
