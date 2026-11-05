@@ -170,8 +170,21 @@ Dataspatium has proposed the shape of a JSON administration API under
 `/admin/api/` from the client side (read: overview, users, projects, clients,
 sessions, audit, settings, health; write: users, projects and members,
 clients and secrets, sessions; dangerous actions behind a fresh sign-in;
-one-time values returned once). Kontroll's position, to be settled before
-either side writes code:
+one-time values returned once). **Status: implemented in Kontroll** with the
+resource list Dataspatium wrote for its 2.35 (`docs/client-guide.md` §7,
+tests `tests/integration/test_admin_api*.py`), with these agreed deviations
+from that list: errors keep the server's `{"message", "code"}` body; the
+overview is flat (`users`, `projects`, `clients`, `sessions`, `topics`,
+`documents`, `models`, `request_log{enabled, rows}`, `version`, `uptime_s`,
+`dialect`, `graph_ok`); a user carries `name` (`full_name` is accepted in
+bodies too) and `projects: [{project_id, role}]`; a project carries its
+`members` inline and a `models` count; a client says `public`; sessions keep
+`kind` and get an `id` that `DELETE /admin/api/sessions/{id}` accepts for
+either kind, plus `DELETE /admin/api/sessions?user=`; the settings are
+structured with the raw `OPENCDE_*` values under `raw`; `PUT` and `PATCH`
+are both accepted; the password reset is `POST …/reset-password` and the
+secret rotation `POST …/rotate-secret`; a created user without a given
+password answers `initial_password` once. Kontroll's positions, as settled:
 
 - Keep one error body for the whole server, the Foundation API's
   `{"message": …}`, and add a stable `code` field where a client must react

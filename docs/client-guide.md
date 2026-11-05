@@ -207,26 +207,45 @@ The capabilities document says whether the API is on
 
 | Endpoint | Returns |
 |---|---|
-| `GET /admin/api/overview` | `version`, `dialect`, `graph_ok`, `counts` (users, projects, clients, topics, documents, bcf_documents, sessions) |
-| `GET /admin/api/users?q=&limit=` | users with `projects` (count), `last_sign_in_at`; `q` searches user name, name and e-mail |
-| `GET /admin/api/users/{id}` | one user with `memberships` (`project_id`, `name`, `role`) |
-| `GET /admin/api/projects` | projects with `members`, `topics`, `documents` counts |
-| `GET /admin/api/projects/{id}` | one project with `members` (`user_id`, `username`, `full_name`, `role`) and `extensions` |
-| `GET /admin/api/clients` | clients with `software_id`, `software_version`, `last_used_at`, never a secret |
+| `GET /admin/api/overview` | `version`, `uptime_s`, `dialect`, `graph_ok`, the counts `users`, `projects`, `clients`, `sessions`, `topics`, `documents`, `models`, and `request_log` (`enabled`, `rows`) |
+| `GET /admin/api/users?q=&limit=` | users (`id`, `username`, `name`, `email`, `is_admin`, `disabled`, `must_change_password`, `created_at`, `last_sign_in_at`, `projects` as `[{project_id, role}]`); `q` searches user name, name and e-mail |
+| `GET /admin/api/users/{id}` | one user; `projects` also carries the project `name` |
+| `GET /admin/api/projects?q=` | projects with `members` (`user_id`, `username`, `role`) and the counts `topics`, `documents`, `models` |
+| `GET /admin/api/projects/{id}` | one project with its `extensions` as well |
+| `GET /admin/api/clients` | clients (`client_id`, `name`, `description`, `url`, `public`, `dynamic`, `redirect_uris`, `disabled`, `created_at`, `expires_at`, `last_used_at`, `software_id`, `software_version`), never a secret |
 | `GET /admin/api/clients/{id}` | one client |
-| `GET /admin/api/sessions?limit=` | one list of two kinds: `kind: "oauth2"` (refresh-token families) and `kind: "web"` (browser sessions) |
-| `GET /admin/api/audit?type=&since=&limit=` | audit events with `actor` (user id), `client_id`, `ip`, `request_id` and parsed `details` |
+| `GET /admin/api/sessions?user=&limit=` | one list of two kinds, `kind: "oauth2"` (a refresh-token family, `id` = family id) and `kind: "web"` (a browser session), each with `user_id`, `username`, `created_at`, `expires_at`, and `client_id`/`client_name`/`scope` or `ip` where they apply |
+| `GET /admin/api/audit?type=&since=&limit=` | audit events with `at`, `type`, `actor` (user id), `client_id`, `ip`, `request_id` and parsed `details` |
 | `GET /admin/api/requests?...` | the request log (§5) |
-| `GET /admin/api/settings` | the `OPENCDE_*` settings the Settings page shows, secrets left out |
-| `GET /admin/api/health` | the health checks of the Settings page |
+| `GET /admin/api/settings` | `public_url`, `environment`, `dynamic_client_registration`, `request_log`, `ifcgraph`, `cors_origins`, `dataspatium_url`, `graph_public_bolt_url`, the enabled `modules`, and every `OPENCDE_*` value of the Settings page under `raw`; secrets left out |
+| `GET /admin/api/health` | `ok` and the `checks` (`name`, `ok`, `detail`) of the Settings page |
 
-Write operations (users, projects and members, clients and secrets,
-sessions) follow in the next step of the API. Dangerous ones require a
-**fresh sign-in**: the token family's `auth_time`, set when the user
-authenticated for the authorization code, must be within the last ten
-minutes; a refresh never renews it. Otherwise the answer is `403` with
-`code: reauthentication_required`, which a client meets by running the
-authorization flow again (a pop-up sign-in) and repeating the call.
+Writes, with the same bodies the pages use (`PUT` and `PATCH` are accepted
+alike; `name` is the full name, `full_name` works as well):
+
+| Endpoint | Does |
+|---|---|
+| `POST /admin/api/users` `{username, password?, name?, email?, is_admin?, must_change_password?}` | creates a user; without `password` the answer carries `initial_password` once |
+| `PUT /admin/api/users/{id}` `{name?, email?, disabled?, is_admin?}` | changes a user; disabling revokes the tokens; not for your own account |
+| `DELETE /admin/api/users/{id}` | deletes a user with sessions and tokens (dangerous) |
+| `POST /admin/api/users/{id}/reset-password` | sets a new password returned once, which the user must change (dangerous) |
+| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?}` | creates or changes a project |
+| `DELETE /admin/api/projects/{id}` | deletes a project with everything in it (dangerous) |
+| `PUT /admin/api/projects/{id}/members/{user_id}` `{role}` · `DELETE …/members/{user_id}` | sets or removes a member's role (viewer, contributor, editor, manager) |
+| `POST /admin/api/clients` `{name, redirect_uris, public?, description?, url?}` | registers a client; a confidential one gets `client_secret` once |
+| `PUT /admin/api/clients/{id}` `{name?, description?, url?, redirect_uris?, disabled?}` | changes a client; disabling revokes its tokens |
+| `POST /admin/api/clients/{id}/rotate-secret` | a new secret, returned once (dangerous) |
+| `POST /admin/api/clients/{id}/revoke` · `DELETE /admin/api/clients/{id}` | revokes every token of the client · deletes the client with its tokens (dangerous) |
+| `DELETE /admin/api/sessions/{id}` · `DELETE /admin/api/sessions?user=` | ends one session by the `id` of the listing · ends every session and token of a user |
+
+Dangerous operations require a **fresh sign-in**: the token family's
+`auth_time`, set when the user authenticated for the authorization code,
+must be within the last ten minutes; a refresh never renews it. Otherwise
+the answer is `403` with `code: reauthentication_required`, which a client
+meets by running the authorization flow again (a pop-up sign-in) and
+repeating the call. One-time values are returned exactly once and never
+logged; every write leaves an audit event (`admin.*`) with the caller, the
+client and the `X-Request-ID` of the call.
 
 ## 8. Testing against this server
 

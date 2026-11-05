@@ -20,18 +20,20 @@ def test_administrators_manage_users_projects_and_clients(client: TestClient, wo
     admin = login_with_scope(client, world, "admin", "profile admin")
     h = admin.headers
 
-    # Users: create with a generated password (shown once), update, roles, reset, revoke, delete.
+    # Users: create with a generated password (returned once), update, roles, reset, revoke, delete.
     created = client.post(
-        "/admin/api/users",
-        json={"username": "api_user", "full_name": "API User", "email": "api@example.test"},
-        headers=h,
+        "/admin/api/users", json={"username": "api_user", "name": "API User", "email": "api@example.test"}, headers=h
     )
     assert created.status_code == 201, created.text
     user = created.json()
-    assert user["username"] == "api_user" and user["must_change_password"] is True and len(user["password"]) >= 12
+    assert user["username"] == "api_user" and user["name"] == "API User" and user["must_change_password"] is True
+    assert len(user["initial_password"]) >= 12
     user_id = user["id"]
-    updated = client.patch(f"/admin/api/users/{user_id}", json={"full_name": "Renamed", "disabled": True}, headers=h)
-    assert updated.status_code == 200 and updated.json()["full_name"] == "Renamed" and updated.json()["disabled"]
+    updated = client.put(f"/admin/api/users/{user_id}", json={"name": "Renamed", "disabled": True}, headers=h)
+    assert updated.status_code == 200 and updated.json()["name"] == "Renamed" and updated.json()["disabled"]
+    assert "initial_password" not in updated.json()
+    patched = client.patch(f"/admin/api/users/{user_id}", json={"disabled": False}, headers=h)
+    assert patched.status_code == 200 and patched.json()["disabled"] is False, "PATCH works like PUT"
     member = client.put(f"/admin/api/projects/{world.project_id}/members/{user_id}", json={"role": "editor"}, headers=h)
     assert member.status_code == 200 and member.json() == {"user_id": user_id, "role": "editor"}
     assert (
@@ -41,11 +43,11 @@ def test_administrators_manage_users_projects_and_clients(client: TestClient, wo
         == 400
     )
     one = client.get(f"/admin/api/users/{user_id}", headers=h).json()
-    assert [m["role"] for m in one["memberships"]] == ["editor"]
+    assert [m["role"] for m in one["projects"]] == ["editor"]
     assert client.delete(f"/admin/api/projects/{world.project_id}/members/{user_id}", headers=h).status_code == 204
-    reset = client.post(f"/admin/api/users/{user_id}/password", headers=h)
+    reset = client.post(f"/admin/api/users/{user_id}/reset-password", headers=h)
     assert reset.status_code == 200 and len(reset.json()["password"]) >= 12
-    assert client.post(f"/admin/api/users/{user_id}/revoke", headers=h).status_code == 204
+    assert client.delete("/admin/api/sessions", params={"user": "api_user"}, headers=h).status_code == 204
     assert client.delete(f"/admin/api/users/{user_id}", headers=h).status_code == 204
     assert client.get(f"/admin/api/users/{user_id}", headers=h).status_code == 404
     bad = client.post("/admin/api/users", json={"username": "x"}, headers=h)
@@ -53,14 +55,14 @@ def test_administrators_manage_users_projects_and_clients(client: TestClient, wo
 
     # Not to yourself: disabling or demoting the calling administrator is refused.
     me = next(u for u in client.get("/admin/api/users", headers=h).json()["items"] if u["username"] == "admin")
-    refused = client.patch(f"/admin/api/users/{me['id']}", json={"is_admin": False}, headers=h)
+    refused = client.put(f"/admin/api/users/{me['id']}", json={"is_admin": False}, headers=h)
     assert refused.status_code == 400 and client.delete(f"/admin/api/users/{me['id']}", headers=h).status_code == 400
 
     # Projects: create, rename, extensions, delete.
     project = client.post("/admin/api/projects", json={"name": "API project"}, headers=h)
-    assert project.status_code == 201 and project.json()["name"] == "API project"
+    assert project.status_code == 201 and project.json()["name"] == "API project" and project.json()["members"] == []
     project_id = project.json()["project_id"]
-    renamed = client.patch(
+    renamed = client.put(
         f"/admin/api/projects/{project_id}",
         json={"name": "API project 2", "extensions": {"topic_status": ["New", "Done"]}},
         headers=h,
@@ -78,33 +80,29 @@ def test_administrators_manage_users_projects_and_clients(client: TestClient, wo
     )
     assert registered.status_code == 201, registered.text
     body = registered.json()
-    assert body["client_secret"] and body["is_public"] is False
+    assert body["client_secret"] and body["public"] is False
     client_id = body["client_id"]
     assert client.get(f"/admin/api/clients/{client_id}", headers=h).json().get("client_secret") is None
-    patched = client.patch(f"/admin/api/clients/{client_id}", json={"description": "desc"}, headers=h)
+    patched = client.put(f"/admin/api/clients/{client_id}", json={"description": "desc"}, headers=h)
     assert patched.status_code == 200 and patched.json()["description"] == "desc"
-    rotated = client.post(f"/admin/api/clients/{client_id}/secret", headers=h)
+    rotated = client.post(f"/admin/api/clients/{client_id}/rotate-secret", headers=h)
     assert rotated.status_code == 200 and rotated.json()["client_secret"] != body["client_secret"]
     assert client.post(f"/admin/api/clients/{client_id}/revoke", headers=h).status_code == 204
     assert client.delete(f"/admin/api/clients/{client_id}", headers=h).status_code == 204
 
-    # Sessions: an application session of another user can be ended.
+    # Sessions: one application session of another user can be ended by its id.
     editor = login_as(client, world, "editor")
-    sessions = client.get("/admin/api/sessions", headers=h).json()["items"]
-    family = next(s for s in sessions if s["kind"] == "oauth2" and s["username"] == "editor")
-    ended = client.delete(
-        f"/admin/api/sessions/oauth2/{family['family_id']}", params={"user_id": family["user_id"]}, headers=h
-    )
-    assert ended.status_code == 204
+    sessions = client.get("/admin/api/sessions", params={"user": "editor"}, headers=h).json()["items"]
+    family = next(s for s in sessions if s["kind"] == "oauth2")
+    assert client.delete(f"/admin/api/sessions/{family['id']}", headers=h).status_code == 204
     assert client.get("/foundation/1.0/current-user", headers=editor.headers).status_code == 401, "the token died"
+    assert client.delete("/admin/api/sessions/no-such-session", headers=h).status_code == 404
 
     # Everything above left a trace with the caller and the request id.
     events = client.get("/admin/api/audit", params={"type": "admin."}, headers=h).json()["items"]
     types = {event["type"] for event in events}
     assert {"admin.user.create", "admin.user.delete", "admin.client.rotate_secret", "admin.project.delete"} <= types
-    assert all(
-        event["actor"] == me["id"] and event["request_id"] for event in events if event["type"].startswith("admin.")
-    )
+    assert all(event["actor"] == me["id"] and event["request_id"] for event in events)
 
 
 def test_dangerous_writes_need_a_fresh_sign_in(client: TestClient, world: World) -> None:
