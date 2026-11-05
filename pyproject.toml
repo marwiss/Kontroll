@@ -79,12 +79,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["opencde"]
 
-[tool.uv]
-# One lockfile for the server and the client library (uv workspace).
-default-groups = ["dev"]
 # Dependency cooldown: never resolve to a version published less than a week
 # ago. Compromised or broken releases are usually found within days.
+# One lockfile covers the server and the client library (uv workspace).
+[tool.uv]
 exclude-newer = "7 days"
+default-groups = ["dev"]
 
 [tool.uv.workspace]
 members = ["client"]
