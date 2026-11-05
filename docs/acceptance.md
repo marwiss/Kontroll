@@ -49,8 +49,8 @@ uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.
 Rules the server applies (RFC 8252 §7.3, RFC 9700): `https` URIs match
 exactly; `http://127.0.0.1/…` and `http://[::1]/…` match exactly except for the
 port, which may vary; `http://localhost/…` is accepted only with
-`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`, which the development overlay sets and
-production refuses; private-use schemes of native apps are accepted. There are
+`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` in `.env` (`opencde init --dev` writes
+it; production refuses it); private-use schemes of native apps are accepted. There are
 no wildcards. To find out which redirect URI a client uses, start its sign-in:
 the authorization request opens in the browser and its `redirect_uri` query
 parameter is visible in the address bar (the sign-in page refuses an
