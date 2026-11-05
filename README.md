@@ -14,10 +14,11 @@ The project grew out of a 2023 research prototype that tested whether the BCF
 API and IFC-graph could carry the digital inspection plans required for
 building permits in Sweden. This repository is a rewrite from scratch of that
 prototype with the same functionality, modern dependencies and security as the
-first requirement. Status: **stages 0–7 of 11 done** (all three APIs, the
-admin UI and the client library; deployment, IFC-graph, visual acceptance and
-hardening follow), see [docs/inventory.md](docs/inventory.md) for what the
-prototype did and where each function stands in the new code.
+first requirement. Status: **stages 0–10 of 11 done** (all three APIs, the
+admin UI, the client library, deployment, IFC-graph and the acceptance
+checklist; hardening and upstream preparation follow), see
+[docs/inventory.md](docs/inventory.md) for what the prototype did and where
+each function stands in the new code.
 
 ## Quick start (local, Docker)
 
@@ -80,6 +81,8 @@ password.
 - [docs/graph-schema.md](docs/graph-schema.md): the graph model
 - [docs/ifcgraph.md](docs/ifcgraph.md): the optional IFC-graph module and example Cypher queries
 - [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages
+- [docs/acceptance.md](docs/acceptance.md): visual acceptance checklist with
+  independent clients (Bonsai, ifc-lite, Dataspatium)
 - [docs/adr/](docs/adr/): architecture decision records (graph backend,
   opaque tokens, portable Cypher, vanilla web UI, repository strategy)
 - [docs/security/](docs/security/): threat model and controls

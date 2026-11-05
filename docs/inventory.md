@@ -23,7 +23,7 @@ project plan. This file is updated with every stage.
 | 7 | Client library (`client/opencde_client`: discovery, PKCE, BCF, Documents, CLI, test helpers), examples and the end-to-end scenario | done |
 | 8 | Deployment: production compose with Caddy and nightly backups, tunnel and Memgraph overlays, release pipeline (multi-arch image, SBOM, Trivy), nightly security workflow, `backup`/`restore`/`revoke`, deployment guides | done |
 | 9 | IFC-graph: worker process with limits, batched import, `IfcModel` per version, `SAME_AS` and GTIN for viewpoint components | done |
-| 10 | Visual acceptance, Dataspatium | |
+| 10 | Visual acceptance checklist with independent clients (`docs/acceptance.md`: Bonsai, ifc-lite, Dataspatium, both directions) and the OpenCDE source family in Dataspatium | done |
 | 11 | Hardening, documentation, upstream preparation | |
 
 ## 1. Foundation API 1.0
@@ -174,3 +174,14 @@ Code structure, deployment steps, suggested reading and the TODO list of the
 prototype's README are covered by this document, the ADRs, `docs/deploy/`
 (stage 8) and the plan. Two TODO items are out of scope for the rewrite:
 native-IFC editing through BIM snippets and git integration.
+
+## 12. Clients used for verification
+
+The prototype was only ever exercised by Solibri, which no longer exists.
+
+| Client | Role | Status | Stage |
+|---|---|---|---|
+| `client/opencde_client` (Python, LGPL) | automated end-to-end scenario, examples, command line | done; proposed later for IfcOpenShell `src/bcf` | 7 |
+| Dataspatium (own repository) | visual test client in the browser: OpenCDE source family with PKCE sign-in, BCF tables (topics, comments, viewpoint components, events, files), Documents API selection and import | done; tests against a mocked server in that repository | 10 |
+| Bonsai (openBCF, Blender) | independent BCF desktop client | checklist A in `docs/acceptance.md`, to be run by hand | 10 |
+| ifc-lite | independent browser client with BCF and Documents API libraries | checklist B in `docs/acceptance.md`, to be run by hand | 10 |
