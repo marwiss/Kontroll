@@ -2,7 +2,7 @@
 
 # Kontroll OpenCDE server
 
-*English · [Svenska](README.sv.md)*
+*English · [Svenska](docs/sv/README.md) · [Dansk](docs/da/README.md) · [Norsk](docs/nb/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md)*
 
 A server for the buildingSMART **OpenCDE APIs**, built on a graph database:
 
@@ -122,13 +122,21 @@ and writes BCF issues with comments and viewpoints taken from its 3D view,
 uploads datasets, files and workspace bundles through the Documents API,
 queries the IFC graph with Cypher over Bolt when the operator exposes it, and
 sends `X-Request-ID` on every request so that the request log here and the
-log in the app show the same conversation. Apart from the graph queries and
-the administration API, which are extensions outside the specifications,
-everything Dataspatium does against the server goes through the three OpenCDE
-APIs, so any other OpenCDE client works too, and Kontroll serves any OpenCDE
-client. The client side is described in Dataspatium's README and its
-documentation (`docs/kallor.md`, `docs/cad-bim.md`); the acceptance runs of
-the pair are in [docs/acceptance.md](docs/acceptance.md) here.
+log in the app show the same conversation. It reads the server's capabilities
+document (`/.well-known/kontroll`) to see which extensions are on, and acts
+on the stable error codes the server adds to its error bodies. Apart from the
+graph queries, the administration API, the capabilities document and the
+error codes, which are extensions outside the specifications, everything
+Dataspatium does against the server goes through the three OpenCDE APIs, so
+any other OpenCDE client works too, and Kontroll serves any OpenCDE client.
+The two products are installed separately: this repository does not bundle
+Dataspatium (the licences differ, AGPL here and PolyForm Strict there), and
+Dataspatium's README says how to download it. The client side is described
+in Dataspatium's README and its documentation (`docs/kallor.md`,
+`docs/cad-bim.md`); the acceptance runs of the pair are in
+[docs/acceptance.md](docs/acceptance.md) here, and what the two projects
+coordinate is in
+[docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 
 ## Development
 
@@ -143,10 +151,11 @@ uv run ty check opencde client/opencde_client
 
 Code and comments are in English because the server and the client library
 are intended to be contributed to IfcOpenShell, whose conventions (ruff, 120
-columns) the style follows. The README exists in English and Swedish; the
-documentation and the web UI are to be available in Swedish, Norwegian,
-Danish, Finnish, Icelandic and English, with English always one of the
-choices.
+columns) the style follows. The README exists in English, Swedish, Danish,
+Norwegian, Finnish and Icelandic (`docs/<lang>/README.md`, the layout
+Dataspatium uses); the documentation and the web UI are to be available in
+the same six languages, with English always one of the choices, and shared
+terms follow Dataspatium's glossary.
 
 ## Security
 
