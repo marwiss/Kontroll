@@ -326,9 +326,9 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
             )
         return _oauth_error(exc.status, exc.error, exc.description)
 
-    if client.dynamic:  # a self-registered client in use keeps its registration alive
-        settings = request.app.state.settings
-        await clients.touch(client.client_id, expires_at=later_iso(settings.dynamic_client_unused_days * 86400))
+    # Every client notes its last use; a self-registered client in use also keeps its registration alive.
+    settings = request.app.state.settings
+    await clients.touch(client.client_id, expires_at=later_iso(settings.dynamic_client_unused_days * 86400))
     return JSONResponse(
         {
             "access_token": pair.access_token,
