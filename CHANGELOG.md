@@ -4,7 +4,9 @@ Kontroll takes the same release numbers as [Dataspatium](https://github.com/marw
 the same number on both means they work together. Every release lists what
 a client can see; internal changes are in the commit history.
 
-## Unreleased
+## 2.1.0 — 2026-11-05
+
+Works with Dataspatium 2.1.0.
 
 - The administration API follows the resource list agreed with Dataspatium
   for its 2.2.0: a flat overview with `uptime_s` and `models`, users with
