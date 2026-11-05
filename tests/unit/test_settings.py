@@ -1,4 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
+import tempfile
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -6,6 +9,7 @@ from opencde.settings import GraphDialect, Settings
 
 
 def _settings(**values: object) -> Settings:
+    values.setdefault("data_dir", Path(tempfile.mkdtemp()) / "data")  # a generated key lands there, not in the tree
     return Settings(_env_file=None, **values)  # type: ignore[call-arg]
 
 
@@ -42,11 +46,23 @@ def test_a_published_bolt_address_must_be_encrypted_in_production() -> None:
     assert blank.graph_public_bolt_url is None, "blank means not published"
 
 
-def test_development_allows_http_localhost_and_generates_a_key() -> None:
-    settings = _settings(environment="development", public_url="http://localhost:8000/")
+def test_development_allows_http_localhost_and_generates_a_key(tmp_path: Path) -> None:
+    settings = _settings(environment="development", public_url="http://localhost:8000/", data_dir=tmp_path / "data")
     assert settings.public_url == "http://localhost:8000"  # trailing slash removed for safe concatenation
     assert len(settings.secret_key.get_secret_value()) >= 32
     assert settings.url("/foundation/versions") == "http://localhost:8000/foundation/versions"
+
+
+def test_a_generated_key_is_kept_in_the_data_directory(tmp_path: Path) -> None:
+    """Restarts and worker processes sign forms and sessions with the same key; an explicit key is left alone."""
+    first = _settings(environment="development", data_dir=tmp_path / "data")
+    second = _settings(environment="development", data_dir=tmp_path / "data")
+    assert first.secret_key.get_secret_value() == second.secret_key.get_secret_value()
+    assert (tmp_path / "data" / "secret_key").read_text(encoding="utf-8") == first.secret_key.get_secret_value()
+    explicit = _settings(environment="development", data_dir=tmp_path / "data", secret_key="k" * 40)
+    assert explicit.secret_key.get_secret_value() == "k" * 40
+    elsewhere = _settings(environment="development", data_dir=tmp_path / "other")
+    assert elsewhere.secret_key.get_secret_value() != first.secret_key.get_secret_value()
 
 
 def test_graph_uri_scheme_is_checked() -> None:

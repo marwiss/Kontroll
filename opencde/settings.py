@@ -30,6 +30,37 @@ SECURE_GRAPH_URI_SCHEMES = ("bolt+s://", "neo4j+s://")
 
 MIN_SECRET_KEY_LENGTH = 32
 MIN_PASSWORD_LENGTH = 12
+SECRET_KEY_FILE = "secret_key"  # a file name under the data directory, not a key  # noqa: S105  # nosec B105
+
+
+def _stored_secret_key(data_dir: Path) -> str:
+    """A generated key kept in the data directory, so that restarts and worker processes share it.
+
+    Production refuses to run without an explicit key. Outside production a key that changed on
+    every start voided every sign-in form and session at each restart, which the first reader of
+    the quick start met as "the sign-in form has expired". A directory that cannot hold the file
+    leaves a key for this process only.
+    """
+    path = data_dir / SECRET_KEY_FILE
+    try:
+        stored = path.read_text(encoding="utf-8").strip()
+        if len(stored) >= MIN_SECRET_KEY_LENGTH:
+            return stored
+    except FileNotFoundError:
+        pass
+    except OSError:
+        return secrets.token_urlsafe(48)
+    key = secrets.token_urlsafe(48)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:  # another process wrote it first
+        return _stored_secret_key(data_dir)
+    except OSError:
+        return key
+    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        handle.write(key)
+    return key
 
 
 class GraphDialect(StrEnum):
@@ -230,9 +261,9 @@ class Settings(BaseSettings):
             if self.allow_localhost_redirects:
                 raise ValueError("OPENCDE_ALLOW_LOCALHOST_REDIRECTS is only allowed outside production")
         elif not self.secret_key.get_secret_value():
-            # Development and tests: a fresh key per process keeps things working
-            # while making it obvious that nothing signed survives a restart.
-            object.__setattr__(self, "secret_key", SecretStr(secrets.token_urlsafe(48)))
+            # Development and tests: a generated key, kept in the data directory so that
+            # forms and sessions survive a restart and every worker signs the same way.
+            object.__setattr__(self, "secret_key", SecretStr(_stored_secret_key(self.data_dir)))
         if self.upload_part_bytes > self.max_upload_bytes:
             raise ValueError("OPENCDE_UPLOAD_PART_BYTES cannot exceed OPENCDE_MAX_UPLOAD_BYTES")
         return self
