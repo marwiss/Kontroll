@@ -64,7 +64,8 @@ other `OPENCDE_DEV_*` ports in its `.env`.
 ## 3. Connect the two
 
 In Dataspatium: the mode *Inhämta* (Import) → the button *Lägg till källa*
-(Add source) → *Typ av tjänst* (Kind of service): *OpenCDE (BCF, Documents)*
+(Add source) → the card *Lägg till databaskälla* (Add database source) →
+*Typ av tjänst* (Kind of service): *OpenCDE (BCF, Documents)*
 → *Adress* (Address): `http://localhost:8000` → *Lägg till* (Add). The source
 opens in *Inhämta*: press *Logga in* (Sign in) and sign in as `inspection_manager` in the
 pop-up window, then choose *Building permit* in the list *Projekt*. The line

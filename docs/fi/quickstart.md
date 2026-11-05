@@ -64,7 +64,8 @@ Compose-projektinimen `kontroll`, joten toinen tarvitsee `.env`-tiedostoonsa
 ## 3. Yhdistä ne
 
 Dataspatiumissa: tila *Inhämta* (Tuo) → painike *Lägg till källa* (Lisää
-lähde) → *Typ av tjänst* (Palvelun tyyppi): *OpenCDE (BCF, Documents)* →
+lähde) → kortti *Lägg till databaskälla* (Lisää tietokantalähde) →
+*Typ av tjänst* (Palvelun tyyppi): *OpenCDE (BCF, Documents)* →
 *Adress* (Osoite): `http://localhost:8000` → *Lägg till* (Lisää). Lähde
 avautuu *Inhämta*-tilaan: paina *Logga in* (Kirjaudu) ja kirjaudu
 ponnahdusikkunassa käyttäjänä `inspection_manager`, ja valitse sitten *Building permit*

@@ -64,7 +64,8 @@ med dataa. To utsjekkingar på same maskin deler Compose-prosjektnamnet
 ## 3. Kople dei to saman
 
 I Dataspatium: modusen *Inhämta* (Importer) → knappen *Lägg till källa* (Legg
-til kjelde) → *Typ av tjänst* (Tenestetype): *OpenCDE (BCF, Documents)* →
+til kjelde) → kortet *Lägg till databaskälla* (Legg til databasekjelde) →
+*Typ av tjänst* (Tenestetype): *OpenCDE (BCF, Documents)* →
 *Adress* (Adresse): `http://localhost:8000` → *Lägg till* (Legg til). Kjelda
 opnar seg i *Inhämta*: trykk *Logga in* (Logg inn) og logg inn som `inspection_manager` i
 popup-vindauget, og vel deretter *Building permit* i lista *Projekt*. Lina

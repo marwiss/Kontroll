@@ -64,8 +64,8 @@ Compose-projektnamnet `kontroll`, så den andra behöver
 
 ## 3. Koppla ihop dem
 
-I Dataspatium: läget *Inhämta* → knappen *Lägg till källa* → *Typ av
-tjänst*: *OpenCDE (BCF, Documents)* → *Adress*: `http://localhost:8000` →
+I Dataspatium: läget *Inhämta* → knappen *Lägg till källa* → kortet *Lägg
+till databaskälla* → *Typ av tjänst*: *OpenCDE (BCF, Documents)* → *Adress*: `http://localhost:8000` →
 *Lägg till*. Källan öppnas i *Inhämta*: tryck *Logga in* och logga in som
 `inspection_manager` i popup-fönstret, och välj sedan *Building permit* i listan
 *Projekt*. Raden under rubriken ("Servern: Kontroll OpenCDE server 2.0.0.
