@@ -275,11 +275,18 @@ All four were taken on 2026-11-05.
   repositories, Dataspatium's release history is consolidated to far fewer
   releases (its `1.0.0` becomes today's `1.18.1`, the latest release of each
   major number stands for that number, and its README describes everything
-  the merged releases contained). The exact scheme is settled in the
-  Dataspatium project; Kontroll tags `v0.1.0` after that and keeps the same
-  sparseness (`1.0.0` after the acceptance runs and the OAuch/testssl runs).
-  Provisional compatibility line: "Dataspatium 2.0.0 or later works with
-  Kontroll 0.1.0 or later".
+  the merged releases contained). Settled the same day: one release per
+  major number, the other releases and tags removed, the history untouched,
+  the app shows 2.0.0 and continues with 2.1.0. Kontroll takes **the same
+  release numbers as Dataspatium**, in lockstep: the first tag is `v2.0.0`
+  (with `__version__`, `pyproject.toml` and `server.version` in the
+  capabilities document at 2.0.0), made when Dataspatium 2.0.0 is out, and
+  every later Dataspatium release gets a Kontroll release with the same
+  number the same day, even when the server change is small. The
+  compatibility line in both READMEs becomes "Dataspatium 2.0.0 works with
+  Kontroll 2.0.0": the same number means the two work together. The owner's
+  acceptance runs and the OAuch/testssl runs remain the gate for a production
+  deployment, not for the tag.
 - **D. Capabilities document**: the shape of item 1 (a well-known path outside
   the specifications) was confirmed on 2026-11-05 and is implemented; the
   Dataspatium side builds on it.
