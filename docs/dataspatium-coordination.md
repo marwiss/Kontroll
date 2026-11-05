@@ -134,7 +134,12 @@ Done 2026-11-05: Kontroll v2.0.0 was tagged the day Dataspatium 2.0.0 was
 published, with `CHANGELOG.md` listing the client-visible changes and the
 compatibility line "Dataspatium 2.0.0 works with Kontroll 2.0.0" in every
 README. From here the two take the same numbers in lockstep (decision C);
-Kontroll's release workflow builds the image and the SBOM on a tag.
+Kontroll's release workflow builds the image and the SBOM on a tag. Later
+the same day both 2.0.0 releases were withdrawn under the rule of one
+release per major number once 2.1.0 was out (release and tag removed, the
+commits kept; `CHANGELOG.md` folds the 2.0.0 notes into 2.1.0). Kontroll's
+image tags `2.0.0` and `2.0` on GHCR stay until removed by hand, since the
+command-line token has no package scope.
 
 ### 7. Cross-repository tests in CI (D, medium; K, small)
 
@@ -360,7 +365,9 @@ All four were taken on 2026-11-05.
   Kontroll 2.0.0": the same number means the two work together. The owner's
   acceptance runs and the OAuch/testssl runs remain the gate for a production
   deployment, not for the tag. Dataspatium 2.0.0 and Kontroll v2.0.0 were
-  tagged on 2026-11-05; the changelog lives in `CHANGELOG.md`. Confirmed by the owner in both sessions on
+  tagged on 2026-11-05 and withdrawn the same day when 2.1.0 was out, as the
+  rule says; the owner confirmed that Kontroll mirrors the rule. The
+  changelog lives in `CHANGELOG.md`. Confirmed by the owner in both sessions on
   2026-11-05, together with the instruction to complete all twelve items in
   the agreed order without further sign-off and to keep collecting
   specification quirks from both sides.
