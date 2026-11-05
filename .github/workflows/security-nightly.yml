@@ -30,6 +30,7 @@ jobs:
       - run: uv run pytest -q -m "integration or e2e"
         env:
           OPENCDE_TEST_MEMGRAPH: "1"
+          OPENCDE_SCHEMATHESIS_EXAMPLES: "50"
 
   image:
     name: Image vulnerability scan
