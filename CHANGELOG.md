@@ -7,12 +7,25 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.2.0 — 2026-11-05
+## 2.3.0 — 2026-11-06
 
-The release kept for 2.x. Works with Dataspatium 2.2.0. It contains 2.0.0
-and 2.1.0 of the same day, withdrawn under the rule above together with
-their Dataspatium counterparts.
+The release kept for 2.x. Works with Dataspatium 2.3.0. It contains 2.0.0,
+2.1.0 and 2.2.0 of the day before, withdrawn under the rule above together
+with their Dataspatium counterparts.
 
+- The documentation exists in the seven languages of the README: the client
+  guide, the OAuth2 and Documents API flows, the graph schema, the IFC-graph
+  page, the style guide and the security pages are under `docs/<language>/`
+  next to the quick start and the deployment guides. The project logs, the
+  architecture decisions and the upstream drafts stay in English.
+- The quick start follows Dataspatium 2.3.0: a source is added from the left
+  column of *Inhämta*, with the client id left empty so that the app registers
+  itself.
+- The Danish pages say *kodeord* for a password throughout, and the Icelandic
+  pages say *tóki* for a token, as Dataspatium does.
+- `SECURITY.md` separates what runs on every push, every night and every
+  release from what is done by hand (OAuch and testssl.sh, not yet run against
+  a production deployment), and the supported versions follow the rule above.
 - The validation messages of the administration and account pages (user
   names, passwords, project names and extension lists, clients and their
   redirect URIs) follow the page language; the CLI and the API keep the

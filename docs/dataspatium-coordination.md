@@ -147,7 +147,9 @@ commits kept; `CHANGELOG.md` folds the 2.0.0 notes into 2.1.0). Kontroll's
 image tags `2.0.0` and `2.0` on GHCR stay until removed by hand, since the
 command-line token has no package scope. Kontroll 2.2.0 followed
 Dataspatium 2.2.0 the same evening (the pop-up sign-in fixes), and 2.1.0
-was withdrawn on both sides in the same way.
+was withdrawn on both sides in the same way. Kontroll 2.3.0 followed
+Dataspatium 2.3.0 (the sources column of *Inhämta* in the quick start, the
+documentation in seven languages), and 2.2.0 went the same way.
 
 ### 7. Cross-repository tests in CI (D, medium; K, small)
 
