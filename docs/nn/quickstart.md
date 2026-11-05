@@ -63,6 +63,10 @@ med dataa. To utsjekkingar på same maskin deler Compose-prosjektnamnet
 
 ## 3. Kople dei to saman
 
+Appen må vere opna via `http://localhost:8080` (steg 2). Opna frå mappa kan
+han ikkje registrere seg sjølv, og då må ein klient-id frå `/admin/clients`
+fyllast inn i staden.
+
 I Dataspatium: modusen *Inhämta* (Importer) → knappen *Lägg till källa* (Legg
 til kjelde) → kortet *Lägg till databaskälla* (Legg til databasekjelde) →
 *Typ av tjänst* (Tenestetype): *OpenCDE (BCF, Documents)* →

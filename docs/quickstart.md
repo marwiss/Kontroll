@@ -63,6 +63,10 @@ other `OPENCDE_DEV_*` ports in its `.env`.
 
 ## 3. Connect the two
 
+The app must be open through `http://localhost:8080` (step 2). Opened from
+the folder it cannot register itself, and a client id from `/admin/clients`
+has to be filled in instead.
+
 In Dataspatium: the mode *Inhämta* (Import) → the button *Lägg till källa*
 (Add source) → the card *Lägg till databaskälla* (Add database source) →
 *Typ av tjänst* (Kind of service): *OpenCDE (BCF, Documents)*

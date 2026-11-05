@@ -62,6 +62,10 @@ gögnunum. Tvö útgáfusöfn á sömu tölvu deila Compose-verkefnisheitinu
 
 ## 3. Tengdu þau saman
 
+Forritið verður að vera opnað um `http://localhost:8080` (skref 2). Opnað úr
+möppunni getur það ekki skráð sig sjálft, og þá þarf að fylla inn
+biðlaraauðkenni frá `/admin/clients` í staðinn.
+
 Í Dataspatium: hamurinn *Inhämta* (Sækja inn) → hnappurinn *Lägg till källa*
 (Bæta við uppsprettu) → spjaldið *Lägg till databaskälla* (Bæta við
 gagnagrunnsuppsprettu) → *Typ av tjänst* (Tegund þjónustu): *OpenCDE (BCF,
