@@ -252,8 +252,8 @@ class IfcGraphService:
 _LINK_TAIL = """
             MERGE (c)-[:SAME_AS]->(e)
             WITH c, e
-            OPTIONAL MATCH (e)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]
-                  ->(ps:IfcPropertySet {Name: $pset})-[:HasProperties]->(p:IfcPropertySingleValue {Name: $prop})
+            OPTIONAL MATCH (e)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)-[:RELATING_PROPERTY_DEFINITION]
+                  ->(ps:IfcPropertySet {Name: $pset})-[:HAS_PROPERTIES]->(p:IfcPropertySingleValue {Name: $prop})
             WITH c, e, collect(p.NominalValue)[0] AS gtin
             SET c.gtin = CASE WHEN gtin IS NULL THEN c.gtin ELSE toString(gtin) END
             RETURN count(DISTINCT e) AS linked

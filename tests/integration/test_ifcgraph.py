@@ -115,8 +115,8 @@ def test_uploaded_model_becomes_graph_and_components_link(
         # The query from the research report, on the imported graph.
         gtins, _, _ = driver.execute_query(
             """
-            MATCH (w:IfcWall)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]
-                  ->(:IfcPropertySet {Name: 'Reuse'})-[:HasProperties]->(p:IfcPropertySingleValue {Name: 'GTIN'})
+            MATCH (w:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)-[:RELATING_PROPERTY_DEFINITION]
+                  ->(:IfcPropertySet {Name: 'Reuse'})-[:HAS_PROPERTIES]->(p:IfcPropertySingleValue {Name: 'GTIN'})
             RETURN w.GlobalId AS guid, p.NominalValue AS gtin ORDER BY gtin
             """,
             database_=database,
