@@ -201,17 +201,40 @@ icons for the same actions, and the same token names (`--dm-*`) so that a
 copied token file needs no translation; whether Kontroll self-hosts the Inter
 font or keeps system fonts is part of item 5.
 
-## Suggested order
+## Agreed order (merged with Dataspatium's plan, §13.2 there)
 
-1. Items 1, 2 and 5 next in Kontroll (a few hours together), item 6 right
-   after (first tagged release), so that Dataspatium 2.33 can read the
-   capabilities document and send its software id.
-2. Item 4 with Dataspatium 2.34 (uniformity), item 8 at the same time.
-3. Item 12 with Dataspatium 2.35: the shape agreed first, then `auth_time`
-   and the read endpoints in Kontroll, the write endpoints after.
-4. Item 7 once item 6 exists (an image tag to pin).
-5. Item 3 when the owner has decided (A).
-6. Items 9 continuously; 10 and 11 when asked for.
+The two projects drew up their lists independently and merged them on
+2026-11-05. The agreed order, with the items above and the additions from
+the Dataspatium side:
+
+1. Capabilities document (item 1) + compatibility matrix and the first tagged
+   Kontroll release (item 6).
+2. Glossary and language keys, with the token file copied under the same
+   names (items 4 and 5) — Dataspatium 2.34.
+3. Error codes: a stable `code` field in the Foundation `{"message"}` body,
+   translated by the app; no second error format.
+4. Shared test data: `tests/fixtures/three_walls_gtin.ifc` (three walls with
+   `Reuse`/`GTIN` 1–3 and known GlobalIds) becomes the pair's fixture on both
+   sides; the seed gets known BCF guids.
+5. The pair's CI (item 7): Dataspatium's live suite from its release zip,
+   headless, in Kontroll's nightly job; the same job in Dataspatium with a
+   pinned server image.
+6. Deep links both ways: `OPENCDE_DATASPATIUM_URL` gives the server's project
+   and document pages an "Open in Dataspatium" link (also for workspace
+   packages, `.dataspatium.zip`), and the app links to the server's detail and
+   administration pages.
+7. `software_id`/`software_version` at registration (item 2) — Dataspatium
+   2.33 sends them.
+8. A joint quick start (item 8).
+9. The administration API (item 12) — Dataspatium 2.35.
+10. The graph query endpoint (item 3) after decision A.
+11. A shared security and personal-data page: what the app keeps in the
+    browser, what the server stores and for how long, one half each, cross-linked.
+12. `CONTRIBUTING.md` in Kontroll and the licence terms of the shared pieces
+    (decision B).
+
+Continuously: specification quirks from both sides (item 9). Later: BCFzip on
+the server (item 10) and the inspection-plan domain (item 11).
 
 ## Decisions for the owner
 
