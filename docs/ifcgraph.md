@@ -41,9 +41,11 @@ IfcBuildingElement:IfcElement:IfcProduct:IfcObject:IfcObjectDefinition:IfcRoot`.
 | `GlobalId`, `Name`, `Description`, `Tag`, … | every literal attribute of the entity, by its IFC name |
 
 Attributes that point at other entities become relationships named after the
-attribute: `(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]->(:IfcPropertySet)-[:HasProperties]->(:IfcPropertySingleValue)`.
+attribute, written like every relationship type in the graph in upper case
+with underscores at the word boundaries:
+`(:IfcRelDefinesByProperties)-[:RELATING_PROPERTY_DEFINITION]->(:IfcPropertySet)-[:HAS_PROPERTIES]->(:IfcPropertySingleValue)`.
 Inverse attributes become relationships too, so both directions read
-naturally: `(:IfcWall)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)`.
+naturally: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select values are unwrapped (`IfcLabel('3')` becomes `"3"`).
 
 Left out by default (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`): representation
@@ -98,8 +100,8 @@ RETURN c.ifc_guid, e.Name, c.gtin
 
 ```cypher
 // The report's query, directly on the model: GTIN of every wall.
-MATCH (w:IfcWall)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]
-      ->(:IfcPropertySet {Name: 'Reuse'})-[:HasProperties]->(p:IfcPropertySingleValue {Name: 'GTIN'})
+MATCH (w:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)-[:RELATING_PROPERTY_DEFINITION]
+      ->(:IfcPropertySet {Name: 'Reuse'})-[:HAS_PROPERTIES]->(p:IfcPropertySingleValue {Name: 'GTIN'})
 RETURN w.GlobalId, w.Name, p.NominalValue
 ```
 
@@ -111,6 +113,18 @@ RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 
 The BCF `files_information` service shows the `IfcProject` guid of imported
 models as `ifc_project`, which lets clients fill in the topic header's files.
+
+## Querying from Dataspatium
+
+[Dataspatium](https://github.com/marwiss/Dataspatium), the browser client
+developed together with this server, runs Cypher against this graph through
+its Neo4j source over Bolt (WebSocket on the Bolt port) when the operator
+exposes the database, as the development overlay does on `localhost:7697`.
+Its Kontroll workspace uses the patterns above (models, classes, components
+through `SAME_AS`, the latest finished model per document); the queries live in
+Dataspatium's documentation (`docs/cad-bim.md`), and the live runs are listed
+in [acceptance.md](acceptance.md). A production server does not publish Bolt,
+so such queries need an operator who does, or a future server-side query API.
 
 ## Limits and status
 

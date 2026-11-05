@@ -34,6 +34,9 @@ IFC graph for digital inspection plans).
   server-rendered pages with vanilla JavaScript enhancements, no framework.
 - An optional IFC-graph module (IfcOpenShell in a limited worker process).
 - A Python client library (`opencde-client`: discovery, PKCE, BCF, Documents).
+- A browser client developed alongside it, [Dataspatium](https://github.com/marwiss/Dataspatium)
+  (PKCE as a public client, BCF issues from a 3D view, Documents API, graph
+  queries), whose live test suites run against the server.
 - Tests: unit, conformance, security, integration on both databases, an
   end-to-end scenario, Playwright with axe-core, Schemathesis; nightly ZAP.
 - Deployment: one compose file with overlays (Caddy with automatic TLS,

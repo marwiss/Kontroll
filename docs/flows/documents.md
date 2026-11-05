@@ -69,6 +69,13 @@ sequenceDiagram
 * `POST /documents/1.0/document-versions` answers the latest versions of a
   list of document ids with an `ETag`; `If-None-Match` gives `304`.
 
+[Dataspatium](https://github.com/marwiss/Dataspatium) implements both flows
+from the browser (`src/api/families/opencde.js`): it opens the server's
+selection page in a popup and imports the chosen files, and uploads datasets,
+files and workspace bundles in parts with the server's upload page for the
+metadata; its live suites run these flows against the development stack
+([acceptance.md](../acceptance.md)).
+
 ## Who may do what
 
 | Action | Needs |
