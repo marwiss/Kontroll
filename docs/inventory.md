@@ -35,7 +35,7 @@ project plan. This file is updated with every stage.
 | `GET /foundation/1.0/current-user` | returned internal user fields | keep; `id` and `name` per `user_GET.json` | 2 |
 | Authorization endpoint (sign-in and consent page) | `GET /foundation/oauth2/auth` + `GET .../code` with password in the URL | reshape: `GET` renders the page, `POST` verifies and redirects (302) with `code`, `state`, `iss`; PKCE S256 required | 2 |
 | Token endpoint | `POST /foundation/oauth2/token`, JWT, non-expiring | reshape: opaque hashed tokens, one-time rotating refresh tokens, 201, `Cache-Control: no-store` | 2 |
-| Dynamic client registration (spec 2.2.3) | commented out | new; off by default | 2 |
+| Dynamic client registration (spec 2.2.3) | commented out | new; off by default; `token_endpoint_auth_method: "none"` registers a public client without a secret (RFC 7591 §2), the response carries the RFC 7591 §3.2.1 metadata | 2, 11 |
 | Token revocation (RFC 7009) | no | new (extension) | 2 |
 | Single hard-coded client from environment variables | yes | reshape: clients in the graph, managed by CLI and admin UI | 2, 6 |
 | Scopes `test`, `user`, `admin`, undocumented `test` required everywhere | yes | reshape: server-defined scopes per route | 2 |
@@ -165,6 +165,8 @@ this server does:
 | BCF 3.0 says nothing about content types or file names of binary responses | Snapshots and bitmaps are `image/png` or `image/jpeg`; documents and snippets are `application/octet-stream` attachments with the stored file name |
 | BCF 3.0 says nothing about how the file name of a document upload (3.8.2) is transmitted | `Content-Disposition` (RFC 6266), as Foundation API 1.9 does for binary uploads; `document` when absent |
 | Foundation `versions_GET.json` allows `api_id` `bcf` and `foundation` only, while the Documents API needs `documents` there | The conformance test accepts `documents` |
+| Foundation `dynRegClient_GET.json` requires `client_secret`, while RFC 7591 (which 2.2.3 refers to) issues none to a public client | Confidential registrations match the Foundation schema; a registration with `token_endpoint_auth_method: "none"` follows RFC 7591 and omits the secret |
+| BCF 3.3.1 leaves the `display_information` fields to the server | Every entry carries File name, Uploaded, Uploaded by, Source, Document id and Version index (the last two so that a client can reach the Documents API version without parsing the reference URL; empty index for BCF API documents) |
 | Documents `UploadFilePartInstruction` is `allOf: [LinkData, …]` where `LinkData` has `additionalProperties: false`; read as strict JSON Schema nothing could satisfy it | The conformance test reads `allOf` as composition, as OpenAPI tooling does |
 | Documents API: no callback parameter is defined for the user cancelling an upload in some wording (`user_cancelled_selection` appears under the upload flow once) | `user_cancelled_upload=true` for uploads, `user_cancelled_selection=true` for selections, as the operation descriptions state |
 

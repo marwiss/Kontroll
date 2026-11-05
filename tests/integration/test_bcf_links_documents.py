@@ -108,8 +108,10 @@ def test_documents_and_files_information(client: TestClient, world: World) -> No
     entries = information.json()
     assert len(entries) == 3
     assert {tuple(field["field_display_name"] for field in e["display_information"]) for e in entries} == {
-        ("File name", "Uploaded", "Uploaded by", "Source")
+        ("File name", "Uploaded", "Uploaded by", "Source", "Document id", "Version index")
     }, "consistent display fields (BCF 3.3.1)"
+    fields = {field["field_display_name"]: field["field_value"] for field in entries[0]["display_information"]}
+    assert fields["Document id"] == document["guid"] and fields["Version index"] == "", "a BCF document has no version"
     assert entries[0]["file"]["filename"] == "Väggar.ifc"
     assert entries[0]["file"]["reference"].endswith(
         f"/bcf/3.0/projects/{world.project_id}/documents/{document['guid']}"
