@@ -8,17 +8,22 @@ COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 
+# Optional extras to install. The default includes the IFC-graph module (IfcOpenShell),
+# which OPENCDE_IFCGRAPH_ENABLED switches on at runtime; build with
+# `--build-arg OPENCDE_EXTRAS=` for a slimmer image without it.
+ARG OPENCDE_EXTRAS="--extra ifcgraph"
+
 # Dependencies first, so source changes do not invalidate this layer.
 COPY pyproject.toml uv.lock .python-version ./
 COPY client/pyproject.toml client/README.md ./client/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project --no-install-workspace
+    uv sync --frozen --no-dev --no-install-project --no-install-workspace ${OPENCDE_EXTRAS}
 
 COPY opencde ./opencde
 COPY client/opencde_client ./client/opencde_client
 COPY README.md LICENSE ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    uv sync --frozen --no-dev ${OPENCDE_EXTRAS}
 
 
 FROM python:3.13-slim-trixie AS runtime

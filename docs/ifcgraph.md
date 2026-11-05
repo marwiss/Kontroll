@@ -6,7 +6,10 @@ point at, and so that questions about the model can be asked in Cypher next to
 the issues and documents.
 
 Turn it on with `OPENCDE_IFCGRAPH_ENABLED=true` and install the `ifcgraph`
-extra (`uv sync --extra ifcgraph`; the Docker image includes it).
+extra (`uv sync --extra ifcgraph`). The Docker image includes the extra by
+default (`ARG OPENCDE_EXTRAS` in the Dockerfile), which more than doubles its
+size (about 680 MB against 300 MB); build with `--build-arg OPENCDE_EXTRAS=`
+for a slimmer image without IfcOpenShell when the module stays off.
 
 ## What happens on upload
 
