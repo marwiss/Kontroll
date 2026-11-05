@@ -230,6 +230,9 @@ def test_upload_flow_versions_and_queries(client: TestClient, world: World) -> N
     validate(information, "bcf-api/Schemas/Collaboration/File/project_files_information_GET.json")
     assert [e["file"]["filename"] for e in information] == ["walls-v2.ifc"]
     assert information[0]["file"]["reference"].endswith("/versions/2/download")
+    fields = {f["field_display_name"]: f["field_value"] for f in information[0]["display_information"]}
+    assert fields["Version index"] == "2" and fields["Source"] == "Documents API"
+    assert information[0]["file"]["reference"].endswith(f"/documents/{fields['Document id']}/versions/2/download")
 
     # Details page in the browser (signed in as editor).
     details_page = client.get(links["document_details"]["url"])

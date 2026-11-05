@@ -93,6 +93,7 @@ class BcfDocumentRepository:
                 author=row["document"]["author"],
                 source="BCF API document",
                 reference=f"{base_url}/bcf/3.0/projects/{project_id}/documents/{row['document']['guid']}",
+                document_id=row["document"]["guid"],
             )
             for row in rows
         ]
@@ -120,6 +121,8 @@ class BcfDocumentRepository:
                     f"/versions/{row['version']['version_index']}/download"
                 ),
                 ifc_project=row.get("ifc_project"),
+                document_id=row["document_id"],
+                version_index=row["version"]["version_index"],
             )
             for row in versions
         )
@@ -127,14 +130,28 @@ class BcfDocumentRepository:
 
 
 def _entry(
-    *, filename: str, date: str, author: str, source: str, reference: str, ifc_project: str | None = None
+    *,
+    filename: str,
+    date: str,
+    author: str,
+    source: str,
+    reference: str,
+    document_id: str,
+    version_index: int | None = None,
+    ifc_project: str | None = None,
 ) -> ProjectFileInformation:
+    # "Document id" and "Version index" let a client reach the Documents API version behind a file without
+    # parsing the reference URL; a BCF API document has no version, so its index is empty.
     return ProjectFileInformation(
         display_information=[
             ProjectFileDisplayInformation(field_display_name="File name", field_value=filename),
             ProjectFileDisplayInformation(field_display_name="Uploaded", field_value=date),
             ProjectFileDisplayInformation(field_display_name="Uploaded by", field_value=author),
             ProjectFileDisplayInformation(field_display_name="Source", field_value=source),
+            ProjectFileDisplayInformation(field_display_name="Document id", field_value=document_id),
+            ProjectFileDisplayInformation(
+                field_display_name="Version index", field_value="" if version_index is None else str(version_index)
+            ),
         ],
         file=FileRef(filename=filename, date=date, reference=reference, ifc_project=ifc_project),
     )
