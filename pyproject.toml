@@ -134,6 +134,7 @@ known-first-party = ["opencde", "opencde_client"]
 [tool.pytest.ini_options]
 testpaths = ["tests", "client/tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 addopts = "-ra --strict-markers"
 markers = [
     "integration: needs a graph database (testcontainers starts one)",

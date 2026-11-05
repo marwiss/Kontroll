@@ -1,9 +1,10 @@
 # This file was generated with the assistance of an AI coding tool.
 """Application factory.
 
-``create_app()`` wires settings, logging, middleware, error handling and the
-routers together. Routers for the Foundation, BCF and Documents APIs are
-registered here as the stages of the plan deliver them.
+``create_app()`` wires settings, logging, middleware, error handling, the
+graph database and the routers together. Routers for the Foundation, BCF and
+Documents APIs and the admin UI are registered here as the stages of the plan
+deliver them.
 """
 
 from __future__ import annotations
@@ -15,10 +16,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from opencde import __version__, health
+from opencde.bootstrap import make_graph, make_storage, wait_for_graph
 from opencde.errors import install_error_handlers
-from opencde.graph.driver import create_driver
+from opencde.etag import ETagMiddleware
+from opencde.graph.cleanup import ExpiryCleaner
+from opencde.graph.schema import apply_schema
 from opencde.logging import configure_logging, get_logger
 from opencde.middleware import BodySizeLimitMiddleware, RequestIDMiddleware, SecurityHeadersMiddleware
+from opencde.ratelimit import install_rate_limiting
 from opencde.settings import Settings
 
 DESCRIPTION = """\
@@ -31,8 +36,15 @@ Server implementation of the buildingSMART OpenCDE APIs:
 Data lives in a graph database (Neo4j or Memgraph). Source: https://github.com/marwiss/Kontroll
 """
 
+OPENAPI_TAGS = [
+    {"name": "Foundation API", "description": "Service discovery and authentication (Foundation API 1.0)."},
+    {"name": "BCF API", "description": "Issue management (BCF API 3.0)."},
+    {"name": "Documents API", "description": "Document exchange (Documents API 1.0)."},
+    {"name": "operations", "description": "Health endpoints for containers and monitoring."},
+]
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+
+def create_app(settings: Settings | None = None, *, startup_wait_seconds: float = 60.0) -> FastAPI:
     settings = settings or Settings()
     configure_logging(settings.log_level, settings.log_json)
     log = get_logger(__name__)
@@ -40,7 +52,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         app.state.settings = settings
-        app.state.driver = create_driver(settings)
+        app.state.graph = make_graph(settings)
+        app.state.storage = make_storage(settings)
+        cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds)
         log.info(
             "server_starting",
             version=__version__,
@@ -49,10 +63,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             graph_dialect=settings.graph_dialect.value,
             graph_database=settings.database_name,
         )
+        if startup_wait_seconds > 0:
+            await wait_for_graph(app.state.graph, startup_wait_seconds)
+            await apply_schema(app.state.graph)
+            cleaner.start()
         try:
             yield
         finally:
-            await app.state.driver.close()
+            await cleaner.stop()
+            await app.state.graph.close()
             log.info("server_stopped")
 
     app = FastAPI(
@@ -62,13 +81,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
         docs_url="/docs",
         redoc_url=None,
+        openapi_tags=OPENAPI_TAGS,
         license_info={"name": "AGPL-3.0-or-later", "url": "https://www.gnu.org/licenses/agpl-3.0.html"},
     )
 
     install_error_handlers(app)
+    install_rate_limiting(app, settings.rate_limits_enabled)
 
-    # Middleware runs outermost-last: request id first, then size limit, then CORS, then headers on the way out.
+    # Middleware runs outermost-last: request id first, then size limit, CORS, ETag, headers on the way out.
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(ETagMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -78,7 +100,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         expose_headers=["ETag", "Location", "X-Request-ID"],
         max_age=600,
     )
-    app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_json_body_bytes)
+    app.add_middleware(
+        BodySizeLimitMiddleware,
+        max_bytes=settings.max_json_body_bytes,
+        exempt_prefixes=("/documents/1.0/upload-part/", "/bcf/3.0/projects/"),
+    )
     app.add_middleware(RequestIDMiddleware)
 
     app.include_router(health.router)
