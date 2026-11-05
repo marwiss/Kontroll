@@ -41,9 +41,9 @@ NOTICES = {
     "member_saved": "Membership saved.",
     "member_removed": "Membership removed.",
     "extensions_saved": "Extension values saved.",
-    "password_changed": "Your password has been changed.",
-    "change_password": "Please choose a new password before you continue.",
-    "wrong_password": "Your password was not correct; nothing was changed.",
+    "password_changed": "Your password has been changed.",  # nosec B105 - a message, not a password
+    "change_password": "Please choose a new password before you continue.",  # nosec B105
+    "wrong_password": "Your password was not correct; nothing was changed.",  # nosec B105
     "form_expired": "The form had expired; nothing was changed. Please try again.",
     "not_yourself": "You cannot do that to your own account.",
     "invalid": "The form was not valid; nothing was changed.",

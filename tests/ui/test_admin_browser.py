@@ -6,10 +6,16 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 import pytest
-from axe_playwright_python.sync_playwright import Axe
-from playwright.sync_api import Page, expect, sync_playwright
-
 from tests.ui.conftest import LiveServer
+
+# The browser tools live in the optional ``ui`` dependency group; without it this module is skipped,
+# not broken, when the whole tree is collected.
+_playwright = pytest.importorskip("playwright.sync_api", reason="browser tests need `uv sync --group ui`")
+_axe = pytest.importorskip("axe_playwright_python.sync_playwright", reason="browser tests need `uv sync --group ui`")
+Axe = _axe.Axe
+Page = _playwright.Page
+expect = _playwright.expect
+sync_playwright = _playwright.sync_playwright
 
 pytestmark = pytest.mark.ui
 
