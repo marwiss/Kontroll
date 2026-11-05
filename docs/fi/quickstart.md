@@ -67,11 +67,9 @@ Sovelluksen on oltava avattuna osoitteesta `http://localhost:8080` (vaihe 2).
 Kansiosta avattuna se ei voi rekisteröidä itseään, vaan silloin kenttään on
 täytettävä asiakastunnus osoitteesta `/admin/clients`.
 
-Dataspatiumissa: tila *Inhämta* (Tuo) → painike *Lägg till källa* (Lisää
-lähde) → kortti *Lägg till databaskälla* (Lisää tietokantalähde) →
-*Typ av tjänst* (Palvelun tyyppi): *OpenCDE (BCF, Documents)* →
-*Adress* (Osoite): `http://localhost:8000` → *Lägg till* (Lisää). Lähde
-avautuu *Inhämta*-tilaan: paina *Logga in* (Kirjaudu) ja kirjaudu
+Dataspatiumissa: tila *Inhämta* (Tuo) → kohdassa *Lägg till källor* (Lisää lähteitä) valinta *OpenCDE* → *Adress*
+(Osoite): `http://localhost:8000` → *Lägg till* (Lisää) (jätä *Klient-id* tyhjäksi, niin sovellus rekisteröi itsensä). Lähde
+avautuu *Inhämta*-tilaan ja tulee kohtaan *Tillagda källor* (Lisätyt lähteet): paina *Logga in* (Kirjaudu) ja kirjaudu
 ponnahdusikkunassa käyttäjänä `inspection_manager`, ja valitse sitten *Building permit*
 luettelosta *Projekt*. Otsikon alla oleva rivi ("Servern: Kontroll OpenCDE
 server 2.0.0. Tillägg: …") tulee palvelimen kyvykkyysasiakirjasta ja kertoo,

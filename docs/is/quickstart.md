@@ -66,11 +66,9 @@ Forritið verður að vera opnað um `http://localhost:8080` (skref 2). Opnað �
 möppunni getur það ekki skráð sig sjálft, og þá þarf að fylla inn
 biðlaraauðkenni frá `/admin/clients` í staðinn.
 
-Í Dataspatium: hamurinn *Inhämta* (Sækja inn) → hnappurinn *Lägg till källa*
-(Bæta við uppsprettu) → spjaldið *Lägg till databaskälla* (Bæta við
-gagnagrunnsuppsprettu) → *Typ av tjänst* (Tegund þjónustu): *OpenCDE (BCF,
-Documents)* → *Adress* (Vistfang): `http://localhost:8000` → *Lägg till*
-(Bæta við). Uppsprettan opnast í *Inhämta*: ýttu á *Logga in* (Skrá inn) og
+Í Dataspatium: hamurinn *Inhämta* (Sækja inn) → undir *Lägg till källor* (Bæta við uppsprettum) valið *OpenCDE* →
+*Adress* (Vistfang): `http://localhost:8000` → *Lägg till* (Bæta við) (láttu *Klient-id* vera tómt, þá skráir forritið sig
+sjálft). Uppsprettan opnast í *Inhämta* og lendir undir *Tillagda källor* (Viðbættar uppsprettur): ýttu á *Logga in* (Skrá inn) og
 skráðu þig inn sem `inspection_manager` í sprettiglugganum, og veldu svo *Building permit*
 í listanum *Projekt*. Línan undir fyrirsögninni ("Servern: Kontroll OpenCDE
 server 2.0.0. Tillägg: …") kemur úr getuskjali þjónsins og segir hvaða

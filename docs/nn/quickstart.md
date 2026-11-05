@@ -67,11 +67,9 @@ Appen må vere opna via `http://localhost:8080` (steg 2). Opna frå mappa kan
 han ikkje registrere seg sjølv, og då må ein klient-id frå `/admin/clients`
 fyllast inn i staden.
 
-I Dataspatium: modusen *Inhämta* (Importer) → knappen *Lägg till källa* (Legg
-til kjelde) → kortet *Lägg till databaskälla* (Legg til databasekjelde) →
-*Typ av tjänst* (Tenestetype): *OpenCDE (BCF, Documents)* →
-*Adress* (Adresse): `http://localhost:8000` → *Lägg till* (Legg til). Kjelda
-opnar seg i *Inhämta*: trykk *Logga in* (Logg inn) og logg inn som `inspection_manager` i
+I Dataspatium: modusen *Inhämta* (Importer) → under *Lägg till källor* (Legg til kjelder) valet *OpenCDE* → *Adress*
+(Adresse): `http://localhost:8000` → *Lägg till* (Legg til) (lat *Klient-id* stå tomt, så registrerer appen seg sjølv). Kjelda
+opnar seg i *Inhämta* og hamnar under *Tillagda källor* (Tillagde kjelder): trykk *Logga in* (Logg inn) og logg inn som `inspection_manager` i
 popup-vindauget, og vel deretter *Building permit* i lista *Projekt*. Lina
 under overskrifta ("Servern: Kontroll OpenCDE server 2.0.0. Tillägg: …") kjem
 frå kapabilitetsdokumentet til serveren og seier kva tillegg som er slått på.
