@@ -40,6 +40,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("Event", "id"),
     ("AuditEvent", "id"),
     ("IfcModel", "id"),
+    ("IfcEntity", "id"),
 )
 
 # Additional lookup and sort indexes.
@@ -64,6 +65,7 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("DocumentVersion", "version_index"),
     ("IfcEntity", "GlobalId"),
     ("IfcEntity", "model_id"),
+    ("IfcModel", "project_id"),
 )
 
 # Labels whose nodes carry ``expires_at`` and may be deleted once it has passed.

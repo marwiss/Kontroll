@@ -1,0 +1,249 @@
+# This file was generated with the assistance of an AI coding tool.
+"""Scheduling conversions and linking BCF components to model elements.
+
+``IfcGraphService.schedule`` records an ``IfcModel`` node (state ``queued``),
+then converts in the background: the file is handed to the worker process
+(``.ifczip`` is unpacked first, with a size cap), the worker's records are
+imported, and the node ends in state ``done`` or ``failed`` with counts or an
+error. One conversion runs at a time.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import json
+import sys
+import tempfile
+import zipfile
+from pathlib import Path
+from typing import Annotated, Any
+
+from fastapi import Depends, Request
+
+from opencde.graph.graph import Graph
+from opencde.ids import new_id
+from opencde.ifcgraph.importer import delete_model, import_records
+from opencde.logging import get_logger
+from opencde.settings import Settings
+from opencde.storage import LocalStorage
+from opencde.timeutil import now_iso
+
+log = get_logger(__name__)
+
+STATE_QUEUED = "queued"
+STATE_RUNNING = "running"
+STATE_DONE = "done"
+STATE_FAILED = "failed"
+IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
+
+
+class IfcGraphService:
+    def __init__(self, graph: Graph, storage: LocalStorage, settings: Settings) -> None:
+        self.graph = graph
+        self.storage = storage
+        self.settings = settings
+        self._tasks: set[asyncio.Task[None]] = set()
+        self._lock = asyncio.Semaphore(1)
+
+    # -- scheduling ------------------------------------------------------------------------------
+
+    @staticmethod
+    def wants(file_name: str) -> bool:
+        return file_name.lower().endswith(IFC_SUFFIXES[:2])
+
+    async def schedule(
+        self,
+        *,
+        project_id: str,
+        storage_key: str,
+        file_name: str,
+        document_id: str | None = None,
+        version_index: int | None = None,
+        bcf_document_guid: str | None = None,
+    ) -> str | None:
+        """Queue a conversion for an uploaded IFC file; returns the model id, or None for other files."""
+        if not self.wants(file_name):
+            return None
+        model_id = new_id()
+        await self.graph.run(
+            """
+            MATCH (p:Project {project_id: $project_id})
+            CREATE (p)-[:HAS_MODEL]->(:IfcModel {
+                id: $id, project_id: $project_id, document_id: $document_id, version_index: $version_index,
+                bcf_document_guid: $bcf_document_guid, file_name: $file_name, storage_key: $storage_key,
+                state: $state, created_at: $now
+            })
+            """,
+            project_id=project_id,
+            id=model_id,
+            document_id=document_id,
+            version_index=version_index,
+            bcf_document_guid=bcf_document_guid,
+            file_name=file_name,
+            storage_key=storage_key,
+            state=STATE_QUEUED,
+            now=now_iso(),
+        )
+        task = asyncio.create_task(self._run(model_id, storage_key, file_name), name=f"ifcgraph-{model_id}")
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+        return model_id
+
+    async def shutdown(self) -> None:
+        for task in list(self._tasks):
+            task.cancel()
+        for task in list(self._tasks):
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await task
+
+    async def wait_idle(self) -> None:
+        """For tests: wait until every scheduled conversion has finished."""
+        while self._tasks:
+            await asyncio.gather(*list(self._tasks), return_exceptions=True)
+
+    # -- the conversion ----------------------------------------------------------------------------
+
+    async def _set_state(self, model_id: str, state: str, **fields: Any) -> None:
+        await self.graph.run(
+            "MATCH (m:IfcModel {id: $id}) SET m.state = $state, m += $fields",
+            id=model_id,
+            state=state,
+            fields={**fields, f"{state}_at": now_iso()},
+        )
+
+    async def _run(self, model_id: str, storage_key: str, file_name: str) -> None:
+        async with self._lock:
+            await self._set_state(model_id, STATE_RUNNING)
+            with tempfile.TemporaryDirectory(prefix="ifcgraph-") as tmp:
+                workdir = Path(tmp)
+                try:
+                    source = await asyncio.to_thread(self._prepare_input, storage_key, file_name, workdir)
+                    records = workdir / "records.jsonl"
+                    header = await self._convert(source, records)
+                    counts = await import_records(self.graph, model_id, records)
+                except Exception as exc:
+                    log.warning("ifcgraph_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:500])
+                    with contextlib.suppress(Exception):
+                        await delete_model_entities(self.graph, model_id)
+                    await self._set_state(model_id, STATE_FAILED, error=f"{type(exc).__name__}: {exc}"[:500])
+                    return
+            await self._set_state(
+                model_id,
+                STATE_DONE,
+                schema=header.get("schema"),
+                ifc_project_guid=header.get("ifc_project_guid"),
+                entities=counts["nodes"],
+                relationships=counts["relationships"],
+                skipped=header.get("skipped", 0),
+            )
+            log.info("ifcgraph_imported", model_id=model_id, **counts)
+
+    def _prepare_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
+        """The IFC file to convert; an ``.ifczip`` is unpacked with a cap on the unpacked size."""
+        path = self.storage.path(storage_key)
+        if not file_name.lower().endswith(".ifczip"):
+            return path
+        limit = self.settings.max_upload_bytes
+        with zipfile.ZipFile(path) as archive:
+            members = [m for m in archive.infolist() if not m.is_dir() and m.filename.lower().endswith(".ifc")]
+            if len(members) != 1:
+                raise ValueError("an .ifczip must contain exactly one .ifc file")
+            member = members[0]
+            if member.file_size > limit:
+                raise ValueError(f"the archived model exceeds {limit} bytes")
+            target = workdir / "model.ifc"
+            written = 0
+            with archive.open(member) as source, target.open("wb") as out:
+                while chunk := source.read(1024 * 1024):
+                    written += len(chunk)
+                    if written > limit:
+                        raise ValueError(f"the archived model exceeds {limit} bytes")
+                    out.write(chunk)
+            return target
+
+    async def _convert(self, source: Path, records: Path) -> dict[str, Any]:
+        command = [
+            sys.executable,
+            "-m",
+            "opencde.ifcgraph.worker",
+            str(source),
+            str(records),
+            "--memory-mb",
+            str(self.settings.ifcgraph_memory_mb),
+            "--max-entities",
+            str(self.settings.ifcgraph_max_entities),
+        ]
+        if self.settings.ifcgraph_include_geometry:
+            command.append("--include-geometry")
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(), timeout=self.settings.ifcgraph_timeout_seconds
+            )
+        except TimeoutError:
+            process.kill()
+            await process.wait()
+            raise RuntimeError(f"conversion exceeded {self.settings.ifcgraph_timeout_seconds} s") from None
+        if process.returncode != 0:
+            message = stderr.decode("utf-8", "replace").strip().splitlines()
+            detail = message[-1] if message else f"exit code {process.returncode}"
+            with contextlib.suppress(ValueError):
+                detail = json.loads(detail).get("error", detail)
+            raise RuntimeError(detail)
+        return json.loads(stdout.decode("utf-8").strip().splitlines()[-1])
+
+    # -- linking BCF components ----------------------------------------------------------------------
+
+    async def link_viewpoint(self, *, project_id: str, viewpoint_guid: str) -> int:
+        """``SAME_AS`` from the viewpoint's components to matching elements of the project's models, plus GTIN."""
+        rows = await self.graph.run(
+            """
+            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(v:Viewpoint {guid: $guid})
+                  -[:HAS_COMPONENT]->(c:Component)
+            WHERE c.ifc_guid IS NOT NULL
+            MATCH (m:IfcModel {project_id: $project_id, state: 'done'})
+            MATCH (e:IfcEntity {model_id: m.id, GlobalId: c.ifc_guid})
+            MERGE (c)-[:SAME_AS]->(e)
+            WITH c, e
+            OPTIONAL MATCH (e)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]
+                  ->(ps:IfcPropertySet {Name: $pset})-[:HasProperties]->(p:IfcPropertySingleValue {Name: $prop})
+            WITH c, e, collect(p.NominalValue)[0] AS gtin
+            SET c.gtin = CASE WHEN gtin IS NULL THEN c.gtin ELSE toString(gtin) END
+            RETURN count(DISTINCT e) AS linked
+            """,
+            project_id=project_id,
+            guid=viewpoint_guid,
+            pset=self.settings.ifcgraph_gtin_property_set,
+            prop=self.settings.ifcgraph_gtin_property,
+        )
+        return int(rows[0]["linked"]) if rows else 0
+
+    async def status(self, project_id: str) -> list[dict[str, Any]]:
+        rows = await self.graph.run(
+            "MATCH (m:IfcModel {project_id: $project_id}) RETURN properties(m) AS model ORDER BY m.created_at DESC",
+            project_id=project_id,
+        )
+        return [row["model"] for row in rows]
+
+
+async def delete_model_entities(graph: Graph, model_id: str) -> None:
+    """Remove a model's entities but keep the ``IfcModel`` node (so a failure stays visible)."""
+    while True:
+        rows = await graph.run(
+            "MATCH (n:IfcEntity {model_id: $model_id}) WITH n LIMIT 2000 DETACH DELETE n RETURN count(*) AS n",
+            model_id=model_id,
+        )
+        if not rows or int(rows[0]["n"]) < 2000:
+            break
+
+
+def ifcgraph_service(request: Request) -> IfcGraphService | None:
+    return getattr(request.app.state, "ifcgraph", None)
+
+
+IfcGraphDep = Annotated[IfcGraphService | None, Depends(ifcgraph_service)]
+
+__all__ = ["IfcGraphDep", "IfcGraphService", "delete_model", "ifcgraph_service"]

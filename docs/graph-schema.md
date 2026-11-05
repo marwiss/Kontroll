@@ -119,4 +119,17 @@ erDiagram
 
 ## IFC graph (stage 9)
 
-Added when implemented: `IfcModel`, `IfcEntity`.
+```mermaid
+erDiagram
+    Project ||--o{ IfcModel : HAS_MODEL
+    IfcModel ||--o| IfcEntity : HAS_PROJECT
+    IfcEntity }o--o{ IfcEntity : "attribute names"
+    Component }o--o| IfcEntity : SAME_AS
+```
+
+| Label | Key | Properties | Notes |
+|---|---|---|---|
+| `IfcModel` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
+| `IfcEntity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse) |
+
+See [ifcgraph.md](ifcgraph.md) for the conversion rules and example queries.

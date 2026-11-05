@@ -78,6 +78,7 @@ password.
   how to build a client; runnable examples with the Python library in [client/](client/)
 - [docs/flows/](docs/flows/): sequence diagrams of the OAuth2 and Documents API flows
 - [docs/graph-schema.md](docs/graph-schema.md): the graph model
+- [docs/ifcgraph.md](docs/ifcgraph.md): the optional IFC-graph module and example Cypher queries
 - [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages
 - [docs/adr/](docs/adr/): architecture decision records (graph backend,
   opaque tokens, portable Cypher, vanilla web UI, repository strategy)

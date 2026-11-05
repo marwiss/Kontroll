@@ -30,6 +30,7 @@ from opencde.etag import ETagMiddleware
 from opencde.foundation import routes as foundation_routes
 from opencde.graph.cleanup import ExpiryCleaner
 from opencde.graph.schema import apply_schema
+from opencde.ifcgraph.service import IfcGraphService
 from opencde.logging import configure_logging, get_logger
 from opencde.middleware import BodySizeLimitMiddleware, RequestIDMiddleware, SecurityHeadersMiddleware
 from opencde.ratelimit import install_rate_limiting
@@ -67,6 +68,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.state.graph = make_graph(settings)
         app.state.storage = make_storage(settings)
         cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds, app.state.storage)
+        app.state.ifcgraph = (
+            IfcGraphService(app.state.graph, app.state.storage, settings) if settings.ifcgraph_enabled else None
+        )
         log.info(
             "server_starting",
             version=__version__,
@@ -83,6 +87,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             yield
         finally:
             await cleaner.stop()
+            if app.state.ifcgraph is not None:
+                await app.state.ifcgraph.shutdown()
             await app.state.graph.close()
             log.info("server_stopped")
 

@@ -15,6 +15,7 @@ from opencde.bcf.schemas import ColoringGET, SelectionGET, ViewpointAuthorizatio
 from opencde.bcf.topic_access import TopicCtx
 from opencde.bcf.viewpoints import ViewpointRecord, ViewpointsDep
 from opencde.deps import StorageDep
+from opencde.ifcgraph.service import IfcGraphDep
 from opencde.logging import get_logger
 
 log = get_logger(__name__)
@@ -53,12 +54,16 @@ async def viewpoints_get(
 
 
 @router.post("", summary="3.5.2 POST Viewpoint", status_code=201)
-async def viewpoint_post(topic: TopicCtx, body: ViewpointPOST, viewpoints: ViewpointsDep) -> dict[str, Any]:
+async def viewpoint_post(
+    topic: TopicCtx, body: ViewpointPOST, viewpoints: ViewpointsDep, ifcgraph: IfcGraphDep
+) -> dict[str, Any]:
     """Create an immutable viewpoint with its images and components. Needs ``createViewpoint``."""
     topic.require_topic_action("createViewpoint")
     record = await viewpoints.create(
         project_id=topic.project_id, topic_guid=topic.guid, author=topic.username, body=body
     )
+    if ifcgraph is not None and body.components is not None:
+        await ifcgraph.link_viewpoint(project_id=topic.project_id, viewpoint_guid=record.model.guid)
     return with_authorization(record, topic.project, True)
 
 

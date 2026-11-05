@@ -64,6 +64,7 @@ from opencde.documents.sessions import (
 )
 from opencde.etag import etag_for, matches
 from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import make_key
 
@@ -269,6 +270,7 @@ async def _complete(
     documents: DocumentsDep,
     storage: StorageDep,
     base: str,
+    ifcgraph: IfcGraphService | None = None,
 ) -> DocumentVersion:
     files = list(session.files)
     item = files[file_index]
@@ -315,6 +317,14 @@ async def _complete(
     await sessions.delete_parts(session.id, file_index)
     item.update(state=FILE_DONE, document_id=record.document_id, version_index=record.version_index)
     await sessions.update(session.id, files=files)
+    if ifcgraph is not None:
+        await ifcgraph.schedule(
+            project_id=project_id,
+            storage_key=target,
+            file_name=record.file_name,
+            document_id=record.document_id,
+            version_index=record.version_index,
+        )
     return record.to_model(base)
 
 
@@ -340,6 +350,7 @@ async def upload_completion(
     users: UsersDep,
     storage: StorageDep,
     settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
 ) -> Response:
     """Assemble the parts, verify the size, store the file and create the version.
 
@@ -362,7 +373,9 @@ async def upload_completion(
     await _may_upload(users, principal.user_id, session.project_id or item.get("project_id"))
 
     task = asyncio.ensure_future(
-        _complete(session, file_index, sessions=sessions, documents=documents, storage=storage, base=base)
+        _complete(
+            session, file_index, sessions=sessions, documents=documents, storage=storage, base=base, ifcgraph=ifcgraph
+        )
     )
     done, _ = await asyncio.wait({task}, timeout=KEEPALIVE_AFTER_SECONDS)
     if done:
