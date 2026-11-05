@@ -16,7 +16,8 @@ project plan. This file is updated with every stage.
 | 0 | Repository, scaffold, CI, Docker, security baseline | done |
 | 1 | Graph core (dialects, schema, cleanup), accounts, OAuth2 clients, OData compiler, storage, audit log, rate limiting, ETag, CLI | done |
 | 2 | Foundation API and OAuth2 (PKCE, rotating refresh tokens, revocation, dynamic registration), design system, sign-in page | done |
-| 3–4 | BCF API | |
+| 3 | BCF API: projects, extensions, topics, topic events, authorization objects | done |
+| 4 | BCF API: comments, viewpoints, related topics, document references, files, snippets, documents, comment events | |
 | 5 | Documents API | |
 | 6 | Admin UI | |
 | 7 | Client library and end-to-end tests | |
@@ -56,7 +57,8 @@ project plan. This file is updated with every stage.
 | Related topics get/put | yes, invalid Cypher | keep; PUT replaces the list | 4 |
 | Document references get/post/put | yes, invalid Cypher | keep; `document_guid` or external `url` | 4 |
 | Documents: list, post, get | stubs returning `True` | keep and implement; `?guid=` with 409 | 4 |
-| Topic events, topic events by topic, comment events, comment events by comment | stubs; routes shadowed by `/topics/{id}` | keep and implement; 17 topic and 4 comment event types, OData | 4 |
+| Topic events, topic events by topic | stubs; routes shadowed by `/topics/{id}` | implemented; 17 event types, several actions per event, events outlive the topic, OData on `topic_guid`/`author`/`date`/`type` | 3 |
+| Comment events, comment events by comment | stubs | keep and implement; 4 comment event types, OData | 4 |
 | Per-entity `authorization` objects | no | new | 3, 4 |
 | ETag / If-None-Match on GET | no | new | 1, 3 |
 

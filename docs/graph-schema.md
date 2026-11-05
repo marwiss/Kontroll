@@ -47,9 +47,27 @@ erDiagram
 all keyed by a hash of the secret, all with `expires_at`, all linked
 `-[:ISSUED_TO]->(:Client)` and `-[:FOR]->(:User)`.
 
-## BCF (stages 3–4) and Documents (stage 5)
+## BCF topics and events (stage 3)
 
-Added when implemented: `Topic`, `Comment`, `Viewpoint`, `Component`, `Line`,
+```mermaid
+erDiagram
+    Project ||--o{ Topic : HAS_TOPIC
+    Topic }o--|| User : CREATED_BY
+    Project ||--o{ Event : HAS_EVENT
+```
+
+| Label | Key | Properties | Notes |
+|---|---|---|---|
+| `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Field names follow `topic_GET.json`; the BIM snippet object is flattened into four properties. `server_assigned_id` is `<prefix><counter>` from `Project.topic_counter` |
+| `Event` | `id` | `kind` (`topic` or `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | One node per request that changed something; the two parallel lists are the `actions` array of BCF 3.9/3.10. Attached to the project so that events outlive their topic |
+
+Every topic query starts at the caller's `User` node and walks `MEMBER_OF`
+to the project before it touches a topic, so a topic in a project the caller
+is not a member of does not exist as far as the API is concerned (404).
+
+## BCF (stage 4) and Documents (stage 5)
+
+Added when implemented: `Comment`, `Viewpoint`, `Component`, `Line`,
 `ClippingPlane`, `Bitmap`, `FileRef`, `DocumentReference`, `BcfDocument`,
-`Event`, `Document`, `DocumentVersion`, `UploadSession`, `UploadPart`,
+`Document`, `DocumentVersion`, `UploadSession`, `UploadPart`,
 `SelectionSession`, `IfcModel`, `IfcEntity`.

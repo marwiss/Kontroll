@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 
 from opencde import __version__, health
 from opencde.auth import routes as oauth2_routes
+from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
 from opencde.errors import install_error_handlers
 from opencde.etag import ETagMiddleware
@@ -116,6 +117,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(foundation_routes.router)
     app.include_router(foundation_routes.alias_router)
     app.include_router(oauth2_routes.router)
+    app.include_router(bcf_router.router)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     @app.get("/", include_in_schema=False, response_class=HTMLResponse)

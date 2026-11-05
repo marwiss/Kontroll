@@ -27,6 +27,17 @@ Every control has at least one automated test. "Suite" names the test module.
 | Bearer only on the API; HTTP Basic refused | Foundation API 2.2.1 | `test_foundation::test_current_user_requires_a_bearer_token` |
 | Pages: strict CSP, no inline code, no framing, no caching | OWASP ASVS 14.4 | `test_foundation::test_authorize_without_client_shows_an_error_page_and_never_redirects` |
 
+## BCF API (stage 3)
+
+| Control | Standard | Suite |
+|---|---|---|
+| Projects and topics are reached from the user node through `MEMBER_OF`; non-members get 404, never 403 (no existence leak) | OWASP API1 (BOLA) | `test_bcf_projects_topics::test_projects_and_extensions`, `::test_topic_authorization_matrix` |
+| Role × action matrix enforced server-side for create, update and delete; `authorization` objects tell the truth | OWASP API5, BCF 1.2 | `test_bcf_projects_topics::test_topic_authorization_matrix`, `::test_project_rename_needs_manager` |
+| Topic values validated against the project's extensions; bounded lengths; unknown fields ignored | Foundation API 1.8, BCF 3.1.4 | `test_bcf_projects_topics::test_topic_values_are_checked_against_extensions_and_guid_conflicts` |
+| OData: field whitelist, parameterised Cypher, bounded `$top`/`$skip`, 400 on unknown fields or unsortable columns | OWASP API8 (injection) | `test_odata`, `test_bcf_projects_topics::test_topic_odata_filtering_sorting_and_paging` |
+| Client-chosen guids must be UUIDs and are normalised; duplicates give 409 | Foundation API 1.5.1 | `test_bcf_projects_topics::test_topic_values_are_checked_against_extensions_and_guid_conflicts` |
+| Event values clipped (titles 128, texts 1024 characters) | Data minimisation | `events.py`, `test_topic_lifecycle_with_events` |
+
 ## Platform (stage 0–1)
 
 | Control | Suite |
