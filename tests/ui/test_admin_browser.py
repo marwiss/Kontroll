@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 import pytest
+
 from tests.ui.conftest import LiveServer
 
 # The browser tools live in the optional ``ui`` dependency group; without it this module is skipped,
