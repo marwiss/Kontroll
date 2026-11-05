@@ -1,8 +1,13 @@
 # This file was generated with the assistance of an AI coding tool.
 """Every response, including errors, carries the security headers and the spec error body."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
+
+from opencde.main import create_app
+from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 
 pytestmark = pytest.mark.security
 
@@ -72,8 +77,31 @@ def test_request_id_is_echoed_or_minted(client: TestClient) -> None:
 
 def test_cors_is_bearer_only_never_credentials(client: TestClient) -> None:
     response = client.options(
-        "/healthz",
+        "/foundation/versions",
         headers={"Origin": "https://viewer.example", "Access-Control-Request-Method": "GET"},
     )
     assert response.headers.get("access-control-allow-origin") == "*"
     assert "access-control-allow-credentials" not in response.headers
+
+
+@pytest.mark.parametrize("path", ["/signin", "/", "/documents/1.0/select-ui/some-token", "/healthz"])
+def test_pages_are_never_shared_cross_origin(client: TestClient, path: str) -> None:
+    """CORS belongs to the API (Foundation API 1.4); HTML pages and health checks stay same-origin."""
+    response = client.get(path, headers={"Origin": "https://viewer.example"})
+    assert "access-control-allow-origin" not in response.headers, path
+
+
+def test_api_docs_have_their_own_policy_and_are_off_in_production(client: TestClient, tmp_path: Path) -> None:
+    """Swagger UI loads from a CDN with an inline script, so it gets a policy of its own and is off in production."""
+    docs = client.get("/docs")
+    assert docs.status_code == 200
+    assert "https://cdn.jsdelivr.net" in docs.headers["content-security-policy"]
+    assert "frame-ancestors 'none'" in docs.headers["content-security-policy"]
+    assert "/docs" in client.get("/").text
+    assert "https://cdn.jsdelivr.net" not in client.get("/openapi.json").headers["content-security-policy"]
+
+    production_like = make_settings(tmp_path / "prod", api_docs_enabled=False)
+    with TestClient(create_app(production_like, startup_wait_seconds=0)) as hardened:
+        assert hardened.get("/docs").status_code == 404
+        assert hardened.get("/openapi.json").status_code == 200
+        assert "/docs" not in hardened.get("/").text

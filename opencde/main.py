@@ -13,7 +13,6 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -32,7 +31,12 @@ from opencde.graph.cleanup import ExpiryCleaner
 from opencde.graph.schema import apply_schema
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.logging import configure_logging, get_logger
-from opencde.middleware import BodySizeLimitMiddleware, RequestIDMiddleware, SecurityHeadersMiddleware
+from opencde.middleware import (
+    ApiCORSMiddleware,
+    BodySizeLimitMiddleware,
+    RequestIDMiddleware,
+    SecurityHeadersMiddleware,
+)
 from opencde.ratelimit import install_rate_limiting
 from opencde.settings import Settings
 from opencde.ui.templating import STATIC_DIR, render
@@ -97,7 +101,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         description=DESCRIPTION,
         version=__version__,
         lifespan=lifespan,
-        docs_url="/docs",
+        docs_url="/docs" if settings.api_docs_on else None,  # Swagger UI from a CDN: off in production by default
         redoc_url=None,
         openapi_tags=OPENAPI_TAGS,
         license_info={"name": "AGPL-3.0-or-later", "url": "https://www.gnu.org/licenses/agpl-3.0.html"},
@@ -111,7 +115,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(ETagMiddleware)
     app.add_middleware(
-        CORSMiddleware,
+        ApiCORSMiddleware,
+        include_prefixes=("/foundation/", "/bcf/", "/documents/1.0/"),
+        exclude_patterns=documents_ui.PAGE_PATHS,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

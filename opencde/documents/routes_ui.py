@@ -63,6 +63,12 @@ MAX_VERSION_NUMBER = 50
 
 # Browser uploads from the selection page are multipart bodies, streamed by the form parser.
 BROWSER_UPLOAD_PATHS = (r"^/documents/1\.0/select-ui/[^/]+/upload$",)
+# The HTML pages of this module, which share the API's prefix but are never shared cross-origin (no CORS).
+PAGE_PATHS = (
+    r"^/documents/1\.0/upload-ui/",
+    r"^/documents/1\.0/select-ui/",
+    r"^/documents/1\.0/documents/[^/]+/versions/[^/]+/details(/|$)",
+)
 
 
 # ---------------------------------------------------------------------------- helpers

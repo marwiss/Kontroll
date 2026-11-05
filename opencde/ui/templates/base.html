@@ -29,7 +29,7 @@
   </main>
   <footer class="site-footer">
     <span>{{ product }}</span>
-    <a href="/docs">API documentation</a>
+    {% if docs_enabled %}<a href="/docs">API documentation</a>{% endif %}
   </footer>
   {% block scripts %}{% endblock %}
 </body>

@@ -118,6 +118,11 @@ class Settings(BaseSettings):
     )
     rate_limits_enabled: bool = True
     admin_ui_enabled: bool = True
+    api_docs_enabled: bool | None = Field(
+        None,
+        description="Serve the interactive API documentation at /docs (Swagger UI, loaded from a CDN). "
+        "Unset means: only outside production. The OpenAPI document at /openapi.json is always served.",
+    )
     server_assigned_id_prefix: str = Field("ISSUE-", description="Prefix of human-readable topic ids (BCF 3.2.9).")
 
     # --- optional modules -------------------------------------------------
@@ -179,6 +184,11 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def api_docs_on(self) -> bool:
+        """Whether /docs is served: the explicit setting, or everywhere except production."""
+        return self.api_docs_enabled if self.api_docs_enabled is not None else not self.is_production
 
     @property
     def database_name(self) -> str:

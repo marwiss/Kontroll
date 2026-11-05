@@ -11,7 +11,7 @@
     <dt>Version</dt><dd>{{ version }}</dd>
   </dl>
   <div class="cluster">
-    <a class="btn btn--primary" href="/docs">API documentation</a>
+    {% if docs_enabled %}<a class="btn btn--primary" href="/docs">API documentation</a>{% endif %}
     {% if admin_enabled %}<a class="btn btn--secondary" href="/admin">Administration</a>{% endif %}
   </div>
 </section>

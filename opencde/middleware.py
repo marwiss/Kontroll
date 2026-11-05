@@ -11,9 +11,11 @@ import json
 import re
 import uuid
 from collections.abc import Iterable
+from typing import Any
 
 import structlog
 from starlette.exceptions import HTTPException
+from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 REQUEST_ID_HEADER = b"x-request-id"
@@ -31,6 +33,18 @@ SECURITY_HEADERS: dict[bytes, bytes] = {
     b"cross-origin-resource-policy": b"same-origin",
     b"cache-control": b"no-store",
 }
+
+# The interactive API documentation is FastAPI's Swagger UI page: it loads its
+# script and style sheet from jsdelivr and starts with an inline script, which
+# our own pages never do. It gets this policy instead, and is served only
+# outside production unless the operator asks for it (settings.api_docs_enabled).
+DOCS_PATHS = ("/docs", "/docs/oauth2-redirect")
+DOCS_CSP = (
+    b"default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+    b"style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+    b"img-src 'self' data: https://cdn.jsdelivr.net https://fastapi.tiangolo.com; font-src 'self' https://cdn.jsdelivr.net; "
+    b"connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'"
+)
 
 
 def _header_names(headers: Iterable[tuple[bytes, bytes]]) -> set[bytes]:
@@ -57,11 +71,37 @@ class SecurityHeadersMiddleware:
                 defaults = dict(SECURITY_HEADERS)
                 if is_static:  # versioned by release; safe to cache, and public anyway
                     defaults[b"cache-control"] = b"public, max-age=86400"
+                if scope["path"] in DOCS_PATHS:
+                    defaults[b"content-security-policy"] = DOCS_CSP
                 headers.extend((name, value) for name, value in defaults.items() if name not in present)
                 message["headers"] = headers
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
+
+
+class ApiCORSMiddleware:
+    """CORS for the API paths only (Foundation API 1.4). The server's pages are never shared cross-origin.
+
+    ``include_prefixes`` selects the API; ``exclude_patterns`` carves the HTML pages that live under the same
+    prefixes (the Documents API's upload and selection pages) back out. Everything else passes through untouched.
+    """
+
+    def __init__(
+        self, app: ASGIApp, *, include_prefixes: Iterable[str], exclude_patterns: Iterable[str], **cors_options: Any
+    ) -> None:
+        self.app = app
+        self.cors = CORSMiddleware(app, **cors_options)
+        self.include = tuple(include_prefixes)
+        self.exclude = tuple(re.compile(pattern) for pattern in exclude_patterns)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            path = scope["path"]
+            if path.startswith(self.include) and not any(pattern.match(path) for pattern in self.exclude):
+                await self.cors(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
 
 
 class RequestIDMiddleware:
