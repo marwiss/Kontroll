@@ -117,6 +117,22 @@ def test_unhandled_errors_keep_cors_and_security_headers(settings: Settings) -> 
     assert response.headers["x-content-type-options"] == "nosniff"
 
 
+def test_icons_are_served_with_image_types(client: TestClient) -> None:
+    """The mark as SVG and PNG under /static, and favicon.ico for browsers that ask without being told."""
+    svg = client.get("/static/icon.svg")
+    assert svg.status_code == 200 and svg.headers["content-type"].startswith("image/svg+xml")
+    assert b"Kontroll OpenCDE server" in svg.content and svg.headers["x-content-type-options"] == "nosniff"
+    png = client.get("/static/icon-32.png")
+    assert (
+        png.status_code == 200
+        and png.headers["content-type"] == "image/png"
+        and png.content[:8] == b"\x89PNG\r\n\x1a\n"
+    )
+    ico = client.get("/favicon.ico")
+    assert ico.status_code == 200 and ico.headers["content-type"].startswith("image/x-icon")
+    assert ico.content[:4] == b"\x00\x00\x01\x00" and "max-age" in ico.headers["cache-control"]
+
+
 def test_administration_api_needs_a_bearer_token(client: TestClient) -> None:
     """The administration API never accepts cookies; without a token it is 401 like the rest of the API."""
     response = client.get("/admin/api/requests")

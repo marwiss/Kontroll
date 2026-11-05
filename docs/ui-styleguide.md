@@ -58,6 +58,20 @@ Change the brand in `tokens.css` only: `--color-accent` and its `-strong` and
 `-soft` variants. Light and dark follow the system setting. Type scale
 `--text-xs … --text-xl`, spacing `--space-1 … --space-7`, radii `--radius-sm/md/lg`.
 
+## Mark
+
+The server's mark is the sibling of Dataspatium's: where Dataspatium shows
+three stacked sheets, Kontroll shows three connected nodes (a graph), one at
+the middle left and two at the right, white on the same blue plate `#2b6cb0`
+with corner radius 7 in a 32-unit square, lines at the same stroke width 2.2
+and dots of radius 3. The white ink keeps Dataspatium's margins exactly
+(x 7.4–24.6, y 5.08–26.92 of the box). The source is
+`opencde/ui/static/icon.svg`; `icon-32.png`, `icon-180.png`, `icon-192.png`,
+`icon-512.png` and `favicon.ico` are rendered from it (the PNGs with Edge
+headless on a transparent background, the ICO wrapping the 16, 32 and 48 px
+PNGs). Use the SVG wherever the page can, keep the plate, and do not recolour
+the mark.
+
 ## Writing
 
 - Short headings that name the object: "Users", "New project", "Danger zone".
