@@ -8,3 +8,4 @@
 10111	IGNORE	(Informational: authentication request identified)
 90004	IGNORE	(Cross-Origin-Embedder-Policy: the pages load same-origin resources only and need no cross-origin isolation; Opener and Resource policies are set)
 90005	IGNORE	(Sec-Fetch-Dest missing on the scanner's own requests; browsers send it and the server checks Sec-Fetch-Site on form posts)
+10055	IGNORE	(CSP script-src 'unsafe-inline' only on the interactive API docs page, where FastAPI's Swagger UI starts with an inline script; the page is served only outside production, and the server's own pages allow no inline code, which the security suite checks)
