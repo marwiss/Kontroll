@@ -199,6 +199,7 @@ def test_dynamic_registration_when_enabled(graph_target, tmp_path, clean_databas
         graph_connect_timeout_seconds=10.0,
         dynamic_client_registration=True,
     )
+    world = build_world(settings)
     with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
         assert (
             client.get("/foundation/1.0/auth")
@@ -226,6 +227,35 @@ def test_dynamic_registration_when_enabled(graph_target, tmp_path, clean_databas
             headers=basic_auth(body["client_id"], body["client_secret"]),
         )
         assert probe.status_code == 400 and probe.json()["error"] == "invalid_grant"
+
+        # A public client (RFC 7591 token_endpoint_auth_method "none"): no secret, PKCE protects the flow.
+        redirect = "http://127.0.0.1:8093/oauth-callback.html"
+        public = client.post(
+            "/foundation/oauth2/reg",
+            json={
+                "client_name": "Browser application",
+                "redirect_uris": [redirect],
+                "token_endpoint_auth_method": "none",
+                "grant_types": ["authorization_code", "refresh_token"],
+            },
+        )
+        assert public.status_code == 201, public.text
+        registered = public.json()
+        assert "client_secret" not in registered and registered["token_endpoint_auth_method"] == "none"
+        assert registered["redirect_uris"] == [redirect] and isinstance(registered["client_id_issued_at"], int)
+        code, _query, verifier = authorize(
+            client, client_id=registered["client_id"], redirect_uri=redirect, username="editor", password=world.password
+        )
+        assert code is not None
+        session = exchange(
+            client, code=code, verifier=verifier, client_id=registered["client_id"], redirect_uri=redirect
+        )
+        assert client.get("/foundation/1.0/current-user", headers=session.headers).json()["id"] == "editor"
+        for invalid in ({"grant_types": ["implicit"]}, {"token_endpoint_auth_method": "private_key_jwt"}):
+            rejected = client.post(
+                "/foundation/oauth2/reg", json={"client_name": "x", "redirect_uris": [redirect], **invalid}
+            )
+            assert rejected.status_code == 400, rejected.text
 
 
 def test_registration_is_404_when_disabled(client: TestClient, world: World) -> None:

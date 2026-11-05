@@ -46,6 +46,29 @@ library in [client/](../client/) does all of this; the examples in
 
 The server never supports the implicit or password grants.
 
+### Registering a client dynamically
+
+When the server runs with `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`,
+`GET /foundation/1.0/auth` carries `oauth2_dynamic_client_reg_url` and a client
+can register itself (Foundation API 2.2.3, RFC 7591). A browser or native
+application asks for a public client:
+
+```http
+POST /foundation/oauth2/reg
+Content-Type: application/json
+
+{"client_name": "My viewer",
+ "redirect_uris": ["http://127.0.0.1:8093/oauth-callback.html"],
+ "token_endpoint_auth_method": "none",
+ "grant_types": ["authorization_code", "refresh_token"]}
+```
+
+The answer (201) carries `client_id`, `client_id_issued_at` and the registered
+metadata. A confidential client (the default `token_endpoint_auth_method`,
+`client_secret_basic`) also gets its `client_secret` once, with
+`client_secret_expires_at: 0`. Redirect URIs follow the rules above, and only
+the authorization code and refresh token grants exist.
+
 ## 3. BCF API
 
 - Everything under `/bcf/3.0/projects/{project_id}` is scoped to a project

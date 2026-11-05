@@ -21,7 +21,8 @@ responses that are never cached.
 from __future__ import annotations
 
 import base64
-from typing import Annotated, Any
+from datetime import UTC, datetime
+from typing import Annotated, Any, Literal
 from urllib.parse import unquote, urlencode, urlsplit
 
 from fastapi import APIRouter, Form, HTTPException, Request
@@ -359,12 +360,22 @@ async def revoke(request: Request, clients: ClientsDep, tokens: TokensDep, graph
 # ---------------------------------------------------------------------------- dynamic registration
 
 
+SUPPORTED_GRANT_TYPES = ("authorization_code", "refresh_token")
+AUTH_METHOD_BASIC = "client_secret_basic"  # RFC 7591 default: a confidential client
+AUTH_METHOD_NONE = "none"  # a public client: no secret, PKCE only
+
+
 class RegistrationRequest(BaseModel):
+    """Client metadata of Foundation API 2.2.3, plus the RFC 7591 §2 fields that choose a public client."""
+
     client_name: str = Field(min_length=1, max_length=200)
     client_description: str | None = Field(None, max_length=1000)
     client_url: str | None = Field(None, max_length=2000)
     redirect_url: str | None = Field(None, max_length=2000)
     redirect_uris: list[str] | None = Field(None, max_length=10)
+    # "none" registers a public client (browser or native app) that gets no secret and relies on PKCE.
+    token_endpoint_auth_method: Literal["client_secret_basic", "client_secret_post", "none"] = AUTH_METHOD_BASIC
+    grant_types: list[str] | None = Field(None, max_length=4)
 
 
 @router.post("/reg", summary="Dynamic client registration (Foundation API 2.2.3)", status_code=201)
@@ -372,8 +383,9 @@ class RegistrationRequest(BaseModel):
 async def register_client(
     request: Request, body: RegistrationRequest, clients: ClientsDep, settings: SettingsDep, graph: GraphDep
 ) -> Response:
-    """Register a confidential client and return its ``client_id`` and ``client_secret`` once.
-    Available only when ``OPENCDE_DYNAMIC_CLIENT_REGISTRATION`` is true."""
+    """Register a client and return its metadata (RFC 7591 §3.2.1): ``client_id`` and, for a confidential
+    client, the ``client_secret`` shown once. ``token_endpoint_auth_method: "none"`` registers a public client
+    without a secret. Available only when ``OPENCDE_DYNAMIC_CLIENT_REGISTRATION`` is true."""
     if not settings.dynamic_client_registration:
         raise HTTPException(404, "Dynamic client registration is not enabled on this server")
     uris = list(body.redirect_uris or [])
@@ -381,13 +393,17 @@ async def register_client(
         uris.insert(0, body.redirect_url)
     if not uris:
         raise HTTPException(400, "redirect_url is required")
+    grant_types = body.grant_types or list(SUPPORTED_GRANT_TYPES)
+    if any(grant not in SUPPORTED_GRANT_TYPES for grant in grant_types):
+        raise HTTPException(400, "grant_types may only contain authorization_code and refresh_token")
+    public = body.token_endpoint_auth_method == AUTH_METHOD_NONE
     try:
         for uri in uris:
             validate_redirect_uri(uri, allow_localhost=settings.allow_localhost_redirects)
         client, secret = await clients.create(
             body.client_name,
             uris,
-            public=False,
+            public=public,
             description=body.client_description,
             url=body.client_url,
             dynamic=True,
@@ -399,6 +415,17 @@ async def register_client(
         "auth.client.registered",
         client_id=client.client_id,
         ip=client_ip(request),
-        details={"name": client.name},
+        details={"name": client.name, "public": public},
     )
-    return JSONResponse({"client_id": client.client_id, "client_secret": secret}, status_code=201, headers=NO_STORE)
+    payload: dict[str, Any] = {
+        "client_id": client.client_id,
+        "client_id_issued_at": int(datetime.now(UTC).timestamp()),
+        "client_name": client.name,
+        "redirect_uris": list(client.redirect_uris),
+        "token_endpoint_auth_method": body.token_endpoint_auth_method,
+        "grant_types": grant_types,
+    }
+    if secret is not None:
+        payload["client_secret"] = secret
+        payload["client_secret_expires_at"] = 0  # RFC 7591 §3.2.1: 0 means the secret does not expire
+    return JSONResponse(payload, status_code=201, headers=NO_STORE)
