@@ -10,6 +10,8 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 
+from fastapi.testclient import TestClient
+
 from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
 from opencde.accounts.users import UserRepository
@@ -17,6 +19,7 @@ from opencde.auth.clients import ClientRepository
 from opencde.bootstrap import make_graph
 from opencde.graph.schema import apply_schema
 from opencde.settings import Settings
+from tests.integration.helpers import Session, sign_in
 
 PASSWORD = "a-long-and-strong-passphrase"
 REDIRECT = "http://127.0.0.1/callback"
@@ -80,3 +83,14 @@ async def _build(settings: Settings) -> World:
 
 def build_world(settings: Settings) -> World:
     return asyncio.run(_build(settings))
+
+
+def login_as(client: TestClient, world: World, username: str) -> Session:
+    """Sign ``username`` in through the public client and return the bearer session."""
+    return sign_in(
+        client,
+        client_id=world.public_client_id,
+        redirect_uri=world.redirect,
+        username=username,
+        password=world.password,
+    )

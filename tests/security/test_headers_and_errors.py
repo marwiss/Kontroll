@@ -43,6 +43,24 @@ def test_oversized_body_is_rejected_before_parsing(client: TestClient) -> None:
     assert response.json() == {"message": f"Request body exceeds {limit} bytes"}
 
 
+def test_chunked_body_over_the_limit_is_cut_off(client: TestClient) -> None:
+    """Omitting Content-Length does not bypass the limit: bytes are counted as they arrive."""
+    limit = client.app.state.settings.max_json_body_bytes  # type: ignore[attr-defined]
+    chunk = b"a=" + b"x" * 65534
+
+    def body():  # a plain generator keeps the transfer chunked
+        sent = 0
+        while sent <= limit:
+            yield chunk
+            sent += len(chunk)
+
+    response = client.post(
+        "/foundation/oauth2/token", content=body(), headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert response.status_code == 413
+    assert response.json() == {"message": f"Request body exceeds {limit} bytes"}
+
+
 def test_request_id_is_echoed_or_minted(client: TestClient) -> None:
     echoed = client.get("/healthz", headers={"X-Request-ID": "trace-123"})
     assert echoed.headers["x-request-id"] == "trace-123"

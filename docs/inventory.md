@@ -17,7 +17,7 @@ project plan. This file is updated with every stage.
 | 1 | Graph core (dialects, schema, cleanup), accounts, OAuth2 clients, OData compiler, storage, audit log, rate limiting, ETag, CLI | done |
 | 2 | Foundation API and OAuth2 (PKCE, rotating refresh tokens, revocation, dynamic registration), design system, sign-in page | done |
 | 3 | BCF API: projects, extensions, topics, topic events, authorization objects | done |
-| 4 | BCF API: comments, viewpoints, related topics, document references, files, snippets, documents, comment events | |
+| 4 | BCF API: comments, viewpoints, related topics, document references, files, snippets, documents, comment events | done |
 | 5 | Documents API | |
 | 6 | Admin UI | |
 | 7 | Client library and end-to-end tests | |
@@ -49,17 +49,17 @@ project plan. This file is updated with every stage.
 | Extensions (incl. custom values) | yes | keep | 3 |
 | Topics: list, post, get, put, delete | yes; no OData, no labels/reference_links/bim_snippet persisted, Neo4j internal id as `server_assigned_id` | keep; OData `$filter/$orderby/$top/$skip` incl. `labels/any()`, all fields, validation against extensions, 409 on duplicate guid, project-unique readable `server_assigned_id` | 3 |
 | `includeAuthorization=true` (spec 1.2.1) | no | new | 3 |
-| BIM snippet get/put | routes only | keep and implement | 4 |
-| Files information (`open-cde-documents://`) | yes, broken URL rewrite | keep | 4 |
-| Files header get/put | yes, first file only | keep | 4 |
-| Comments: list, post, get, put, delete | yes; `viewpoint_guid` never returned, reply guid disabled | keep; replies, viewpoint link, OData on `author`/`date` | 4 |
-| Viewpoints: list, post, get, snapshot, bitmaps, selection, coloring, visibility, delete | yes, many defects (optional parts crashed, JPEG mismatch, colour grouping) | keep; both cameras, lines, clipping planes, bitmaps, components, PNG and JPEG | 4 |
-| Related topics get/put | yes, invalid Cypher | keep; PUT replaces the list | 4 |
-| Document references get/post/put | yes, invalid Cypher | keep; `document_guid` or external `url` | 4 |
-| Documents: list, post, get | stubs returning `True` | keep and implement; `?guid=` with 409 | 4 |
+| BIM snippet get/put | routes only | implemented; binary upload and download, the snippet becomes internal with the uploaded file name as `reference` (3.2.7) | 4 |
+| Files information | yes, broken URL rewrite to an `open-cde-documents://` scheme the specification does not define | implemented from the project's documents; `reference` is the document's download URL, display fields are the same for every entry (3.3.1) | 4 |
+| Files header get/put | yes, first file only | implemented; PUT replaces the list | 4 |
+| Comments: list, post, get, put, delete | yes; `viewpoint_guid` never returned, reply guid disabled | implemented; viewpoint link checked against the topic, text or viewpoint required, OData on `author`/`date`; BCF 3.0 has no reply field, so the prototype's `reply_to_comment_guid` is dropped | 4 |
+| Viewpoints: list, post, get, snapshot, bitmaps, selection, coloring, visibility, delete | yes, many defects (optional parts crashed, JPEG mismatch, colour grouping) | implemented; immutable, exactly one camera, lines, clipping planes, bitmaps, components, PNG and JPEG checked by magic bytes, 409 on delete while a comment refers to it (3.5.9) | 4 |
+| Related topics get/put | yes, invalid Cypher | implemented; PUT replaces the list, all guids must be topics of the project | 4 |
+| Document references get/post/put | yes, invalid Cypher | implemented; exactly one of `document_guid` (must exist in the project) and `url` (http or https) | 4 |
+| Documents: list, post, get | stubs returning `True` | implemented; binary body, file name from `Content-Disposition`, `?guid=` with 409, download as attachment | 4 |
 | Topic events, topic events by topic | stubs; routes shadowed by `/topics/{id}` | implemented; 17 event types, several actions per event, events outlive the topic, OData on `topic_guid`/`author`/`date`/`type` | 3 |
-| Comment events, comment events by comment | stubs | keep and implement; 4 comment event types, OData | 4 |
-| Per-entity `authorization` objects | no | new | 3, 4 |
+| Comment events, comment events by comment | stubs | implemented; 4 comment event types, creation also records the initial text and viewpoint, OData on `comment_guid`/`topic_guid`/`author`/`date`/`type` | 4 |
+| Per-entity `authorization` objects | no | implemented for projects, topics, comments and viewpoints | 3, 4 |
 | ETag / If-None-Match on GET | no | new | 1, 3 |
 
 ## 3. Documents API 1.0 (13 operations in the specification)
@@ -149,7 +149,22 @@ The Archicad model with three walls carrying property set `Reuse` / `GTIN`
 1–3 (IFC2X3, 16 KB) is kept once as `tests/fixtures/three_walls_gtin.ifc`
 and used by the seed command and the end-to-end tests.
 
-## 10. README items of the prototype
+## 10. Specification notes
+
+Places where the pinned specifications are silent or inconsistent, and what
+this server does:
+
+| Observation | Decision |
+|---|---|
+| BCF 3.0 README examples call the per-event list `events`; the JSON schemas (`topic_event_GET.json`, `comment_event_GET.json`) call it `actions` | The schemas win: `actions` |
+| BCF 3.0 README 3.3.1 example uses `file_name`; `file_GET.json` uses `filename` | The schema wins: `filename` |
+| The prototype rewrote file references to `open-cde-documents://…`; no OpenCDE specification defines that scheme | `reference` is the document's download URL |
+| BCF 3.0 lists no `delete` flag under 3.1.5 but requires one in 3.2.5, 3.4.5 and 3.5.9 | `delete` is part of `topic_actions`, `comment_actions` and `viewpoint_actions` |
+| BCF 3.0 says nothing about content types or file names of binary responses | Snapshots and bitmaps are `image/png` or `image/jpeg`; documents and snippets are `application/octet-stream` attachments with the stored file name |
+| BCF 3.0 says nothing about how the file name of a document upload (3.8.2) is transmitted | `Content-Disposition` (RFC 6266), as Foundation API 1.9 does for binary uploads; `document` when absent |
+| Foundation `versions_GET.json` allows `api_id` `bcf` and `foundation` only, while the Documents API needs `documents` there | The conformance test accepts `documents` |
+
+## 11. README items of the prototype
 
 Code structure, deployment steps, suggested reading and the TODO list of the
 prototype's README are covered by this document, the ADRs, `docs/deploy/`

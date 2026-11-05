@@ -65,9 +65,39 @@ Every topic query starts at the caller's `User` node and walks `MEMBER_OF`
 to the project before it touches a topic, so a topic in a project the caller
 is not a member of does not exist as far as the API is concerned (404).
 
-## BCF (stage 4) and Documents (stage 5)
+## BCF comments, viewpoints and references (stage 4)
 
-Added when implemented: `Comment`, `Viewpoint`, `Component`, `Line`,
-`ClippingPlane`, `Bitmap`, `FileRef`, `DocumentReference`, `BcfDocument`,
-`Document`, `DocumentVersion`, `UploadSession`, `UploadPart`,
-`SelectionSession`, `IfcModel`, `IfcEntity`.
+```mermaid
+erDiagram
+    Topic ||--o{ Comment : HAS_COMMENT
+    Topic ||--o{ Viewpoint : HAS_VIEWPOINT
+    Viewpoint ||--o{ Component : HAS_COMPONENT
+    Viewpoint ||--o{ Bitmap : HAS_BITMAP
+    Topic ||--o{ FileRef : HAS_FILE
+    Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
+    Topic }o--o{ Topic : RELATED_TO
+    Project ||--o{ BcfDocument : HAS_DOCUMENT
+    Comment }o--|| User : CREATED_BY
+    Viewpoint }o--|| User : CREATED_BY
+    BcfDocument }o--|| User : UPLOADED_BY
+```
+
+| Label | Key | Properties | Notes |
+|---|---|---|---|
+| `Comment` | `guid` | `topic_guid`, `date`, `author`, `comment`, `viewpoint_guid`, `modified_date`, `modified_author` | `viewpoint_guid` must name a viewpoint of the same topic |
+| `Viewpoint` | `guid` | `index`, `author`, `creation_date`, `camera_kind`, `camera` (JSON), `lines` (JSON), `clipping_planes` (JSON), `snapshot_type`, `storage_key`, `has_components`, `default_visibility`, `has_hints`, `spaces_visible`, `space_boundaries_visible`, `openings_visible` | Immutable. Geometry is JSON text: opaque, and identical on both databases |
+| `Component` | `id` | `role` (`selection`, `coloring`, `exception`), `group_index`, `position`, `color`, `ifc_guid`, `originating_system`, `authoring_tool_id` | One node per occurrence; the IFC graph links `ifc_guid` to model elements (stage 9) |
+| `Bitmap` | `guid` | `position`, `bitmap_type`, `storage_key`, `height`, `loc_*`, `nrm_*`, `up_*` | Image bytes in storage under `bitmaps/<guid>.<type>` |
+| `FileRef` | `id` | `position`, `ifc_project`, `ifc_spatial_structure_element`, `filename`, `date`, `reference` | The topic header's files (BCF 3.3) |
+| `DocumentReference` | `guid` | `document_guid` or `url`, `description`, `created_at` | Exactly one of the two targets |
+| `BcfDocument` | `guid` | `filename`, `storage_key`, `size`, `created_at`, `author` | A file uploaded through BCF 3.8; bytes under `bcf-documents/<guid>` |
+| `RELATED_TO` (relationship Topic → Topic) | | | Directed; PUT replaces a topic's outgoing list |
+
+Topics keep their snippet file in `snippet_storage_key` (bytes under
+`snippets/<topic guid>.bin`). Deleting a topic deletes everything below it
+and the storage keys collected from the nodes; events stay.
+
+## Documents (stage 5)
+
+Added when implemented: `Document`, `DocumentVersion`, `UploadSession`,
+`UploadPart`, `SelectionSession`, `IfcModel`, `IfcEntity`.

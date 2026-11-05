@@ -211,14 +211,9 @@ class TopicRepository:
             )
             if row is None:
                 raise HTTPException(404, "Project not found")
-            await events.record(
-                tx,
-                project_id=project_id,
-                topic_guid=guid,
-                author=author,
-                actions=[events.Action("topic_created")],
-                date=now,
-            )
+            # BCF 3.9: creation also yields "update" and "add" events for the fields that are initially set.
+            actions = [events.Action("topic_created"), *events.topic_diff({}, row["topic"])]
+            await events.record(tx, project_id=project_id, topic_guid=guid, author=author, actions=actions, date=now)
             return row["topic"]
 
         return to_model(await self.graph.write(work))

@@ -38,6 +38,20 @@ Every control has at least one automated test. "Suite" names the test module.
 | Client-chosen guids must be UUIDs and are normalised; duplicates give 409 | Foundation API 1.5.1 | `test_bcf_projects_topics::test_topic_values_are_checked_against_extensions_and_guid_conflicts` |
 | Event values clipped (titles 128, texts 1024 characters) | Data minimisation | `events.py`, `test_topic_lifecycle_with_events` |
 
+## BCF API: comments, viewpoints, files and documents (stage 4)
+
+| Control | Standard | Suite |
+|---|---|---|
+| Snapshot and bitmap data must be the declared image type (magic bytes) and under `max_image_bytes`; checked before anything is stored | OWASP ASVS 12.1, 12.2 | `test_bcf_helpers::test_decode_image_rejects`, `test_bcf_comments_viewpoints::test_viewpoint_rules_and_image_checks` |
+| Binary uploads (documents, snippets) stream into storage under server-made keys and are counted against `max_upload_bytes`; declared sizes are not trusted | OWASP ASVS 12.1 | `test_bcf_links_documents::test_documents_and_files_information`, `test_core_helpers::test_storage_stream_counts_bytes` |
+| Only the two binary routes are exempt from the JSON body limit; chunked bodies are counted as they arrive | OWASP API4 | `test_headers_and_errors::test_chunked_body_over_the_limit_is_cut_off` |
+| Downloads are attachments with sanitised, RFC 8187 encoded file names, `application/octet-stream` for documents, `nosniff`; uploaded content is never rendered | OWASP ASVS 12.5 | `test_bcf_helpers::test_filename_from_content_disposition`, `test_documents_and_files_information` |
+| Client file names never reach a path; storage keys are UUIDs | OWASP ASVS 12.3 | `test_bcf_helpers::test_filename_from_content_disposition`, `storage.py` |
+| Comments and viewpoints are reached through user → project → topic; outsiders get 404; role matrix for create/update/delete; 409 instead of silent data loss when deleting a referenced viewpoint | OWASP API1, API5 | `test_viewpoint_lifecycle`, `test_comment_lifecycle_and_events` |
+| Document references accept http(s) URLs only and must point at a document of the same project | OWASP ASVS 5.1 | `test_document_references`, `test_bcf_helpers::test_component_comment_and_reference_rules` |
+| Related topics must belong to the same project | OWASP API1 | `test_related_topics_and_files` |
+| Numeric inputs are finite (no NaN or infinity), lists and strings bounded | OWASP ASVS 5.1 | `test_bcf_helpers::test_viewpoint_rules`, `schemas.py` |
+
 ## Platform (stage 0–1)
 
 | Control | Suite |

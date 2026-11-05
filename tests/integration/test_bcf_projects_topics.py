@@ -158,7 +158,11 @@ def test_topic_lifecycle_with_events(client: TestClient, world: World) -> None:
     events = client.get(f"{base}/{topic['guid']}/events", headers=contributor.headers).json()
     for event in events:
         validate(event, "bcf-api/Schemas/Collaboration/Events/topic_event_GET.json")
-    assert events[0]["actions"] == [{"type": "topic_created", "value": None}]
+    initial = {action["type"]: action.get("value") for action in events[0]["actions"]}
+    assert events[0]["actions"][0] == {"type": "topic_created", "value": None}
+    assert initial["title_updated"] == "Fire door missing a self-closing mechanism", "initial values give update events"
+    assert initial["status_updated"] == "Open" and initial["stage_added"] == "Construction"
+    assert initial["label_added"] in ("Architecture", "Safety")
     types = {action["type"]: action.get("value") for action in events[1]["actions"]}
     assert types["title_updated"].startswith("Fire door D-204")
     assert types["status_updated"] == "In progress"
@@ -171,7 +175,8 @@ def test_topic_lifecycle_with_events(client: TestClient, world: World) -> None:
         params={"$filter": "type eq 'status_updated'"},
         headers=contributor.headers,
     ).json()
-    assert len(all_events) == 1 and all_events[0]["topic_guid"] == topic["guid"]
+    assert len(all_events) == 2, "the initial status and the change"
+    assert {event["topic_guid"] for event in all_events} == {topic["guid"]}
 
     deleted = client.delete(f"{base}/{topic['guid']}", headers=contributor.headers)
     assert deleted.status_code == 200

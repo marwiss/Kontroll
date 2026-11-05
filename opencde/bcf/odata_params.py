@@ -7,7 +7,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 
 from opencde.odata import Compiled, Field, ODataError, compile_odata
 
@@ -41,3 +41,6 @@ def odata_params(
     skip: Annotated[int | None, Query(alias="$skip", ge=0, le=1_000_000)] = None,
 ) -> ODataParams:
     return ODataParams(filter=filter, orderby=orderby, top=top, skip=skip)
+
+
+ODataDep = Annotated[ODataParams, Depends(odata_params)]
