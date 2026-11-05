@@ -1,255 +1,262 @@
-[Svenska](docs/sv/README.md) · [Dansk](docs/da/README.md) · [Norsk bokmål](docs/nb/README.md) · [Norsk nynorsk](docs/nn/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md) · **English**
+**Svenska** · [Dansk](docs/da/README.md) · [Norsk bokmål](docs/nb/README.md) · [Norsk nynorsk](docs/nn/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md) · [English](docs/en/README.md)
 
 <img src="opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE server
+# Kontroll OpenCDE-server
 
-Kontroll is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
-BCF API 3.0 and Documents API 1.0), built on a graph database, with a web
-administration and an optional IFC-graph module that joins BCF components to
-the building elements they point at. It grew out of a 2023 research prototype
-for the digital inspection plans of Swedish building permits and was rewritten
-from scratch with security as the first requirement.
+Kontroll är en server för buildingSMARTs **OpenCDE-API:er** (Foundation API
+1.0, BCF API 3.0 och Documents API 1.0), byggd på en grafdatabas, med
+webbadministration och en valfri IFC-grafmodul som kopplar BCF-komponenter
+till de byggdelar de pekar på. Den växte fram ur en forskningsprototyp från
+2023 för digitala kontrollplaner i svenska bygglov och skrevs om från grunden
+med säkerhet som första krav.
 
-![The administration overview of a Kontroll server: counts of users, projects, clients, topics and documents, the database status and the latest audit events](docs/images/admin-overview.png)
+![Administrationens översikt i en Kontroll-server: antal användare, projekt, klienter, ärenden och dokument, databasens status och de senaste revisionshändelserna](docs/images/admin-overview.png)
 
-**Contents**
+**Innehåll**
 
-- [Download and get started](#download-and-get-started)
-- [Requirements](#requirements)
-- [What you can do](#what-you-can-do)
-- [Kontroll and Dataspatium](#kontroll-and-dataspatium)
-- [Learn more](#learn-more)
-- [Limitations in brief](#limitations-in-brief)
-- [Bugs and suggestions](#bugs-and-suggestions)
-- [Development](#development)
-- [Licence](#licence)
+- [Ladda ned och kom igång](#ladda-ned-och-kom-igång)
+- [Vad som krävs](#vad-som-krävs)
+- [Vad du kan göra](#vad-du-kan-göra)
+- [Kontroll och Dataspatium](#kontroll-och-dataspatium)
+- [Lär dig mer](#lär-dig-mer)
+- [Begränsningar i korthet](#begränsningar-i-korthet)
+- [Fel och förslag](#fel-och-förslag)
+- [Utveckling](#utveckling)
+- [Licens](#licens)
 
-## Download and get started
+## Ladda ned och kom igång
 
-### Quick start (local, Docker)
+### Snabbstart (lokalt, Docker)
 
-1. **Download.** Clone the repository, or pull the published image
-   `ghcr.io/marwiss/opencdeserver` (multi-arch, scanned and with an SBOM on
-   every release):
+1. **Ladda ned.** Klona repot, eller hämta den publicerade imagen
+   `ghcr.io/marwiss/opencdeserver` (flera arkitekturer, skannad och med SBOM
+   vid varje utgåva):
 
    ```sh
    git clone https://github.com/marwiss/Kontroll.git
    cd Kontroll
    ```
 
-2. **Configure.** Copy `.env.example` to `.env` and set `OPENCDE_GRAPH_PASSWORD`
-   (16 characters or more). Every setting is explained in
+2. **Konfigurera.** Kopiera `.env.example` till `.env` och sätt
+   `OPENCDE_GRAPH_PASSWORD` (minst 16 tecken). Varje inställning förklaras i
    [.env.example](.env.example).
-3. **Start.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
-   starts the server on <http://localhost:8000> and a Neo4j database.
-   `docker compose logs -f api` shows the server log.
-4. **Look around.** <http://localhost:8000/docs> is the interactive API
-   documentation, <http://localhost:8000/readyz> the readiness check and
-   <http://localhost:7484> Neo4j Browser (Bolt on `localhost:7697`; the
-   development overlay avoids Neo4j's default ports, which another Neo4j on
-   the same machine often occupies).
-5. **Add demo data and sign in.**
+3. **Starta.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+   startar servern på <http://localhost:8000> och en Neo4j-databas.
+   `docker compose logs -f api` visar serverloggen.
+4. **Se dig omkring.** <http://localhost:8000/docs> är den interaktiva
+   API-dokumentationen, <http://localhost:8000/readyz> beredskapskontrollen
+   och <http://localhost:7484> Neo4j Browser (Bolt på `localhost:7697`;
+   utvecklingsöverlagringen undviker Neo4j:s standardportar, som ofta upptas
+   av en annan Neo4j på samma dator).
+5. **Lägg in demodata och logga in.**
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
-   creates demonstration users and projects and prints their passwords once.
-   Sign in at <http://localhost:8000/signin> as `admin` and open `/admin`.
-6. **Connect a client.** Register your application under *Clients* (or let it
-   register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
-   it at `http://localhost:8000`; [Dataspatium](#kontroll-and-dataspatium) and
-   the Python library in [client/](client/) are ready-made clients.
+   skapar demoanvändare och projekt och skriver ut deras lösenord en gång.
+   Logga in på <http://localhost:8000/signin> som `admin` och öppna `/admin`.
+6. **Anslut en klient.** Registrera din app under *Clients* (eller låt den
+   registrera sig själv när `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) och
+   peka den mot `http://localhost:8000`; [Dataspatium](#kontroll-och-dataspatium)
+   och Python-biblioteket i [client/](client/) är färdiga klienter.
 
-Without Docker for the server itself (a database is still needed):
+Utan Docker för själva servern (en databas behövs fortfarande):
 
 ```sh
-uv sync                          # installs Python 3.13 and all dependencies
-uv run opencde doctor            # checks configuration and the database
+uv sync                          # installerar Python 3.13 och alla beroenden
+uv run opencde doctor            # kontrollerar konfiguration och databas
 uv run opencde serve             # http://127.0.0.1:8000
 ```
 
-### Deployment
+### Driftsättning
 
-One compose file plus an overlay per scenario:
+En compose-fil plus en överlagring per scenario:
 
 | Scenario | Guide |
 |---|---|
-| Local test on your machine | [docs/deploy/local.md](docs/deploy/local.md) |
-| Public https URL for client tests without a server (tunnel) | [docs/deploy/tunnel.md](docs/deploy/tunnel.md) |
-| Production on your own server with Caddy (automatic TLS) and nightly backups | [docs/deploy/vps-caddy.md](docs/deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](docs/deploy/paas.md) |
-| Container service plus managed Neo4j AuraDB or Memgraph Cloud | [docs/deploy/cloud-aura.md](docs/deploy/cloud-aura.md) |
-| Backup and restore (portable between Neo4j and Memgraph) | [docs/deploy/backup.md](docs/deploy/backup.md) |
+| Lokalt test på din dator | [docs/sv/deploy/local.md](docs/sv/deploy/local.md) |
+| Publik https-adress för klienttester utan egen server (tunnel) | [docs/sv/deploy/tunnel.md](docs/sv/deploy/tunnel.md) |
+| Produktion på egen server med Caddy (automatisk TLS) och nattliga säkerhetskopior | [docs/sv/deploy/vps-caddy.md](docs/sv/deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/sv/deploy/paas.md](docs/sv/deploy/paas.md) |
+| Containertjänst plus hanterad Neo4j AuraDB eller Memgraph Cloud | [docs/sv/deploy/cloud-aura.md](docs/sv/deploy/cloud-aura.md) |
+| Säkerhetskopiering och återställning (flyttbar mellan Neo4j och Memgraph) | [docs/sv/deploy/backup.md](docs/sv/deploy/backup.md) |
 
-`uv run opencde init --public-url https://cde.example.org` writes a production
-`.env` with fresh secrets; `opencde doctor` checks the result.
+`uv run opencde init --public-url https://cde.example.org` skriver en
+produktions-`.env` med nya hemligheter; `opencde doctor` kontrollerar
+resultatet.
 
-### Configuration
+### Konfiguration
 
-Everything is read from environment variables prefixed `OPENCDE_`, from
-`.env`, or from Docker secrets in `/run/secrets/opencde_<name>`. The
-annotated list is in [.env.example](.env.example). Defaults are safe:
-production refuses to start without an `https` public URL and a database
-password, and nothing is open until it is configured.
+Allt läses från miljövariabler med prefixet `OPENCDE_`, från `.env` eller
+från Docker-hemligheter i `/run/secrets/opencde_<namn>`. Den kommenterade
+listan finns i [.env.example](.env.example). Standardvärdena är säkra:
+produktion vägrar starta utan en publik `https`-adress och ett
+databaslösenord, och inget är öppet förrän det har konfigurerats.
 
-## Requirements
+## Vad som krävs
 
-- Windows, macOS or Linux with Docker (Desktop on Windows/macOS, Engine on
-  Linux), or Python 3.11 or later with [uv](https://docs.astral.sh/uv/) and a
-  Neo4j 5.26 or Memgraph 3.14 database of your own.
-- About 1 GB of memory for the database container (`NEO4J_HEAP` and
-  `NEO4J_PAGECACHE` in `.env`), more with the IFC-graph module.
-- Locally: port 8000 for the server and 7484/7697 for the database, all bound
-  to `127.0.0.1`. In production: ports 80 and 443 reachable from the internet
-  and a DNS name for the server.
-- Clients need an `https` address in production; locally `http://localhost`
-  redirect URIs are accepted with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+- Windows, macOS eller Linux med Docker (Desktop på Windows/macOS, Engine på
+  Linux), eller Python 3.11 eller senare med [uv](https://docs.astral.sh/uv/)
+  och en egen Neo4j 5.26- eller Memgraph 3.14-databas.
+- Ungefär 1 GB minne för databascontainern (`NEO4J_HEAP` och
+  `NEO4J_PAGECACHE` i `.env`), mer med IFC-grafmodulen.
+- Lokalt: port 8000 för servern och 7484/7697 för databasen, alla bundna till
+  `127.0.0.1`. I produktion: portarna 80 och 443 nåbara från internet och ett
+  DNS-namn för servern.
+- Klienter behöver en `https`-adress i produktion; lokalt accepteras
+  `http://localhost` som redirect-URI med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
-## What you can do
+## Vad du kan göra
 
-- **Foundation API 1.0**: service discovery, OAuth2 authorization code with
-  PKCE for every client, current user, token revocation, and dynamic client
-  registration with public clients (off by default).
-- **BCF API 3.0**: projects, extensions, topics with OData queries, comments,
-  viewpoints with snapshots, bitmaps and components, files, document
-  references, documents and the event logs, all validated against the
-  buildingSMART schemas.
-- **Documents API 1.0**: document selection and download, multipart upload
-  with the server's web pages for metadata and selection, version queries with
-  ETags.
-- **Administration** in the browser: sign in at `/signin` with an
-  administrator account and open `/admin` to manage users and their project
-  roles, projects and their BCF extension values, OAuth2 clients, sessions, the
-  audit log, the optional request log and the server's health checks. Every
-  user has `/account` for their own password, applications and sessions. The
-  CLI (`uv run opencde --help`) does the same from a terminal.
-- **Extensions outside the specifications**, each marked as such: a
-  capabilities document at `/.well-known/kontroll` that tells a client which
-  extensions are on, a stable `code` in every error body, a request log for
-  debugging clients (`/admin/requests`, `GET /admin/api/requests` with the
-  `admin` scope), and the IFC-graph module that turns uploaded IFC models into
-  graph data linked to BCF components.
-- **A client library** in Python ([client/](client/), LGPL) with runnable
-  examples, and a Dockerfile, compose overlays and a published image for every
-  deployment scenario.
-- **Status**: all eleven stages of the plan are implemented (the three APIs,
-  the administration, the client library, deployment, IFC-graph, the acceptance
-  checklist and the security hardening); the contribution to IfcOpenShell waits
-  for its maintainers' answer (drafts in [docs/upstream/](docs/upstream/)).
-  [docs/inventory.md](docs/inventory.md) records what the 2023 prototype did
-  and where each function stands in the new code.
+- **Foundation API 1.0**: tjänsteupptäckt, OAuth2 authorization code med PKCE
+  för varje klient, aktuell användare, återkallelse av tokens och dynamisk
+  klientregistrering med publika klienter (avstängd som standard).
+- **BCF API 3.0**: projekt, extensions, ärenden med OData-frågor, kommentarer,
+  viewpoints med snapshots, bitmaps och komponenter, filer,
+  dokumentreferenser, dokument och händelseloggarna, allt validerat mot
+  buildingSMARTs scheman.
+- **Documents API 1.0**: val och nedladdning av dokument, uppladdning i delar
+  med serverns webbsidor för metadata och urval, versionsfrågor med ETag.
+- **Administration** i webbläsaren: logga in på `/signin` med ett
+  administratörskonto och öppna `/admin` för att hantera användare och deras
+  projektroller, projekt och deras BCF-extensionsvärden, OAuth2-klienter,
+  sessioner, revisionsloggen, den valfria begärandeloggen och serverns
+  hälsokontroller. Varje användare har `/account` för sitt eget lösenord,
+  sina appar och sina sessioner. Kommandoraden (`uv run opencde --help`) gör
+  samma sak från en terminal.
+- **Tillägg utanför specifikationerna**, vart och ett markerat som sådant: ett
+  kapabilitetsdokument på `/.well-known/kontroll` som berättar för klienten
+  vilka tillägg som är påslagna, ett stabilt `code` i varje felkropp, en
+  begärandelogg för felsökning av klienter (`/admin/requests`,
+  `GET /admin/api/requests` med scopet `admin`), och IFC-grafmodulen som gör
+  uppladdade IFC-modeller till grafdata kopplade till BCF-komponenter.
+- **Ett klientbibliotek** i Python ([client/](client/), LGPL) med
+  körbara exempel, samt Dockerfile, compose-överlagringar och en publicerad
+  image för varje driftsättningsscenario.
+- **Status**: alla elva etapper i planen är genomförda (de tre API:erna,
+  administrationen, klientbiblioteket, driftsättning, IFC-graf,
+  acceptanschecklistan och säkerhetshärdningen); bidraget till IfcOpenShell
+  väntar på underhållarnas svar (utkast i [docs/upstream/](docs/upstream/)).
+  [docs/inventory.md](docs/inventory.md) visar vad prototypen från 2023 gjorde
+  och var varje funktion står i den nya koden.
 
-## Kontroll and Dataspatium
+## Kontroll och Dataspatium
 
-Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
-(a data app that runs entirely in the browser) are developed to work together
-as server and client, and the same release number on both means they work
-together: Dataspatium 2.2.0 works with Kontroll 2.2.0 ([quick start](docs/quickstart.md)).
-Dataspatium adds a
-Kontroll server as a source: it discovers the APIs through
-`/foundation/versions`, signs in with OAuth2 authorization code and PKCE and
-registers itself as a public client when dynamic registration is on, lists the
-project's models and documents, reads and writes BCF issues with comments and
-viewpoints taken from its 3D view, uploads datasets, files and workspace
-bundles through the Documents API, queries the IFC graph with Cypher over Bolt
-when the operator exposes it, and sends `X-Request-ID` on every request so
-that the request log here and the log in the app show the same conversation.
-It reads the server's capabilities document to see which extensions are on
-and acts on the error codes the server adds to its error bodies.
+Kontroll (servern) och [Dataspatium](https://github.com/marwiss/Dataspatium)
+(en dataapp som körs helt i webbläsaren) är utvecklade för att fungera
+tillsammans som server och klient, och samma utgåvenummer på båda betyder
+att de fungerar ihop: Dataspatium 2.2.0 fungerar med Kontroll 2.2.0
+([snabbstart](docs/sv/quickstart.md)).
+Dataspatium lägger till en Kontroll-server som källa: appen upptäcker
+API:erna genom `/foundation/versions`, loggar in med OAuth2 authorization
+code och PKCE och registrerar sig själv som publik klient när dynamisk
+registrering är påslagen, listar projektets modeller och dokument, läser och
+skriver BCF-ärenden med kommentarer och viewpoints tagna ur sin 3D-vy, laddar
+upp datamängder, filer och arbetsytepaket genom Documents API, frågar
+IFC-grafen med Cypher över Bolt när operatören exponerar den, och skickar
+`X-Request-ID` på varje anrop så att begärandeloggen här och loggen i appen
+visar samma samtal. Appen läser serverns kapabilitetsdokument för att se
+vilka tillägg som är påslagna och reagerar på de felkoder servern lägger i
+sina felkroppar.
 
-Apart from the marked extensions, everything Dataspatium does against the
-server goes through the three OpenCDE APIs, so any other OpenCDE client works
-too, and Kontroll serves any OpenCDE client. The two products are installed
-separately: this repository does not bundle Dataspatium (the licences differ,
-AGPL here and PolyForm Strict there), and Dataspatium's README says how to
-download it. The client side is described in Dataspatium's README and its
-documentation; the acceptance runs of the pair are in
-[docs/acceptance.md](docs/acceptance.md) here, and what the two projects
-coordinate is in
-[docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
+Bortsett från de markerade tilläggen går allt Dataspatium gör mot servern
+genom de tre OpenCDE-API:erna, så andra OpenCDE-klienter fungerar också, och
+Kontroll betjänar vilken OpenCDE-klient som helst. De två produkterna
+installeras var för sig: det här repot buntar inte Dataspatium (licenserna
+skiljer sig, AGPL här och PolyForm Strict där), och Dataspatiums README
+beskriver hur appen hämtas. Klientsidan beskrivs i Dataspatiums README och
+dess dokumentation; parets acceptanskörningar står i
+[docs/acceptance.md](docs/acceptance.md) här, och vad de två projekten samordnar
+står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 
-## Learn more
+## Lär dig mer
 
-- [docs/quickstart.md](docs/quickstart.md): Kontroll and Dataspatium together
-  in twenty minutes, from an empty machine to an issue created in the 3D view.
-- [docs/client-guide.md](docs/client-guide.md) and [docs/examples/](docs/examples/):
-  how to build a client, the capabilities document, the error codes, and
-  runnable examples with the Python library in [client/](client/).
-- [docs/flows/](docs/flows/): sequence diagrams of the OAuth2 and Documents API flows.
-- [docs/graph-schema.md](docs/graph-schema.md): the graph model.
-- [docs/ifcgraph.md](docs/ifcgraph.md): the optional IFC-graph module and example Cypher queries.
-- [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages and the mark.
-- [docs/acceptance.md](docs/acceptance.md): visual acceptance checklist with
-  independent clients (Bonsai, ifc-lite, Dataspatium).
-- [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): what
-  Kontroll and Dataspatium share, what more is coordinated, and the owner's decisions.
-- [docs/inventory.md](docs/inventory.md): functional inventory of the 2023
-  prototype and status in the rewrite, plus notes on specification quirks.
-- [docs/adr/](docs/adr/): architecture decision records (graph backend,
-  opaque tokens, portable Cypher, vanilla web UI, repository strategy).
-- [docs/security/](docs/security/): threat model, controls mapped to tests,
-  the OWASP ASVS Level 2 checklist and how to run the scanners.
-- [docs/upstream/](docs/upstream/): drafts of the issue and pull request for
-  IfcOpenShell (not sent).
-- [spec/SOURCES.md](spec/SOURCES.md): the exact specification revisions the
-  server is tested against.
+- [docs/quickstart.md](docs/sv/quickstart.md): Kontroll och Dataspatium tillsammans på
+  tjugo minuter, från tom dator till ett ärende skapat i 3D-vyn.
+- [docs/client-guide.md](docs/client-guide.md) och [docs/examples/](docs/examples/):
+  hur man bygger en klient, kapabilitetsdokumentet, felkoderna och körbara
+  exempel med Python-biblioteket i [client/](client/).
+- [docs/flows/](docs/flows/): sekvensdiagram för OAuth2- och Documents API-flödena.
+- [docs/graph-schema.md](docs/graph-schema.md): grafmodellen.
+- [docs/ifcgraph.md](docs/ifcgraph.md): den valfria IFC-grafmodulen och exempel på Cypher-frågor.
+- [docs/ui-styleguide.md](docs/ui-styleguide.md): regler för serverns sidor och märket.
+- [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans med
+  oberoende klienter (Bonsai, ifc-lite, Dataspatium).
+- [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): vad
+  Kontroll och Dataspatium delar, vad mer som samordnas och ägarens beslut.
+- [docs/inventory.md](docs/inventory.md): funktionsinventering av prototypen
+  från 2023 och status i omskrivningen, med noteringar om specifikationernas
+  egenheter.
+- [docs/adr/](docs/adr/): arkitekturbeslut (grafdatabas, opaka tokens, portabel
+  Cypher, webbgränssnitt utan ramverk, repostrategi).
+- [docs/security/](docs/security/): hotmodell, kontroller kopplade till tester,
+  OWASP ASVS nivå 2-checklistan och hur skannrarna körs.
+- [docs/upstream/](docs/upstream/): utkast till ärende och pull request för
+  IfcOpenShell (inte skickade).
+- [spec/SOURCES.md](spec/SOURCES.md): de exakta specifikationsversioner
+  som servern testas mot.
 
-## Limitations in brief
+Dokumentationen är på engelska; översättningar till svenska, danska, norska
+(bokmål och nynorsk), finska och isländska är planerade.
 
-- The server implements BCF API 3.0, not 2.1; only the three legacy discovery
-  aliases under `/bcf/` exist for older clients.
-- Exporting a project as a BCFzip is left to clients; the server stores
-  topics, comments and viewpoints as the API defines them.
-- The community editions of Neo4j and Memgraph have no read-only database
-  users, so an exposed Bolt port gives full access to whoever holds the
-  password. The port stays closed unless the administrator publishes it on
-  purpose; a read-only query endpoint is planned instead.
-- The IFC-graph import runs in a separate process with memory and time limits
-  (`OPENCDE_IFCGRAPH_*`); very large models are refused rather than left half
-  imported.
-- The web pages serve administrators and the OAuth2 and Documents API flows;
-  end users work in a client such as Dataspatium or Bonsai.
-- The pages exist in the seven languages of this README (switch at the foot of
-  every page); messages from the server's validation code are English for now.
-- No external audit yet. The OAuch and testssl runs described in
-  [docs/security/pentest-howto.md](docs/security/pentest-howto.md) are the
-  operator's steps before a production deployment.
+## Begränsningar i korthet
 
-## Bugs and suggestions
+- Servern implementerar BCF API 3.0, inte 2.1; bara de tre äldre
+  upptäcktsaliasen under `/bcf/` finns för äldre klienter.
+- Export av ett projekt som BCFzip överlåts åt klienterna; servern lagrar
+  ärenden, kommentarer och viewpoints så som API:t definierar dem.
+- Gemenskapsutgåvorna av Neo4j och Memgraph saknar läsbegränsade
+  databasanvändare, så en exponerad Bolt-port ger full åtkomst åt den som
+  har lösenordet. Porten förblir stängd om inte administratören avsiktligt
+  publicerar den; en läsande fråge-ändpunkt är planerad i stället.
+- IFC-grafimporten körs i en separat process med minnes- och tidsgränser
+  (`OPENCDE_IFCGRAPH_*`); mycket stora modeller avvisas i stället för att
+  lämnas halvimporterade.
+- Webbsidorna är till för administratörer och för OAuth2- och Documents
+  API-flödena; slutanvändare arbetar i en klient som Dataspatium eller Bonsai.
+- Sidorna finns på den här README-filens sju språk (byt längst ned på varje
+  sida); meddelanden från serverns valideringskod är på engelska tills vidare.
+- Ingen extern granskning ännu. OAuch- och testssl-körningarna i
+  [docs/security/pentest-howto.md](docs/security/pentest-howto.md) är
+  operatörens steg före en produktionsdriftsättning.
 
-Report bugs and wishes as *Issues* here on GitHub. Say which server version
-you run (the `version` of `/.well-known/kontroll` or `/healthz`), which client
-you used and the `X-Request-ID` of a failing call; the request log and your
-client's log share it. Attach no personal data and no secrets. How changes are
-taken in is in [CONTRIBUTING.md](CONTRIBUTING.md). For a security
-vulnerability follow [SECURITY.md](SECURITY.md) instead of opening an issue.
+## Fel och förslag
 
-## Development
+Rapportera fel och önskemål som *Issues* här på GitHub. Ange vilken
+serverversion du kör (`version` i `/.well-known/kontroll` eller `/healthz`),
+vilken klient du använde och `X-Request-ID` för ett misslyckat anrop;
+begärandeloggen och klientens logg delar det. Bifoga inga personuppgifter och
+inga hemligheter. Hur ändringar tas emot står i
+[CONTRIBUTING.md](CONTRIBUTING.md). För en säkerhetssårbarhet, följ
+[SECURITY.md](SECURITY.md) i stället för att öppna ett ärende.
+
+## Utveckling
 
 ```sh
-uv run pytest                    # unit, conformance and security tests
-uv run pytest -m integration     # starts Neo4j/Memgraph with testcontainers (Docker required)
-uv run pytest -m e2e             # the client library against a live server (Docker required)
+uv run pytest                    # enhets-, konformans- och säkerhetstester
+uv run pytest -m integration     # startar Neo4j/Memgraph med testcontainers (kräver Docker)
+uv run pytest -m e2e             # klientbiblioteket mot en körande server (kräver Docker)
 uv run pytest -m ui              # Playwright + axe-core (uv sync --group ui; playwright install chromium)
 uv run ruff format . && uv run ruff check .
 uv run ty check opencde client/opencde_client
 ```
 
-Code and comments are in English because the server and the client library
-are intended to be contributed to IfcOpenShell, whose conventions (ruff, 120
-columns) the style follows. The README exists in English, Swedish, Danish,
-Norwegian (Bokmål and Nynorsk), Finnish and Icelandic (`docs/<lang>/README.md`,
-the layout Dataspatium uses); the documentation and the web UI are to be
-available in the same languages, with English always one of the choices, and
-shared terms follow Dataspatium's glossary. Every push runs linting, type
-checks, the test suites on three Python versions, browser tests with axe-core,
-and static security checks; nightly jobs run OWASP ZAP, Schemathesis and
-Trivy. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Kod och kommentarer är på engelska eftersom servern och klientbiblioteket
+ska bidras till IfcOpenShell, vars konventioner (ruff, 120 kolumner) följs.
+README finns på engelska, svenska, danska, norska (bokmål och nynorsk),
+finska och isländska (`docs/<språk>/README.md`, samma upplägg som
+Dataspatium); dokumentationen och webbgränssnittet ska finnas på samma språk,
+med engelska alltid som ett val, och gemensamma termer följer Dataspatiums
+ordlista. Varje push kör lint, typkontroll, testsviterna på tre
+Python-versioner, webbläsartester med axe-core och statiska
+säkerhetskontroller; nattliga jobb kör OWASP ZAP, Schemathesis och Trivy. Se
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Licence
+## Licens
 
-The server is licensed under the GNU Affero General Public License v3.0 or
-later ([LICENSE](LICENSE)): it is server software, and the AGPL's network
-clause keeps improvements to hosted instances open. The client library in
-[client/](client/) is LGPL-3.0-or-later. Specification files under
-[spec/](spec/) are © buildingSMART International and redistributed unmodified
-for testing. See [SECURITY.md](SECURITY.md) for how to report a vulnerability
-and what the project does to stay secure.
+Servern är licensierad under GNU Affero General Public License v3.0 eller
+senare ([LICENSE](LICENSE)): den är servermjukvara, och AGPL:s
+nätverksklausul håller förbättringar av driftsatta instanser öppna.
+Klientbiblioteket i [client/](client/) är LGPL-3.0-or-later.
+Specifikationsfilerna under [spec/](spec/) är © buildingSMART
+International och vidaredistribueras oförändrade för testning. Se
+[SECURITY.md](SECURITY.md) för hur en sårbarhet rapporteras och vad
+projektet gör för att förbli säkert.
