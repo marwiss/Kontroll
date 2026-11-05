@@ -150,6 +150,7 @@ project plan. This file is updated with every stage.
 | `upload_files.html` | done: `documents/upload.html`, project choice, cancel | 5 |
 | `index.html`, missing `document_details.html` | done: `index.html`, `documents/details.html` | 2, 5 |
 | none: a sign-in page for the server's own pages | new: `web/signin.html`, `web/message.html` | 5 |
+| English only | new: every page exists in seven languages (`opencde/ui/i18n/<lang>.json`, Dataspatium's key style with the shared key names), chosen by `?lang=`, the `opencde_lang` cookie or `Accept-Language`, with a switcher in the footer; the validation messages of the account and client code stay English for now | 11 |
 | none: links into a client | new: with `OPENCDE_DATASPATIUM_URL` set, the project page and the document details page offer "Open in Dataspatium" (`#/inhamta/opencde?server=…&project=…&document=…&version=…`, extension agreed with Dataspatium) | 11 |
 
 ## 9. Test data

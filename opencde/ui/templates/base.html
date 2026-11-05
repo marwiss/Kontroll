@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}"
+      data-t-filter-rows="{{ t('js.filter_rows') }}" data-t-filter-placeholder="{{ t('js.filter_placeholder') }}"
+      data-t-rows-match="{{ t('js.rows_match') }}" data-t-confirm-title="{{ t('js.confirm_title') }}"
+      data-t-confirm="{{ t('js.confirm') }}" data-t-cancel="{{ t('common.cancel') }}"
+      data-t-copied="{{ t('js.copied') }}" data-t-copy-failed="{{ t('js.copy_failed') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,11 +19,11 @@
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main">{{ t("layout.skip") }}</a>
   <header class="site-header">
     <div class="site-header__inner">
       <a class="brand" href="/">
-        <img class="brand__mark" src="/static/icon.svg" alt="" width="28" height="28">
+        <img class="brand__mark" src="/static/icon.svg" alt="" width="22" height="22">
         <span class="brand__name">{{ product }}</span>
         <span class="brand__host">{{ server_host }}</span>
       </a>
@@ -31,7 +35,12 @@
   </main>
   <footer class="site-footer">
     <span>{{ product }}</span>
-    {% if docs_enabled %}<a href="/docs">API documentation</a>{% endif %}
+    {% if docs_enabled %}<a href="/docs">{{ t("layout.api_docs") }}</a>{% endif %}
+    <nav class="languages" aria-label="{{ t('layout.language') }}">
+      {% for code, name, url in language_links %}
+      <a href="{{ url }}" hreflang="{{ code }}" lang="{{ code }}" {% if code == lang %}aria-current="true"{% endif %}>{{ name }}</a>
+      {% endfor %}
+    </nav>
   </footer>
   {% block scripts %}{% endblock %}
 </body>

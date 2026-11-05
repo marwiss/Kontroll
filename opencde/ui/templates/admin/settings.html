@@ -1,17 +1,17 @@
 {% extends "admin/_page.html" %}
-{% block title %}Settings · {{ product }}{% endblock %}
+{% block title %}{{ t("nav.settings") }} · {{ product }}{% endblock %}
 {% block admin %}
-<h1>Settings</h1>
+<h1>{{ t("nav.settings") }}</h1>
 <section class="card">
-  <h2>Health checks</h2>
+  <h2>{{ t("admin.settings.health") }}</h2>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Detail</th></tr></thead>
+      <thead><tr><th scope="col">{{ t("admin.settings.check") }}</th><th scope="col">{{ t("common.status") }}</th><th scope="col">{{ t("admin.settings.detail") }}</th></tr></thead>
       <tbody>
         {% for check in checks %}
         <tr>
           <td>{{ check.name }}</td>
-          <td>{% if check.ok %}<span class="badge badge--success">ok</span>{% else %}<span class="badge badge--danger">problem</span>{% endif %}</td>
+          <td>{% if check.ok %}<span class="badge badge--success">{{ t("admin.settings.ok") }}</span>{% else %}<span class="badge badge--danger">{{ t("admin.settings.problem") }}</span>{% endif %}</td>
           <td>{{ check.detail }}</td>
         </tr>
         {% endfor %}
@@ -20,11 +20,11 @@
   </div>
 </section>
 <section class="card">
-  <h2>Configuration</h2>
-  <p class="muted">Read-only view of the <code>OPENCDE_*</code> settings. Secrets are never shown. Change values in the environment or <code>.env</code> and restart.</p>
+  <h2>{{ t("admin.settings.configuration") }}</h2>
+  <p class="muted">{{ t("admin.settings.lead_1") }} <code>OPENCDE_*</code> {{ t("admin.settings.lead_2") }} <code>.env</code> {{ t("admin.settings.lead_3") }}</p>
   <div class="table-wrap">
     <table class="table" data-filterable>
-      <thead><tr><th scope="col">Setting</th><th scope="col">Value</th></tr></thead>
+      <thead><tr><th scope="col">{{ t("admin.settings.setting") }}</th><th scope="col">{{ t("admin.settings.value") }}</th></tr></thead>
       <tbody>
         {% for name, value in values %}
         <tr><td><code>OPENCDE_{{ name|upper }}</code></td><td>{{ value }}</td></tr>

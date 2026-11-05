@@ -4,15 +4,15 @@
 {% block content %}
 <section class="card">
   <h1 class="card__title">{{ product }}</h1>
-  <p class="card__lead">A buildingSMART OpenCDE server: Foundation API 1.0, BCF API 3.0 and Documents API 1.0.</p>
+  <p class="card__lead">{{ t("index.lead") }}</p>
   <dl class="facts">
-    <dt>Service discovery</dt><dd><code>GET /foundation/versions</code></dd>
-    <dt>Authentication</dt><dd><code>GET /foundation/1.0/auth</code> · OAuth2 authorization code with PKCE</dd>
-    <dt>Version</dt><dd>{{ version }}</dd>
+    <dt>{{ t("index.discovery") }}</dt><dd><code>GET /foundation/versions</code></dd>
+    <dt>{{ t("index.auth") }}</dt><dd><code>GET /foundation/1.0/auth</code> · {{ t("index.auth_value") }}</dd>
+    <dt>{{ t("index.version") }}</dt><dd>{{ version }}</dd>
   </dl>
   <div class="cluster">
-    {% if docs_enabled %}<a class="btn btn--primary" href="/docs">API documentation</a>{% endif %}
-    {% if admin_enabled %}<a class="btn btn--secondary" href="/admin">Administration</a>{% endif %}
+    {% if docs_enabled %}<a class="btn btn--primary" href="/docs">{{ t("layout.api_docs") }}</a>{% endif %}
+    {% if admin_enabled %}<a class="btn btn--secondary" href="/admin">{{ t("admin.title") }}</a>{% endif %}
   </div>
 </section>
 {% endblock %}

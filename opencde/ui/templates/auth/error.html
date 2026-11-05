@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% from "components.html" import alert %}
-{% block title %}Cannot continue · {{ product }}{% endblock %}
+{% block title %}{{ t("auth.error.title") }} · {{ product }}{% endblock %}
 {% block body_class %}page--narrow{% endblock %}
 {% block content %}
 <section class="card card--auth">
-  <h1 class="card__title">Cannot continue</h1>
+  <h1 class="card__title">{{ t("auth.error.title") }}</h1>
   {{ alert("error", message) }}
-  <p class="muted">
-    The application that sent you here made a request this server cannot accept, so you were not redirected
-    anywhere. Close this window and contact the application's maintainers if the problem persists.
-  </p>
+  <p class="muted">{{ t("auth.error.hint") }}</p>
 </section>
 {% endblock %}

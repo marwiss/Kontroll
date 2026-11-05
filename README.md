@@ -206,8 +206,8 @@ coordinate is in
   imported.
 - The web pages serve administrators and the OAuth2 and Documents API flows;
   end users work in a client such as Dataspatium or Bonsai.
-- The pages are in English for now; the language layer in the seven languages
-  of this README is being built together with Dataspatium.
+- The pages exist in the seven languages of this README (switch at the foot of
+  every page); messages from the server's validation code are English for now.
 - No external audit yet. The OAuch and testssl runs described in
   [docs/security/pentest-howto.md](docs/security/pentest-howto.md) are the
   operator's steps before a production deployment.

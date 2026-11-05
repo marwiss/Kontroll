@@ -26,6 +26,7 @@ from opencde.admin.access import (
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import GraphDep, ProjectsDep, UsersDep
 from opencde.ids import is_uuid
+from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 
 router = APIRouter(prefix="/admin/users", include_in_schema=False)
@@ -128,11 +129,11 @@ async def user_create(request: Request, admin: AdminDep, users: UsersDep, graph:
                 request,
                 admin,
                 "users",
-                title=f"Password for {user.username}",
-                lead="Give this password to the user through a secure channel. It is shown once and must be changed at first sign-in.",
+                title=tr(request, "admin.secret.password_for", user=user.username),
+                lead=tr(request, "admin.secret.password_lead"),
                 secret=password,
                 back_url=f"/admin/users/{user.id}",
-                back_text="Open the user",
+                back_text=tr(request, "admin.secret.open_user"),
             ),
         )
     return redirect_with_notice(f"/admin/users/{user.id}", "created")
@@ -220,11 +221,11 @@ async def user_action(
                 request,
                 admin,
                 "users",
-                title=f"New password for {user.username}",
-                lead="Give this password to the user through a secure channel. It is shown once; all of the user's sessions and tokens have been revoked.",
+                title=tr(request, "admin.secret.new_password_for", user=user.username),
+                lead=tr(request, "admin.secret.new_password_lead"),
                 secret=password,
                 back_url=page,
-                back_text="Back to the user",
+                back_text=tr(request, "admin.secret.back_user"),
             ),
         )
 

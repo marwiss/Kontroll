@@ -1,7 +1,9 @@
 // Confirmation dialogs for forms marked data-confirm="question". Without this
 // script the form submits directly, which is acceptable because every such
 // action is also protected server-side (form token, password confirmation).
+// Button texts come from data-t-* attributes on <html>, rendered in the page's language.
 
+const texts = document.documentElement.dataset;
 let dialog;
 
 function ensureDialog() {
@@ -10,7 +12,7 @@ function ensureDialog() {
   dialog.className = "confirm";
   const heading = document.createElement("h2");
   heading.className = "confirm__title";
-  heading.textContent = "Please confirm";
+  heading.textContent = texts.tConfirmTitle || "Please confirm";
   const message = document.createElement("p");
   message.className = "confirm__message";
   const actions = document.createElement("div");
@@ -18,12 +20,12 @@ function ensureDialog() {
   const cancel = document.createElement("button");
   cancel.type = "button";
   cancel.className = "btn btn--secondary";
-  cancel.textContent = "Cancel";
+  cancel.textContent = texts.tCancel || "Cancel";
   cancel.addEventListener("click", () => dialog.close("cancel"));
   const confirm = document.createElement("button");
   confirm.type = "button";
   confirm.className = "btn btn--danger";
-  confirm.textContent = "Confirm";
+  confirm.textContent = texts.tConfirm || "Confirm";
   confirm.addEventListener("click", () => dialog.close("confirm"));
   actions.append(cancel, confirm);
   dialog.append(heading, message, actions);

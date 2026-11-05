@@ -17,6 +17,7 @@ from opencde.admin.access import NOTICES, SignedInDep, redirect_with_notice, tex
 from opencde.auth.dependencies import TokensDep
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, UsersDep, client_ip
+from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 from opencde.web.dependencies import form_tokens, page_context, require_same_origin
 from opencde.web.sessions import WebSessionsDep
@@ -86,7 +87,9 @@ async def account_action(
             await audit.record(graph, "account.password.failed", actor=web_user.user.id, ip=ip)
             return redirect_with_notice("/account", "wrong_password")
         if new != repeat:
-            return await _page(request, web_user, tokens, graph, error="The two new passwords differ.", status_code=400)
+            return await _page(
+                request, web_user, tokens, graph, error=tr(request, "account.error.mismatch"), status_code=400
+            )
         try:
             await users.set_password(web_user.user.id, new, must_change=False)
         except AccountError as exc:

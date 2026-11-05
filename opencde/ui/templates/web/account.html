@@ -1,42 +1,42 @@
 {% extends "base.html" %}
 {% from "components.html" import alert, button, field, user_nav %}
 {% from "admin/_macros.html" import notice_box, when %}
-{% block title %}My account · {{ product }}{% endblock %}
+{% block title %}{{ t("account.title") }} · {{ product }}{% endblock %}
 {% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
 {% block body_class %}page--narrow{% endblock %}
 {% block content %}
-<h1>My account</h1>
+<h1>{{ t("account.title") }}</h1>
 {{ notice_box(notice, notice_kind) }}
-{% if must_change %}{{ alert("warning", "Your password was set by an administrator. Choose your own before you continue.") }}{% endif %}
+{% if must_change %}{{ alert("warning", t("account.must_change")) }}{% endif %}
 {% if error %}{{ alert("error", error) }}{% endif %}
 
 <section class="card">
   <h2>{{ web_user.user.display_name }}</h2>
   <dl class="facts">
-    <dt>User name</dt><dd>{{ web_user.user.username }}</dd>
-    {% if web_user.user.email %}<dt>E-mail</dt><dd>{{ web_user.user.email }}</dd>{% endif %}
-    <dt>Role</dt><dd>{% if web_user.user.is_admin %}administrator · <a href="/admin">Administration</a>{% else %}user{% endif %}</dd>
+    <dt>{{ t("common.username") }}</dt><dd>{{ web_user.user.username }}</dd>
+    {% if web_user.user.email %}<dt>{{ t("common.email") }}</dt><dd>{{ web_user.user.email }}</dd>{% endif %}
+    <dt>{{ t("common.role") }}</dt><dd>{% if web_user.user.is_admin %}{{ t("account.administrator") }} · <a href="/admin">{{ t("admin.title") }}</a>{% else %}{{ t("account.user") }}{% endif %}</dd>
   </dl>
 </section>
 
 <section class="card">
-  <h2>Change password</h2>
+  <h2>{{ t("account.change_password") }}</h2>
   <form method="post" action="/account" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="change_password">
-    {{ field("current_password", "Current password", type="password", autocomplete="current-password", required=true, maxlength=256) }}
-    {{ field("new_password", "New password", type="password", autocomplete="new-password", required=true, minlength=12, maxlength=256, hint="At least 12 characters; a phrase of several words works well.") }}
-    {{ field("repeat_password", "Repeat new password", type="password", autocomplete="new-password", required=true, minlength=12, maxlength=256) }}
-    <div class="cluster">{{ button("Change password") }}</div>
+    {{ field("current_password", t("account.current_password"), type="password", autocomplete="current-password", required=true, maxlength=256) }}
+    {{ field("new_password", t("account.new_password"), type="password", autocomplete="new-password", required=true, minlength=12, maxlength=256, hint=t("account.new_password_hint")) }}
+    {{ field("repeat_password", t("account.repeat_password"), type="password", autocomplete="new-password", required=true, minlength=12, maxlength=256) }}
+    <div class="cluster">{{ button(t("account.change_password")) }}</div>
   </form>
 </section>
 
 <section class="card">
-  <h2>Applications with access</h2>
+  <h2>{{ t("account.apps") }}</h2>
   {% if apps %}
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">Application</th><th scope="col">Scopes</th><th scope="col">Since</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th scope="col">{{ t("common.application") }}</th><th scope="col">{{ t("common.scopes") }}</th><th scope="col">{{ t("common.since") }}</th><th scope="col"><span class="sr-only">{{ t("common.actions") }}</span></th></tr></thead>
       <tbody>
         {% for app in apps %}
         <tr>
@@ -46,7 +46,7 @@
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="revoke_app">
               <input type="hidden" name="family_id" value="{{ app.family_id }}">
-              {{ button("Revoke", "danger") }}
+              {{ button(t("common.revoke"), "danger") }}
             </form>
           </td>
         </tr>
@@ -55,19 +55,19 @@
     </table>
   </div>
   {% else %}
-  <p class="muted">No application holds access right now.</p>
+  <p class="muted">{{ t("account.no_apps") }}</p>
   {% endif %}
 </section>
 
 <section class="card">
-  <h2>Browser sessions</h2>
+  <h2>{{ t("account.browser_sessions") }}</h2>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">Signed in</th><th scope="col">Idle until</th><th scope="col">Address</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th scope="col">{{ t("account.signed_in") }}</th><th scope="col">{{ t("account.idle_until") }}</th><th scope="col">{{ t("common.address") }}</th><th scope="col"><span class="sr-only">{{ t("common.actions") }}</span></th></tr></thead>
       <tbody>
         {% for row in web_sessions %}
         <tr>
-          <td>{{ when(row.created_at) }}{% if row.id == web_user.session_hash %} <span class="badge">this browser</span>{% endif %}</td>
+          <td>{{ when(row.created_at) }}{% if row.id == web_user.session_hash %} <span class="badge">{{ t("account.this_browser") }}</span>{% endif %}</td>
           <td>{{ when(row.idle_expires_at) }}</td>
           <td>{{ row.ip or "" }}</td>
           <td>
@@ -76,7 +76,7 @@
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="revoke_web">
               <input type="hidden" name="session_id" value="{{ row.id }}">
-              {{ button("End", "danger") }}
+              {{ button(t("common.end"), "danger") }}
             </form>
             {% endif %}
           </td>
@@ -88,7 +88,7 @@
   <form method="post" action="/account" class="cluster">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="sign_out_everywhere">
-    {{ button("Sign out everywhere", "secondary") }}
+    {{ button(t("account.sign_out_everywhere"), "secondary") }}
   </form>
 </section>
 {% endblock %}

@@ -1,15 +1,15 @@
 {% extends "admin/_page.html" %}
-{% block title %}Sessions · {{ product }}{% endblock %}
+{% block title %}{{ t("nav.sessions") }} · {{ product }}{% endblock %}
 {% block admin %}
-<h1>Sessions</h1>
+<h1>{{ t("nav.sessions") }}</h1>
 
 <section class="card">
-  <h2>Applications with access</h2>
-  <p class="muted">Each row is a refresh-token family: one sign-in of a user through an application. Revoking ends it at once.</p>
+  <h2>{{ t("admin.sessions.apps") }}</h2>
+  <p class="muted">{{ t("admin.sessions.apps_lead") }}</p>
   {% if families %}
   <div class="table-wrap">
     <table class="table" data-filterable>
-      <thead><tr><th scope="col">User</th><th scope="col">Application</th><th scope="col">Scopes</th><th scope="col">Since</th><th scope="col">Expires</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th scope="col">{{ t("common.user") }}</th><th scope="col">{{ t("common.application") }}</th><th scope="col">{{ t("common.scopes") }}</th><th scope="col">{{ t("common.since") }}</th><th scope="col">{{ t("common.expires") }}</th><th scope="col"><span class="sr-only">{{ t("common.actions") }}</span></th></tr></thead>
       <tbody>
         {% for row in families %}
         <tr>
@@ -24,7 +24,7 @@
               <input type="hidden" name="action" value="revoke_family">
               <input type="hidden" name="user_id" value="{{ row.user_id }}">
               <input type="hidden" name="family_id" value="{{ row.family_id }}">
-              {{ button("Revoke", "danger") }}
+              {{ button(t("common.revoke"), "danger") }}
             </form>
           </td>
         </tr>
@@ -33,16 +33,16 @@
     </table>
   </div>
   {% else %}
-  <p class="muted">No application holds a token right now.</p>
+  <p class="muted">{{ t("admin.sessions.no_apps") }}</p>
   {% endif %}
 </section>
 
 <section class="card">
-  <h2>Browser sessions</h2>
+  <h2>{{ t("admin.sessions.browser") }}</h2>
   {% if web_sessions %}
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">User</th><th scope="col">Signed in</th><th scope="col">Idle until</th><th scope="col">Address</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th scope="col">{{ t("common.user") }}</th><th scope="col">{{ t("account.signed_in") }}</th><th scope="col">{{ t("account.idle_until") }}</th><th scope="col">{{ t("common.address") }}</th><th scope="col"><span class="sr-only">{{ t("common.actions") }}</span></th></tr></thead>
       <tbody>
         {% for row in web_sessions %}
         <tr>
@@ -55,7 +55,7 @@
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="revoke_web">
               <input type="hidden" name="session_id" value="{{ row.id }}">
-              {{ button("End", "danger") }}
+              {{ button(t("common.end"), "danger") }}
             </form>
           </td>
         </tr>
@@ -64,7 +64,7 @@
     </table>
   </div>
   {% else %}
-  <p class="muted">No browser sessions.</p>
+  <p class="muted">{{ t("admin.sessions.no_browser") }}</p>
   {% endif %}
 </section>
 {% endblock %}

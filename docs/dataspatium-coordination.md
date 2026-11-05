@@ -223,7 +223,10 @@ the Dataspatium side:
 1. Capabilities document (item 1) + compatibility matrix and the first tagged
    Kontroll release (item 6).
 2. Glossary and language keys, with the token file copied under the same
-   names (items 4 and 5) — Dataspatium 2.34.
+   names (items 4 and 5) — Dataspatium 2.34. Server side done 2026-11-05:
+   the pages exist in seven languages with Dataspatium's key style and the
+   shared key names (`docs/ui-styleguide.md`, "Language layer"); the tokens
+   under item 5.
 3. Error codes: a stable `code` field in the Foundation `{"message"}` body,
    translated by the app; no second error format. Server side done
    2026-11-05 (thirteen codes, `docs/client-guide.md` §6); the app translates

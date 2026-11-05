@@ -1,34 +1,34 @@
 {% extends "admin/_page.html" %}
-{% block title %}Request log · {{ product }}{% endblock %}
+{% block title %}{{ t("nav.requests") }} · {{ product }}{% endblock %}
 {% block admin %}
 <div class="toolbar">
-  <h1>Request log</h1>
+  <h1>{{ t("nav.requests") }}</h1>
 </div>
 {% if not enabled %}
-<p class="muted">The request log is off. Set <code>OPENCDE_REQUEST_LOG_ENABLED=true</code> to record every request (method, path, status, timing and caller; never bodies or tokens). Entries recorded earlier are shown below until they expire.</p>
+<p class="muted">{{ t("admin.requests.off_1") }} <code>OPENCDE_REQUEST_LOG_ENABLED=true</code> {{ t("admin.requests.off_2") }}</p>
 {% endif %}
 <form method="get" action="/admin/requests" class="toolbar toolbar--wrap" role="search">
-  <label class="sr-only" for="client_id">Client id</label>
-  <input class="input" id="client_id" name="client_id" type="search" value="{{ filters.client_id }}" placeholder="Client id" maxlength="64">
-  <label class="sr-only" for="user">User</label>
-  <input class="input" id="user" name="user" type="search" value="{{ filters.user }}" placeholder="User" maxlength="128">
-  <label class="sr-only" for="path">Path starts with</label>
-  <input class="input" id="path" name="path" type="search" value="{{ filters.path }}" placeholder="Path starts with, e.g. /bcf/3.0" maxlength="256">
-  <label class="sr-only" for="status">Status</label>
-  <input class="input input--short" id="status" name="status" type="number" min="100" max="599" value="{{ filters.status }}" placeholder="Status">
-  <label class="sr-only" for="since">Since (UTC)</label>
-  <input class="input" id="since" name="since" type="search" value="{{ filters.since }}" placeholder="Since, e.g. 2026-11-05T10:00:00Z" maxlength="40">
-  <label class="sr-only" for="request_id">Request id</label>
+  <label class="sr-only" for="client_id">{{ t("admin.requests.client_id") }}</label>
+  <input class="input" id="client_id" name="client_id" type="search" value="{{ filters.client_id }}" placeholder="{{ t('admin.requests.client_id') }}" maxlength="64">
+  <label class="sr-only" for="user">{{ t("common.user") }}</label>
+  <input class="input" id="user" name="user" type="search" value="{{ filters.user }}" placeholder="{{ t('common.user') }}" maxlength="128">
+  <label class="sr-only" for="path">{{ t("admin.requests.path") }}</label>
+  <input class="input" id="path" name="path" type="search" value="{{ filters.path }}" placeholder="{{ t('admin.requests.path_placeholder') }}" maxlength="256">
+  <label class="sr-only" for="status">{{ t("common.status") }}</label>
+  <input class="input input--short" id="status" name="status" type="number" min="100" max="599" value="{{ filters.status }}" placeholder="{{ t('common.status') }}">
+  <label class="sr-only" for="since">{{ t("admin.requests.since") }}</label>
+  <input class="input" id="since" name="since" type="search" value="{{ filters.since }}" placeholder="{{ t('admin.requests.since_placeholder') }}" maxlength="40">
+  <label class="sr-only" for="request_id">{{ t("admin.requests.request_id") }}</label>
   <input class="input" id="request_id" name="request_id" type="search" value="{{ filters.request_id }}" placeholder="X-Request-ID" maxlength="128">
-  <button class="btn btn--secondary" type="submit">Filter</button>
+  <button class="btn btn--secondary" type="submit">{{ t("common.filter") }}</button>
 </form>
-<p class="muted">The latest {{ limit }} matching requests; entries are kept for {{ retention_hours }} hours. The same data as JSON: <code>GET /admin/api/requests</code> with a bearer token holding the <code>admin</code> scope.</p>
+<p class="muted">{{ t("admin.requests.lead", limit=limit, hours=retention_hours) }} <code>GET /admin/api/requests</code> {{ t("admin.requests.lead_2") }} <code>admin</code> {{ t("admin.requests.scope_word") }}</p>
 <div class="table-wrap">
   <table class="table" data-filterable>
     <thead><tr>
-      <th scope="col">When</th><th scope="col">Method</th><th scope="col">Path</th><th scope="col">Operation</th>
-      <th scope="col">Status</th><th scope="col">ms</th><th scope="col">Request id</th><th scope="col">In / out</th>
-      <th scope="col">User</th><th scope="col">Client</th><th scope="col">Address</th>
+      <th scope="col">{{ t("common.when") }}</th><th scope="col">{{ t("admin.requests.method") }}</th><th scope="col">{{ t("admin.requests.path") }}</th><th scope="col">{{ t("admin.requests.operation") }}</th>
+      <th scope="col">{{ t("common.status") }}</th><th scope="col">{{ t("admin.requests.ms") }}</th><th scope="col">{{ t("admin.requests.request_id") }}</th><th scope="col">{{ t("admin.requests.in_out") }}</th>
+      <th scope="col">{{ t("common.user") }}</th><th scope="col">{{ t("common.client") }}</th><th scope="col">{{ t("common.address") }}</th>
     </tr></thead>
     <tbody>
       {% for row in rows %}
@@ -46,7 +46,7 @@
         <td>{{ row.ip or "" }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="11" class="muted">No requests recorded.</td></tr>
+      <tr><td colspan="11" class="muted">{{ t("admin.requests.none") }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

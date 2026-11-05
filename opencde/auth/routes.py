@@ -40,6 +40,7 @@ from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.logging import get_logger
 from opencde.ratelimit import RATE_EXCHANGE, RATE_REGISTRATION, RATE_SIGN_IN, limiter
 from opencde.timeutil import later_iso
+from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 
 log = get_logger(__name__)
@@ -185,16 +186,13 @@ async def authorize_submit(
     try:
         data = form_tokens(request).load(form_token, FORM_PURPOSE)
     except FormTokenError:
-        return render(
-            request,
-            "auth/error.html",
-            {"message": "The sign-in form has expired or was tampered with. Start again."},
-            status_code=400,
-        )
+        return render(request, "auth/error.html", {"message": tr(request, "auth.error.form_expired")}, status_code=400)
 
     client = await clients.get(data["client_id"])
     if client is None or client.disabled:
-        return render(request, "auth/error.html", {"message": "Unknown client."}, status_code=400)
+        return render(
+            request, "auth/error.html", {"message": tr(request, "auth.error.unknown_client")}, status_code=400
+        )
     redirect_to: str = data["redirect_uri"]
     state: str = data["state"]
     issuer = settings.public_url
@@ -219,7 +217,7 @@ async def authorize_submit(
                 "scopes": _scope_descriptions(scopes),
                 "redirect_host": urlsplit(redirect_to).netloc or redirect_to,
                 "form_token": token,
-                "error": "The user name or password is not correct.",
+                "error": tr(request, "signin.error.credentials"),
             },
         )
 

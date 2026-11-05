@@ -1,20 +1,20 @@
 {% extends "admin/_page.html" %}
-{% block title %}New user · {{ product }}{% endblock %}
+{% block title %}{{ t("admin.users.new") }} · {{ product }}{% endblock %}
 {% block admin %}
-<h1>New user</h1>
+<h1>{{ t("admin.users.new") }}</h1>
 <section class="card">
   {% if error %}{{ alert("error", error) }}{% endif %}
   <form method="post" action="/admin/users" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
-    {{ field("username", "User name", required=true, autofocus=true, maxlength=128, hint="3-128 characters: letters, digits and . _ @ + -. This is the id the APIs show.") }}
-    {{ field("full_name", "Full name", maxlength=200) }}
-    {{ field("email", "E-mail", type="email", maxlength=200) }}
-    {{ field("password", "Password", type="password", autocomplete="new-password", maxlength=256, hint="Leave empty to generate a strong password that is shown once.") }}
-    {{ checkbox("must_change_password", "Must change the password at first sign-in", checked=true) }}
-    {{ checkbox("is_admin", "Administrator", hint="Administrators manage this server. They have no project access until given a role.") }}
+    {{ field("username", t("common.username"), required=true, autofocus=true, maxlength=128, hint=t("admin.user_new.username_hint")) }}
+    {{ field("full_name", t("common.full_name"), maxlength=200) }}
+    {{ field("email", t("common.email"), type="email", maxlength=200) }}
+    {{ field("password", t("common.password"), type="password", autocomplete="new-password", maxlength=256, hint=t("admin.user_new.password_hint")) }}
+    {{ checkbox("must_change_password", t("admin.user_new.must_change"), checked=true) }}
+    {{ checkbox("is_admin", t("admin.user.administrator"), hint=t("admin.user_new.admin_hint")) }}
     <div class="cluster">
-      {{ button("Create user") }}
-      <a class="btn btn--secondary" href="/admin/users">Cancel</a>
+      {{ button(t("admin.user_new.create")) }}
+      <a class="btn btn--secondary" href="/admin/users">{{ t("common.cancel") }}</a>
     </div>
   </form>
 </section>

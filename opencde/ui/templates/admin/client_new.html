@@ -1,19 +1,19 @@
 {% extends "admin/_page.html" %}
-{% block title %}Register client · {{ product }}{% endblock %}
+{% block title %}{{ t("admin.clients.register") }} · {{ product }}{% endblock %}
 {% block admin %}
-<h1>Register client</h1>
+<h1>{{ t("admin.clients.register") }}</h1>
 <section class="card">
   {% if error %}{{ alert("error", error) }}{% endif %}
   <form method="post" action="/admin/clients" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
-    {{ field("name", "Name", required=true, autofocus=true, maxlength=200, hint="Shown to users on the sign-in page.") }}
-    {{ field("description", "Description", maxlength=1000) }}
-    {{ field("url", "Website", type="url", maxlength=2000) }}
-    {{ textarea_field("redirect_uris", "Redirect URIs", rows=3, hint="One per line. https URIs, http://127.0.0.1 or http://[::1] for native apps (any port), or a private scheme such as myapp://callback.") }}
-    {{ select_field("kind", "Type", [("public", "Public: native or browser app, no secret, PKCE required"), ("confidential", "Confidential: server application with a secret")], selected="public", hint="Both types must use PKCE. A confidential client's secret is shown once after registration.") }}
+    {{ field("name", t("common.name"), required=true, autofocus=true, maxlength=200, hint=t("admin.client_new.name_hint")) }}
+    {{ field("description", t("common.description"), maxlength=1000) }}
+    {{ field("url", t("admin.client.website"), type="url", maxlength=2000) }}
+    {{ textarea_field("redirect_uris", t("common.redirect_uris"), rows=3, hint=t("admin.client_new.redirect_hint")) }}
+    {{ select_field("kind", t("common.type"), [("public", t("admin.client_new.public_option")), ("confidential", t("admin.client_new.confidential_option"))], selected="public", hint=t("admin.client_new.type_hint")) }}
     <div class="cluster">
-      {{ button("Register client") }}
-      <a class="btn btn--secondary" href="/admin/clients">Cancel</a>
+      {{ button(t("admin.clients.register")) }}
+      <a class="btn btn--secondary" href="/admin/clients">{{ t("common.cancel") }}</a>
     </div>
   </form>
 </section>

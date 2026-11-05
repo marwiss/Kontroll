@@ -8,6 +8,6 @@
   <h1 class="card__title">{{ title }}</h1>
   {{ alert(kind or "error", message) }}
   {% if hint %}<p class="muted">{{ hint }}</p>{% endif %}
-  {% if link_url %}<p><a class="btn btn--secondary" href="{{ link_url }}">{{ link_text or "Back" }}</a></p>{% endif %}
+  {% if link_url %}<p><a class="btn btn--secondary" href="{{ link_url }}">{{ link_text or t("common.back") }}</a></p>{% endif %}
 </section>
 {% endblock %}

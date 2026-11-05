@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% from "components.html" import alert, button, user_nav %}
-{% block title %}Select documents · {{ product }}{% endblock %}
+{% block title %}{{ t("docs.select.title") }} · {{ product }}{% endblock %}
 {% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
 {% block content %}
 <section class="card">
-  <h1 class="card__title">Select documents</h1>
+  <h1 class="card__title">{{ t("docs.select.title") }}</h1>
   <p class="card__lead">
-    Choose the documents to open in your application.
-    {% if extensions %}Showing {{ extensions|join(", ") }} files.{% endif %}
+    {{ t("docs.select.lead") }}
+    {% if extensions %}{{ t("docs.select.showing", types=extensions|join(", ")) }}{% endif %}
   </p>
 
   {% if error %}{{ alert("error", error) }}{% endif %}
@@ -23,8 +23,8 @@
         <table class="table">
           <thead>
             <tr>
-              <th scope="col"><span class="sr-only">Select</span></th>
-              <th scope="col">Title</th><th scope="col">File</th><th scope="col">Version</th><th scope="col">Uploaded</th>
+              <th scope="col"><span class="sr-only">{{ t("docs.select.select") }}</span></th>
+              <th scope="col">{{ t("common.title") }}</th><th scope="col">{{ t("common.file") }}</th><th scope="col">{{ t("common.version") }}</th><th scope="col">{{ t("docs.select.uploaded") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -34,52 +34,52 @@
               <td><label for="doc_{{ doc.document_id }}">{{ doc.title }}</label></td>
               <td><code>{{ doc.file_name }}</code></td>
               <td>{{ doc.version_number }}</td>
-              <td><time datetime="{{ doc.creation_date }}">{{ doc.creation_date[:10] }}</time> by {{ doc.author }}</td>
+              <td><time datetime="{{ doc.creation_date }}">{{ doc.creation_date[:10] }}</time> {{ t("docs.select.by") }} {{ doc.author }}</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
       {% else %}
-      <p class="muted">No matching documents in this project.</p>
+      <p class="muted">{{ t("docs.select.none") }}</p>
       {% endif %}
     </section>
     {% endfor %}
-    {% if not projects %}<p class="muted">You are not a member of any project.</p>{% endif %}
+    {% if not projects %}<p class="muted">{{ t("docs.select.no_projects") }}</p>{% endif %}
     {% if hidden_count %}
-    <p class="muted">{{ hidden_count }} document{% if hidden_count != 1 %}s{% endif %} with other file types are hidden.
-      <a href="{{ show_all_url }}">Show all</a></p>
+    <p class="muted">{% if hidden_count == 1 %}{{ t("docs.select.hidden.one") }}{% else %}{{ t("docs.select.hidden", count=hidden_count) }}{% endif %}
+      <a href="{{ show_all_url }}">{{ t("docs.select.show_all") }}</a></p>
     {% endif %}
 
     <div class="cluster">
-      {{ button("Select documents", name="action", value="select") }}
-      {{ button("Cancel", "secondary", name="action", value="cancel", formnovalidate=true) }}
+      {{ button(t("docs.select.submit"), name="action", value="select") }}
+      {{ button(t("common.cancel"), "secondary", name="action", value="cancel", formnovalidate=true) }}
     </div>
   </form>
 </section>
 
 {% if upload_projects %}
 <section class="card">
-  <h2>Upload a file</h2>
-  <p class="muted">Add a new document to a project; it then appears in the list above.</p>
+  <h2>{{ t("docs.select.upload_title") }}</h2>
+  <p class="muted">{{ t("docs.select.upload_lead") }}</p>
   <form method="post" action="{{ upload_action }}" enctype="multipart/form-data" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <div class="field">
-      <label class="field__label" for="upload_project">Project</label>
+      <label class="field__label" for="upload_project">{{ t("opencde.project") }}</label>
       <select class="select" id="upload_project" name="project_id" required>
         {% for project in upload_projects %}<option value="{{ project.project_id }}">{{ project.name }}</option>{% endfor %}
       </select>
     </div>
     <div class="field">
-      <label class="field__label" for="upload_file">File</label>
+      <label class="field__label" for="upload_file">{{ t("common.file") }}</label>
       <input class="input" id="upload_file" name="file" type="file" required>
     </div>
     <div class="field">
-      <label class="field__label" for="upload_title">Title</label>
+      <label class="field__label" for="upload_title">{{ t("common.title") }}</label>
       <input class="input" id="upload_title" name="title" maxlength="200" aria-describedby="upload_title-hint">
-      <p class="field__hint" id="upload_title-hint">Defaults to the file name.</p>
+      <p class="field__hint" id="upload_title-hint">{{ t("docs.select.upload_title_hint") }}</p>
     </div>
-    <div class="cluster">{{ button("Upload", "secondary") }}</div>
+    <div class="cluster">{{ button(t("docs.select.upload"), "secondary") }}</div>
   </form>
 </section>
 {% endif %}
