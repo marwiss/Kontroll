@@ -63,7 +63,8 @@ Compose-projektnavnet `kontroll`, så det andet skal have
 ## 3. Forbind de to
 
 I Dataspatium: tilstanden *Inhämta* (Importér) → knappen *Lägg till källa*
-(Tilføj kilde) → *Typ av tjänst* (Tjenestetype): *OpenCDE (BCF, Documents)*
+(Tilføj kilde) → kortet *Lägg till databaskälla* (Tilføj databasekilde) →
+*Typ av tjänst* (Tjenestetype): *OpenCDE (BCF, Documents)*
 → *Adress* (Adresse): `http://localhost:8000` → *Lägg till* (Tilføj). Kilden
 åbnes i *Inhämta*: tryk på *Logga in* (Log ind), og log ind som `inspection_manager` i
 popup-vinduet, og vælg derefter *Building permit* i listen *Projekt*. Linjen

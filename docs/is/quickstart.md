@@ -63,7 +63,8 @@ gögnunum. Tvö útgáfusöfn á sömu tölvu deila Compose-verkefnisheitinu
 ## 3. Tengdu þau saman
 
 Í Dataspatium: hamurinn *Inhämta* (Sækja inn) → hnappurinn *Lägg till källa*
-(Bæta við uppsprettu) → *Typ av tjänst* (Tegund þjónustu): *OpenCDE (BCF,
+(Bæta við uppsprettu) → spjaldið *Lägg till databaskälla* (Bæta við
+gagnagrunnsuppsprettu) → *Typ av tjänst* (Tegund þjónustu): *OpenCDE (BCF,
 Documents)* → *Adress* (Vistfang): `http://localhost:8000` → *Lägg till*
 (Bæta við). Uppsprettan opnast í *Inhämta*: ýttu á *Logga in* (Skrá inn) og
 skráðu þig inn sem `inspection_manager` í sprettiglugganum, og veldu svo *Building permit*
