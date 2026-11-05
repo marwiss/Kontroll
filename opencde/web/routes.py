@@ -75,6 +75,7 @@ async def signin_submit(
         return _signin_page(request, target, tr(request, "signin.error.credentials"))
 
     token = await sessions.create(user.id, ip)
+    await users.touch_sign_in(user.id)
     await audit.record(graph, "web.sign_in", actor=user.id, ip=ip)
     if user.must_change_password:
         target = "/account?notice=change_password"

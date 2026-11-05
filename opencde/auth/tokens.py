@@ -55,6 +55,7 @@ class Principal:
     client_id: str
     scopes: tuple[str, ...]
     token_hash: str
+    auth_time: str | None = None  # when the user authenticated for this token family (ISO 8601 UTC)
 
     def has_scope(self, scope: str) -> bool:
         return scope in self.scopes
@@ -88,7 +89,8 @@ class TokenRepository:
             MATCH (u:User {id: $user_id}), (c:Client {client_id: $client_id})
             CREATE (ac:AuthorizationCode {
                 code_hash: $code_hash, redirect_uri: $redirect_uri, scope: $scope,
-                code_challenge: $code_challenge, created_at: $now, expires_at: $expires_at, spent: false
+                code_challenge: $code_challenge, created_at: $now, expires_at: $expires_at, spent: false,
+                auth_time: $now
             })
             CREATE (ac)-[:FOR]->(u)
             CREATE (ac)-[:ISSUED_TO]->(c)
@@ -153,6 +155,7 @@ class TokenRepository:
                 scope=stored["scope"],
                 family_id=new_id(),
                 code_hash=code_hash,
+                auth_time=stored.get("auth_time") or stored.get("created_at"),
             )
 
         return await self._apply(await self.graph.write(work))
@@ -160,7 +163,15 @@ class TokenRepository:
     # -- token pairs ----------------------------------------------------------------
 
     async def _issue_pair(
-        self, tx: Tx, *, user_id: str, client_id: str, scope: str, family_id: str, code_hash: str | None
+        self,
+        tx: Tx,
+        *,
+        user_id: str,
+        client_id: str,
+        scope: str,
+        family_id: str,
+        code_hash: str | None,
+        auth_time: str | None,
     ) -> TokenPair:
         access = new_secret()
         refresh = new_secret()
@@ -170,11 +181,11 @@ class TokenRepository:
             MATCH (u:User {id: $user_id}), (c:Client {client_id: $client_id})
             CREATE (at:AccessToken {
                 token_hash: $access_hash, scope: $scope, family_id: $family_id, code_hash: $code_hash,
-                created_at: $now, expires_at: $access_expires
+                created_at: $now, expires_at: $access_expires, auth_time: $auth_time
             })
             CREATE (rt:RefreshToken {
                 token_hash: $refresh_hash, scope: $scope, family_id: $family_id, code_hash: $code_hash,
-                created_at: $now, expires_at: $refresh_expires, spent: false
+                created_at: $now, expires_at: $refresh_expires, spent: false, auth_time: $auth_time
             })
             CREATE (at)-[:FOR]->(u) CREATE (at)-[:ISSUED_TO]->(c)
             CREATE (rt)-[:FOR]->(u) CREATE (rt)-[:ISSUED_TO]->(c)
@@ -189,6 +200,7 @@ class TokenRepository:
             now=now,
             access_expires=later_iso(self.access_ttl),
             refresh_expires=later_iso(self.refresh_ttl),
+            auth_time=auth_time,
         )
         return TokenPair(access_token=access, refresh_token=refresh, expires_in=self.access_ttl, scope=scope)
 
@@ -232,6 +244,7 @@ class TokenRepository:
                 scope=stored["scope"],
                 family_id=stored["family_id"],
                 code_hash=stored.get("code_hash"),
+                auth_time=stored.get("auth_time"),  # a refresh never counts as a new authentication
             )
             # Keep the absolute lifetime of the family: a rotated refresh token never outlives the first one.
             await tx.run(
@@ -275,7 +288,7 @@ class TokenRepository:
             MATCH (at:AccessToken {token_hash: $token_hash})-[:FOR]->(u:User), (at)-[:ISSUED_TO]->(c:Client)
             WHERE at.expires_at > $now AND coalesce(u.disabled, false) = false AND coalesce(c.disabled, false) = false
             RETURN at.scope AS scope, u.id AS user_id, u.username AS username, u.full_name AS full_name,
-                   u.is_admin AS is_admin, c.client_id AS client_id
+                   u.is_admin AS is_admin, c.client_id AS client_id, at.auth_time AS auth_time
             """,
             token_hash=hash_secret(access_token),
             now=now_iso(),
@@ -290,6 +303,7 @@ class TokenRepository:
             client_id=row["client_id"],
             scopes=tuple((row["scope"] or "").split()),
             token_hash=hash_secret(access_token),
+            auth_time=row.get("auth_time"),
         )
 
     async def revoke(self, token: str, *, client_id: str) -> bool:

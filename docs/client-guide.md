@@ -195,7 +195,40 @@ specification requires, so act on `error` there (`invalid_request`,
 `unsupported_grant_type`, `invalid_scope`). The capabilities document (§1)
 is served by every server that emits codes.
 
-## 7. Testing against this server
+## 7. The administration API (extension)
+
+An administration client (Dataspatium's Administration tab is the first)
+reads what the pages under `/admin` show, as JSON under `/admin/api/`, with
+a bearer token that holds the `admin` scope and belongs to an administrator.
+The capabilities document says whether the API is on
+(`extensions.admin_api`) and which version it has. Lists answer
+`{"items": [...], "total": n}` and take `limit` (200 by default, at most
+1000) plus `q` or `since` where noted; errors use the body of §6.
+
+| Endpoint | Returns |
+|---|---|
+| `GET /admin/api/overview` | `version`, `dialect`, `graph_ok`, `counts` (users, projects, clients, topics, documents, bcf_documents, sessions) |
+| `GET /admin/api/users?q=&limit=` | users with `projects` (count), `last_sign_in_at`; `q` searches user name, name and e-mail |
+| `GET /admin/api/users/{id}` | one user with `memberships` (`project_id`, `name`, `role`) |
+| `GET /admin/api/projects` | projects with `members`, `topics`, `documents` counts |
+| `GET /admin/api/projects/{id}` | one project with `members` (`user_id`, `username`, `full_name`, `role`) and `extensions` |
+| `GET /admin/api/clients` | clients with `software_id`, `software_version`, `last_used_at`, never a secret |
+| `GET /admin/api/clients/{id}` | one client |
+| `GET /admin/api/sessions?limit=` | one list of two kinds: `kind: "oauth2"` (refresh-token families) and `kind: "web"` (browser sessions) |
+| `GET /admin/api/audit?type=&since=&limit=` | audit events with `actor` (user id), `client_id`, `ip`, `request_id` and parsed `details` |
+| `GET /admin/api/requests?...` | the request log (§5) |
+| `GET /admin/api/settings` | the `OPENCDE_*` settings the Settings page shows, secrets left out |
+| `GET /admin/api/health` | the health checks of the Settings page |
+
+Write operations (users, projects and members, clients and secrets,
+sessions) follow in the next step of the API. Dangerous ones require a
+**fresh sign-in**: the token family's `auth_time`, set when the user
+authenticated for the authorization code, must be within the last ten
+minutes; a refresh never renews it. Otherwise the answer is `403` with
+`code: reauthentication_required`, which a client meets by running the
+authorization flow again (a pop-up sign-in) and repeating the call.
+
+## 8. Testing against this server
 
 [Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
 developed together with this server; its OpenCDE source (sign-in, BCF tables,

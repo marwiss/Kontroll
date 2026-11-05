@@ -228,6 +228,7 @@ async def authorize_submit(
         scope=data["scope"],
         code_challenge=data["code_challenge"],
     )
+    await users.touch_sign_in(user.id)
     await audit.record(
         graph, "auth.code.issued", actor=user.id, client_id=client.client_id, ip=ip, details={"scope": data["scope"]}
     )
