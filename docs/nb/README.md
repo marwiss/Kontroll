@@ -2,7 +2,7 @@
 
 # Kontroll OpenCDE-server
 
-*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · Norsk · [Suomi](../fi/README.md) · [Íslenska](../is/README.md)*
+*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · Norsk bokmål · [Norsk nynorsk](../nn/README.md) · [Suomi](../fi/README.md) · [Íslenska](../is/README.md)*
 
 En server for buildingSMARTs **OpenCDE-API-er**, bygget på en grafdatabase:
 
@@ -80,8 +80,8 @@ databasepassord.
 
 ## Dokumentasjon
 
-Dokumentasjonen er på engelsk; oversettelser til svensk, dansk, norsk, finsk
-og islandsk er planlagt.
+Dokumentasjonen er på engelsk; oversettelser til svensk, dansk, norsk (bokmål
+og nynorsk), finsk og islandsk er planlagt.
 
 - [docs/inventory.md](../inventory.md): funksjonsinventar over prototypen fra
   2023 og status i omskrivingen, med merknader om særtrekk i spesifikasjonene
@@ -155,10 +155,10 @@ uv run ty check opencde client/opencde_client
 
 Kode og kommentarer er på engelsk fordi serveren og klientbiblioteket skal
 bidras til IfcOpenShell, hvis konvensjoner (ruff, 120 kolonner) følges.
-README finnes på engelsk, svensk, dansk, norsk, finsk og islandsk
-(`docs/<språk>/README.md`, samme oppsett som Dataspatium); dokumentasjonen og
-webgrensesnittet skal finnes på de samme seks språkene, med engelsk alltid som
-et valg, og felles termer følger Dataspatiums ordliste.
+README finnes på engelsk, svensk, dansk, norsk (bokmål og nynorsk), finsk og
+islandsk (`docs/<språk>/README.md`, samme oppsett som Dataspatium);
+dokumentasjonen og webgrensesnittet skal finnes på de samme språkene, med
+engelsk alltid som et valg, og felles termer følger Dataspatiums ordliste.
 
 ## Sikkerhet
 

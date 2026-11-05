@@ -15,7 +15,7 @@ with Dataspatium's own release plan; the counterpart on the app side is its
 | Sign-in | OAuth2 authorization code with PKCE as a public client; self-registration through RFC 7591 (`token_endpoint_auth_method: "none"`) when the server allows it; one registration per installation, unused registrations expire |
 | Correlation | `X-Request-ID` on every call from the app, echoed by the server and kept in its request log |
 | Testing | Dataspatium's live suites (2.28–2.32) run against Kontroll's development stack; results and server findings are recorded in [acceptance.md](acceptance.md); server bugs found this way are fixed the same day |
-| Documentation | A shared section "Kontroll and Dataspatium" in both READMEs (Dataspatium's in six languages), cross-references from the guides on both sides |
+| Documentation | A shared section "Kontroll and Dataspatium" in both READMEs, each in seven languages (English, Swedish, Danish, Norwegian Bokmål and Nynorsk, Finnish, Icelandic; Dataspatium adds Nynorsk in 2.1.0), cross-references from the guides on both sides |
 | Branding | Sibling marks: Dataspatium's stacked sheets (D) and Kontroll's connected nodes, same plate, stroke and margins |
 | Working agreements | Announce heavy local runs to the other session; non-release commits in Dataspatium from this project; no git operations in the other checkout; findings reported with request ids |
 
@@ -83,7 +83,8 @@ needs no open database port. Decision for the owner (item A below).
 
 ### 4. One language layer, one glossary (K + D, medium)
 
-Both projects are to exist in six languages. Dataspatium already has the
+Both projects are to exist in seven languages (Norwegian in both Bokmål and
+Nynorsk, decided 2026-11-05). Dataspatium already has the
 mechanics (flat dictionaries with dotted keys, `{name}` parameters, a glossary
 in its style guide, `docs/<lang>/` folders re-embedded by a script). Kontroll
 adopts the same key style for its templates and the same folder layout for
