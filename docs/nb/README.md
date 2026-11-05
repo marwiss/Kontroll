@@ -73,12 +73,12 @@ uv run opencde serve             # http://127.0.0.1:8000
 
 | Scenario | Veiledning |
 |---|---|
-| Lokal test på egen maskin | [docs/deploy/local.md](../deploy/local.md) |
-| Offentlig https-adresse for klienttester uten egen server (tunnel) | [docs/deploy/tunnel.md](../deploy/tunnel.md) |
-| Produksjon på egen server med Caddy (automatisk TLS) og nattlige sikkerhetskopier | [docs/deploy/vps-caddy.md](../deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](../deploy/paas.md) |
-| Containertjeneste pluss administrert Neo4j AuraDB eller Memgraph Cloud | [docs/deploy/cloud-aura.md](../deploy/cloud-aura.md) |
-| Sikkerhetskopiering og gjenoppretting (flyttbar mellom Neo4j og Memgraph) | [docs/deploy/backup.md](../deploy/backup.md) |
+| Lokal test på egen maskin | [docs/nb/deploy/local.md](deploy/local.md) |
+| Offentlig https-adresse for klienttester uten egen server (tunnel) | [docs/nb/deploy/tunnel.md](deploy/tunnel.md) |
+| Produksjon på egen server med Caddy (automatisk TLS) og nattlige sikkerhetskopier | [docs/nb/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/nb/deploy/paas.md](deploy/paas.md) |
+| Containertjeneste pluss administrert Neo4j AuraDB eller Memgraph Cloud | [docs/nb/deploy/cloud-aura.md](deploy/cloud-aura.md) |
+| Sikkerhetskopiering og gjenoppretting (flyttbar mellom Neo4j og Memgraph) | [docs/nb/deploy/backup.md](deploy/backup.md) |
 
 `uv run opencde init --public-url https://cde.example.org` skriver en
 produksjons-`.env` med nye hemmeligheter; `opencde doctor` kontrollerer

@@ -72,12 +72,12 @@ En compose-fil plus en överlagring per scenario:
 
 | Scenario | Guide |
 |---|---|
-| Lokalt test på din dator | [docs/deploy/local.md](../deploy/local.md) |
-| Publik https-adress för klienttester utan egen server (tunnel) | [docs/deploy/tunnel.md](../deploy/tunnel.md) |
-| Produktion på egen server med Caddy (automatisk TLS) och nattliga säkerhetskopior | [docs/deploy/vps-caddy.md](../deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](../deploy/paas.md) |
-| Containertjänst plus hanterad Neo4j AuraDB eller Memgraph Cloud | [docs/deploy/cloud-aura.md](../deploy/cloud-aura.md) |
-| Säkerhetskopiering och återställning (flyttbar mellan Neo4j och Memgraph) | [docs/deploy/backup.md](../deploy/backup.md) |
+| Lokalt test på din dator | [docs/sv/deploy/local.md](deploy/local.md) |
+| Publik https-adress för klienttester utan egen server (tunnel) | [docs/sv/deploy/tunnel.md](deploy/tunnel.md) |
+| Produktion på egen server med Caddy (automatisk TLS) och nattliga säkerhetskopior | [docs/sv/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/sv/deploy/paas.md](deploy/paas.md) |
+| Containertjänst plus hanterad Neo4j AuraDB eller Memgraph Cloud | [docs/sv/deploy/cloud-aura.md](deploy/cloud-aura.md) |
+| Säkerhetskopiering och återställning (flyttbar mellan Neo4j och Memgraph) | [docs/sv/deploy/backup.md](deploy/backup.md) |
 
 `uv run opencde init --public-url https://cde.example.org` skriver en
 produktions-`.env` med nya hemligheter; `opencde doctor` kontrollerar
