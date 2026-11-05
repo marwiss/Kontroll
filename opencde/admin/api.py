@@ -505,7 +505,9 @@ async def reset_password(
     await tokens.revoke_all_for_user(user.id)
     await sessions.delete_for_user(user.id)
     await _record(request, graph, principal, "user.reset_password", user_id=user.id)
-    return {"id": user.id, "username": user.username, "password": password, "must_change_password": True}
+    reset = {"id": user.id, "username": user.username, "must_change_password": True}
+    reset["password"] = password  # generated above and returned once; the server keeps only the hash
+    return reset
 
 
 # ---------------------------------------------------------------------------- writes: projects and members
