@@ -2,7 +2,7 @@
 
 # Kontroll OpenCDE server
 
-*English · [Svenska](docs/sv/README.md) · [Dansk](docs/da/README.md) · [Norsk](docs/nb/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md)*
+*English · [Svenska](docs/sv/README.md) · [Dansk](docs/da/README.md) · [Norsk bokmål](docs/nb/README.md) · [Norsk nynorsk](docs/nn/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md)*
 
 A server for the buildingSMART **OpenCDE APIs**, built on a graph database:
 
@@ -152,10 +152,10 @@ uv run ty check opencde client/opencde_client
 Code and comments are in English because the server and the client library
 are intended to be contributed to IfcOpenShell, whose conventions (ruff, 120
 columns) the style follows. The README exists in English, Swedish, Danish,
-Norwegian, Finnish and Icelandic (`docs/<lang>/README.md`, the layout
-Dataspatium uses); the documentation and the web UI are to be available in
-the same six languages, with English always one of the choices, and shared
-terms follow Dataspatium's glossary.
+Norwegian (Bokmål and Nynorsk), Finnish and Icelandic (`docs/<lang>/README.md`,
+the layout Dataspatium uses); the documentation and the web UI are to be
+available in the same languages, with English always one of the choices, and
+shared terms follow Dataspatium's glossary.
 
 ## Security
 

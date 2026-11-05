@@ -2,7 +2,7 @@
 
 # Kontroll OpenCDE-palvelin
 
-*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · [Norsk](../nb/README.md) · Suomi · [Íslenska](../is/README.md)*
+*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · [Norsk bokmål](../nb/README.md) · [Norsk nynorsk](../nn/README.md) · Suomi · [Íslenska](../is/README.md)*
 
 Palvelin buildingSMARTin **OpenCDE-rajapinnoille**, rakennettu graafitietokannan päälle:
 
@@ -82,8 +82,8 @@ Oletusarvot ovat turvallisia: tuotanto ei käynnisty ilman julkista
 
 ## Dokumentaatio
 
-Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi,
-suomeksi ja islanniksi ovat suunnitelmissa.
+Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
+(bokmål ja nynorsk), suomeksi ja islanniksi ovat suunnitelmissa.
 
 - [docs/inventory.md](../inventory.md): vuoden 2023 prototyypin
   toimintoluettelo ja tilanne uudelleenkirjoituksessa sekä huomioita
@@ -160,11 +160,11 @@ uv run ty check opencde client/opencde_client
 
 Koodi ja kommentit ovat englanniksi, koska palvelin ja asiakaskirjasto on
 tarkoitus luovuttaa IfcOpenShelliin, jonka käytäntöjä (ruff, 120 saraketta)
-tyyli noudattaa. README on englanniksi, ruotsiksi, tanskaksi, norjaksi,
-suomeksi ja islanniksi (`docs/<kieli>/README.md`, sama rakenne kuin
-Dataspatiumissa); dokumentaation ja selainkäyttöliittymän on tarkoitus olla
-saatavilla samoilla kuudella kielellä, englanti aina yhtenä vaihtoehtona, ja
-yhteiset termit noudattavat Dataspatiumin sanastoa.
+tyyli noudattaa. README on englanniksi, ruotsiksi, tanskaksi, norjaksi
+(bokmål ja nynorsk), suomeksi ja islanniksi (`docs/<kieli>/README.md`, sama
+rakenne kuin Dataspatiumissa); dokumentaation ja selainkäyttöliittymän on
+tarkoitus olla saatavilla samoilla kielillä, englanti aina yhtenä
+vaihtoehtona, ja yhteiset termit noudattavat Dataspatiumin sanastoa.
 
 ## Tietoturva
 

@@ -2,7 +2,7 @@
 
 # Kontroll OpenCDE-þjónn
 
-*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · [Norsk](../nb/README.md) · [Suomi](../fi/README.md) · Íslenska*
+*[English](../../README.md) · [Svenska](../sv/README.md) · [Dansk](../da/README.md) · [Norsk bokmål](../nb/README.md) · [Norsk nynorsk](../nn/README.md) · [Suomi](../fi/README.md) · Íslenska*
 
 Þjónn fyrir **OpenCDE-forritaskil** buildingSMART, byggður á grafgagnagrunni:
 
@@ -80,8 +80,8 @@ gagnagrunninum.
 
 ## Skjölun
 
-Skjölunin er á ensku; þýðingar á sænsku, dönsku, norsku, finnsku og íslensku
-eru áætlaðar.
+Skjölunin er á ensku; þýðingar á sænsku, dönsku, norsku (bokmål og nynorsk),
+finnsku og íslensku eru áætlaðar.
 
 - [docs/inventory.md](../inventory.md): yfirlit yfir virkni frumgerðarinnar
   frá 2023 og staða í endurskrifinu, með athugasemdum um sérkenni
@@ -157,10 +157,11 @@ uv run ty check opencde client/opencde_client
 
 Kóði og athugasemdir eru á ensku því að þjónninn og biðlarasafnið eiga að
 verða framlag til IfcOpenShell, en stíllinn fylgir venjum þess (ruff, 120
-dálkar). README er til á ensku, sænsku, dönsku, norsku, finnsku og íslensku
-(`docs/<tungumál>/README.md`, sama skipan sem Dataspatium notar); skjölunin
-og vefviðmótið eiga að vera til á sömu sex tungumálum, með ensku alltaf sem
-einn kostinn, og sameiginleg hugtök fylgja orðalista Dataspatium.
+dálkar). README er til á ensku, sænsku, dönsku, norsku (bokmál og nynorsk),
+finnsku og íslensku (`docs/<tungumál>/README.md`, sama skipan sem Dataspatium
+notar); skjölunin og vefviðmótið eiga að vera til á sömu tungumálum, með
+ensku alltaf sem einn kostinn, og sameiginleg hugtök fylgja orðalista
+Dataspatium.
 
 ## Öryggi
 
