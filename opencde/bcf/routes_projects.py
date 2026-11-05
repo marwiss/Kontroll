@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
 from opencde.accounts.roles import comment_actions, project_actions, topic_actions
 from opencde.auth.dependencies import BcfPrincipal
@@ -70,6 +70,3 @@ async def extensions_get(ctx: ProjectCtx, projects: ProjectsDep) -> dict[str, An
             comment_actions=comment_actions(ctx.role, is_author=False),
         )
     )
-
-
-__all__ = ["Depends", "router"]

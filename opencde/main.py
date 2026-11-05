@@ -109,7 +109,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.add_middleware(
         BodySizeLimitMiddleware,
         max_bytes=settings.max_json_body_bytes,
-        exempt_prefixes=("/documents/1.0/upload-part/", "/bcf/3.0/projects/"),
+        exempt_prefixes=("/documents/1.0/upload-part/",),
+        exempt_patterns=bcf_router.BINARY_UPLOAD_PATHS,
     )
     app.add_middleware(RequestIDMiddleware)
 

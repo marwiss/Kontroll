@@ -13,6 +13,7 @@ import uuid
 from collections.abc import Iterable
 
 import structlog
+from starlette.exceptions import HTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 REQUEST_ID_HEADER = b"x-request-id"
@@ -95,23 +96,36 @@ class RequestIDMiddleware:
 
 
 class BodySizeLimitMiddleware:
-    """Reject request bodies whose declared size exceeds the limit with 413.
+    """Reject request bodies larger than the limit with 413.
 
-    Routes that accept large binary uploads stream and count bytes themselves
-    and are listed in ``exempt_prefixes``; everything else is JSON or a small
-    form and fits comfortably under the default limit.
+    A declared ``Content-Length`` above the limit is refused before the route
+    runs; a body that arrives in chunks is counted as it is read, so a client
+    cannot bypass the limit by omitting the header. Routes that accept large
+    binary uploads stream and count bytes themselves and are exempt by prefix
+    or by regular expression; everything else is JSON or a small form.
     """
 
-    def __init__(self, app: ASGIApp, max_bytes: int, exempt_prefixes: Iterable[str] = ()) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        max_bytes: int,
+        exempt_prefixes: Iterable[str] = (),
+        exempt_patterns: Iterable[str] = (),
+    ) -> None:
         self.app = app
         self.max_bytes = max_bytes
         self.exempt_prefixes = tuple(exempt_prefixes)
+        self.exempt_patterns = tuple(re.compile(pattern) for pattern in exempt_patterns)
+
+    def is_exempt(self, path: str) -> bool:
+        return path.startswith(self.exempt_prefixes) or any(pattern.match(path) for pattern in self.exempt_patterns)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http" or scope["path"].startswith(self.exempt_prefixes):
+        if scope["type"] != "http" or self.is_exempt(scope["path"]):
             await self.app(scope, receive, send)
             return
 
+        message = f"Request body exceeds {self.max_bytes} bytes"
         declared = dict(scope.get("headers", [])).get(b"content-length")
         if declared is not None:
             try:
@@ -119,10 +133,22 @@ class BodySizeLimitMiddleware:
             except ValueError:
                 size = self.max_bytes + 1
             if size > self.max_bytes:
-                await _send_json(send, 413, {"message": f"Request body exceeds {self.max_bytes} bytes"})
+                await _send_json(send, 413, {"message": message})
                 return
 
-        await self.app(scope, receive, send)
+        received = 0
+
+        async def counting_receive() -> Message:
+            nonlocal received
+            event = await receive()
+            if event["type"] == "http.request":
+                received += len(event.get("body", b""))
+                if received > self.max_bytes:
+                    # Raised inside the route's body read; the exception handlers turn it into a 413.
+                    raise HTTPException(413, message)
+            return event
+
+        await self.app(scope, counting_receive, send)
 
 
 async def _send_json(send: Send, status: int, body: dict[str, str]) -> None:
