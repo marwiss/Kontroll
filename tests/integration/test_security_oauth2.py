@@ -78,7 +78,9 @@ def test_state_is_required_and_unknown_scope_is_refused(client: TestClient, worl
         "invalid_request"
     ]
     query = _redirect_query(
-        client.get("/foundation/oauth2/auth", params=_authorize_params(world, scope="admin"), follow_redirects=False)
+        client.get(
+            "/foundation/oauth2/auth", params=_authorize_params(world, scope="superuser"), follow_redirects=False
+        )
     )
     assert query["error"] == ["invalid_scope"] and query["state"] == ["s1"]
     query = _redirect_query(
