@@ -22,7 +22,7 @@ from typing import Any
 from opencde import __version__
 from opencde.graph.graph import Graph
 from opencde.graph.schema import UNIQUE
-from opencde.storage import LocalStorage
+from opencde.storage import CATEGORIES, LocalStorage
 from opencde.timeutil import now_iso
 
 FORMAT = 1
@@ -156,7 +156,7 @@ async def export(graph: Graph, storage: LocalStorage, target_dir: Path) -> Manif
 
     files = 0
     with tarfile.open(target_dir / "storage.tar.gz", "w:gz") as archive:
-        for category in sorted(storage.CATEGORIES if hasattr(storage, "CATEGORIES") else _categories()):
+        for category in sorted(CATEGORIES):
             for key in storage.iter_keys(category):
                 archive.add(storage.path(key), arcname=key)
                 files += 1
@@ -176,12 +176,6 @@ async def export(graph: Graph, storage: LocalStorage, target_dir: Path) -> Manif
     )
     (target_dir / "manifest.json").write_text(json.dumps(manifest.to_json(), indent=2), encoding="utf-8")
     return manifest
-
-
-def _categories() -> set[str]:
-    from opencde.storage import CATEGORIES
-
-    return set(CATEGORIES)
 
 
 # ---------------------------------------------------------------------------- restore
