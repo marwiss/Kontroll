@@ -25,7 +25,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 ```
 
 Jälkimmäinen komento luo demokäyttäjät ja -projektit ja tulostaa niiden
-salasanat kerran; ota talteen käyttäjien `admin` ja `editor` salasanat.
+salasanat kerran; ota talteen käyttäjien `admin` ja `inspection_manager` salasanat.
 Tarkista <http://localhost:8000/readyz> (vastaa `ready`) ja kirjaudu
 osoitteessa <http://localhost:8000/signin> käyttäjänä `admin`: `/admin`
 näyttää projektit *Building permit* ja *Demolition permit*.
@@ -67,7 +67,7 @@ Dataspatiumissa: tila *Inhämta* (Tuo) → painike *Lägg till källa* (Lisää
 lähde) → *Typ av tjänst* (Palvelun tyyppi): *OpenCDE (BCF, Documents)* →
 *Adress* (Osoite): `http://localhost:8000` → *Lägg till* (Lisää). Lähde
 avautuu *Inhämta*-tilaan: paina *Logga in* (Kirjaudu) ja kirjaudu
-ponnahdusikkunassa käyttäjänä `editor`, ja valitse sitten *Building permit*
+ponnahdusikkunassa käyttäjänä `inspection_manager`, ja valitse sitten *Building permit*
 luettelosta *Projekt*. Otsikon alla oleva rivi ("Servern: Kontroll OpenCDE
 server 2.0.0. Tillägg: …") tulee palvelimen kyvykkyysasiakirjasta ja kertoo,
 mitkä laajennukset ovat päällä.

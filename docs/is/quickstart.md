@@ -25,7 +25,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 ```
 
 Seinni skipunin býr til sýninotendur og -verkefni og prentar lykilorð þeirra
-einu sinni; geymdu lykilorð `admin` og `editor`. Athugaðu
+einu sinni; geymdu lykilorð `admin` og `inspection_manager`. Athugaðu
 <http://localhost:8000/readyz> (svarar `ready`) og skráðu þig inn á
 <http://localhost:8000/signin> sem `admin`: `/admin` sýnir verkefnin
 *Building permit* og *Demolition permit*.
@@ -66,7 +66,7 @@ gögnunum. Tvö útgáfusöfn á sömu tölvu deila Compose-verkefnisheitinu
 (Bæta við uppsprettu) → *Typ av tjänst* (Tegund þjónustu): *OpenCDE (BCF,
 Documents)* → *Adress* (Vistfang): `http://localhost:8000` → *Lägg till*
 (Bæta við). Uppsprettan opnast í *Inhämta*: ýttu á *Logga in* (Skrá inn) og
-skráðu þig inn sem `editor` í sprettiglugganum, og veldu svo *Building permit*
+skráðu þig inn sem `inspection_manager` í sprettiglugganum, og veldu svo *Building permit*
 í listanum *Projekt*. Línan undir fyrirsögninni ("Servern: Kontroll OpenCDE
 server 2.0.0. Tillägg: …") kemur úr getuskjali þjónsins og segir hvaða
 viðbætur eru virkar.
