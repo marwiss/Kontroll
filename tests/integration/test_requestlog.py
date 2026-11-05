@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from opencde.main import create_app
-from tests.conftest import test_settings
+from tests.conftest import test_settings as make_settings
 from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import Session, authorize, exchange
@@ -20,7 +20,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.security]
 
 @pytest.fixture
 def logged(graph_target: GraphTarget, clean_database: None, tmp_path) -> Iterator[tuple[TestClient, World]]:
-    settings = test_settings(
+    settings = make_settings(
         tmp_path,
         graph_dialect=graph_target.dialect,
         graph_uri=graph_target.uri,
