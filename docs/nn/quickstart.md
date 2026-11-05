@@ -25,7 +25,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 ```
 
 Den andre kommandoen opprettar demobrukarar og prosjekt og skriv ut passorda
-deira éin gong; ta vare på passorda til `admin` og `editor`. Kontroller
+deira éin gong; ta vare på passorda til `admin` og `inspection_manager`. Kontroller
 <http://localhost:8000/readyz> (svarar `ready`) og logg inn på
 <http://localhost:8000/signin> som `admin`: `/admin` viser prosjekta
 *Building permit* og *Demolition permit*.
@@ -66,7 +66,7 @@ med dataa. To utsjekkingar på same maskin deler Compose-prosjektnamnet
 I Dataspatium: modusen *Inhämta* (Importer) → knappen *Lägg till källa* (Legg
 til kjelde) → *Typ av tjänst* (Tenestetype): *OpenCDE (BCF, Documents)* →
 *Adress* (Adresse): `http://localhost:8000` → *Lägg till* (Legg til). Kjelda
-opnar seg i *Inhämta*: trykk *Logga in* (Logg inn) og logg inn som `editor` i
+opnar seg i *Inhämta*: trykk *Logga in* (Logg inn) og logg inn som `inspection_manager` i
 popup-vindauget, og vel deretter *Building permit* i lista *Projekt*. Lina
 under overskrifta ("Servern: Kontroll OpenCDE server 2.0.0. Tillägg: …") kjem
 frå kapabilitetsdokumentet til serveren og seier kva tillegg som er slått på.

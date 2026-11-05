@@ -25,7 +25,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 ```
 
 The second command creates demonstration users and projects and prints their
-passwords once; keep the password of `admin` and of `editor`. Check
+passwords once; keep the password of `admin` and of `inspection_manager`. Check
 <http://localhost:8000/readyz> (it answers `ready`) and sign in at
 <http://localhost:8000/signin> as `admin`: `/admin` shows the projects
 *Building permit* and *Demolition permit*.
@@ -66,7 +66,7 @@ other `OPENCDE_DEV_*` ports in its `.env`.
 In Dataspatium: the mode *Inhämta* (Import) → the button *Lägg till källa*
 (Add source) → *Typ av tjänst* (Kind of service): *OpenCDE (BCF, Documents)*
 → *Adress* (Address): `http://localhost:8000` → *Lägg till* (Add). The source
-opens in *Inhämta*: press *Logga in* (Sign in) and sign in as `editor` in the
+opens in *Inhämta*: press *Logga in* (Sign in) and sign in as `inspection_manager` in the
 pop-up window, then choose *Building permit* in the list *Projekt*. The line
 under the heading ("Servern: Kontroll OpenCDE server 2.0.0. Tillägg: …")
 comes from the server's capabilities document and says which extensions are
