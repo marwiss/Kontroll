@@ -319,7 +319,8 @@ All four were taken on 2026-11-05.
   compatibility line in both READMEs becomes "Dataspatium 2.0.0 works with
   Kontroll 2.0.0": the same number means the two work together. The owner's
   acceptance runs and the OAuch/testssl runs remain the gate for a production
-  deployment, not for the tag. Confirmed by the owner in both sessions on
+  deployment, not for the tag. Dataspatium 2.0.0 and Kontroll v2.0.0 were
+  tagged on 2026-11-05; the changelog lives in `CHANGELOG.md`. Confirmed by the owner in both sessions on
   2026-11-05, together with the instruction to complete all twelve items in
   the agreed order without further sign-off and to keep collecting
   specification quirks from both sides.
