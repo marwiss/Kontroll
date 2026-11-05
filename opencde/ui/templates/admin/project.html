@@ -14,7 +14,7 @@
       <dt>Created</dt><dd>{{ when(project.created_at) }}</dd>
     </dl>
     {{ field("name", "Name", value=project.name, required=true, maxlength=200) }}
-    <div class="cluster">{{ button("Rename") }}</div>
+    <div class="cluster">{{ button("Rename") }}{% if dataspatium_link %} <a class="btn btn--secondary" href="{{ dataspatium_link }}" rel="noopener">Open in Dataspatium</a>{% endif %}</div>
   </form>
 </section>
 

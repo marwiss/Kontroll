@@ -39,6 +39,7 @@ from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.storage import TooLargeError, make_key
 from opencde.timeutil import now_iso
+from opencde.ui.links import dataspatium_link
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
     NO_STORE,
@@ -478,6 +479,7 @@ async def document_details(
     version_index: VersionIndex,
     web_user: WebUserDep,
     documents: DocumentsDep,
+    settings: SettingsDep,
 ) -> Response:
     if web_user is None:
         return signin_redirect(request)
@@ -494,7 +496,19 @@ async def document_details(
     return render(
         request,
         "documents/details.html",
-        page_context(request, web_user, record=record, versions=versions, download_url=f"{request.url.path}/download"),
+        page_context(
+            request,
+            web_user,
+            record=record,
+            versions=versions,
+            download_url=f"{request.url.path}/download",
+            dataspatium_link=dataspatium_link(
+                settings,
+                project_id=record.project_id,
+                document_id=record.document_id,
+                version_index=record.version_index,
+            ),
+        ),
     )
 
 

@@ -23,6 +23,7 @@ from opencde.admin.access import (
 )
 from opencde.deps import GraphDep, ProjectsDep, StorageDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.ui.links import dataspatium_link
 from opencde.ui.templating import render
 
 router = APIRouter(prefix="/admin/projects", include_in_schema=False)
@@ -69,6 +70,7 @@ async def _project_page(
             ],
             form_token=form.token(),
             error=error,
+            dataspatium_link=dataspatium_link(request.app.state.settings, project_id=project.project_id),
         ),
         status_code=status_code,
     )

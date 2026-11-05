@@ -229,7 +229,9 @@ the Dataspatium side:
 6. Deep links both ways: `OPENCDE_DATASPATIUM_URL` gives the server's project
    and document pages an "Open in Dataspatium" link (also for workspace
    packages, `.dataspatium.zip`), and the app links to the server's detail and
-   administration pages.
+   administration pages. Server side done 2026-11-05 with the app's route
+   `#/inhamta/opencde?server=…&project=…&document=…&version=…` (the app
+   honours `project`, `document` and `version` from 2.1.0).
 7. `software_id`/`software_version` at registration (item 2) — Dataspatium
    2.33 sends them.
 8. A joint quick start (item 8).
