@@ -67,6 +67,6 @@ def test_index_page_and_static_assets(client: TestClient) -> None:
     assert index.status_code == 200 and index.headers["content-type"].startswith("text/html")
     assert "/foundation/versions" in index.text and "/docs" in index.text
     css = client.get("/static/css/tokens.css")
-    assert css.status_code == 200 and "--color-accent" in css.text
+    assert css.status_code == 200 and "--dm-accent" in css.text
     assert css.headers["cache-control"] == "public, max-age=86400"
     assert client.get("/static/../pyproject.toml").status_code in (404, 400)

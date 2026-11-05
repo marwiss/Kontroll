@@ -1,81 +1,161 @@
-/* Design tokens: the single source of colour, type and spacing for every page.
-   Light and dark follow the system setting. Change the brand hue here only. */
+/*
+ * Design tokens: the single source of colour, type, spacing and shape for every page.
+ *
+ * These are Dataspatium's tokens (src/ui/design/tokens.css there), with the same names, so that
+ * the server's pages and the app look like one product. Dataspatium's copyright holder permitted
+ * Kontroll to use the same design on 2026-11-05; in this repository the file is covered by the
+ * project's licence (AGPL-3.0-or-later). Keep values in step with Dataspatium; see
+ * docs/ui-styleguide.md and docs/dataspatium-coordination.md (item 5).
+ */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  /* Typography (Inter is self-hosted, see base.css) */
+  --dm-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --dm-font-mono: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  --dm-text-xs: 0.75rem;
+  --dm-text-sm: 0.8125rem;
+  --dm-text-md: 0.9375rem;
+  --dm-text-lg: 1.0625rem;
+  --dm-text-xl: 1.25rem;
+  --dm-text-2xl: 1.5rem;
+  --dm-leading: 1.45;
+  --dm-weight-regular: 400;
+  --dm-weight-medium: 500;
+  --dm-weight-semibold: 600;
 
-  --text-xs: 0.8125rem;
-  --text-sm: 0.9375rem;
-  --text-md: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.625rem;
-  --leading: 1.5;
+  /* Spacing, 4 px scale */
+  --dm-s-1: 4px;
+  --dm-s-2: 8px;
+  --dm-s-3: 12px;
+  --dm-s-4: 16px;
+  --dm-s-5: 20px;
+  --dm-s-6: 24px;
+  --dm-s-8: 32px;
+  --dm-s-10: 40px;
+  --dm-s-12: 48px;
 
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
+  /* Shape and elevation */
+  --dm-radius-sm: 6px;
+  --dm-radius-md: 10px;
+  --dm-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.1);
+  --dm-shadow-lg: 0 12px 32px rgb(16 24 40 / 0.18);
+  --dm-backdrop: rgb(16 24 40 / 0.35);
+  --dm-transition: 120ms ease;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* Neutral scale */
+  --dm-n-0: #ffffff;
+  --dm-n-50: #f7f8fa;
+  --dm-n-100: #eef0f3;
+  --dm-n-200: #e1e4e9;
+  --dm-n-300: #cbd0d8;
+  --dm-n-350: #808894;
+  --dm-n-400: #656e7b;
+  --dm-n-500: #545c69;
+  --dm-n-600: #4b5563;
+  --dm-n-700: #343c48;
+  --dm-n-800: #1f252e;
+  --dm-n-900: #12161c;
 
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
-  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.06);
+  /* Semantic surfaces and text */
+  --dm-bg: var(--dm-n-50);
+  --dm-surface: var(--dm-n-0);
+  --dm-surface-2: var(--dm-n-100);
+  --dm-surface-hover: var(--dm-n-100);
+  --dm-border: var(--dm-n-200);
+  --dm-border-strong: var(--dm-n-300);
+  /* Borders of form fields: at least 3:1 against every surface (WCAG 1.4.11). */
+  --dm-border-input: var(--dm-n-350);
+  /* Text tokens reach at least 4.5:1 on bg, surface and surface-2 (WCAG 1.4.3); the axe tests check it. */
+  --dm-text: var(--dm-n-800);
+  --dm-text-muted: var(--dm-n-500);
+  --dm-text-faint: var(--dm-n-400);
+  --dm-selection: #dbe7f6;
 
-  /* The brand blue of the mark, shared with Dataspatium (its --dm-accent, --dm-accent-hover, --dm-accent-soft). */
-  --color-accent: #2b6cb0;
-  --color-accent-strong: #245c96;
-  --color-accent-soft: #e6effa;
-  --color-on-accent: #ffffff;
+  /* Accent (one hue for the whole product; the mark's blue) */
+  --dm-accent: #2b6cb0;
+  --dm-accent-hover: #245c96;
+  --dm-accent-soft: #e6effa;
+  --dm-on-accent: #ffffff;
+  --dm-focus: #7fb0ea;
 
-  --color-bg: #f4f6f8;
-  --color-surface: #ffffff;
-  --color-surface-2: #f8fafb;
-  --color-text: #1b2430;
-  --color-text-muted: #5b6673;
-  --color-border: #d9dee4;
-  --color-border-strong: #b9c2cc;
+  /* Status */
+  --dm-ok: #16703f;
+  --dm-ok-soft: #e4f4ea;
+  --dm-warn: #8f5a0b;
+  --dm-warn-soft: #fbf1dd;
+  --dm-error: #c0392b;
+  --dm-error-soft: #fbe6e3;
+  --dm-info: var(--dm-accent);
+  --dm-info-soft: var(--dm-accent-soft);
 
-  --color-success: #1e7a4c;
-  --color-success-soft: #e4f4ea;
-  --color-warning: #9a6300;
-  --color-warning-soft: #fff4d6;
-  --color-danger: #b42318;
-  --color-danger-soft: #fde8e6;
-
-  --focus-ring: 0 0 0 3px rgba(43, 108, 176, 0.35);
+  /* Layout */
+  --dm-topbar-h: 48px;
+  --dm-panel-w: 280px;
+  --dm-panel-min-w: 200px;
+  --dm-statusbar-h: 28px;
+  --dm-z-dialog: 100;
+  --dm-z-toast: 200;
 }
 
+/* Dark theme: explicit choice ... */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --dm-bg: #12161c;
+  --dm-surface: #1a2029;
+  --dm-surface-2: #222a35;
+  --dm-surface-hover: #262f3b;
+  --dm-border: #2e3745;
+  --dm-border-strong: #3b4657;
+  --dm-border-input: #6b7583;
+  --dm-text: #e6e9ee;
+  --dm-text-muted: #a9b1bd;
+  --dm-text-faint: #8c95a2;
+  --dm-selection: #1f3550;
+  --dm-accent: #63a4ff;
+  --dm-accent-hover: #7fb5ff;
+  --dm-accent-soft: #1b2a40;
+  --dm-on-accent: #0b1b33;
+  --dm-focus: #4d8ee6;
+  --dm-ok: #4cc38a;
+  --dm-ok-soft: #15301f;
+  --dm-warn: #e0a94c;
+  --dm-warn-soft: #3a2c12;
+  --dm-error: #ff7b6b;
+  --dm-error-soft: #3b1c18;
+  --dm-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.5);
+  --dm-shadow-lg: 0 12px 32px rgb(0 0 0 / 0.6);
+  --dm-backdrop: rgb(0 0 0 / 0.6);
+}
+
+/* ... or following the system when no explicit choice has been made. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-accent: #7fb0ea;
-    --color-accent-strong: #9cc3f0;
-    --color-accent-soft: #16304d;
-    --color-on-accent: #0b1a2c;
-
-    --color-bg: #0f141a;
-    --color-surface: #171e26;
-    --color-surface-2: #1d262f;
-    --color-text: #e6ebf0;
-    --color-text-muted: #9aa6b2;
-    --color-border: #2a3540;
-    --color-border-strong: #3a4753;
-
-    --color-success: #5ccf8e;
-    --color-success-soft: #123523;
-    --color-warning: #f0b84a;
-    --color-warning-soft: #3a2c0c;
-    --color-danger: #ff7b6e;
-    --color-danger-soft: #3b1613;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
-    --focus-ring: 0 0 0 3px rgba(127, 176, 234, 0.45);
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --dm-bg: #12161c;
+    --dm-surface: #1a2029;
+    --dm-surface-2: #222a35;
+    --dm-surface-hover: #262f3b;
+    --dm-border: #2e3745;
+    --dm-border-strong: #3b4657;
+    --dm-border-input: #6b7583;
+    --dm-text: #e6e9ee;
+    --dm-text-muted: #a9b1bd;
+    --dm-text-faint: #8c95a2;
+    --dm-selection: #1f3550;
+    --dm-accent: #63a4ff;
+    --dm-accent-hover: #7fb5ff;
+    --dm-accent-soft: #1b2a40;
+    --dm-on-accent: #0b1b33;
+    --dm-focus: #4d8ee6;
+    --dm-ok: #4cc38a;
+    --dm-ok-soft: #15301f;
+    --dm-warn: #e0a94c;
+    --dm-warn-soft: #3a2c12;
+    --dm-error: #ff7b6b;
+    --dm-error-soft: #3b1c18;
+    --dm-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.5);
+    --dm-shadow-lg: 0 12px 32px rgb(0 0 0 / 0.6);
+    --dm-backdrop: rgb(0 0 0 / 0.6);
   }
 }
