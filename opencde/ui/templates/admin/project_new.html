@@ -1,0 +1,17 @@
+{% extends "admin/_page.html" %}
+{% block title %}New project · {{ product }}{% endblock %}
+{% block admin %}
+<h1>New project</h1>
+<section class="card">
+  {% if error %}{{ alert("error", error) }}{% endif %}
+  <form method="post" action="/admin/projects" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    {{ field("name", "Name", required=true, autofocus=true, maxlength=200, hint="Shown to every member and to BCF clients.") }}
+    <p class="muted">The project starts with the default BCF extension values (types, statuses, labels, priorities, stages); edit them afterwards.</p>
+    <div class="cluster">
+      {{ button("Create project") }}
+      <a class="btn btn--secondary" href="/admin/projects">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

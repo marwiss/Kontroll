@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "components.html" import alert, button, field, user_nav %}
+{% from "admin/_macros.html" import admin_nav, notice_box, select_field, textarea_field, checkbox, confirm_password, when %}
+{% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
+{% block main_class %}admin-layout{% endblock %}
+{% block content %}
+{{ admin_nav(active) }}
+<div class="admin-content">
+  {{ notice_box(notice, notice_kind) }}
+  {% block admin %}{% endblock %}
+</div>
+{% endblock %}
+{% block scripts %}<script type="module" src="/static/js/admin.js"></script>{% endblock %}

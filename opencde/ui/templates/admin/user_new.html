@@ -1,0 +1,21 @@
+{% extends "admin/_page.html" %}
+{% block title %}New user · {{ product }}{% endblock %}
+{% block admin %}
+<h1>New user</h1>
+<section class="card">
+  {% if error %}{{ alert("error", error) }}{% endif %}
+  <form method="post" action="/admin/users" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    {{ field("username", "User name", required=true, autofocus=true, maxlength=128, hint="3-128 characters: letters, digits and . _ @ + -. This is the id the APIs show.") }}
+    {{ field("full_name", "Full name", maxlength=200) }}
+    {{ field("email", "E-mail", type="email", maxlength=200) }}
+    {{ field("password", "Password", type="password", autocomplete="new-password", maxlength=256, hint="Leave empty to generate a strong password that is shown once.") }}
+    {{ checkbox("must_change_password", "Must change the password at first sign-in", checked=true) }}
+    {{ checkbox("is_admin", "Administrator", hint="Administrators manage this server. They have no project access until given a role.") }}
+    <div class="cluster">
+      {{ button("Create user") }}
+      <a class="btn btn--secondary" href="/admin/users">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

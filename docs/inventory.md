@@ -19,7 +19,7 @@ project plan. This file is updated with every stage.
 | 3 | BCF API: projects, extensions, topics, topic events, authorization objects | done |
 | 4 | BCF API: comments, viewpoints, related topics, document references, files, snippets, documents, comment events | done |
 | 5 | Documents API and browser sign-in | done |
-| 6 | Admin UI | |
+| 6 | Admin UI (users, projects, clients, sessions, audit log, settings) and account page | done |
 | 7 | Client library and end-to-end tests | |
 | 8 | Deployment | |
 | 9 | IFC-graph | |
@@ -93,7 +93,7 @@ project plan. This file is updated with every stage.
 | Request/response body logging to a file | yes | reshape: structured logs with request id and redaction, no bodies | 0 |
 | `debug()` prints with jsonpickle | yes | drop: structured logging | 0 |
 | Liveness and readiness endpoints | no | new: `/healthz`, `/readyz` | 0 |
-| Web admin UI (users, clients, projects, audit log) | no (README TODO) | new | 6 |
+| Web admin UI (users, clients, projects, audit log) | no (README TODO) | new, done: `/admin` for administrators (overview, users with roles and password reset, projects with members and extensions, clients with secret rotation, sessions, audit log with CSV, settings and health checks), `/account` for everyone; server-rendered, vanilla JS enhancements, axe-checked | 6 |
 | CLI (`init`, `doctor`, `seed`, `cleanup`, `user`, `project`, `client`; `backup`/`restore` and `revoke` follow) | no | new; done except backup and revoke | 0, 1, 8 |
 | Expiry of codes, tokens and sessions (prototype: APOC TTL) | APOC | reshape: `expires_at` + server-side cleanup, done | 1 |
 | OData `$filter/$orderby/$top/$skip` (prototype: none) | no | new: whitelist compiler to Cypher, done | 1 |

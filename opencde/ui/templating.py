@@ -30,6 +30,19 @@ _env = Environment(
     trim_blocks=True,
     lstrip_blocks=True,
 )
+_env.filters["zip"] = lambda left, right: list(zip(left, right, strict=False))
+
+
+def _register_macros(template: str) -> None:
+    """Make a macro file's macros available in every template, including blocks of child templates."""
+    module = _env.get_template(template).module
+    for name in dir(module):
+        if not name.startswith("_"):
+            _env.globals[name] = getattr(module, name)
+
+
+_register_macros("components.html")
+_register_macros("admin/_macros.html")
 
 
 def render(

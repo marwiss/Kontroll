@@ -1,0 +1,33 @@
+{% extends "admin/_page.html" %}
+{% block title %}Audit log · {{ product }}{% endblock %}
+{% block admin %}
+<div class="toolbar">
+  <h1>Audit log</h1>
+  <a class="btn btn--secondary" href="/admin/audit.csv{% if type_prefix %}?type={{ type_prefix|urlencode }}{% endif %}">Download CSV</a>
+</div>
+<form method="get" action="/admin/audit" class="toolbar" role="search">
+  <label class="sr-only" for="type">Event type starts with</label>
+  <input class="input toolbar__search" id="type" name="type" type="search" value="{{ type_prefix }}" placeholder="Filter by event type, e.g. auth. or admin.user" maxlength="64">
+  <button class="btn btn--secondary" type="submit">Filter</button>
+</form>
+<p class="muted">The latest {{ limit }} events{% if type_prefix %} starting with <code>{{ type_prefix }}</code>{% endif %}. Secrets never appear here.</p>
+<div class="table-wrap">
+  <table class="table" data-filterable>
+    <thead><tr><th scope="col">When</th><th scope="col">Event</th><th scope="col">Actor</th><th scope="col">Client</th><th scope="col">Address</th><th scope="col">Details</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ when(row.at) }}</td>
+        <td><code>{{ row.type }}</code></td>
+        <td>{{ row.actor }}</td>
+        <td>{{ row.client_id }}</td>
+        <td>{{ row.ip }}</td>
+        <td><code class="wrap">{{ row.details }}</code></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted">No events.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

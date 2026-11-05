@@ -18,6 +18,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from opencde import __version__, health
+from opencde.admin import router as admin_router
+from opencde.admin.access import install_page_handlers
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
@@ -33,6 +35,7 @@ from opencde.middleware import BodySizeLimitMiddleware, RequestIDMiddleware, Sec
 from opencde.ratelimit import install_rate_limiting
 from opencde.settings import Settings
 from opencde.ui.templating import STATIC_DIR, render
+from opencde.web import account as account_routes
 from opencde.web import routes as web_routes
 
 DESCRIPTION = """\
@@ -95,6 +98,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     )
 
     install_error_handlers(app)
+    install_page_handlers(app)
     install_rate_limiting(app, settings.rate_limits_enabled)
 
     # Middleware runs outermost-last: request id first, then size limit, CORS, ETag, headers on the way out.
@@ -125,6 +129,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(documents_api.router)
     app.include_router(documents_ui.router)
     app.include_router(web_routes.router)
+    app.include_router(account_routes.router)
+    if settings.admin_ui_enabled:
+        app.include_router(admin_router.router)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     @app.get("/", include_in_schema=False, response_class=HTMLResponse)

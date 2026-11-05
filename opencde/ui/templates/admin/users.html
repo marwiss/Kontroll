@@ -1,0 +1,41 @@
+{% extends "admin/_page.html" %}
+{% block title %}Users · {{ product }}{% endblock %}
+{% block admin %}
+<div class="toolbar">
+  <h1>Users</h1>
+  <a class="btn btn--primary" href="/admin/users/new">New user</a>
+</div>
+<form method="get" action="/admin/users" class="toolbar" role="search">
+  <label class="sr-only" for="q">Search users</label>
+  <input class="input toolbar__search" id="q" name="q" type="search" value="{{ q }}" placeholder="Search by user name, name or e-mail" maxlength="100">
+  <button class="btn btn--secondary" type="submit">Search</button>
+</form>
+<div class="table-wrap">
+  <table class="table" data-filterable data-sortable>
+    <thead>
+      <tr>
+        <th scope="col">User name</th><th scope="col">Name</th><th scope="col">E-mail</th>
+        <th scope="col">Projects</th><th scope="col">Status</th><th scope="col">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td><a href="/admin/users/{{ user.id }}">{{ user.username }}</a></td>
+        <td>{{ user.full_name or "" }}</td>
+        <td>{{ user.email or "" }}</td>
+        <td>{{ memberships.get(user.id, 0) }}</td>
+        <td>
+          {% if user.disabled %}<span class="badge badge--danger">disabled</span>{% endif %}
+          {% if user.is_admin %}<span class="badge">admin</span>{% endif %}
+          {% if user.must_change_password %}<span class="badge badge--neutral">must change password</span>{% endif %}
+        </td>
+        <td>{{ when(user.created_at) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted">No users match.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "admin/_page.html" %}
+{% block title %}Settings · {{ product }}{% endblock %}
+{% block admin %}
+<h1>Settings</h1>
+<section class="card">
+  <h2>Health checks</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Detail</th></tr></thead>
+      <tbody>
+        {% for check in checks %}
+        <tr>
+          <td>{{ check.name }}</td>
+          <td>{% if check.ok %}<span class="badge badge--success">ok</span>{% else %}<span class="badge badge--danger">problem</span>{% endif %}</td>
+          <td>{{ check.detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="card">
+  <h2>Configuration</h2>
+  <p class="muted">Read-only view of the <code>OPENCDE_*</code> settings. Secrets are never shown. Change values in the environment or <code>.env</code> and restart.</p>
+  <div class="table-wrap">
+    <table class="table" data-filterable>
+      <thead><tr><th scope="col">Setting</th><th scope="col">Value</th></tr></thead>
+      <tbody>
+        {% for name, value in values %}
+        <tr><td><code>OPENCDE_{{ name|upper }}</code></td><td>{{ value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

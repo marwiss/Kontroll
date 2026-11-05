@@ -75,6 +75,8 @@ async def signin_submit(
 
     token = await sessions.create(user.id, ip)
     await audit.record(graph, "web.sign_in", actor=user.id, ip=ip)
+    if user.must_change_password:
+        target = "/account?notice=change_password"
     response = RedirectResponse(target, status_code=302, headers=NO_STORE)
     set_session_cookie(response, token, settings)
     return response

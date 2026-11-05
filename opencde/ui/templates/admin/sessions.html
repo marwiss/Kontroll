@@ -1,0 +1,70 @@
+{% extends "admin/_page.html" %}
+{% block title %}Sessions · {{ product }}{% endblock %}
+{% block admin %}
+<h1>Sessions</h1>
+
+<section class="card">
+  <h2>Applications with access</h2>
+  <p class="muted">Each row is a refresh-token family: one sign-in of a user through an application. Revoking ends it at once.</p>
+  {% if families %}
+  <div class="table-wrap">
+    <table class="table" data-filterable>
+      <thead><tr><th scope="col">User</th><th scope="col">Application</th><th scope="col">Scopes</th><th scope="col">Since</th><th scope="col">Expires</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        {% for row in families %}
+        <tr>
+          <td><a href="/admin/users/{{ row.user_id }}">{{ row.username }}</a></td>
+          <td><a href="/admin/clients/{{ row.client_id }}">{{ row.client_name }}</a></td>
+          <td>{{ row.scope }}</td>
+          <td>{{ when(row.created_at) }}</td>
+          <td>{{ when(row.expires_at) }}</td>
+          <td>
+            <form method="post" action="/admin/sessions">
+              <input type="hidden" name="form_token" value="{{ form_token }}">
+              <input type="hidden" name="action" value="revoke_family">
+              <input type="hidden" name="user_id" value="{{ row.user_id }}">
+              <input type="hidden" name="family_id" value="{{ row.family_id }}">
+              {{ button("Revoke", "danger") }}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No application holds a token right now.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Browser sessions</h2>
+  {% if web_sessions %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">User</th><th scope="col">Signed in</th><th scope="col">Idle until</th><th scope="col">Address</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        {% for row in web_sessions %}
+        <tr>
+          <td><a href="/admin/users/{{ row.user_id }}">{{ row.username }}</a></td>
+          <td>{{ when(row.created_at) }}</td>
+          <td>{{ when(row.idle_expires_at) }}</td>
+          <td>{{ row.ip or "" }}</td>
+          <td>
+            <form method="post" action="/admin/sessions">
+              <input type="hidden" name="form_token" value="{{ form_token }}">
+              <input type="hidden" name="action" value="revoke_web">
+              <input type="hidden" name="session_id" value="{{ row.id }}">
+              {{ button("End", "danger") }}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No browser sessions.</p>
+  {% endif %}
+</section>
+{% endblock %}
