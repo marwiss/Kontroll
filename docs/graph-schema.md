@@ -17,18 +17,25 @@ Documents labels as they are implemented.
 - Secrets (codes, tokens, client secrets) are stored only as SHA-256 hashes.
 - Cypher is dialect-neutral so Neo4j and Memgraph behave the same (ADR 0003).
   Schema DDL is the only product-specific text and lives in `graph/dialect.py`.
+- Names: labels are written in PascalCase (`DocumentVersion`, `IfcModel`),
+  relationship types in upper case with underscores (`HAS_TOPIC`,
+  `CREATED_BY`, and `IS_DEFINED_BY` for the IFC attribute relationships).
+  The diagrams below draw only real nodes and relationships; a reference kept
+  as a property (`AuditEvent.actor_user_id`, `UploadSession.user_id`) is listed
+  in the box instead of drawn as a line.
 
 ## Accounts and access (stage 1)
 
 ```mermaid
 erDiagram
-    User ||--o{ MEMBER_OF : role
-    MEMBER_OF }o--|| Project : ""
+    User }o--o{ Project : MEMBER_OF
     Project ||--|| Extensions : HAS_EXTENSIONS
-    Municipality ||--o{ Project : ISSUES
+    Reviewer ||--o{ Project : ISSUES
     Project ||--o{ Building : CONCERNS
-    User ||--o{ AuditEvent : actor
-    Client ||--o{ AuditEvent : client
+    AuditEvent {
+        string actor_user_id
+        string client_id
+    }
 ```
 
 | Label | Key | Properties | Notes |
@@ -39,13 +46,24 @@ erDiagram
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` is computed from members |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `created_at`, `created_by`, `dynamic`, `expires_at` (self-registered only) | OAuth2 client; a self-registered one is deleted once `expires_at` passes without a token issuance |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON string) | Security-relevant events |
-| `Municipality`, `Building` | `id` | `name`, `status` | Context from the inspection-plan use case (seed data) |
+| `Reviewer`, `Building` | `id` | `name`, `status` | Context from the inspection-plan use case (seed data): the reviewing organisation (a municipality in the original story) and the building |
 
 ## OAuth2 (stage 2)
 
-`AuthorizationCode`, `AccessToken`, `RefreshToken` (with `family_id`), `WebSession`:
-all keyed by a hash of the secret, all with `expires_at`, all linked
-`-[:ISSUED_TO]->(:Client)` and `-[:FOR]->(:User)`.
+```mermaid
+erDiagram
+    AuthorizationCode }o--|| User : FOR
+    AuthorizationCode }o--|| Client : ISSUED_TO
+    AccessToken }o--|| User : FOR
+    AccessToken }o--|| Client : ISSUED_TO
+    RefreshToken }o--|| User : FOR
+    RefreshToken }o--|| Client : ISSUED_TO
+```
+
+`AuthorizationCode`, `AccessToken` and `RefreshToken` (with `family_id`) are
+keyed by a hash of the secret, carry `expires_at`, and are linked
+`-[:FOR]->(:User)` and `-[:ISSUED_TO]->(:Client)`. `WebSession` (browser
+sign-in, stage 5) is linked `-[:FOR]->(:User)` only.
 
 ## BCF topics and events (stage 3)
 
@@ -106,6 +124,12 @@ erDiagram
     DocumentVersion }o--|| User : UPLOADED_BY
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
+    UploadSession {
+        string user_id
+    }
+    SelectionSession {
+        string user_id
+    }
 ```
 
 | Label | Key | Properties | Notes |
@@ -123,13 +147,13 @@ erDiagram
 erDiagram
     Project ||--o{ IfcModel : HAS_MODEL
     IfcModel ||--o| IfcEntity : HAS_PROJECT
-    IfcEntity }o--o{ IfcEntity : "attribute names"
+    IfcEntity }o--o{ IfcEntity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
     Component }o--o| IfcEntity : SAME_AS
 ```
 
 | Label | Key | Properties | Notes |
 |---|---|---|---|
 | `IfcModel` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
-| `IfcEntity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse) |
+| `IfcEntity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse), written like every relationship type in upper case with underscores: `IsDefinedBy` becomes `IS_DEFINED_BY` |
 
 See [ifcgraph.md](ifcgraph.md) for the conversion rules and example queries.
