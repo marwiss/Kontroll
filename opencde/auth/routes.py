@@ -327,7 +327,7 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
     return JSONResponse(
         {
             "access_token": pair.access_token,
-            "token_type": "bearer",
+            "token_type": "bearer",  # nosec B105 - the OAuth2 token type, not a credential
             "expires_in": pair.expires_in,
             "refresh_token": pair.refresh_token,
             "scope": pair.scope,
