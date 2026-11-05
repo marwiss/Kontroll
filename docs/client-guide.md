@@ -112,6 +112,14 @@ client that issues no token for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` (30 by
 default) is deleted together with its tokens. When the token endpoint then
 answers `invalid_client`, register again.
 
+**Pop-ups.** The pages your application opens in a pop-up (the authorization
+page, the Documents API selection and upload pages, and the sign-in they may
+need) do not isolate themselves: they send
+`Cross-Origin-Opener-Policy: unsafe-none`, so the window keeps its
+`window.opener` across the visit to the server and your callback page can
+`postMessage` the result back to the application. Only `/admin` and
+`/account` answer with `same-origin`.
+
 ## 3. BCF API
 
 - Everything under `/bcf/3.0/projects/{project_id}` is scoped to a project

@@ -36,7 +36,7 @@ documented limitation), **not met** (planned or left to the operator),
 | Content Security Policy without `unsafe-inline`, framing denied | met | `default-src 'none'` on API responses, `default-src 'self'; frame-ancestors 'none'` on pages; no inline scripts or styles; `X-Frame-Options: DENY` |
 | Cookies `HttpOnly`, `Secure`, `SameSite=Strict` | partly | `test_web_signin::test_sign_in_sets_a_hardened_cookie_and_sign_out_removes_it`; the cookie has no `__Host-` prefix yet |
 | CSRF protection on every state change from a browser | met | Signed, purpose-bound form tokens plus `Sec-Fetch-Site`/`Origin` checks, `test_csrf_protections_on_admin_forms`, `test_cross_site_posts_are_refused_and_next_cannot_leave_the_site` |
-| Browser security headers on every response | met | `X-Content-Type-Options`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`, `test_headers_and_errors` |
+| Browser security headers on every response | met | `X-Content-Type-Options`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, `Cross-Origin-Resource-Policy`, `Cross-Origin-Opener-Policy: same-origin` on the administration and account pages (the pages a client opens in a pop-up keep the browser default so the pop-up keeps its opener), `test_headers_and_errors` |
 | HSTS | met | Added by Caddy in the production overlay (`Caddyfile`) |
 | No sensitive data in URLs | partly | Tokens and passwords travel in headers and bodies only; the Documents API specification puts a one-time link token in `upload_ui_url`/`select_documents_url`, so it is 256 bits, stored hashed, valid 10 minutes and the page also requires a browser session as the same user |
 

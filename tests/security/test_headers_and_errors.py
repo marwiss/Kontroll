@@ -18,7 +18,7 @@ EXPECTED_HEADERS = {
     "x-content-type-options": "nosniff",
     "x-frame-options": "DENY",
     "referrer-policy": "no-referrer",
-    "cross-origin-opener-policy": "same-origin",
+    "cross-origin-opener-policy": "unsafe-none",
     "cache-control": "no-store",
 }
 
@@ -29,6 +29,16 @@ def test_security_headers_on_every_response(client: TestClient, path: str) -> No
     for name, value in EXPECTED_HEADERS.items():
         assert response.headers.get(name) == value, name
     assert "permissions-policy" in response.headers
+
+
+def test_opener_policy_isolates_only_the_administration(client: TestClient) -> None:
+    """Pages a client opens in a popup keep their opener, so the client's callback page can report back."""
+    for path in ("/signin", "/foundation/oauth2/auth", "/documents/1.0/document-selection", "/foundation/versions"):
+        response = client.get(path, follow_redirects=False)
+        assert response.headers["cross-origin-opener-policy"] == "unsafe-none", path
+    for path in ("/admin", "/admin/users", "/account"):
+        response = client.get(path, follow_redirects=False)
+        assert response.headers["cross-origin-opener-policy"] == "same-origin", path
 
 
 def test_not_found_uses_spec_error_body_with_a_code(client: TestClient) -> None:

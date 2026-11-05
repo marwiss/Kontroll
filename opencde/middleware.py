@@ -42,6 +42,14 @@ SECURITY_HEADERS: dict[bytes, bytes] = {
 # our own pages never do. It gets this policy instead, and is served only
 # outside production unless the operator asks for it (settings.api_docs_enabled).
 DOCS_PATHS = ("/docs", "/docs/oauth2-redirect")
+
+# A client opens the server's pages in a popup (the OAuth2 authorization page, the Documents API
+# selection and upload pages, the sign-in they may need) and its callback page reports back to the
+# window that opened it; a Cross-Origin-Opener-Policy of "same-origin" on those pages would cut
+# that opener and strand the user on the callback page. They keep the browser's default, and only
+# the administration and account pages, which no other site opens, isolate themselves.
+ISOLATED_PREFIXES = ("/admin", "/account")
+COOP_DEFAULT = b"unsafe-none"
 DOCS_CSP = (
     b"default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
     b"style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
@@ -76,6 +84,8 @@ class SecurityHeadersMiddleware:
                     defaults[b"cache-control"] = b"public, max-age=86400"
                 if scope["path"] in DOCS_PATHS:
                     defaults[b"content-security-policy"] = DOCS_CSP
+                if not scope["path"].startswith(ISOLATED_PREFIXES):
+                    defaults[b"cross-origin-opener-policy"] = COOP_DEFAULT
                 headers.extend((name, value) for name, value in defaults.items() if name not in present)
                 message["headers"] = headers
             await send(message)

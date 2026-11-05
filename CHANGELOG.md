@@ -18,6 +18,11 @@ the commit history.
   the local guide explain the `kontroll-graph-1 is unhealthy` stop (a
   password under 16 characters, or an old database volume) and how two
   checkouts share one machine (`COMPOSE_PROJECT_NAME`).
+- The pages a client opens in a pop-up (the authorization page, the
+  Documents API selection and upload pages, the sign-in) no longer send
+  `Cross-Origin-Opener-Policy: same-origin`, which cut the pop-up's link to
+  the application and left the user on the callback page with its address;
+  the administration and account pages keep the isolation.
 - The quick start names the demo user it signs in as, `inspection_manager`
   (the editor of *Building permit*), instead of a user that the seed does
   not create.
