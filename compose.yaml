@@ -1,0 +1,70 @@
+# Base stack: the API and a Neo4j Community database on a private network.
+# Nothing is published to the host here. Combine with one of:
+#   compose.dev.yaml     local development on http://localhost:8000
+#   compose.prod.yaml    production behind Caddy with automatic TLS   (stage 8)
+#   compose.tunnel.yaml  public https through a tunnel for client tests (stage 8)
+#   compose.memgraph.yaml  Memgraph instead of Neo4j                   (stage 8)
+#
+#   docker compose -f compose.yaml -f compose.dev.yaml up -d
+#
+# Configuration comes from .env (copy .env.example). Secrets never live in this file.
+
+name: kontroll
+
+services:
+  graph:
+    image: neo4j:5.26.32-community
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: "${OPENCDE_GRAPH_USER:-neo4j}/${OPENCDE_GRAPH_PASSWORD:?Set OPENCDE_GRAPH_PASSWORD in .env}"
+      NEO4J_dbms_security_auth__minimum__password__length: "16"
+      NEO4J_server_memory_heap_initial__size: "${NEO4J_HEAP:-512m}"
+      NEO4J_server_memory_heap_max__size: "${NEO4J_HEAP:-512m}"
+      NEO4J_server_memory_pagecache_size: "${NEO4J_PAGECACHE:-256m}"
+    volumes:
+      - graph-data:/data
+      - graph-logs:/logs
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-latest}
+    build: .
+    restart: unless-stopped
+    depends_on:
+      graph:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      OPENCDE_GRAPH_URI: bolt://graph:7687
+      OPENCDE_DATA_DIR: /data
+    volumes:
+      - api-data:/data
+    networks:
+      - internal
+    expose:
+      - "8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  graph-data:
+  graph-logs:
+  api-data:
+
+networks:
+  internal:

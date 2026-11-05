@@ -1,0 +1,15 @@
+{
+    "title": "dyn_reg_client_GET",
+    "description": "Dynamic Client Meta Data",
+    "type": "object",
+    "properties": {
+        "client_id": {
+            "type": "string",
+            "required": true
+        },
+        "client_secret": {
+            "type": "string",
+            "required": true
+        }
+    }
+}

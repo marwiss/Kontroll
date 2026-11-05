@@ -1,0 +1,23 @@
+{
+    "title": "dyn_reg_client_POST",
+    "description": "Dynamic Client Meta Data",
+    "type": "object",
+    "properties": {
+        "client_name": {
+            "type": "string",
+            "required": true
+        },
+        "client_description": {
+            "type": "string",
+            "required": false
+        },
+        "client_url": {
+            "type": "string",
+            "required": false
+        },
+        "redirect_url": {
+            "type": "string",
+            "required": true
+        }
+    }
+}
