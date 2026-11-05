@@ -1,0 +1,27 @@
+{% extends "admin/_page.html" %}
+{% block title %}Projects · {{ product }}{% endblock %}
+{% block admin %}
+<div class="toolbar">
+  <h1>Projects</h1>
+  <a class="btn btn--primary" href="/admin/projects/new">New project</a>
+</div>
+<div class="table-wrap">
+  <table class="table" data-filterable data-sortable>
+    <thead>
+      <tr><th scope="col">Name</th><th scope="col">Members</th><th scope="col">Topics</th><th scope="col">Documents</th><th scope="col">Created</th></tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+      {% set s = stats.get(project.project_id, {}) %}
+      <tr>
+        <td><a href="/admin/projects/{{ project.project_id }}">{{ project.name }}</a></td>
+        <td>{{ s.get("members", 0) }}</td><td>{{ s.get("topics", 0) }}</td><td>{{ s.get("documents", 0) }}</td>
+        <td>{{ when(project.created_at) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted">No projects yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

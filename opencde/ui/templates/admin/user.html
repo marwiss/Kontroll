@@ -1,0 +1,121 @@
+{% extends "admin/_page.html" %}
+{% block title %}{{ user.username }} · {{ product }}{% endblock %}
+{% block admin %}
+<div class="toolbar">
+  <h1>{{ user.username }}</h1>
+  <div class="cluster">
+    {% if user.disabled %}<span class="badge badge--danger">disabled</span>{% endif %}
+    {% if user.is_admin %}<span class="badge">admin</span>{% endif %}
+    {% if user.must_change_password %}<span class="badge badge--neutral">must change password</span>{% endif %}
+  </div>
+</div>
+{% if error %}{{ alert("error", error) }}{% endif %}
+
+<section class="card">
+  <h2>Account</h2>
+  <form method="post" action="/admin/users/{{ user.id }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="update">
+    <dl class="facts">
+      <dt>User id</dt><dd><code>{{ user.id }}</code></dd>
+      <dt>Created</dt><dd>{{ when(user.created_at) }}</dd>
+    </dl>
+    <div class="form-grid">
+      {{ field("full_name", "Full name", value=user.full_name or "", maxlength=200) }}
+      {{ field("email", "E-mail", type="email", value=user.email or "", maxlength=200) }}
+    </div>
+    {{ checkbox("disabled", "Disabled: cannot sign in; tokens are revoked", checked=user.disabled) }}
+    {{ checkbox("is_admin", "Administrator", checked=user.is_admin, hint="Changing this needs your password below.") }}
+    <details class="details">
+      <summary>Confirm with your password (needed when the administrator flag changes)</summary>
+      {{ confirm_password("update") }}
+    </details>
+    <div class="cluster">{{ button("Save") }}</div>
+    {% if is_self %}<p class="muted">You cannot disable your own account or drop your own administrator role.</p>{% endif %}
+  </form>
+</section>
+
+<section class="card">
+  <h2>Project roles</h2>
+  {% if memberships %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Project</th><th scope="col">Role</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        {% for project_id, name, role in memberships %}
+        <tr>
+          <td><a href="/admin/projects/{{ project_id }}">{{ name }}</a></td>
+          <td>
+            <form method="post" action="/admin/users/{{ user.id }}" class="cluster">
+              <input type="hidden" name="form_token" value="{{ form_token }}">
+              <input type="hidden" name="action" value="membership">
+              <input type="hidden" name="project_id" value="{{ project_id }}">
+              <label class="sr-only" for="role-{{ project_id }}">Role in {{ name }}</label>
+              <select class="select" id="role-{{ project_id }}" name="role">
+                {% for option in roles %}<option value="{{ option }}" {% if option == role.value %}selected{% endif %}>{{ option }}</option>{% endfor %}
+              </select>
+              {{ button("Change", "secondary") }}
+            </form>
+          </td>
+          <td>
+            <form method="post" action="/admin/users/{{ user.id }}" data-confirm="Remove {{ user.username }} from {{ name }}?">
+              <input type="hidden" name="form_token" value="{{ form_token }}">
+              <input type="hidden" name="action" value="remove_membership">
+              <input type="hidden" name="project_id" value="{{ project_id }}">
+              {{ button("Remove", "danger") }}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No project roles. The user can sign in but sees no projects.</p>
+  {% endif %}
+  {% if other_projects %}
+  <form method="post" action="/admin/users/{{ user.id }}" class="form-grid form-grid--end">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="membership">
+    {{ select_field("project_id", "Add to project", other_projects|map(attribute="project_id")|zip(other_projects|map(attribute="name"))|list) }}
+    {{ select_field("role", "Role", roles|zip(roles)|list, selected="viewer", hint="viewer reads; contributor adds; editor edits all; manager also renames and deletes") }}
+    <div class="field"><span class="field__label">&nbsp;</span>{{ button("Add role", "secondary") }}</div>
+  </form>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Sessions</h2>
+  <p class="muted">{{ web_sessions|length }} browser session(s). Application tokens are listed under <a href="/admin/sessions">Sessions</a>.</p>
+  <div class="cluster">
+    <form method="post" action="/admin/users/{{ user.id }}" data-confirm="Revoke every token and browser session of {{ user.username }}?">
+      <input type="hidden" name="form_token" value="{{ form_token }}">
+      <input type="hidden" name="action" value="revoke_sessions">
+      {{ button("Revoke all sessions and tokens", "secondary") }}
+    </form>
+  </div>
+</section>
+
+<section class="card card--danger">
+  <h2>Danger zone</h2>
+  <div class="stack">
+    <form method="post" action="/admin/users/{{ user.id }}" class="stack" data-confirm="Reset the password of {{ user.username }}? Their sessions and tokens are revoked.">
+      <input type="hidden" name="form_token" value="{{ form_token }}">
+      <input type="hidden" name="action" value="reset_password">
+      <h3>Reset password</h3>
+      <p class="muted">Generates a new password shown once; the user must change it at the next sign-in.</p>
+      {{ confirm_password("reset") }}
+      {{ button("Reset password", "danger") }}
+    </form>
+    {% if not is_self %}
+    <form method="post" action="/admin/users/{{ user.id }}" class="stack" data-confirm="Delete {{ user.username }} permanently? Topics and comments they wrote stay, with the author name.">
+      <input type="hidden" name="form_token" value="{{ form_token }}">
+      <input type="hidden" name="action" value="delete">
+      <h3>Delete user</h3>
+      {{ confirm_password("delete") }}
+      {{ button("Delete user", "danger") }}
+    </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

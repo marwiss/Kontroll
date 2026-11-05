@@ -1,0 +1,71 @@
+{# Building blocks of the admin pages. #}
+
+{% macro admin_nav(active) %}
+<nav class="sidenav" aria-label="Administration">
+  <ul class="sidenav__list">
+    {% for key, href, label in [
+      ("overview", "/admin", "Overview"),
+      ("users", "/admin/users", "Users"),
+      ("projects", "/admin/projects", "Projects"),
+      ("clients", "/admin/clients", "Clients"),
+      ("sessions", "/admin/sessions", "Sessions"),
+      ("audit", "/admin/audit", "Audit log"),
+      ("settings", "/admin/settings", "Settings"),
+    ] %}
+    <li><a href="{{ href }}" {% if active == key %}aria-current="page"{% endif %}>{{ label }}</a></li>
+    {% endfor %}
+  </ul>
+  <p class="sidenav__hint"><a href="/account">My account</a></p>
+</nav>
+{% endmacro %}
+
+{% macro notice_box(notice, kind) %}
+{% if notice %}
+<div class="alert alert--{{ kind or 'success' }}" role="status">{{ notice }}</div>
+{% endif %}
+{% endmacro %}
+
+{% macro select_field(name, label, options, selected="", hint="", required=false) %}
+<div class="field">
+  <label class="field__label" for="{{ name }}">{{ label }}</label>
+  <select class="select" id="{{ name }}" name="{{ name }}" {% if required %}required{% endif %}
+          {% if hint %}aria-describedby="{{ name }}-hint"{% endif %}>
+    {% for value, text in options %}
+    <option value="{{ value }}" {% if value == selected %}selected{% endif %}>{{ text }}</option>
+    {% endfor %}
+  </select>
+  {% if hint %}<p class="field__hint" id="{{ name }}-hint">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro textarea_field(name, label, value="", hint="", rows=4, maxlength=None) %}
+<div class="field">
+  <label class="field__label" for="{{ name }}">{{ label }}</label>
+  <textarea class="textarea" id="{{ name }}" name="{{ name }}" rows="{{ rows }}"
+            {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+            {% if hint %}aria-describedby="{{ name }}-hint"{% endif %}>{{ value }}</textarea>
+  {% if hint %}<p class="field__hint" id="{{ name }}-hint">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro checkbox(name, label, checked=false, hint="") %}
+<div class="field">
+  <label class="checkbox" for="{{ name }}">
+    <input type="checkbox" id="{{ name }}" name="{{ name }}" value="on" {% if checked %}checked{% endif %}
+           {% if hint %}aria-describedby="{{ name }}-hint"{% endif %}>
+    <span>{{ label }}</span>
+  </label>
+  {% if hint %}<p class="field__hint" id="{{ name }}-hint">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro confirm_password(form_id) %}
+<div class="field">
+  <label class="field__label" for="{{ form_id }}-confirm">Your password</label>
+  <input class="input" id="{{ form_id }}-confirm" name="confirm_password" type="password" autocomplete="current-password"
+         required maxlength="256" aria-describedby="{{ form_id }}-confirm-hint">
+  <p class="field__hint" id="{{ form_id }}-confirm-hint">Dangerous actions ask for your own password again.</p>
+</div>
+{% endmacro %}
+
+{% macro when(value) %}{% if value %}<time datetime="{{ value }}">{{ value[:16]|replace("T", " ") }}</time>{% endif %}{% endmacro %}

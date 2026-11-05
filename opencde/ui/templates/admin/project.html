@@ -1,0 +1,96 @@
+{% extends "admin/_page.html" %}
+{% block title %}{{ project.name }} · {{ product }}{% endblock %}
+{% block admin %}
+<h1>{{ project.name }}</h1>
+{% if error %}{{ alert("error", error) }}{% endif %}
+
+<section class="card">
+  <h2>Project</h2>
+  <form method="post" action="/admin/projects/{{ project.project_id }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="rename">
+    <dl class="facts">
+      <dt>Project id</dt><dd><code>{{ project.project_id }}</code></dd>
+      <dt>Created</dt><dd>{{ when(project.created_at) }}</dd>
+    </dl>
+    {{ field("name", "Name", value=project.name, required=true, maxlength=200) }}
+    <div class="cluster">{{ button("Rename") }}</div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Members</h2>
+  {% if members %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        {% for user, role in members %}
+        <tr>
+          <td><a href="/admin/users/{{ user.id }}">{{ user.username }}</a>{% if user.full_name %} <span class="muted">{{ user.full_name }}</span>{% endif %}</td>
+          <td>
+            <form method="post" action="/admin/projects/{{ project.project_id }}" class="cluster">
+              <input type="hidden" name="form_token" value="{{ form_token }}">
+              <input type="hidden" name="action" value="member">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <label class="sr-only" for="role-{{ user.id }}">Role of {{ user.username }}</label>
+              <select class="select" id="role-{{ user.id }}" name="role">
+                {% for option in roles %}<option value="{{ option }}" {% if option == role.value %}selected{% endif %}>{{ option }}</option>{% endfor %}
+              </select>
+              {{ button("Change", "secondary") }}
+            </form>
+          </td>
+          <td>
+            <form method="post" action="/admin/projects/{{ project.project_id }}" data-confirm="Remove {{ user.username }} from {{ project.name }}?">
+              <input type="hidden" name="form_token" value="{{ form_token }}">
+              <input type="hidden" name="action" value="remove_member">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              {{ button("Remove", "danger") }}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No members yet. Nobody can see this project through the APIs until someone has a role.</p>
+  {% endif %}
+  {% if other_users %}
+  <form method="post" action="/admin/projects/{{ project.project_id }}" class="form-grid form-grid--end">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="member">
+    {{ select_field("user_id", "Add member", other_users|map(attribute="id")|zip(other_users|map(attribute="username"))|list) }}
+    {{ select_field("role", "Role", roles|zip(roles)|list, selected="viewer", hint="viewer reads; contributor adds; editor edits all; manager also renames and deletes") }}
+    <div class="field"><span class="field__label">&nbsp;</span>{{ button("Add member", "secondary") }}</div>
+  </form>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>BCF extensions</h2>
+  <p class="muted">The values clients may use for topics, one per line (BCF API 3.1.4). Users are listed automatically from the members.</p>
+  <form method="post" action="/admin/projects/{{ project.project_id }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="extensions">
+    <div class="form-grid">
+      {% for name, label, value in extensions %}
+      {{ textarea_field(name, label, value=value, rows=5, maxlength=20000) }}
+      {% endfor %}
+    </div>
+    <div class="cluster">{{ button("Save extensions") }}</div>
+  </form>
+</section>
+
+<section class="card card--danger">
+  <h2>Danger zone</h2>
+  <form method="post" action="/admin/projects/{{ project.project_id }}" class="stack" data-confirm="Delete {{ project.name }} with all its topics, comments, viewpoints and documents? This cannot be undone.">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="delete">
+    <h3>Delete project</h3>
+    <p class="muted">Deletes every topic, comment, viewpoint, document and file of the project.</p>
+    {{ confirm_password("delete") }}
+    {{ button("Delete project", "danger") }}
+  </form>
+</section>
+{% endblock %}

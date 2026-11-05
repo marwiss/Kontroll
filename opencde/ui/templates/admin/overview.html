@@ -1,0 +1,44 @@
+{% extends "admin/_page.html" %}
+{% block title %}Administration · {{ product }}{% endblock %}
+{% block admin %}
+<h1>Overview</h1>
+{% if not graph_ok %}
+{{ alert("error", "The graph database does not answer. Nothing can be read or changed until it is back.") }}
+{% endif %}
+<div class="grid">
+  <a class="stat stat--link" href="/admin/users"><span class="stat__value">{{ counts.get("users", "–") }}</span><span class="stat__label">Users</span></a>
+  <a class="stat stat--link" href="/admin/projects"><span class="stat__value">{{ counts.get("projects", "–") }}</span><span class="stat__label">Projects</span></a>
+  <a class="stat stat--link" href="/admin/clients"><span class="stat__value">{{ counts.get("clients", "–") }}</span><span class="stat__label">Clients</span></a>
+  <div class="stat"><span class="stat__value">{{ counts.get("topics", "–") }}</span><span class="stat__label">Topics</span></div>
+  <div class="stat"><span class="stat__value">{{ (counts.get("documents", 0) + counts.get("bcf_documents", 0)) if counts else "–" }}</span><span class="stat__label">Documents</span></div>
+  <a class="stat stat--link" href="/admin/sessions"><span class="stat__value">{{ counts.get("sessions", "–") }}</span><span class="stat__label">Active app sessions</span></a>
+</div>
+
+<section class="card">
+  <h2>Database</h2>
+  <dl class="facts">
+    <dt>Dialect</dt><dd>{{ dialect }}</dd>
+    <dt>Status</dt><dd>{% if graph_ok %}<span class="badge badge--success">answers</span>{% else %}<span class="badge badge--danger">unavailable</span>{% endif %}</dd>
+  </dl>
+  <p><a href="/admin/settings">Configuration and health checks</a></p>
+</section>
+
+<section class="card">
+  <h2>Recent audit events</h2>
+  {% if recent %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">When</th><th scope="col">Event</th><th scope="col">Actor</th><th scope="col">Address</th></tr></thead>
+      <tbody>
+        {% for event in recent %}
+        <tr><td>{{ when(event.at) }}</td><td><code>{{ event.type }}</code></td><td>{{ event.actor or "" }}</td><td>{{ event.ip or "" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p><a href="/admin/audit">Full audit log</a></p>
+  {% else %}
+  <p class="muted">No events yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
