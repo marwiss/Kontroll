@@ -43,7 +43,7 @@ comes from `OPENCDE_DATASPATIUM_URL`; the administration API is mounted by
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "0.1.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Kontroll OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
@@ -115,12 +115,11 @@ its tokens change, Kontroll's follow.
 
 ### 6. Releases that can be matched (K, small; D, small)
 
-Kontroll has no tagged release yet (`0.1.0.dev0`); Dataspatium releases
-weekly. A first tagged Kontroll release, a changelog that lists client-visible
-changes, and a compatibility line in both READMEs ("Dataspatium 2.32 or later
-works with Kontroll 0.1 or later") let users and the live suites pin what
-goes together. Kontroll's release workflow already builds the image and the
-SBOM on a tag.
+Done 2026-11-05: Kontroll v2.0.0 was tagged the day Dataspatium 2.0.0 was
+published, with `CHANGELOG.md` listing the client-visible changes and the
+compatibility line "Dataspatium 2.0.0 works with Kontroll 2.0.0" in every
+README. From here the two take the same numbers in lockstep (decision C);
+Kontroll's release workflow builds the image and the SBOM on a tag.
 
 ### 7. Cross-repository tests in CI (D, medium; K, small)
 
