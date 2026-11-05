@@ -152,7 +152,7 @@ mikään ole auki ennen kuin se on määritetty.
 Kontroll (palvelin) ja [Dataspatium](https://github.com/marwiss/Dataspatium)
 (kokonaan selaimessa toimiva datasovellus) on kehitetty toimimaan yhdessä
 palvelimena ja asiakkaana, ja sama julkaisunumero molemmissa tarkoittaa, että
-ne toimivat yhdessä: Dataspatium 2.2.0 toimii Kontroll 2.2.0:n kanssa
+ne toimivat yhdessä: Dataspatium 2.3.0 toimii Kontroll 2.3.0:n kanssa
 ([pika-aloitus](quickstart.md)).
 Dataspatium lisää Kontroll-palvelimen lähteeksi: sovellus löytää rajapinnat
 osoitteesta `/foundation/versions`, kirjautuu OAuth2 authorization code

@@ -1,6 +1,6 @@
 [project]
 name = "opencde-server"
-version = "2.2.0"
+version = "2.3.0"
 description = "buildingSMART OpenCDE server: Foundation API 1.0, BCF API 3.0 and Documents API 1.0 on a graph database."
 readme = "README.md"
 license = "AGPL-3.0-or-later"

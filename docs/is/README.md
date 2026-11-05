@@ -143,7 +143,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
 Kontroll (þjónninn) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (gagnaforrit sem keyrir alfarið í vafranum) eru þróuð til að vinna saman sem
 þjónn og biðlari, og sama útgáfunúmer á báðum þýðir að þau vinna saman:
-Dataspatium 2.2.0 vinnur með Kontroll 2.2.0 ([fljótleg byrjun](quickstart.md)).
+Dataspatium 2.3.0 vinnur með Kontroll 2.3.0 ([fljótleg byrjun](quickstart.md)).
 Dataspatium bætir Kontroll-þjóni
 við sem uppsprettu: forritið uppgötvar forritaskilin um `/foundation/versions`,
 skráir sig inn með OAuth2 authorization code og PKCE og skráir sig sjálft sem
