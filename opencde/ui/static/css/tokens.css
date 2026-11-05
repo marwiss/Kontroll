@@ -28,9 +28,10 @@
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
   --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.06);
 
-  --color-accent: #1f6f8b;
-  --color-accent-strong: #185a70;
-  --color-accent-soft: #e3f1f6;
+  /* The brand blue of the mark, shared with Dataspatium (its --dm-accent, --dm-accent-hover, --dm-accent-soft). */
+  --color-accent: #2b6cb0;
+  --color-accent-strong: #245c96;
+  --color-accent-soft: #e6effa;
   --color-on-accent: #ffffff;
 
   --color-bg: #f4f6f8;
@@ -48,15 +49,15 @@
   --color-danger: #b42318;
   --color-danger-soft: #fde8e6;
 
-  --focus-ring: 0 0 0 3px rgba(31, 111, 139, 0.35);
+  --focus-ring: 0 0 0 3px rgba(43, 108, 176, 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-accent: #5fb3d1;
-    --color-accent-strong: #7cc3dc;
-    --color-accent-soft: #15303b;
-    --color-on-accent: #0b1a21;
+    --color-accent: #7fb0ea;
+    --color-accent-strong: #9cc3f0;
+    --color-accent-soft: #16304d;
+    --color-on-accent: #0b1a2c;
 
     --color-bg: #0f141a;
     --color-surface: #171e26;
@@ -75,6 +76,6 @@
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
-    --focus-ring: 0 0 0 3px rgba(95, 179, 209, 0.45);
+    --focus-ring: 0 0 0 3px rgba(127, 176, 234, 0.45);
   }
 }
