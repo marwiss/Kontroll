@@ -35,7 +35,7 @@ project plan. This file is updated with every stage.
 | `GET /foundation/1.0/current-user` | returned internal user fields | keep; `id` and `name` per `user_GET.json` | 2 |
 | Authorization endpoint (sign-in and consent page) | `GET /foundation/oauth2/auth` + `GET .../code` with password in the URL | reshape: `GET` renders the page, `POST` verifies and redirects (302) with `code`, `state`, `iss`; PKCE S256 required | 2 |
 | Token endpoint | `POST /foundation/oauth2/token`, JWT, non-expiring | reshape: opaque hashed tokens, one-time rotating refresh tokens, 201, `Cache-Control: no-store` | 2 |
-| Dynamic client registration (spec 2.2.3) | commented out | new; off by default; `token_endpoint_auth_method: "none"` registers a public client without a secret (RFC 7591 §2), the response carries the RFC 7591 §3.2.1 metadata; registrations unused for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` expire (`opencde client prune` does it at once) | 2, 11 |
+| Dynamic client registration (spec 2.2.3) | commented out | new; off by default; `token_endpoint_auth_method: "none"` registers a public client without a secret (RFC 7591 §2), the response carries the RFC 7591 §3.2.1 metadata; `software_id`/`software_version` are stored on the `Client` node, echoed in the response and shown on the clients page and by `opencde client list`; registrations unused for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` expire (`opencde client prune` does it at once) | 2, 11 |
 | Token revocation (RFC 7009) | no | new (extension) | 2 |
 | Single hard-coded client from environment variables | yes | reshape: clients in the graph, managed by CLI and admin UI | 2, 6 |
 | Scopes `test`, `user`, `admin`, undocumented `test` required everywhere | yes | reshape: server-defined scopes per route | 2 |

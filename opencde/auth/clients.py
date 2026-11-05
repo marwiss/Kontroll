@@ -40,6 +40,8 @@ class Client:
     created_by: str | None
     dynamic: bool
     expires_at: str | None = None  # self-registered clients only: deleted once unused past this moment
+    software_id: str | None = None  # RFC 7591: which software registered, and its version
+    software_version: str | None = None
 
     @property
     def is_confidential(self) -> bool:
@@ -59,12 +61,14 @@ def _client(row: dict[str, Any]) -> Client:
         created_by=row.get("created_by"),
         dynamic=bool(row.get("dynamic", False)),
         expires_at=row.get("expires_at"),
+        software_id=row.get("software_id"),
+        software_version=row.get("software_version"),
     )
 
 
 FIELDS = (
     "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, "
-    ".dynamic, .expires_at}"
+    ".dynamic, .expires_at, .software_id, .software_version}"
 )
 
 
@@ -136,6 +140,8 @@ class ClientRepository:
         dynamic: bool = False,
         client_id: str | None = None,
         expires_at: str | None = None,
+        software_id: str | None = None,
+        software_version: str | None = None,
     ) -> tuple[Client, str | None]:
         """Create a client. Returns the client and, for confidential clients, the secret (shown once).
 
@@ -156,7 +162,7 @@ class ClientRepository:
                 client_id: $client_id, name: $name, description: $description, url: $url,
                 redirect_uris: $redirect_uris, is_public: $public, secret_hash: $secret_hash,
                 disabled: false, created_at: $now, created_by: $created_by, dynamic: $dynamic,
-                expires_at: $expires_at
+                expires_at: $expires_at, software_id: $software_id, software_version: $software_version
             }})
             RETURN {FIELDS} AS client
             """,
@@ -171,6 +177,8 @@ class ClientRepository:
             created_by=created_by,
             dynamic=dynamic,
             expires_at=expires_at if dynamic else None,
+            software_id=(software_id or "").strip()[:100] or None,
+            software_version=(software_version or "").strip()[:50] or None,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
             raise ClientError("client was not created")

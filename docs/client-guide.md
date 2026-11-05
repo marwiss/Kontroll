@@ -60,14 +60,19 @@ Content-Type: application/json
 {"client_name": "My viewer",
  "redirect_uris": ["http://127.0.0.1:8093/oauth-callback.html"],
  "token_endpoint_auth_method": "none",
- "grant_types": ["authorization_code", "refresh_token"]}
+ "grant_types": ["authorization_code", "refresh_token"],
+ "software_id": "my-viewer",
+ "software_version": "1.4.0"}
 ```
 
 The answer (201) carries `client_id`, `client_id_issued_at` and the registered
 metadata. A confidential client (the default `token_endpoint_auth_method`,
 `client_secret_basic`) also gets its `client_secret` once, with
 `client_secret_expires_at: 0`. Redirect URIs follow the rules above, and only
-the authorization code and refresh token grants exist.
+the authorization code and refresh token grants exist. Send `software_id` and
+`software_version` (RFC 7591 §2): the server stores them on the client and
+shows them to administrators next to the registration, which is how an
+operator tells installations and versions of your application apart.
 
 Register once per installation and store the `client_id`: a self-registered
 client that issues no token for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` (30 by

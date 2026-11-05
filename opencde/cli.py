@@ -502,7 +502,8 @@ def client_list() -> None:
     for client in _run(work):
         kind = "public" if client.is_public else "confidential"
         flags = " disabled" if client.disabled else ""
-        print(f"{client.client_id}  {kind:12}{flags:9} {client.name}  {', '.join(client.redirect_uris)}")
+        software = f"  [{client.software_id} {client.software_version or ''}]".rstrip() if client.software_id else ""
+        print(f"{client.client_id}  {kind:12}{flags:9} {client.name}  {', '.join(client.redirect_uris)}{software}")
 
 
 @client_app.command("rotate-secret")
