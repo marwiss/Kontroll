@@ -23,6 +23,7 @@ from opencde.auth.clients import Client, ClientError
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import ClientsDep, GraphDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 
 router = APIRouter(prefix="/admin/clients", include_in_schema=False)
@@ -42,7 +43,7 @@ def _client_page(
     )
 
 
-def _secret_page(request: Request, admin: AdminDep, client: Client, secret: str, lead: str) -> Response:
+def _secret_page(request: Request, admin: AdminDep, client: Client, secret: str, lead_key: str) -> Response:
     return render(
         request,
         "admin/secret.html",
@@ -50,13 +51,13 @@ def _secret_page(request: Request, admin: AdminDep, client: Client, secret: str,
             request,
             admin,
             "clients",
-            title=f"Client secret for {client.name}",
-            lead=lead,
+            title=tr(request, "admin.secret.client_secret_for", client=client.name),
+            lead=tr(request, lead_key),
             secret=secret,
-            extra_label="Client id",
+            extra_label=tr(request, "admin.secret.client_id"),
             extra_value=client.client_id,
             back_url=f"/admin/clients/{client.client_id}",
-            back_text="Open the client",
+            back_text=tr(request, "admin.secret.open_client"),
         ),
     )
 
@@ -99,9 +100,7 @@ async def client_create(request: Request, admin: AdminDep, clients: ClientsDep, 
         )
     await form.record(graph, "client.create", client_id=client.client_id, public=public)
     if secret:
-        return _secret_page(
-            request, admin, client, secret, "Store the secret in the application's configuration now; it is shown once."
-        )
+        return _secret_page(request, admin, client, secret, "admin.secret.client_secret_lead")
     return redirect_with_notice(f"/admin/clients/{client.client_id}", "created")
 
 
@@ -154,9 +153,7 @@ async def client_action(
                 return redirect_with_notice(page, "wrong_password")
             secret = await clients.rotate_secret(client.client_id)
             await form.record(graph, "client.rotate_secret", client_id=client.client_id)
-            return _secret_page(
-                request, admin, client, secret, "The old secret stopped working. Update the application now."
-            )
+            return _secret_page(request, admin, client, secret, "admin.secret.client_secret_rotated_lead")
 
         if action == "revoke":
             await tokens.revoke_all_for_client(client.client_id)

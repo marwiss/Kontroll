@@ -1,19 +1,19 @@
 {% extends "admin/_page.html" %}
-{% block title %}Audit log · {{ product }}{% endblock %}
+{% block title %}{{ t("nav.audit") }} · {{ product }}{% endblock %}
 {% block admin %}
 <div class="toolbar">
-  <h1>Audit log</h1>
-  <a class="btn btn--secondary" href="/admin/audit.csv{% if type_prefix %}?type={{ type_prefix|urlencode }}{% endif %}">Download CSV</a>
+  <h1>{{ t("nav.audit") }}</h1>
+  <a class="btn btn--secondary" href="/admin/audit.csv{% if type_prefix %}?type={{ type_prefix|urlencode }}{% endif %}">{{ t("admin.audit.csv") }}</a>
 </div>
 <form method="get" action="/admin/audit" class="toolbar" role="search">
-  <label class="sr-only" for="type">Event type starts with</label>
-  <input class="input toolbar__search" id="type" name="type" type="search" value="{{ type_prefix }}" placeholder="Filter by event type, e.g. auth. or admin.user" maxlength="64">
-  <button class="btn btn--secondary" type="submit">Filter</button>
+  <label class="sr-only" for="type">{{ t("admin.audit.type_label") }}</label>
+  <input class="input toolbar__search" id="type" name="type" type="search" value="{{ type_prefix }}" placeholder="{{ t('admin.audit.type_placeholder') }}" maxlength="64">
+  <button class="btn btn--secondary" type="submit">{{ t("common.filter") }}</button>
 </form>
-<p class="muted">The latest {{ limit }} events{% if type_prefix %} starting with <code>{{ type_prefix }}</code>{% endif %}. Secrets never appear here.</p>
+<p class="muted">{{ t("admin.audit.lead", limit=limit) }}{% if type_prefix %} {{ t("admin.audit.starting_with") }} <code>{{ type_prefix }}</code>{% endif %}. {{ t("admin.audit.no_secrets") }}</p>
 <div class="table-wrap">
   <table class="table" data-filterable>
-    <thead><tr><th scope="col">When</th><th scope="col">Event</th><th scope="col">Actor</th><th scope="col">Client</th><th scope="col">Address</th><th scope="col">Details</th></tr></thead>
+    <thead><tr><th scope="col">{{ t("common.when") }}</th><th scope="col">{{ t("admin.overview.event") }}</th><th scope="col">{{ t("admin.overview.actor") }}</th><th scope="col">{{ t("common.client") }}</th><th scope="col">{{ t("common.address") }}</th><th scope="col">{{ t("admin.audit.details") }}</th></tr></thead>
     <tbody>
       {% for row in rows %}
       <tr>
@@ -25,7 +25,7 @@
         <td><code class="wrap">{{ row.details }}</code></td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="muted">No events.</td></tr>
+      <tr><td colspan="6" class="muted">{{ t("admin.audit.none") }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

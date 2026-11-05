@@ -1,6 +1,9 @@
 // Table enhancements: a filter box for tables marked data-filterable and
 // click-to-sort headers for tables marked data-sortable. Everything is built
 // with DOM APIs (no innerHTML); the table works unchanged without this script.
+// Texts come from data-t-* attributes on <html>, rendered in the page's language.
+
+const texts = document.documentElement.dataset;
 
 function rowsOf(table) {
   return Array.from(table.tBodies[0]?.rows ?? []);
@@ -12,11 +15,11 @@ function addFilter(table) {
   label.className = "table-tools";
   const text = document.createElement("span");
   text.className = "sr-only";
-  text.textContent = "Filter rows";
+  text.textContent = texts.tFilterRows || "Filter rows";
   const input = document.createElement("input");
   input.type = "search";
   input.className = "input";
-  input.placeholder = "Filter rows…";
+  input.placeholder = texts.tFilterPlaceholder || "Filter rows…";
   input.setAttribute("aria-controls", table.id || (table.id = `table-${Math.random().toString(36).slice(2, 8)}`));
   label.append(text, input);
   wrap.parentNode.insertBefore(label, wrap);
@@ -26,6 +29,7 @@ function addFilter(table) {
   status.setAttribute("role", "status");
   wrap.parentNode.insertBefore(status, wrap.nextSibling);
 
+  const pattern = texts.tRowsMatch || "{shown} of {total} rows match";
   input.addEventListener("input", () => {
     const needle = input.value.trim().toLowerCase();
     let shown = 0;
@@ -34,7 +38,9 @@ function addFilter(table) {
       row.hidden = !match;
       if (match) shown += 1;
     }
-    status.textContent = needle ? `${shown} of ${rowsOf(table).length} rows match` : "";
+    status.textContent = needle
+      ? pattern.replace("{shown}", String(shown)).replace("{total}", String(rowsOf(table).length))
+      : "";
   });
 }
 

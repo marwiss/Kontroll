@@ -211,8 +211,8 @@ Dokumentationen är på engelska; översättningar till svenska, danska, norska
   lämnas halvimporterade.
 - Webbsidorna är till för administratörer och för OAuth2- och Documents
   API-flödena; slutanvändare arbetar i en klient som Dataspatium eller Bonsai.
-- Sidorna är på engelska tills vidare; språklagret på den här README-filens sju
-  språk byggs tillsammans med Dataspatium.
+- Sidorna finns på den här README-filens sju språk (byt längst ned på varje
+  sida); meddelanden från serverns valideringskod är på engelska tills vidare.
 - Ingen extern granskning ännu. OAuch- och testssl-körningarna i
   [docs/security/pentest-howto.md](../security/pentest-howto.md) är
   operatörens steg före en produktionsdriftsättning.

@@ -1,14 +1,14 @@
 {% extends "admin/_page.html" %}
-{% block title %}Projects · {{ product }}{% endblock %}
+{% block title %}{{ t("nav.projects") }} · {{ product }}{% endblock %}
 {% block admin %}
 <div class="toolbar">
-  <h1>Projects</h1>
-  <a class="btn btn--primary" href="/admin/projects/new">New project</a>
+  <h1>{{ t("nav.projects") }}</h1>
+  <a class="btn btn--primary" href="/admin/projects/new">{{ t("admin.projects.new") }}</a>
 </div>
 <div class="table-wrap">
   <table class="table" data-filterable data-sortable>
     <thead>
-      <tr><th scope="col">Name</th><th scope="col">Members</th><th scope="col">Topics</th><th scope="col">Documents</th><th scope="col">Created</th></tr>
+      <tr><th scope="col">{{ t("common.name") }}</th><th scope="col">{{ t("common.members") }}</th><th scope="col">{{ t("opencde.kind.topics") }}</th><th scope="col">{{ t("common.documents") }}</th><th scope="col">{{ t("common.created") }}</th></tr>
     </thead>
     <tbody>
       {% for project in projects %}
@@ -19,7 +19,7 @@
         <td>{{ when(project.created_at) }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="muted">No projects yet.</td></tr>
+      <tr><td colspan="5" class="muted">{{ t("admin.projects.none") }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

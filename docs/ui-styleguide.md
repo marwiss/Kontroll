@@ -122,8 +122,41 @@ the mark.
 - Hints explain consequences in one sentence next to the field.
 - Error and notice texts never echo user input and never reveal whether an
   account exists ("The user name or password is not correct.").
-- English in the UI; terms follow the specifications (topic, viewpoint,
-  client, redirect URI, scope, role).
+- Every text comes from the language catalogues through `t("key")` (see
+  "Language layer" below); English is the source and the other six languages
+  follow Dataspatium's glossary. Terms follow the specifications (topic,
+  viewpoint, client, redirect URI, scope, role) and API terms stay as they
+  are in every language.
+
+## Language layer
+
+The pages exist in the seven languages of the README. The mechanics are
+Dataspatium's: one flat catalogue per language in `opencde/ui/i18n/<lang>.json`
+with dotted keys and `{name}` parameters, the same key names where the two
+products share a concept (`opencde.signin`, `opencde.signout`,
+`opencde.project`, `opencde.kind.topics`, `common.cancel`, `common.save` …),
+and our own areas for the rest (`nav.*`, `account.*`, `docs.*`, `admin.*`,
+`notice.*`, `js.*`).
+
+- Templates and macros call `t("key")` or `t("key", name=value)`; the
+  language of the request sits in a context variable that `render()` sets,
+  so imported macros translate too. Python code that builds a page text
+  before rendering uses `tr(request, "key")`.
+- The language is chosen per request: `?lang=xx` (remembered in the
+  `opencde_lang` cookie for a year), the cookie, the browser's
+  `Accept-Language` (plain `no` means Bokmål), English. The footer of every
+  page carries the switcher.
+- Scripts never hold texts: `base.html` puts the few strings the scripts need
+  in `data-t-*` attributes on `<html>` (filter box, row counts, the
+  confirmation dialog, copy feedback).
+- A missing key in another language falls back to English; a key missing
+  everywhere renders as the key itself. The unit test
+  `test_every_language_has_every_key_of_the_english_source` keeps the seven
+  catalogues identical in their key sets and parameters, so add every new key
+  to all of them in the same commit.
+- Not yet translated: the messages that the account, project and client
+  code raise on invalid input (`AccountError`, `ClientError`), which the CLI
+  shares; they stay English until they are keyed.
 
 ## JavaScript rules
 

@@ -1,16 +1,16 @@
 {% extends "admin/_page.html" %}
-{% block title %}New project · {{ product }}{% endblock %}
+{% block title %}{{ t("admin.projects.new") }} · {{ product }}{% endblock %}
 {% block admin %}
-<h1>New project</h1>
+<h1>{{ t("admin.projects.new") }}</h1>
 <section class="card">
   {% if error %}{{ alert("error", error) }}{% endif %}
   <form method="post" action="/admin/projects" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
-    {{ field("name", "Name", required=true, autofocus=true, maxlength=200, hint="Shown to every member and to BCF clients.") }}
-    <p class="muted">The project starts with the default BCF extension values (types, statuses, labels, priorities, stages); edit them afterwards.</p>
+    {{ field("name", t("common.name"), required=true, autofocus=true, maxlength=200, hint=t("admin.project_new.name_hint")) }}
+    <p class="muted">{{ t("admin.project_new.defaults") }}</p>
     <div class="cluster">
-      {{ button("Create project") }}
-      <a class="btn btn--secondary" href="/admin/projects">Cancel</a>
+      {{ button(t("admin.project_new.create")) }}
+      <a class="btn btn--secondary" href="/admin/projects">{{ t("common.cancel") }}</a>
     </div>
   </form>
 </section>

@@ -30,15 +30,6 @@ router = APIRouter(prefix="/admin/projects", include_in_schema=False)
 
 ProjectId = Annotated[str, Path(alias="project_id", max_length=64)]
 ROLES = [role.value for role in Role]
-EXTENSION_LABELS = {
-    "topic_type": "Topic types",
-    "topic_status": "Topic statuses",
-    "topic_label": "Labels",
-    "snippet_type": "Snippet types",
-    "priority": "Priorities",
-    "stage": "Stages",
-    "custom_information": "Custom information",
-}
 
 
 async def _project_page(
@@ -65,9 +56,8 @@ async def _project_page(
             members=members,
             other_users=[u for u in await users.search(limit=1000) if u.id not in member_ids],
             roles=ROLES,
-            extensions=[
-                (name, EXTENSION_LABELS[name], "\n".join(extensions.get(name, []))) for name in EXTENSION_LISTS
-            ],
+            # (name, value); the page labels each list with t("admin.project.ext.<name>")
+            extensions=[(name, "\n".join(extensions.get(name, []))) for name in EXTENSION_LISTS],
             form_token=form.token(),
             error=error,
             dataspatium_link=dataspatium_link(request.app.state.settings, project_id=project.project_id),

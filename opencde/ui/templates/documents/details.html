@@ -5,31 +5,31 @@
 {% block content %}
 <section class="card">
   <h1 class="card__title">{{ record.title }}</h1>
-  <p class="card__lead">Version {{ record.version_number }} in <strong>{{ record.project_name }}</strong></p>
+  <p class="card__lead">{{ t("docs.details.version_in", version=record.version_number) }} <strong>{{ record.project_name }}</strong></p>
   <dl class="facts">
-    <dt>File</dt><dd><code>{{ record.file_name }}</code> ({{ record.size_in_bytes }} bytes)</dd>
-    <dt>Uploaded</dt><dd><time datetime="{{ record.creation_date }}">{{ record.creation_date }}</time> by {{ record.author }}</dd>
-    <dt>Version index</dt><dd>{{ record.version_index }}</dd>
+    <dt>{{ t("common.file") }}</dt><dd><code>{{ record.file_name }}</code> ({{ record.size_in_bytes }} {{ t("docs.details.bytes") }})</dd>
+    <dt>{{ t("docs.details.uploaded") }}</dt><dd><time datetime="{{ record.creation_date }}">{{ record.creation_date }}</time> {{ t("docs.details.by") }} {{ record.author }}</dd>
+    <dt>{{ t("docs.details.version_index") }}</dt><dd>{{ record.version_index }}</dd>
     <dt>SHA-256</dt><dd><code>{{ record.sha256 }}</code></dd>
-    <dt>Document id</dt><dd><code>{{ record.document_id }}</code></dd>
+    <dt>{{ t("docs.details.document_id") }}</dt><dd><code>{{ record.document_id }}</code></dd>
   </dl>
   <div class="cluster">
-    <a class="btn btn--primary" href="{{ download_url }}">Download</a>
-    {% if dataspatium_link %}<a class="btn btn--secondary" href="{{ dataspatium_link }}" rel="noopener">Open in Dataspatium</a>{% endif %}
+    <a class="btn btn--primary" href="{{ download_url }}">{{ t("docs.details.download") }}</a>
+    {% if dataspatium_link %}<a class="btn btn--secondary" href="{{ dataspatium_link }}" rel="noopener">{{ t("common.open_in_dataspatium") }}</a>{% endif %}
   </div>
 </section>
 
 <section class="card">
-  <h2>All versions</h2>
+  <h2>{{ t("docs.details.all_versions") }}</h2>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">Version</th><th scope="col">File</th><th scope="col">Uploaded</th></tr></thead>
+      <thead><tr><th scope="col">{{ t("common.version") }}</th><th scope="col">{{ t("common.file") }}</th><th scope="col">{{ t("docs.details.uploaded") }}</th></tr></thead>
       <tbody>
         {% for version in versions %}
         <tr>
           <td>{% if version.version_index == record.version_index %}<strong>{{ version.version_number }}</strong>{% else %}{{ version.version_number }}{% endif %}</td>
           <td><code>{{ version.file_name }}</code></td>
-          <td><time datetime="{{ version.creation_date }}">{{ version.creation_date[:10] }}</time> by {{ version.author }}</td>
+          <td><time datetime="{{ version.creation_date }}">{{ version.creation_date[:10] }}</time> {{ t("docs.details.by") }} {{ version.author }}</td>
         </tr>
         {% endfor %}
       </tbody>

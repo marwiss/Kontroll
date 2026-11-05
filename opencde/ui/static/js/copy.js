@@ -1,5 +1,8 @@
 // Copy-to-clipboard buttons: <button data-copy-target="id-of-element">.
 // The value is read from the page (textContent), never from a script literal.
+// Feedback texts come from data-t-* attributes on <html>, rendered in the page's language.
+
+const texts = document.documentElement.dataset;
 
 export function enhanceCopyButtons(root = document) {
   root.querySelectorAll("button[data-copy-target]").forEach((button) => {
@@ -12,9 +15,9 @@ export function enhanceCopyButtons(root = document) {
     button.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(target.textContent.trim());
-        button.textContent = "Copied";
+        button.textContent = texts.tCopied || "Copied";
       } catch {
-        button.textContent = "Copy failed";
+        button.textContent = texts.tCopyFailed || "Copy failed";
       }
       setTimeout(() => {
         button.textContent = original;

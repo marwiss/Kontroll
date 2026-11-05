@@ -4,59 +4,59 @@
 <div class="toolbar">
   <h1>{{ client.name }}</h1>
   <div class="cluster">
-    <span class="badge badge--neutral">{% if client.is_public %}public (PKCE){% else %}confidential{% endif %}</span>
-    {% if client.disabled %}<span class="badge badge--danger">disabled</span>{% endif %}
+    <span class="badge badge--neutral">{% if client.is_public %}{{ t("admin.clients.public") }}{% else %}{{ t("admin.clients.confidential") }}{% endif %}</span>
+    {% if client.disabled %}<span class="badge badge--danger">{{ t("common.disabled") }}</span>{% endif %}
   </div>
 </div>
 {% if error %}{{ alert("error", error) }}{% endif %}
 
 <section class="card">
-  <h2>Client</h2>
+  <h2>{{ t("common.client") }}</h2>
   <form method="post" action="/admin/clients/{{ client.client_id }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="update">
     <dl class="facts">
-      <dt>Client id</dt><dd><code>{{ client.client_id }}</code></dd>
-      <dt>Created</dt><dd>{{ when(client.created_at) }}</dd>
+      <dt>{{ t("admin.client.id") }}</dt><dd><code>{{ client.client_id }}</code></dd>
+      <dt>{{ t("common.created") }}</dt><dd>{{ when(client.created_at) }}</dd>
     </dl>
-    {{ field("name", "Name", value=client.name, required=true, maxlength=200) }}
-    {{ field("description", "Description", value=client.description or "", maxlength=1000) }}
-    {{ field("url", "Website", type="url", value=client.url or "", maxlength=2000) }}
-    {{ textarea_field("redirect_uris", "Redirect URIs", value=client.redirect_uris|join("\n"), rows=3, hint="One per line; matched exactly (loopback ports may vary).") }}
-    {{ checkbox("disabled", "Disabled: sign-in refused, tokens revoked", checked=client.disabled) }}
-    <div class="cluster">{{ button("Save") }}</div>
+    {{ field("name", t("common.name"), value=client.name, required=true, maxlength=200) }}
+    {{ field("description", t("common.description"), value=client.description or "", maxlength=1000) }}
+    {{ field("url", t("admin.client.website"), type="url", value=client.url or "", maxlength=2000) }}
+    {{ textarea_field("redirect_uris", t("common.redirect_uris"), value=client.redirect_uris|join("\n"), rows=3, hint=t("admin.client.redirect_hint")) }}
+    {{ checkbox("disabled", t("admin.client.disabled_label"), checked=client.disabled) }}
+    <div class="cluster">{{ button(t("common.save")) }}</div>
   </form>
 </section>
 
 <section class="card">
-  <h2>Tokens</h2>
-  <p class="muted">Revoking signs every user out of this application; they sign in again normally.</p>
-  <form method="post" action="/admin/clients/{{ client.client_id }}" data-confirm="Revoke every token issued to {{ client.name }}?">
+  <h2>{{ t("admin.client.tokens") }}</h2>
+  <p class="muted">{{ t("admin.client.tokens_lead") }}</p>
+  <form method="post" action="/admin/clients/{{ client.client_id }}" data-confirm="{{ t('admin.client.revoke_confirm', client=client.name) }}">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="revoke">
-    {{ button("Revoke all tokens", "secondary") }}
+    {{ button(t("admin.client.revoke_all"), "secondary") }}
   </form>
 </section>
 
 <section class="card card--danger">
-  <h2>Danger zone</h2>
+  <h2>{{ t("common.danger_zone") }}</h2>
   <div class="stack">
     {% if client.is_confidential %}
-    <form method="post" action="/admin/clients/{{ client.client_id }}" class="stack" data-confirm="Rotate the secret of {{ client.name }}? The old secret stops working at once.">
+    <form method="post" action="/admin/clients/{{ client.client_id }}" class="stack" data-confirm="{{ t('admin.client.rotate_confirm', client=client.name) }}">
       <input type="hidden" name="form_token" value="{{ form_token }}">
       <input type="hidden" name="action" value="rotate">
-      <h3>Rotate secret</h3>
-      <p class="muted">A new secret is shown once; the old one stops working immediately.</p>
+      <h3>{{ t("admin.client.rotate") }}</h3>
+      <p class="muted">{{ t("admin.client.rotate_hint") }}</p>
       {{ confirm_password("rotate") }}
-      {{ button("Rotate secret", "danger") }}
+      {{ button(t("admin.client.rotate"), "danger") }}
     </form>
     {% endif %}
-    <form method="post" action="/admin/clients/{{ client.client_id }}" class="stack" data-confirm="Delete {{ client.name }} and every token issued to it?">
+    <form method="post" action="/admin/clients/{{ client.client_id }}" class="stack" data-confirm="{{ t('admin.client.delete_confirm', client=client.name) }}">
       <input type="hidden" name="form_token" value="{{ form_token }}">
       <input type="hidden" name="action" value="delete">
-      <h3>Delete client</h3>
+      <h3>{{ t("admin.client.delete") }}</h3>
       {{ confirm_password("delete") }}
-      {{ button("Delete client", "danger") }}
+      {{ button(t("admin.client.delete"), "danger") }}
     </form>
   </div>
 </section>

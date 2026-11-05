@@ -225,8 +225,8 @@ Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
 - Selainsivut palvelevat järjestelmänvalvojia sekä OAuth2- ja Documents API
   -kulkuja; loppukäyttäjät työskentelevät asiakasohjelmassa, kuten
   Dataspatiumissa tai Bonsaissa.
-- Sivut ovat toistaiseksi englanniksi; tämän README-tiedoston seitsemän kielen
-  kielikerros rakennetaan yhdessä Dataspatiumin kanssa.
+- Sivut ovat tämän README-tiedoston seitsemällä kielellä (vaihda jokaisen sivun
+  alareunasta); palvelimen validointikoodin viestit ovat toistaiseksi englanniksi.
 - Ulkoista auditointia ei ole vielä tehty. Tiedostossa
   [docs/security/pentest-howto.md](../security/pentest-howto.md) kuvatut
   OAuch- ja testssl-ajot ovat operaattorin askeleet ennen tuotantokäyttöönottoa.

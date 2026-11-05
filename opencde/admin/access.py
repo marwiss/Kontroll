@@ -22,6 +22,7 @@ from opencde.accounts.users import UserRepository
 from opencde.auth.forms import FormTokenError
 from opencde.deps import client_ip
 from opencde.graph.graph import Graph
+from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
     NO_STORE,
@@ -33,20 +34,24 @@ from opencde.web.dependencies import (
 )
 from opencde.web.sessions import WebUser
 
+# ``?notice=<name>`` after a redirect; the page translates the catalogue key (opencde/ui/i18n/<lang>.json).
 NOTICES = {
-    "saved": "Saved.",
-    "created": "Created.",
-    "deleted": "Deleted.",
-    "revoked": "Sessions revoked.",
-    "member_saved": "Membership saved.",
-    "member_removed": "Membership removed.",
-    "extensions_saved": "Extension values saved.",
-    "password_changed": "Your password has been changed.",  # nosec B105
-    "change_password": "Please choose a new password before you continue.",  # nosec B105
-    "wrong_password": "Your password was not correct; nothing was changed.",  # nosec B105
-    "form_expired": "The form had expired; nothing was changed. Please try again.",
-    "not_yourself": "You cannot do that to your own account.",
-    "invalid": "The form was not valid; nothing was changed.",
+    name: f"notice.{name}"
+    for name in (
+        "saved",
+        "created",
+        "deleted",
+        "revoked",
+        "member_saved",
+        "member_removed",
+        "extensions_saved",
+        "password_changed",
+        "change_password",
+        "wrong_password",
+        "form_expired",
+        "not_yourself",
+        "invalid",
+    )
 }
 
 
@@ -89,7 +94,10 @@ def install_page_handlers(app: Any) -> None:
             request,
             "web/message.html",
             page_context(
-                request, getattr(request.state, "web_user", None), title="Not found", message="There is no such page."
+                request,
+                getattr(request.state, "web_user", None),
+                title=tr(request, "page.not_found.title"),
+                message=tr(request, "page.not_found.message"),
             ),
             status_code=404,
         )

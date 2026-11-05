@@ -1,27 +1,27 @@
 {% extends "admin/_page.html" %}
-{% block title %}Clients · {{ product }}{% endblock %}
+{% block title %}{{ t("nav.clients") }} · {{ product }}{% endblock %}
 {% block admin %}
 <div class="toolbar">
-  <h1>OAuth2 clients</h1>
-  <a class="btn btn--primary" href="/admin/clients/new">Register client</a>
+  <h1>{{ t("admin.clients.title") }}</h1>
+  <a class="btn btn--primary" href="/admin/clients/new">{{ t("admin.clients.register") }}</a>
 </div>
-<p class="muted">A client is an application that signs users in through this server: a BCF plugin, a viewer, a script.</p>
+<p class="muted">{{ t("admin.clients.lead") }}</p>
 <div class="table-wrap">
   <table class="table" data-filterable data-sortable>
     <thead>
-      <tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Redirect URIs</th><th scope="col">Status</th><th scope="col">Created</th></tr>
+      <tr><th scope="col">{{ t("common.name") }}</th><th scope="col">{{ t("common.type") }}</th><th scope="col">{{ t("common.redirect_uris") }}</th><th scope="col">{{ t("common.status") }}</th><th scope="col">{{ t("common.created") }}</th></tr>
     </thead>
     <tbody>
       {% for client in clients %}
       <tr>
         <td><a href="/admin/clients/{{ client.client_id }}">{{ client.name }}</a></td>
-        <td>{% if client.is_public %}public (PKCE){% else %}confidential{% endif %}{% if client.dynamic %} <span class="badge badge--neutral">self-registered</span>{% endif %}{% if client.software_id %} <span class="muted">{{ client.software_id }}{% if client.software_version %} {{ client.software_version }}{% endif %}</span>{% endif %}</td>
+        <td>{% if client.is_public %}{{ t("admin.clients.public") }}{% else %}{{ t("admin.clients.confidential") }}{% endif %}{% if client.dynamic %} <span class="badge badge--neutral">{{ t("admin.clients.self_registered") }}</span>{% endif %}{% if client.software_id %} <span class="muted">{{ client.software_id }}{% if client.software_version %} {{ client.software_version }}{% endif %}</span>{% endif %}</td>
         <td>{% for uri in client.redirect_uris %}<code>{{ uri }}</code>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
-        <td>{% if client.disabled %}<span class="badge badge--danger">disabled</span>{% else %}<span class="badge badge--success">active</span>{% endif %}</td>
+        <td>{% if client.disabled %}<span class="badge badge--danger">{{ t("common.disabled") }}</span>{% else %}<span class="badge badge--success">{{ t("admin.clients.active") }}</span>{% endif %}</td>
         <td>{{ when(client.created_at) }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="muted">No clients registered. Applications cannot sign in until one exists.</td></tr>
+      <tr><td colspan="5" class="muted">{{ t("admin.clients.none") }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

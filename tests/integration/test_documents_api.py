@@ -332,7 +332,8 @@ def test_selection_flow_with_filtering_and_browser_upload(client: TestClient, wo
     web_sign_in(client, world, "viewer")
     page = client.get(page_url)
     assert page.status_code == 200 and "Walls" in page.text and "Notes" not in page.text
-    assert "1 document with other file types" in page.text and "Upload a file" not in page.text, "viewers cannot upload"
+    assert "One document with another file type is hidden" in page.text, "the singular form of the hidden count"
+    assert "Upload a file" not in page.text, "viewers cannot upload"
     everything = client.get(page_url, params={"all": "1"})
     assert "Notes" in everything.text
 

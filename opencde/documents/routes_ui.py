@@ -39,6 +39,7 @@ from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.storage import TooLargeError, make_key
 from opencde.timeutil import now_iso
+from opencde.ui.i18n import tr
 from opencde.ui.links import dataspatium_link
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
@@ -91,10 +92,10 @@ def _expired(request: Request, web_user: WebUser | None) -> Response:
     return _message(
         request,
         web_user,
-        "Link expired",
-        "This link is not valid any more.",
+        tr(request, "docs.message.link_expired"),
+        tr(request, "docs.message.link_expired_text"),
         status_code=404,
-        hint="Go back to the application and start again.",
+        hint=tr(request, "docs.message.start_again"),
     )
 
 
@@ -102,10 +103,10 @@ def _wrong_user(request: Request, web_user: WebUser | None) -> Response:
     return _message(
         request,
         web_user,
-        "Another account",
-        "This flow was started by another account.",
+        tr(request, "docs.message.other_account"),
+        tr(request, "docs.message.other_account_text"),
         status_code=403,
-        hint="Sign out and sign in as the user who started it in the application.",
+        hint=tr(request, "docs.message.other_account_hint"),
     )
 
 
@@ -116,10 +117,10 @@ def _callback(
         return _message(
             request,
             web_user,
-            "Application link expired",
-            "The application's callback link has expired, so you cannot be sent back to it.",
+            tr(request, "docs.message.callback_expired"),
+            tr(request, "docs.message.callback_expired_text"),
             status_code=410,
-            hint="Go back to the application and start again.",
+            hint=tr(request, "docs.message.start_again"),
         )
     return RedirectResponse(with_query(url, params), status_code=302, headers=NO_STORE)
 
@@ -358,7 +359,7 @@ async def select_ui_submit(
             users=users,
             projects=projects,
             show_all=False,
-            error="The form has expired. Please try again.",
+            error=tr(request, "docs.select.error.expired"),
             status_code=400,
         )
     if form.get("action") == "cancel":
@@ -376,7 +377,7 @@ async def select_ui_submit(
             users=users,
             projects=projects,
             show_all=False,
-            error="Select at least one document.",
+            error=tr(request, "docs.select.error.none"),
             status_code=400,
         )
     records = await documents.latest_many(user_id=web_user.user.id, document_ids=[normalize_guid(c) for c in chosen])
@@ -491,7 +492,13 @@ async def document_details(
         else None
     )
     if record is None:
-        return _message(request, web_user, "Not found", "There is no such document version.", status_code=404)
+        return _message(
+            request,
+            web_user,
+            tr(request, "page.not_found.title"),
+            tr(request, "docs.details.not_found"),
+            status_code=404,
+        )
     versions = await documents.versions(user_id=web_user.user.id, document_id=record.document_id)
     return render(
         request,

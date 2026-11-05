@@ -210,8 +210,8 @@ finnsku og íslensku eru áætlaðar.
   þau eftir hálfinnflutt.
 - Vefsíðurnar þjóna stjórnendum og OAuth2- og Documents API-ferlunum;
   endanotendur vinna í biðlara eins og Dataspatium eða Bonsai.
-- Síðurnar eru á ensku enn sem komið er; tungumálalagið á sjö tungumálum
-  þessarar README-skrár er smíðað í samvinnu við Dataspatium.
+- Síðurnar eru til á sjö tungumálum þessarar README-skrár (skiptu neðst á hverri
+  síðu); skilaboð úr sannprófunarkóða þjónsins eru á ensku enn sem komið er.
 - Engin ytri úttekt enn. OAuch- og testssl-keyrslurnar í
   [docs/security/pentest-howto.md](../security/pentest-howto.md) eru skref
   rekstraraðilans fyrir uppsetningu í rekstur.

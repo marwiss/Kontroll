@@ -4,43 +4,43 @@
 <div class="toolbar">
   <h1>{{ user.username }}</h1>
   <div class="cluster">
-    {% if user.disabled %}<span class="badge badge--danger">disabled</span>{% endif %}
-    {% if user.is_admin %}<span class="badge">admin</span>{% endif %}
-    {% if user.must_change_password %}<span class="badge badge--neutral">must change password</span>{% endif %}
+    {% if user.disabled %}<span class="badge badge--danger">{{ t("common.disabled") }}</span>{% endif %}
+    {% if user.is_admin %}<span class="badge">{{ t("common.admin") }}</span>{% endif %}
+    {% if user.must_change_password %}<span class="badge badge--neutral">{{ t("admin.users.must_change") }}</span>{% endif %}
   </div>
 </div>
 {% if error %}{{ alert("error", error) }}{% endif %}
 
 <section class="card">
-  <h2>Account</h2>
+  <h2>{{ t("admin.user.account") }}</h2>
   <form method="post" action="/admin/users/{{ user.id }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="update">
     <dl class="facts">
-      <dt>User id</dt><dd><code>{{ user.id }}</code></dd>
-      <dt>Created</dt><dd>{{ when(user.created_at) }}</dd>
+      <dt>{{ t("admin.user.id") }}</dt><dd><code>{{ user.id }}</code></dd>
+      <dt>{{ t("common.created") }}</dt><dd>{{ when(user.created_at) }}</dd>
     </dl>
     <div class="form-grid">
-      {{ field("full_name", "Full name", value=user.full_name or "", maxlength=200) }}
-      {{ field("email", "E-mail", type="email", value=user.email or "", maxlength=200) }}
+      {{ field("full_name", t("common.full_name"), value=user.full_name or "", maxlength=200) }}
+      {{ field("email", t("common.email"), type="email", value=user.email or "", maxlength=200) }}
     </div>
-    {{ checkbox("disabled", "Disabled: cannot sign in; tokens are revoked", checked=user.disabled) }}
-    {{ checkbox("is_admin", "Administrator", checked=user.is_admin, hint="Changing this needs your password below.") }}
+    {{ checkbox("disabled", t("admin.user.disabled_label"), checked=user.disabled) }}
+    {{ checkbox("is_admin", t("admin.user.administrator"), checked=user.is_admin, hint=t("admin.user.admin_hint")) }}
     <details class="details">
-      <summary>Confirm with your password (needed when the administrator flag changes)</summary>
+      <summary>{{ t("admin.user.confirm_summary") }}</summary>
       {{ confirm_password("update") }}
     </details>
-    <div class="cluster">{{ button("Save") }}</div>
-    {% if is_self %}<p class="muted">You cannot disable your own account or drop your own administrator role.</p>{% endif %}
+    <div class="cluster">{{ button(t("common.save")) }}</div>
+    {% if is_self %}<p class="muted">{{ t("admin.user.self_note") }}</p>{% endif %}
   </form>
 </section>
 
 <section class="card">
-  <h2>Project roles</h2>
+  <h2>{{ t("admin.user.roles") }}</h2>
   {% if memberships %}
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">Project</th><th scope="col">Role</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th scope="col">{{ t("opencde.project") }}</th><th scope="col">{{ t("common.role") }}</th><th scope="col"><span class="sr-only">{{ t("common.actions") }}</span></th></tr></thead>
       <tbody>
         {% for project_id, name, role in memberships %}
         <tr>
@@ -50,19 +50,19 @@
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="membership">
               <input type="hidden" name="project_id" value="{{ project_id }}">
-              <label class="sr-only" for="role-{{ project_id }}">Role in {{ name }}</label>
+              <label class="sr-only" for="role-{{ project_id }}">{{ t("admin.user.role_in", name=name) }}</label>
               <select class="select" id="role-{{ project_id }}" name="role">
                 {% for option in roles %}<option value="{{ option }}" {% if option == role.value %}selected{% endif %}>{{ option }}</option>{% endfor %}
               </select>
-              {{ button("Change", "secondary") }}
+              {{ button(t("common.change"), "secondary") }}
             </form>
           </td>
           <td>
-            <form method="post" action="/admin/users/{{ user.id }}" data-confirm="Remove {{ user.username }} from {{ name }}?">
+            <form method="post" action="/admin/users/{{ user.id }}" data-confirm="{{ t('admin.user.remove_confirm', user=user.username, name=name) }}">
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="remove_membership">
               <input type="hidden" name="project_id" value="{{ project_id }}">
-              {{ button("Remove", "danger") }}
+              {{ button(t("common.remove"), "danger") }}
             </form>
           </td>
         </tr>
@@ -71,49 +71,49 @@
     </table>
   </div>
   {% else %}
-  <p class="muted">No project roles. The user can sign in but sees no projects.</p>
+  <p class="muted">{{ t("admin.user.no_roles") }}</p>
   {% endif %}
   {% if other_projects %}
   <form method="post" action="/admin/users/{{ user.id }}" class="form-grid form-grid--end">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="membership">
-    {{ select_field("project_id", "Add to project", other_projects|map(attribute="project_id")|zip(other_projects|map(attribute="name"))|list) }}
-    {{ select_field("role", "Role", roles|zip(roles)|list, selected="viewer", hint="viewer reads; contributor adds; editor edits all; manager also renames and deletes") }}
-    <div class="field"><span class="field__label">&nbsp;</span>{{ button("Add role", "secondary") }}</div>
+    {{ select_field("project_id", t("admin.user.add_to_project"), other_projects|map(attribute="project_id")|zip(other_projects|map(attribute="name"))|list) }}
+    {{ select_field("role", t("common.role"), roles|zip(roles)|list, selected="viewer", hint=t("admin.user.role_hint")) }}
+    <div class="field"><span class="field__label">&nbsp;</span>{{ button(t("admin.user.add_role"), "secondary") }}</div>
   </form>
   {% endif %}
 </section>
 
 <section class="card">
-  <h2>Sessions</h2>
-  <p class="muted">{{ web_sessions|length }} browser session(s). Application tokens are listed under <a href="/admin/sessions">Sessions</a>.</p>
+  <h2>{{ t("common.sessions") }}</h2>
+  <p class="muted">{{ t("admin.user.sessions_count", count=web_sessions|length) }} <a href="/admin/sessions">{{ t("nav.sessions") }}</a>.</p>
   <div class="cluster">
-    <form method="post" action="/admin/users/{{ user.id }}" data-confirm="Revoke every token and browser session of {{ user.username }}?">
+    <form method="post" action="/admin/users/{{ user.id }}" data-confirm="{{ t('admin.user.revoke_confirm', user=user.username) }}">
       <input type="hidden" name="form_token" value="{{ form_token }}">
       <input type="hidden" name="action" value="revoke_sessions">
-      {{ button("Revoke all sessions and tokens", "secondary") }}
+      {{ button(t("admin.user.revoke_all"), "secondary") }}
     </form>
   </div>
 </section>
 
 <section class="card card--danger">
-  <h2>Danger zone</h2>
+  <h2>{{ t("common.danger_zone") }}</h2>
   <div class="stack">
-    <form method="post" action="/admin/users/{{ user.id }}" class="stack" data-confirm="Reset the password of {{ user.username }}? Their sessions and tokens are revoked.">
+    <form method="post" action="/admin/users/{{ user.id }}" class="stack" data-confirm="{{ t('admin.user.reset_confirm', user=user.username) }}">
       <input type="hidden" name="form_token" value="{{ form_token }}">
       <input type="hidden" name="action" value="reset_password">
-      <h3>Reset password</h3>
-      <p class="muted">Generates a new password shown once; the user must change it at the next sign-in.</p>
+      <h3>{{ t("admin.user.reset") }}</h3>
+      <p class="muted">{{ t("admin.user.reset_hint") }}</p>
       {{ confirm_password("reset") }}
-      {{ button("Reset password", "danger") }}
+      {{ button(t("admin.user.reset"), "danger") }}
     </form>
     {% if not is_self %}
-    <form method="post" action="/admin/users/{{ user.id }}" class="stack" data-confirm="Delete {{ user.username }} permanently? Topics and comments they wrote stay, with the author name.">
+    <form method="post" action="/admin/users/{{ user.id }}" class="stack" data-confirm="{{ t('admin.user.delete_confirm', user=user.username) }}">
       <input type="hidden" name="form_token" value="{{ form_token }}">
       <input type="hidden" name="action" value="delete">
-      <h3>Delete user</h3>
+      <h3>{{ t("admin.user.delete") }}</h3>
       {{ confirm_password("delete") }}
-      {{ button("Delete user", "danger") }}
+      {{ button(t("admin.user.delete"), "danger") }}
     </form>
     {% endif %}
   </div>

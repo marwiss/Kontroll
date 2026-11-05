@@ -210,8 +210,8 @@ og nynorsk), finsk og islandsk er planlagde.
   bli liggjande halvt importerte.
 - Websidene er for administratorar og for OAuth2- og Documents API-flytane;
   sluttbrukarar arbeider i ein klient som Dataspatium eller Bonsai.
-- Sidene er på engelsk inntil vidare; språklaget på dei sju språka i denne
-  README-fila blir bygd saman med Dataspatium.
+- Sidene finst på dei sju språka i denne README-fila (byt nedst på kvar side);
+  meldingar frå valideringskoden til serveren er på engelsk inntil vidare.
 - Ingen ekstern revisjon enno. OAuch- og testssl-køyringane i
   [docs/security/pentest-howto.md](../security/pentest-howto.md) er stega
   operatøren tek før ei produksjonsutrulling.

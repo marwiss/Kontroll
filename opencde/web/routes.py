@@ -18,6 +18,7 @@ from opencde import audit
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.ratelimit import RATE_SIGN_IN, limiter
+from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
     NO_STORE,
@@ -64,14 +65,14 @@ async def signin_submit(
     try:
         data = form_tokens(request).load(form_token, SIGNIN_PURPOSE)
     except FormTokenError:
-        return _signin_page(request, "/", "The form has expired. Please try again.", status_code=400)
+        return _signin_page(request, "/", tr(request, "signin.error.expired"), status_code=400)
     target = safe_next(data.get("next"))
     ip = client_ip(request)
 
     user = await users.authenticate(username, password)
     if user is None:
         await audit.record(graph, "web.sign_in.failed", ip=ip, details={"username": username[:128]})
-        return _signin_page(request, target, "The user name or password is not correct.")
+        return _signin_page(request, target, tr(request, "signin.error.credentials"))
 
     token = await sessions.create(user.id, ip)
     await audit.record(graph, "web.sign_in", actor=user.id, ip=ip)
@@ -100,7 +101,10 @@ async def signout(
                 request,
                 "web/message.html",
                 page_context(
-                    request, web_user, title="Cannot sign out", message="The form has expired. Reload the page."
+                    request,
+                    web_user,
+                    title=tr(request, "signout.error.title"),
+                    message=tr(request, "signout.error.expired"),
                 ),
                 status_code=400,
             )
