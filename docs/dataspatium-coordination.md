@@ -139,7 +139,9 @@ the same day both 2.0.0 releases were withdrawn under the rule of one
 release per major number once 2.1.0 was out (release and tag removed, the
 commits kept; `CHANGELOG.md` folds the 2.0.0 notes into 2.1.0). Kontroll's
 image tags `2.0.0` and `2.0` on GHCR stay until removed by hand, since the
-command-line token has no package scope.
+command-line token has no package scope. Kontroll 2.2.0 followed
+Dataspatium 2.2.0 the same evening (the pop-up sign-in fixes), and 2.1.0
+was withdrawn on both sides in the same way.
 
 ### 7. Cross-repository tests in CI (D, medium; K, small)
 

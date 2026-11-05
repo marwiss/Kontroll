@@ -41,7 +41,7 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
 | Verk | Skipun |
 |---|---|
 | Uppfæra í nýjasta image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
-| Festa útgáfu | `OPENCDE_IMAGE_TAG=2.1.0` í `.env` (merkin fylgja GitHub-útgáfunum) |
+| Festa útgáfu | `OPENCDE_IMAGE_TAG=2.2.0` í `.env` (merkin fylgja GitHub-útgáfunum) |
 | Atvikaskrár | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-línur) |
 | Heilsa | `https://cde.example.org/readyz`; síðan Stillingar í stjórnuninni |
 | Öryggisafrit | á hverri nóttu í geymsluna `backups` af þjónustunni `backup`; sjá [backup.md](backup.md) |
