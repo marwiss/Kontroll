@@ -21,7 +21,7 @@ project plan. This file is updated with every stage.
 | 5 | Documents API and browser sign-in | done |
 | 6 | Admin UI (users, projects, clients, sessions, audit log, settings) and account page | done |
 | 7 | Client library (`client/opencde_client`: discovery, PKCE, BCF, Documents, CLI, test helpers), examples and the end-to-end scenario | done |
-| 8 | Deployment | |
+| 8 | Deployment: production compose with Caddy and nightly backups, tunnel and Memgraph overlays, release pipeline (multi-arch image, SBOM, Trivy), nightly security workflow, `backup`/`restore`/`revoke`, deployment guides | done |
 | 9 | IFC-graph | |
 | 10 | Visual acceptance, Dataspatium | |
 | 11 | Hardening, documentation, upstream preparation | |
@@ -94,7 +94,7 @@ project plan. This file is updated with every stage.
 | `debug()` prints with jsonpickle | yes | drop: structured logging | 0 |
 | Liveness and readiness endpoints | no | new: `/healthz`, `/readyz` | 0 |
 | Web admin UI (users, clients, projects, audit log) | no (README TODO) | new, done: `/admin` for administrators (overview, users with roles and password reset, projects with members and extensions, clients with secret rotation, sessions, audit log with CSV, settings and health checks), `/account` for everyone; server-rendered, vanilla JS enhancements, axe-checked | 6 |
-| CLI (`init`, `doctor`, `seed`, `cleanup`, `user`, `project`, `client`; `backup`/`restore` and `revoke` follow) | no | new; done except backup and revoke | 0, 1, 8 |
+| CLI (`init`, `doctor`, `seed`, `cleanup`, `user`, `project`, `client`, `backup`, `restore`, `revoke`) | no | new, done; backups are portable between Neo4j and Memgraph (ADR 0006) | 0, 1, 8 |
 | Expiry of codes, tokens and sessions (prototype: APOC TTL) | APOC | reshape: `expires_at` + server-side cleanup, done | 1 |
 | OData `$filter/$orderby/$top/$skip` (prototype: none) | no | new: whitelist compiler to Cypher, done | 1 |
 

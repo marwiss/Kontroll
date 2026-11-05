@@ -45,6 +45,23 @@ uv run opencde doctor            # checks configuration and the database
 uv run opencde serve             # http://127.0.0.1:8000
 ```
 
+## Deployment
+
+One compose file plus an overlay per scenario, and a published multi-arch image
+(`ghcr.io/marwiss/opencdeserver`, scanned and with an SBOM on every release):
+
+| Scenario | Guide |
+|---|---|
+| Local test on your machine | [docs/deploy/local.md](docs/deploy/local.md) |
+| Public https URL for client tests without a server (tunnel) | [docs/deploy/tunnel.md](docs/deploy/tunnel.md) |
+| Production on your own server with Caddy (automatic TLS) and nightly backups | [docs/deploy/vps-caddy.md](docs/deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](docs/deploy/paas.md) |
+| Container service plus managed Neo4j AuraDB or Memgraph Cloud | [docs/deploy/cloud-aura.md](docs/deploy/cloud-aura.md) |
+| Backup and restore (portable between Neo4j and Memgraph) | [docs/deploy/backup.md](docs/deploy/backup.md) |
+
+`uv run opencde init --public-url https://cde.example.org` writes a production
+`.env` with fresh secrets; `opencde doctor` checks the result.
+
 ## Configuration
 
 Everything is read from environment variables prefixed `OPENCDE_`, from
