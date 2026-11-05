@@ -10,6 +10,11 @@ opener on its side and must relay the callback another way; that is the client's
 
 from __future__ import annotations
 
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
 import pytest
 
 from tests.ui.conftest import LiveServer
@@ -57,3 +62,64 @@ def test_pages_a_client_opens_in_a_popup_keep_the_opener(live_server: LiveServer
         "the selection page"
     )
     # The administration's own policy (same-origin) is checked on the headers in tests/security.
+
+
+def test_the_sign_in_popup_comes_back_to_the_client(live_server: LiveServer) -> None:
+    """The whole pop-up flow in a real browser: the form's redirect to the client is not stopped.
+
+    Chromium checks the page's ``form-action`` policy against the redirect that answers a form,
+    so the authorization page must name the client's origin; the owner's quick-start run found
+    that Chrome and Edge never left the sign-in page while Firefox did.
+    """
+    from opencde.auth import pkce
+
+    world = live_server.world
+    # The client lives on a real local server: a redirect the browser follows is not answered by a
+    # Playwright route. The public client is registered for the loopback address, any port (RFC 8252).
+    with _client_site() as app_origin:
+        redirect = f"{app_origin}/callback"
+        authorize = (
+            f"{live_server.url}/foundation/oauth2/auth?response_type=code&client_id={world.public_client_id}"
+            f"&redirect_uri={redirect}&state=s-1&code_challenge={pkce.challenge_for('v' * 48)}"
+            "&code_challenge_method=S256&scope=profile"
+        )
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            context = browser.new_context()
+            page = context.new_page()
+            page.goto(f"{app_origin}/")
+            with context.expect_page() as popup_info:
+                page.evaluate(f"window.open('{authorize}', 'signin', 'popup,width=500,height=600')")
+            popup = popup_info.value
+            popup.wait_for_url(lambda url: "/foundation/oauth2/auth" in url)
+            popup.fill("input[name=username]", "editor")
+            popup.fill("input[name=password]", world.password)
+            popup.click("button[name=decision][value=allow]")
+            popup.wait_for_url(lambda url: url.startswith(redirect), timeout=15000)
+            assert "code=" in popup.url and "state=s-1" in popup.url, popup.url
+            assert popup.evaluate("!!window.opener"), "the client's page can still be reached from the pop-up"
+            browser.close()
+
+
+@contextmanager
+def _client_site() -> Iterator[str]:
+    """A throwaway HTTP server on the loopback address that answers every path with a small page."""
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(CALLBACK_PAGE)
+
+        def log_message(self, *args: object) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_address[1]}"
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, cast
+from urllib.parse import urlsplit
 
 from fastapi import Request
 from fastapi.responses import HTMLResponse
@@ -27,6 +28,13 @@ PAGE_CSP = (
     "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; "
     "connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
 )
+
+
+def origin_of(url: str) -> str:
+    """``scheme://host[:port]`` of a URL, the form a Content-Security-Policy source takes."""
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}".lower()
+
 
 _env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
@@ -57,7 +65,15 @@ def render(
     *,
     status_code: int = 200,
     headers: dict[str, str] | None = None,
+    form_action: str | None = None,
 ) -> HTMLResponse:
+    """Render a page with the server's Content-Security-Policy.
+
+    ``form_action`` is the origin a form on the page may send the browser to besides the server
+    itself: the OAuth2 authorization page and the Documents API pages answer their form with a
+    redirect to the client's callback, and Chromium checks ``form-action`` against that redirect
+    too, so the client's origin must be named or the browser stops on the form.
+    """
     settings = request.app.state.settings
     lang = i18n.negotiate(request)
     base_context: dict[str, Any] = {
@@ -74,7 +90,8 @@ def render(
         html = _env.get_template(template).render(base_context)
     finally:
         i18n.current_language.reset(token)
-    response_headers = {"Content-Security-Policy": PAGE_CSP, "Cache-Control": "no-store"}
+    csp = PAGE_CSP if not form_action else PAGE_CSP.replace("form-action 'self'", f"form-action 'self' {form_action}")
+    response_headers = {"Content-Security-Policy": csp, "Cache-Control": "no-store"}
     response_headers.update(headers or {})
     response = HTMLResponse(html, status_code=status_code, headers=response_headers)
     if i18n.requested_explicitly(request) and request.cookies.get(i18n.COOKIE_NAME) != lang:

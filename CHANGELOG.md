@@ -23,6 +23,11 @@ the commit history.
   `Cross-Origin-Opener-Policy: same-origin`, which cut the pop-up's link to
   the application and left the user on the callback page with its address;
   the administration and account pages keep the isolation.
+- The authorization page and the Documents API selection and upload pages
+  name the client's origin in their `form-action` policy, so Chrome and Edge
+  follow the redirect that answers the form; before, those browsers stayed
+  on the sign-in page (Chromium checks `form-action` against the redirect)
+  while Firefox went on.
 - Without `OPENCDE_SECRET_KEY` (allowed outside production) the server now
   keeps its generated key in `OPENCDE_DATA_DIR/secret_key`, so that a
   restart or a rebuild no longer answers every open sign-in form with "the

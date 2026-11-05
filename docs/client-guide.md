@@ -118,7 +118,10 @@ need) do not isolate themselves: they send
 `Cross-Origin-Opener-Policy: unsafe-none`, so the window keeps its
 `window.opener` across the visit to the server and your callback page can
 `postMessage` the result back to the application. Only `/admin` and
-`/account` answer with `same-origin`.
+`/account` answer with `same-origin`. Their `form-action` policy also names
+the origin of your redirect URI (or callback URL), so the browser follows
+the redirect that answers the form: Chromium checks `form-action` against
+that redirect, not only against the form's own address.
 
 ## 3. BCF API
 
