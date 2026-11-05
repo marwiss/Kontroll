@@ -47,11 +47,16 @@ class SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
+        is_static = scope["path"].startswith("/static/")
+
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers: list[tuple[bytes, bytes]] = list(message.get("headers", []))
                 present = _header_names(headers)
-                headers.extend((name, value) for name, value in SECURITY_HEADERS.items() if name not in present)
+                defaults = dict(SECURITY_HEADERS)
+                if is_static:  # versioned by release; safe to cache, and public anyway
+                    defaults[b"cache-control"] = b"public, max-age=86400"
+                headers.extend((name, value) for name, value in defaults.items() if name not in present)
                 message["headers"] = headers
             await send(message)
 

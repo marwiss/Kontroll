@@ -12,19 +12,24 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from opencde import __version__, health
+from opencde.auth import routes as oauth2_routes
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
 from opencde.errors import install_error_handlers
 from opencde.etag import ETagMiddleware
+from opencde.foundation import routes as foundation_routes
 from opencde.graph.cleanup import ExpiryCleaner
 from opencde.graph.schema import apply_schema
 from opencde.logging import configure_logging, get_logger
 from opencde.middleware import BodySizeLimitMiddleware, RequestIDMiddleware, SecurityHeadersMiddleware
 from opencde.ratelimit import install_rate_limiting
 from opencde.settings import Settings
+from opencde.ui.templating import STATIC_DIR, render
 
 DESCRIPTION = """\
 Server implementation of the buildingSMART OpenCDE APIs:
@@ -108,14 +113,13 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.add_middleware(RequestIDMiddleware)
 
     app.include_router(health.router)
+    app.include_router(foundation_routes.router)
+    app.include_router(foundation_routes.alias_router)
+    app.include_router(oauth2_routes.router)
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-    @app.get("/", include_in_schema=False)
-    async def index() -> dict[str, str]:
-        return {
-            "name": "Kontroll OpenCDE server",
-            "version": __version__,
-            "docs": "/docs",
-            "versions": "/foundation/versions",
-        }
+    @app.get("/", include_in_schema=False, response_class=HTMLResponse)
+    async def index(request: Request) -> HTMLResponse:
+        return render(request, "index.html", {"version": __version__, "admin_enabled": settings.admin_ui_enabled})
 
     return app

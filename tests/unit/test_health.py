@@ -17,9 +17,9 @@ def test_readyz_is_503_without_database(client: TestClient) -> None:
 
 
 def test_index_points_to_docs_and_versions(client: TestClient) -> None:
-    body = client.get("/").json()
-    assert body["docs"] == "/docs"
-    assert body["versions"] == "/foundation/versions"
+    response = client.get("/")
+    assert response.headers["content-type"].startswith("text/html")
+    assert "/docs" in response.text and "/foundation/versions" in response.text
 
 
 def test_openapi_document_is_served(client: TestClient) -> None:

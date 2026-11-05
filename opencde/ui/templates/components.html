@@ -1,0 +1,23 @@
+{# Reusable building blocks. Keep markup semantic: real labels, buttons and lists. #}
+
+{% macro field(name, label, type="text", value="", autocomplete="off", required=false, hint="", autofocus=false, minlength=None, maxlength=None) %}
+<div class="field">
+  <label class="field__label" for="{{ name }}">{{ label }}</label>
+  <input class="input" id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value }}"
+         autocomplete="{{ autocomplete }}" {% if required %}required{% endif %} {% if autofocus %}autofocus{% endif %}
+         {% if minlength %}minlength="{{ minlength }}"{% endif %} {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+         {% if hint %}aria-describedby="{{ name }}-hint"{% endif %}>
+  {% if hint %}<p class="field__hint" id="{{ name }}-hint">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro alert(kind, text, title="") %}
+<div class="alert alert--{{ kind }}" role="{{ 'alert' if kind == 'error' else 'status' }}">
+  {% if title %}<strong>{{ title }}</strong> {% endif %}{{ text }}
+</div>
+{% endmacro %}
+
+{% macro button(text, kind="primary", type="submit", name="", value="", formnovalidate=false) %}
+<button class="btn btn--{{ kind }}" type="{{ type }}" {% if name %}name="{{ name }}" value="{{ value }}"{% endif %}
+        {% if formnovalidate %}formnovalidate{% endif %}>{{ text }}</button>
+{% endmacro %}

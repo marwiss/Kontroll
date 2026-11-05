@@ -1,0 +1,80 @@
+/* Design tokens: the single source of colour, type and spacing for every page.
+   Light and dark follow the system setting. Change the brand hue here only. */
+:root {
+  color-scheme: light dark;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
+  --leading: 1.5;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.06);
+
+  --color-accent: #1f6f8b;
+  --color-accent-strong: #185a70;
+  --color-accent-soft: #e3f1f6;
+  --color-on-accent: #ffffff;
+
+  --color-bg: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8fafb;
+  --color-text: #1b2430;
+  --color-text-muted: #5b6673;
+  --color-border: #d9dee4;
+  --color-border-strong: #b9c2cc;
+
+  --color-success: #1e7a4c;
+  --color-success-soft: #e4f4ea;
+  --color-warning: #9a6300;
+  --color-warning-soft: #fff4d6;
+  --color-danger: #b42318;
+  --color-danger-soft: #fde8e6;
+
+  --focus-ring: 0 0 0 3px rgba(31, 111, 139, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-accent: #5fb3d1;
+    --color-accent-strong: #7cc3dc;
+    --color-accent-soft: #15303b;
+    --color-on-accent: #0b1a21;
+
+    --color-bg: #0f141a;
+    --color-surface: #171e26;
+    --color-surface-2: #1d262f;
+    --color-text: #e6ebf0;
+    --color-text-muted: #9aa6b2;
+    --color-border: #2a3540;
+    --color-border-strong: #3a4753;
+
+    --color-success: #5ccf8e;
+    --color-success-soft: #123523;
+    --color-warning: #f0b84a;
+    --color-warning-soft: #3a2c0c;
+    --color-danger: #ff7b6e;
+    --color-danger-soft: #3b1613;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+    --focus-ring: 0 0 0 3px rgba(95, 179, 209, 0.45);
+  }
+}
