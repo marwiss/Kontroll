@@ -37,9 +37,10 @@ def test_method_not_allowed_uses_spec_error_body(client: TestClient) -> None:
 
 
 def test_oversized_body_is_rejected_before_parsing(client: TestClient) -> None:
-    response = client.post("/healthz", content=b"x", headers={"Content-Length": str(10**9)})
+    limit = client.app.state.settings.max_json_body_bytes  # type: ignore[attr-defined]
+    response = client.post("/healthz", content=b"x", headers={"Content-Length": str(limit + 1)})
     assert response.status_code == 413
-    assert response.json() == {"message": "Request body exceeds 1048576 bytes"}
+    assert response.json() == {"message": f"Request body exceeds {limit} bytes"}
 
 
 def test_request_id_is_echoed_or_minted(client: TestClient) -> None:

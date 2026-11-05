@@ -9,6 +9,22 @@ new design), **drop** (removed, with the reason), **new** (required by the
 specification but absent in the prototype). The stage column refers to the
 project plan. This file is updated with every stage.
 
+## Progress
+
+| Stage | Content | Status |
+|---|---|---|
+| 0 | Repository, scaffold, CI, Docker, security baseline | done |
+| 1 | Graph core (dialects, schema, cleanup), accounts, OAuth2 clients, OData compiler, storage, audit log, rate limiting, ETag, CLI | done |
+| 2 | Foundation API and OAuth2 | |
+| 3–4 | BCF API | |
+| 5 | Documents API | |
+| 6 | Admin UI | |
+| 7 | Client library and end-to-end tests | |
+| 8 | Deployment | |
+| 9 | IFC-graph | |
+| 10 | Visual acceptance, Dataspatium | |
+| 11 | Hardening, documentation, upstream preparation | |
+
 ## 1. Foundation API 1.0
 
 | Function | Prototype | Status | Stage |
@@ -75,7 +91,9 @@ project plan. This file is updated with every stage.
 | `debug()` prints with jsonpickle | yes | drop: structured logging | 0 |
 | Liveness and readiness endpoints | no | new: `/healthz`, `/readyz` | 0 |
 | Web admin UI (users, clients, projects, audit log) | no (README TODO) | new | 6 |
-| CLI (`init`, `doctor`, `seed`, user/client/project, backup, revoke) | no | new | 0, 1 |
+| CLI (`init`, `doctor`, `seed`, `cleanup`, `user`, `project`, `client`; `backup`/`restore` and `revoke` follow) | no | new; done except backup and revoke | 0, 1, 8 |
+| Expiry of codes, tokens and sessions (prototype: APOC TTL) | APOC | reshape: `expires_at` + server-side cleanup, done | 1 |
+| OData `$filter/$orderby/$top/$skip` (prototype: none) | no | new: whitelist compiler to Cypher, done | 1 |
 
 ## 5. Data model
 

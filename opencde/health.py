@@ -20,9 +20,8 @@ async def healthz() -> dict[str, str]:
 @router.get("/readyz", summary="Readiness: the graph database answers", include_in_schema=False)
 async def readyz(request: Request) -> JSONResponse:
     settings = request.app.state.settings
-    reachable = await ping_within(
-        request.app.state.driver, settings.database_name, settings.graph_connect_timeout_seconds
-    )
+    graph = request.app.state.graph
+    reachable = await ping_within(graph.driver, graph.database, settings.graph_connect_timeout_seconds)
     if reachable:
-        return JSONResponse({"status": "ready", "graph": "ok"})
+        return JSONResponse({"status": "ready", "graph": "ok", "dialect": graph.dialect.name.value})
     return JSONResponse({"status": "not_ready", "graph": "unavailable"}, status_code=503)

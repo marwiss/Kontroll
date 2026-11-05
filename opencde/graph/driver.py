@@ -21,6 +21,9 @@ def create_driver(settings: Settings) -> AsyncDriver:
         connection_timeout=settings.graph_connect_timeout_seconds,
         max_connection_lifetime=30 * 60,
         user_agent="kontroll-opencde",
+        # Neo4j sends advisory notifications (for example "property does not
+        # exist yet" on an empty database); they would only clutter the logs.
+        notifications_min_severity="OFF",
     )
 
 
