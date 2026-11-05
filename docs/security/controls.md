@@ -52,6 +52,21 @@ Every control has at least one automated test. "Suite" names the test module.
 | Related topics must belong to the same project | OWASP API1 | `test_related_topics_and_files` |
 | Numeric inputs are finite (no NaN or infinity), lists and strings bounded | OWASP ASVS 5.1 | `test_bcf_helpers::test_viewpoint_rules`, `schemas.py` |
 
+## Documents API and browser sign-in (stage 5)
+
+| Control | Standard | Suite |
+|---|---|---|
+| UI links carry a 256-bit token stored only as a hash, valid for `documents_session_ttl_seconds`; API-side URLs use a separate public id and need a bearer token | OWASP ASVS 3.2 | `test_documents_api::test_upload_flow_versions_and_queries` |
+| The browser must be signed in as the user who started the flow; other users get 403, anonymous browsers are sent to sign in | OWASP API1 | `test_documents_api` (upload and selection flows) |
+| Session cookie: random, hashed, `HttpOnly`, `SameSite=Strict`, `Secure` on https, idle and absolute expiry, deleted on sign-out | OWASP ASVS 3.3, 3.4 | `test_web_signin::test_sign_in_sets_a_hardened_cookie_and_sign_out_removes_it` |
+| Signed form tokens bound to the session on every page POST; `Sec-Fetch-Site`/`Origin` checked as well | CSRF, OWASP ASVS 4.2.2 | `test_web_signin::test_cross_site_posts_are_refused_and_next_cannot_leave_the_site`, `test_documents_api` |
+| `next` after sign-in is a local path only (no open redirect) | OWASP ASVS 5.1.5 | `test_documents_helpers::test_safe_next_only_accepts_local_paths` |
+| Callback URLs are http(s) only and never fetched by the server; the browser is redirected with URL-encoded parameters | SSRF, OWASP ASVS 12.6 | `test_documents_helpers::test_callback_and_extensions_rules`, `test_upload_cancelled_in_the_browser` |
+| Parts are streamed and must match the announced range exactly; files above `max_upload_bytes` are refused at instruction time; assembled size is verified and hashed | OWASP ASVS 12.1 | `test_upload_flow_versions_and_queries` |
+| Uploads need the `createDocument` project action; downloads need membership; outsiders get 404 | OWASP API1, API5 | `test_upload_cancelled_in_the_browser`, `test_selection_flow_with_filtering_and_browser_upload` |
+| Response bodies contain only the specification's fields (no storage keys, no hashes) | OWASP API3 | `validate_documents` in every Documents API test |
+| Expired sessions and parts are swept with their files | Housekeeping | `cleanup.py`, `test_graph_core::test_expired_nodes_are_deleted_in_batches` |
+
 ## Platform (stage 0–1)
 
 | Control | Suite |

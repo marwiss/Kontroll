@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "components.html" import alert, button, user_nav %}
+{% block title %}Select documents · {{ product }}{% endblock %}
+{% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h1 class="card__title">Select documents</h1>
+  <p class="card__lead">
+    Choose the documents to open in your application.
+    {% if extensions %}Showing {{ extensions|join(", ") }} files.{% endif %}
+  </p>
+
+  {% if error %}{{ alert("error", error) }}{% endif %}
+
+  <form method="post" action="{{ action }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+
+    {% for project in projects %}
+    <section>
+      <h2>{{ project.name }}</h2>
+      {% if project.documents %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Select</span></th>
+              <th scope="col">Title</th><th scope="col">File</th><th scope="col">Version</th><th scope="col">Uploaded</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in project.documents %}
+            <tr>
+              <td><input class="checkbox" type="checkbox" id="doc_{{ doc.document_id }}" name="selected" value="{{ doc.document_id }}"></td>
+              <td><label for="doc_{{ doc.document_id }}">{{ doc.title }}</label></td>
+              <td><code>{{ doc.file_name }}</code></td>
+              <td>{{ doc.version_number }}</td>
+              <td><time datetime="{{ doc.creation_date }}">{{ doc.creation_date[:10] }}</time> by {{ doc.author }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="muted">No matching documents in this project.</p>
+      {% endif %}
+    </section>
+    {% endfor %}
+    {% if not projects %}<p class="muted">You are not a member of any project.</p>{% endif %}
+    {% if hidden_count %}
+    <p class="muted">{{ hidden_count }} document{% if hidden_count != 1 %}s{% endif %} with other file types are hidden.
+      <a href="{{ show_all_url }}">Show all</a></p>
+    {% endif %}
+
+    <div class="cluster">
+      {{ button("Select documents", name="action", value="select") }}
+      {{ button("Cancel", "secondary", name="action", value="cancel", formnovalidate=true) }}
+    </div>
+  </form>
+</section>
+
+{% if upload_projects %}
+<section class="card">
+  <h2>Upload a file</h2>
+  <p class="muted">Add a new document to a project; it then appears in the list above.</p>
+  <form method="post" action="{{ upload_action }}" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <div class="field">
+      <label class="field__label" for="upload_project">Project</label>
+      <select class="select" id="upload_project" name="project_id" required>
+        {% for project in upload_projects %}<option value="{{ project.project_id }}">{{ project.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="upload_file">File</label>
+      <input class="input" id="upload_file" name="file" type="file" required>
+    </div>
+    <div class="field">
+      <label class="field__label" for="upload_title">Title</label>
+      <input class="input" id="upload_title" name="title" maxlength="200" aria-describedby="upload_title-hint">
+      <p class="field__hint" id="upload_title-hint">Defaults to the file name.</p>
+    </div>
+    <div class="cluster">{{ button("Upload", "secondary") }}</div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

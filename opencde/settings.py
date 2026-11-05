@@ -106,6 +106,9 @@ class Settings(BaseSettings):
     documents_session_ttl_seconds: int = Field(
         600, ge=60, description="Validity of Documents API UI links (expires_in)."
     )
+    upload_session_ttl_seconds: int = Field(
+        24 * 3600, ge=600, description="How long a client has to upload the parts of a document."
+    )
     dynamic_client_registration: bool = Field(
         False, description="Offer POST /foundation/oauth2/reg (Foundation API 2.2.3). Off unless you need it."
     )

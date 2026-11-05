@@ -97,7 +97,26 @@ Topics keep their snippet file in `snippet_storage_key` (bytes under
 `snippets/<topic guid>.bin`). Deleting a topic deletes everything below it
 and the storage keys collected from the nodes; events stay.
 
-## Documents (stage 5)
+## Documents and browser sessions (stage 5)
 
-Added when implemented: `Document`, `DocumentVersion`, `UploadSession`,
-`UploadPart`, `SelectionSession`, `IfcModel`, `IfcEntity`.
+```mermaid
+erDiagram
+    Project ||--o{ Document : HAS_DOCUMENT
+    Document ||--|{ DocumentVersion : HAS_VERSION
+    DocumentVersion }o--|| User : UPLOADED_BY
+    UploadSession ||--o{ UploadPart : HAS_PART
+    WebSession }o--|| User : FOR
+```
+
+| Label | Key | Properties | Notes |
+|---|---|---|---|
+| `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` numbers the versions |
+| `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON) | Bytes under `documents/<id>`; the API body shows only the spec's fields |
+| `UploadSession` | `id`, indexed `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` appears in API URLs (bearer required); the UI URL carries the token whose hash is stored |
+| `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` until the file is assembled; the cleanup job deletes expired parts and their files |
+| `SelectionSession` | `id`, indexed `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` holds `document_id:version_index` pairs chosen in the browser |
+| `WebSession` | `id` (hash of the cookie) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Browser sign-in; `expires_at` is the absolute lifetime |
+
+## IFC graph (stage 9)
+
+Added when implemented: `IfcModel`, `IfcEntity`.

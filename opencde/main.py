@@ -21,6 +21,8 @@ from opencde import __version__, health
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
+from opencde.documents import routes_api as documents_api
+from opencde.documents import routes_ui as documents_ui
 from opencde.errors import install_error_handlers
 from opencde.etag import ETagMiddleware
 from opencde.foundation import routes as foundation_routes
@@ -31,6 +33,7 @@ from opencde.middleware import BodySizeLimitMiddleware, RequestIDMiddleware, Sec
 from opencde.ratelimit import install_rate_limiting
 from opencde.settings import Settings
 from opencde.ui.templating import STATIC_DIR, render
+from opencde.web import routes as web_routes
 
 DESCRIPTION = """\
 Server implementation of the buildingSMART OpenCDE APIs:
@@ -60,7 +63,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.state.settings = settings
         app.state.graph = make_graph(settings)
         app.state.storage = make_storage(settings)
-        cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds)
+        cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds, app.state.storage)
         log.info(
             "server_starting",
             version=__version__,
@@ -110,7 +113,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         BodySizeLimitMiddleware,
         max_bytes=settings.max_json_body_bytes,
         exempt_prefixes=("/documents/1.0/upload-part/",),
-        exempt_patterns=bcf_router.BINARY_UPLOAD_PATHS,
+        exempt_patterns=(*bcf_router.BINARY_UPLOAD_PATHS, *documents_ui.BROWSER_UPLOAD_PATHS),
     )
     app.add_middleware(RequestIDMiddleware)
 
@@ -119,6 +122,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(foundation_routes.alias_router)
     app.include_router(oauth2_routes.router)
     app.include_router(bcf_router.router)
+    app.include_router(documents_api.router)
+    app.include_router(documents_ui.router)
+    app.include_router(web_routes.router)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     @app.get("/", include_in_schema=False, response_class=HTMLResponse)

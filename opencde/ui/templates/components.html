@@ -21,3 +21,17 @@
 <button class="btn btn--{{ kind }}" type="{{ type }}" {% if name %}name="{{ name }}" value="{{ value }}"{% endif %}
         {% if formnovalidate %}formnovalidate{% endif %}>{{ text }}</button>
 {% endmacro %}
+
+{% macro user_nav(web_user, signout_token) %}
+<nav class="nav" aria-label="Account">
+  {% if web_user %}
+  <span class="nav__user">Signed in as <strong>{{ web_user.user.username }}</strong></span>
+  <form method="post" action="/signout" class="nav__form">
+    <input type="hidden" name="signout_token" value="{{ signout_token }}">
+    <button class="btn btn--secondary btn--small" type="submit">Sign out</button>
+  </form>
+  {% else %}
+  <a href="/signin">Sign in</a>
+  {% endif %}
+</nav>
+{% endmacro %}

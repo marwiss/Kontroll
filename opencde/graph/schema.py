@@ -57,8 +57,11 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("RefreshToken", "family_id"),
     ("WebSession", "expires_at"),
     ("UploadSession", "expires_at"),
+    ("UploadSession", "token_hash"),
     ("UploadPart", "expires_at"),
     ("SelectionSession", "expires_at"),
+    ("SelectionSession", "token_hash"),
+    ("DocumentVersion", "version_index"),
     ("IfcEntity", "GlobalId"),
     ("IfcEntity", "model_id"),
 )

@@ -1,0 +1,110 @@
+# This file was generated with the assistance of an AI coding tool.
+"""Sign-in and sign-out pages for the server's own UI.
+
+``GET /signin`` shows the form, ``POST /signin`` starts a session and sets the
+cookie, ``POST /signout`` deletes the session. The form carries a signed token
+(CSRF), the password never appears in a URL, and failures say only that the
+user name or password is wrong.
+"""
+
+from __future__ import annotations
+
+from typing import Annotated
+
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import RedirectResponse, Response
+
+from opencde import audit
+from opencde.auth.forms import FormTokenError
+from opencde.deps import GraphDep, SettingsDep, UsersDep, client_ip
+from opencde.ratelimit import RATE_SIGN_IN, limiter
+from opencde.ui.templating import render
+from opencde.web.dependencies import (
+    NO_STORE,
+    SIGNOUT_PURPOSE,
+    WebUserDep,
+    form_tokens,
+    page_context,
+    require_same_origin,
+    safe_next,
+)
+from opencde.web.sessions import COOKIE_NAME, WebSessionsDep, clear_session_cookie, set_session_cookie
+
+router = APIRouter(tags=["Web UI"], include_in_schema=False)
+
+SIGNIN_PURPOSE = "web-signin"
+
+
+def _signin_page(request: Request, target: str, error: str | None, status_code: int = 200) -> Response:
+    token = form_tokens(request).sign(SIGNIN_PURPOSE, {"next": target})
+    return render(request, "web/signin.html", {"form_token": token, "error": error}, status_code=status_code)
+
+
+@router.get("/signin", summary="Sign-in page")
+async def signin_page(request: Request, web_user: WebUserDep, next: str | None = None) -> Response:
+    target = safe_next(next)
+    if web_user is not None:
+        return RedirectResponse(target, status_code=302, headers=NO_STORE)
+    return _signin_page(request, target, None)
+
+
+@router.post("/signin", summary="Sign in")
+@limiter.limit(RATE_SIGN_IN)
+async def signin_submit(
+    request: Request,
+    users: UsersDep,
+    sessions: WebSessionsDep,
+    graph: GraphDep,
+    settings: SettingsDep,
+    form_token: Annotated[str | None, Form()] = None,
+    username: Annotated[str, Form(max_length=128)] = "",
+    password: Annotated[str, Form(max_length=256)] = "",
+) -> Response:
+    require_same_origin(request)
+    try:
+        data = form_tokens(request).load(form_token, SIGNIN_PURPOSE)
+    except FormTokenError:
+        return _signin_page(request, "/", "The form has expired. Please try again.", status_code=400)
+    target = safe_next(data.get("next"))
+    ip = client_ip(request)
+
+    user = await users.authenticate(username, password)
+    if user is None:
+        await audit.record(graph, "web.sign_in.failed", ip=ip, details={"username": username[:128]})
+        return _signin_page(request, target, "The user name or password is not correct.")
+
+    token = await sessions.create(user.id, ip)
+    await audit.record(graph, "web.sign_in", actor=user.id, ip=ip)
+    response = RedirectResponse(target, status_code=302, headers=NO_STORE)
+    set_session_cookie(response, token, settings)
+    return response
+
+
+@router.post("/signout", summary="Sign out")
+async def signout(
+    request: Request,
+    sessions: WebSessionsDep,
+    web_user: WebUserDep,
+    graph: GraphDep,
+    signout_token: Annotated[str | None, Form()] = None,
+) -> Response:
+    require_same_origin(request)
+    response = RedirectResponse("/", status_code=302, headers=NO_STORE)
+    if web_user is not None:
+        try:
+            form_tokens(request).load(signout_token, SIGNOUT_PURPOSE)
+        except FormTokenError:
+            return render(
+                request,
+                "web/message.html",
+                page_context(
+                    request, web_user, title="Cannot sign out", message="The form has expired. Reload the page."
+                ),
+                status_code=400,
+            )
+        cookie = request.cookies.get(COOKIE_NAME)
+        if cookie:
+            await sessions.delete(cookie)
+        await audit.record(graph, "web.sign_out", actor=web_user.user.id, ip=client_ip(request))
+    clear_session_cookie(response)
+    return response

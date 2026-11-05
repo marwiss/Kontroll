@@ -55,6 +55,13 @@
 .nav a { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-muted); text-decoration: none; font-weight: 500; }
 .nav a:hover { background: var(--color-surface-2); color: var(--color-text); }
 .nav a[aria-current="page"] { background: var(--color-accent-soft); color: var(--color-accent-strong); }
+.nav__user { padding: var(--space-2) var(--space-3); color: var(--color-text-muted); font-size: var(--text-sm); }
+.nav__form { margin: 0; display: inline-flex; align-items: center; }
+
+.card + .card { margin-top: var(--space-5); }
+.table .input, .table .select { min-height: 2.25rem; }
+.table td label { cursor: pointer; }
+.table .checkbox { width: 1.125rem; height: 1.125rem; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
 .toolbar__search { min-width: 16rem; flex: 1; }

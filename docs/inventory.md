@@ -18,7 +18,7 @@ project plan. This file is updated with every stage.
 | 2 | Foundation API and OAuth2 (PKCE, rotating refresh tokens, revocation, dynamic registration), design system, sign-in page | done |
 | 3 | BCF API: projects, extensions, topics, topic events, authorization objects | done |
 | 4 | BCF API: comments, viewpoints, related topics, document references, files, snippets, documents, comment events | done |
-| 5 | Documents API | |
+| 5 | Documents API and browser sign-in | done |
 | 6 | Admin UI | |
 | 7 | Client library and end-to-end tests | |
 | 8 | Deployment | |
@@ -66,19 +66,20 @@ project plan. This file is updated with every stage.
 
 | Function | Prototype | Status | Stage |
 |---|---|---|---|
-| `POST upload-documents` | yes | keep | 5 |
-| Upload metadata page (`document-upload`) | yes, AJAX callback | reshape: form POST, 302 to callback with `upload_documents_url` or `user_cancelled_upload=true` | 5 |
-| Upload instructions (`upload-documents-url`) | yes | keep; parts with content ranges, `include_authorization` | 5 |
-| Upload file part `POST` | yes, whole body in memory | keep; streaming with byte counting and limits | 5 |
-| Upload file part `PUT` | no | new | 5 |
-| Upload completion / cancellation | per session, swallowed errors | keep; per file, SHA-256 check, keep-alive whitespace | 5 |
-| `POST document-versions` (aggregate query) | bare list in and out, always version 1 | keep; `DocumentQuery`/`DocumentQueryResult`, `ETag`/`If-None-Match` → 304 | 5 |
-| `POST select-documents` | yes | keep | 5 |
-| Selection page (`document-selection`) | yes, AJAX callback | reshape: form POST, 302 with `selected_documents_url` or `user_cancelled_selection=true`, filter on `supported_file_extensions` | 5 |
-| Selected documents (`download-instructions`) | yes, not bound to the user | keep; bound to the user's session | 5 |
-| Document version, metadata, download, versions | yes; inverted version filter, fixed filename | keep; strict `DocumentVersion` body | 5 |
-| Document details page | route without template | keep | 5 |
-| Custom upload from the selection page (`upload_file_to_project`) | yes, unauthenticated | keep; authenticated, server-generated ids | 5 |
+| `POST upload-documents` | yes | implemented; `upload_ui_url` carries a 256-bit token stored hashed, `max_size_in_bytes` from settings | 5 |
+| Upload metadata page (`document-upload`) | yes, AJAX callback | implemented as `/documents/1.0/upload-ui/{token}`: browser sign-in required and bound to the user who started the flow, form POST, 302 to the callback with `upload_documents_url` or `user_cancelled_upload=true` | 5 |
+| Upload instructions (`upload-documents-url`) | yes | implemented; parts of `OPENCDE_UPLOAD_PART_BYTES` with inclusive content ranges, `PUT`, `include_authorization: true`, 400 above `max_size_in_bytes` | 5 |
+| Upload file part `POST` | yes, whole body in memory | implemented; streamed and counted, exact size required, bound to the uploading user | 5 |
+| Upload file part `PUT` | no | implemented (same handler) | 5 |
+| Upload completion / cancellation | per session, swallowed errors | implemented per file; parts assembled with a size check and SHA-256, idempotent completion, keep-alive whitespace after 15 s | 5 |
+| `POST document-versions` (aggregate query) | bare list in and out, always version 1 | implemented; `DocumentQuery` in, `DocumentQueryResult` out, `ETag` and `If-None-Match` → 304, unknown or foreign ids omitted | 5 |
+| `POST select-documents` | yes | implemented; `select_documents_url` with a hashed token | 5 |
+| Selection page (`document-selection`) | yes, AJAX callback | implemented as `/documents/1.0/select-ui/{token}`: sign-in required, latest versions per project, filtered on `supported_file_extensions` with "show all", 302 with `selected_documents_url` or `user_cancelled_selection=true` | 5 |
+| Selected documents (`download-instructions`) | yes, not bound to the user | implemented; bound to the user who selected, returns the versions chosen at selection time | 5 |
+| Document version, metadata, download, versions | yes; inverted version filter, fixed filename | implemented; strict `DocumentVersion` body, absolute links, downloads as attachments with the original file name | 5 |
+| Document details page | route without template | implemented (`…/details`, sign-in required) with a browser download | 5 |
+| Custom upload from the selection page (`upload_file_to_project`) | yes, unauthenticated | implemented; signed-in editors and managers only, multipart streamed to storage, server-generated ids | 5 |
+| Browser sign-in for the server's pages | none (API token in the browser) | new: `/signin`, `/signout`, hashed session cookie, idle and absolute expiry | 5 |
 | `/user/1.0/*` duplicate router | never mounted | drop: dead code | – |
 
 ## 4. Other server functions
@@ -139,9 +140,10 @@ project plan. This file is updated with every stage.
 | Prototype | Status | Stage |
 |---|---|---|
 | `login.html` (Bootstrap and jQuery from CDN, AJAX) | reshape: same content, own CSS, form POST, CSRF token, no CDN | 2 |
-| `select_files.html` | reshape: same content, form POST, filtering, cancel | 5 |
-| `upload_files.html` | reshape: same content, cancel | 5 |
-| `index.html`, missing `document_details.html` | keep both | 2, 5 |
+| `select_files.html` | done: `documents/select.html`, form POST, filtering, cancel, upload form for editors | 5 |
+| `upload_files.html` | done: `documents/upload.html`, project choice, cancel | 5 |
+| `index.html`, missing `document_details.html` | done: `index.html`, `documents/details.html` | 2, 5 |
+| none: a sign-in page for the server's own pages | new: `web/signin.html`, `web/message.html` | 5 |
 
 ## 9. Test data
 
@@ -163,6 +165,8 @@ this server does:
 | BCF 3.0 says nothing about content types or file names of binary responses | Snapshots and bitmaps are `image/png` or `image/jpeg`; documents and snippets are `application/octet-stream` attachments with the stored file name |
 | BCF 3.0 says nothing about how the file name of a document upload (3.8.2) is transmitted | `Content-Disposition` (RFC 6266), as Foundation API 1.9 does for binary uploads; `document` when absent |
 | Foundation `versions_GET.json` allows `api_id` `bcf` and `foundation` only, while the Documents API needs `documents` there | The conformance test accepts `documents` |
+| Documents `UploadFilePartInstruction` is `allOf: [LinkData, …]` where `LinkData` has `additionalProperties: false`; read as strict JSON Schema nothing could satisfy it | The conformance test reads `allOf` as composition, as OpenAPI tooling does |
+| Documents API: no callback parameter is defined for the user cancelling an upload in some wording (`user_cancelled_selection` appears under the upload flow once) | `user_cancelled_upload=true` for uploads, `user_cancelled_selection=true` for selections, as the operation descriptions state |
 
 ## 11. README items of the prototype
 
