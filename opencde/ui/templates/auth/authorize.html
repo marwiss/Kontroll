@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "components.html" import field, alert, button %}
+{% block title %}Sign in · {{ product }}{% endblock %}
+{% block body_class %}page--narrow{% endblock %}
+{% block content %}
+<section class="card card--auth">
+  <h1 class="card__title">Sign in</h1>
+  <p class="card__lead">
+    <strong>{{ client.name }}</strong> asks to act on your behalf on this server.
+    {% if client.description %}<span class="muted">{{ client.description }}</span>{% endif %}
+  </p>
+
+  {% if error %}{{ alert("error", error) }}{% endif %}
+
+  <form method="post" action="/foundation/oauth2/auth" class="stack" autocomplete="on">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    {{ field("username", "User name", autocomplete="username", required=true, autofocus=true, maxlength=128) }}
+    {{ field("password", "Password", type="password", autocomplete="current-password", required=true, maxlength=256) }}
+
+    <div class="consent">
+      <h2 class="consent__title">The application will be able to</h2>
+      <ul class="consent__list">
+        {% for scope in scopes %}
+        <li><span class="badge">{{ scope.name }}</span> {{ scope.description }}</li>
+        {% endfor %}
+      </ul>
+      <p class="muted">After you sign in you are sent back to <code>{{ redirect_host }}</code>.</p>
+    </div>
+
+    <div class="cluster">
+      {{ button("Allow and sign in", "primary", name="decision", value="allow") }}
+      {{ button("Deny", "secondary", name="decision", value="deny", formnovalidate=true) }}
+    </div>
+  </form>
+</section>
+{% endblock %}

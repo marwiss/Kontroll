@@ -15,7 +15,7 @@ project plan. This file is updated with every stage.
 |---|---|---|
 | 0 | Repository, scaffold, CI, Docker, security baseline | done |
 | 1 | Graph core (dialects, schema, cleanup), accounts, OAuth2 clients, OData compiler, storage, audit log, rate limiting, ETag, CLI | done |
-| 2 | Foundation API and OAuth2 | |
+| 2 | Foundation API and OAuth2 (PKCE, rotating refresh tokens, revocation, dynamic registration), design system, sign-in page | done |
 | 3–4 | BCF API | |
 | 5 | Documents API | |
 | 6 | Admin UI | |
