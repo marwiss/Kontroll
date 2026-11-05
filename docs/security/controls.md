@@ -104,6 +104,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Control | Suite |
 |---|---|
 | Security headers on every response, including errors | `test_headers_and_errors` |
+| `Cross-Origin-Opener-Policy: same-origin` only on the administration and account pages; the pages a client opens in a pop-up keep the browser default so the client's callback page can reach its opener (verified in a real browser) | `test_headers_and_errors::test_opener_policy_isolates_only_the_administration`, `tests/ui/test_popup_opener.py` |
 | Spec error body only; no stack traces or echoed input | `test_headers_and_errors`, `errors.py` |
 | Request body size limit before parsing | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request id sanitised | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |
