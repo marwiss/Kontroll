@@ -13,7 +13,8 @@ mitigation plan as soon as the problem is understood.
 
 ## What we do
 
-- Threat model, controls and their tests are documented in `docs/security/`.
+- Threat model, controls and their tests, the OWASP ASVS Level 2 checklist and
+  how to run the scanners are documented in `docs/security/`.
 - Every release runs the security test suite (`tests/security/`), schema
   fuzzing (Schemathesis), dynamic scanning (OWASP ZAP), OAuth2 compliance
   checks (OAuch), static analysis, dependency and container scanning.

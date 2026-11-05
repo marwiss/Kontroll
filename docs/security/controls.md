@@ -90,7 +90,15 @@ Every control has at least one automated test. "Suite" names the test module.
 | Labels and relationship types from the converter are validated as identifiers before they reach Cypher; everything else is a parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
 | Conversion failures are recorded on the `IfcModel` node and logged without the file's content | OWASP ASVS 7.1 | `test_ifcgraph` |
 
-## Platform (stage 0–1)
+## Deployment and backups (stage 8)
+
+| Control | Suite |
+|---|---|
+| Container runs as non-root on a read-only root file system with dropped capabilities; database on the private network only | `Dockerfile`, `compose.prod.yaml`; Trivy image scan in `release.yml` and `security-nightly.yml` |
+| Backup and restore round trip keeps nodes, relationships and files, on Neo4j and Memgraph | `test_backup` |
+| Nightly ZAP baseline against the running server | `security-nightly.yml`, `.zap/rules.tsv` |
+
+## Platform (stage 0–1, contract fuzzing stage 11)
 
 | Control | Suite |
 |---|---|
@@ -98,10 +106,12 @@ Every control has at least one automated test. "Suite" names the test module.
 | Spec error body only; no stack traces or echoed input | `test_headers_and_errors`, `errors.py` |
 | Request body size limit before parsing | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request id sanitised | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |
-| CORS without credentials | `test_headers_and_errors::test_cors_is_bearer_only_never_credentials` |
+| CORS without credentials, on the API paths only; pages are never shared cross-origin | `test_headers_and_errors::test_cors_is_bearer_only_never_credentials`, `::test_pages_are_never_shared_cross_origin` |
+| The interactive API documentation (third-party Swagger UI from a CDN) has a policy of its own and is off in production by default | `test_headers_and_errors::test_api_docs_have_their_own_policy_and_are_off_in_production` |
 | Production refuses to start without https, database password and secret key | `test_settings` |
 | Storage keys built from UUIDs only; path traversal impossible | `test_core_helpers::test_storage_keys_cannot_escape` |
 | Streaming writes count bytes and enforce limits | `test_core_helpers::test_storage_stream_counts_bytes` |
 | Cypher stays parameterised and portable | `test_core_helpers::test_dialect_ddl_and_cypher_lint`, Memgraph contract run |
 | Expired secrets are deleted on a timer | `test_graph_core::test_expired_nodes_are_deleted_in_batches` |
 | Dependency cooldown and pinned actions | `.github/workflows/ci.yml`, `pyproject.toml` |
+| Every documented operation survives generated valid and invalid input: no 5xx, responses match the OpenAPI schemas, invalid input gets a 4xx | `tests/e2e/test_schemathesis.py` (Schemathesis; `OPENCDE_SCHEMATHESIS_EXAMPLES` for the long nightly run) |

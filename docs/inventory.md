@@ -24,7 +24,7 @@ project plan. This file is updated with every stage.
 | 8 | Deployment: production compose with Caddy and nightly backups, tunnel and Memgraph overlays, release pipeline (multi-arch image, SBOM, Trivy), nightly security workflow, `backup`/`restore`/`revoke`, deployment guides | done |
 | 9 | IFC-graph: worker process with limits, batched import, `IfcModel` per version, `SAME_AS` and GTIN for viewpoint components | done |
 | 10 | Visual acceptance checklist with independent clients (`docs/acceptance.md`: Bonsai, ifc-lite, Dataspatium, both directions) and the OpenCDE source family in Dataspatium | done |
-| 11 | Hardening, documentation, upstream preparation | |
+| 11 | Hardening and documentation: OWASP ASVS Level 2 checklist (`docs/security/asvs-checklist.md`), Schemathesis contract fuzzing in the e2e suite, scanner how-to (`docs/security/pentest-howto.md`), threat model completed; upstream drafts in `docs/upstream/` (sending them is the owner's decision) | done |
 
 ## 1. Foundation API 1.0
 
