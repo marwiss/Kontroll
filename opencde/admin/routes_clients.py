@@ -23,7 +23,7 @@ from opencde.auth.clients import Client, ClientError
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import ClientsDep, GraphDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
-from opencde.ui.i18n import tr
+from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
 
 router = APIRouter(prefix="/admin/clients", include_in_schema=False)
@@ -95,7 +95,7 @@ async def client_create(request: Request, admin: AdminDep, clients: ClientsDep, 
         return render(
             request,
             "admin/client_new.html",
-            admin_context(request, admin, "clients", form_token=form.token(), error=str(exc)),
+            admin_context(request, admin, "clients", form_token=form.token(), error=tr_error(request, exc)),
             status_code=400,
         )
     await form.record(graph, "client.create", client_id=client.client_id, public=public)
@@ -167,6 +167,6 @@ async def client_action(
             await form.record(graph, "client.delete", client_id=client.client_id, name=client.name)
             return redirect_with_notice("/admin/clients", "deleted")
     except ClientError as exc:
-        return _client_page(request, admin, client, error=str(exc), status_code=400)
+        return _client_page(request, admin, client, error=tr_error(request, exc), status_code=400)
 
     return redirect_with_notice(page, "invalid")

@@ -43,6 +43,36 @@ def test_translate_falls_back_and_fills_parameters() -> None:
     assert i18n.translate("xx", "opencde.signin") == "Sign in", "an unknown language reads the English source"
 
 
+def test_user_facing_errors_speak_the_request_language() -> None:
+    from starlette.requests import Request
+
+    from opencde.accounts.users import AccountError
+    from opencde.auth.passwords import PasswordProblem
+
+    def request(lang: str) -> Request:
+        return Request(
+            {"type": "http", "method": "GET", "path": "/", "headers": [], "query_string": f"lang={lang}".encode()}
+        )
+
+    plain = AccountError("no such user", key="error.user.not_found")
+    assert i18n.tr_error(request("sv"), plain) == "Det finns ingen sådan användare."
+    assert i18n.tr_error(request("en"), plain) == "No such user."
+    assert str(plain) == "no such user", "the English message stays for the CLI and the API"
+    nested = AccountError(
+        "password rejected: use at least 12 characters; do not include the user name",
+        key="error.password.rejected",
+        problems=[
+            PasswordProblem("use at least 12 characters", "error.password.too_short", {"min": 12}),
+            PasswordProblem("do not include the user name", "error.password.contains_username"),
+        ],
+    )
+    assert (
+        i18n.tr_error(request("sv"), nested)
+        == "Lösenordet avvisades: använd minst 12 tecken; ta inte med användarnamnet."
+    )
+    assert i18n.tr_error(request("fi"), ValueError("plain error")) == "plain error", "errors without a key pass through"
+
+
 def test_the_language_follows_query_cookie_and_browser(client: TestClient) -> None:
     default = client.get("/signin")
     assert 'lang="en"' in default.text and f'<h1 class="card__title">{SIGN_IN["en"]}</h1>' in default.text

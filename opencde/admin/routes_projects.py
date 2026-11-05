@@ -23,6 +23,7 @@ from opencde.admin.access import (
 )
 from opencde.deps import GraphDep, ProjectsDep, StorageDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.ui.i18n import tr_error
 from opencde.ui.links import dataspatium_link
 from opencde.ui.templating import render
 
@@ -99,7 +100,7 @@ async def project_create(request: Request, admin: AdminDep, projects: ProjectsDe
         return render(
             request,
             "admin/project_new.html",
-            admin_context(request, admin, "projects", form_token=form.token(), error=str(exc)),
+            admin_context(request, admin, "projects", form_token=form.token(), error=tr_error(request, exc)),
             status_code=400,
         )
     await form.record(graph, "project.create", project_id=project.project_id)
@@ -176,7 +177,9 @@ async def project_action(
             await form.record(graph, "project.delete", project_id=project.project_id, name=project.name)
             return redirect_with_notice("/admin/projects", "deleted")
     except AccountError as exc:
-        return await _project_page(request, admin, project, projects, users, error=str(exc), status_code=400)
+        return await _project_page(
+            request, admin, project, projects, users, error=tr_error(request, exc), status_code=400
+        )
 
     return redirect_with_notice(page, "invalid")
 

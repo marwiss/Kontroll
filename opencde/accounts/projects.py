@@ -58,14 +58,24 @@ def _clean_list(name: str, values: list[str]) -> list[str]:
     cleaned: list[str] = []
     for value in values:
         if not isinstance(value, str):
-            raise AccountError(f"{name}: values must be strings")
+            raise AccountError(f"{name}: values must be strings", key="error.project.values_strings", name=name)
         value = value.strip()
         if not value or len(value) > MAX_ITEM_LENGTH:
-            raise AccountError(f"{name}: values must be 1-{MAX_ITEM_LENGTH} characters")
+            raise AccountError(
+                f"{name}: values must be 1-{MAX_ITEM_LENGTH} characters",
+                key="error.project.values_length",
+                name=name,
+                max=MAX_ITEM_LENGTH,
+            )
         if value not in cleaned:
             cleaned.append(value)
     if len(cleaned) > MAX_LIST_ITEMS:
-        raise AccountError(f"{name}: at most {MAX_LIST_ITEMS} values")
+        raise AccountError(
+            f"{name}: at most {MAX_LIST_ITEMS} values",
+            key="error.project.too_many_values",
+            name=name,
+            max=MAX_LIST_ITEMS,
+        )
     return cleaned
 
 
@@ -78,13 +88,13 @@ class ProjectRepository:
     ) -> Project:
         name = name.strip()
         if not name or len(name) > MAX_NAME:
-            raise AccountError(f"project name: 1-{MAX_NAME} characters")
+            raise AccountError(f"project name: 1-{MAX_NAME} characters", key="error.project.name_length", max=MAX_NAME)
         if project_id is not None:
             if not is_uuid(project_id):
-                raise AccountError("project_id must be a UUID")
+                raise AccountError("project_id must be a UUID", key="error.project.id_uuid")
             project_id = normalize_guid(project_id)
             if await self.get(project_id):
-                raise AccountError("project_id already exists")
+                raise AccountError("project_id already exists", key="error.project.id_exists")
         values = {
             key: _clean_list(key, (extensions or {}).get(key, DEFAULT_EXTENSIONS[key])) for key in EXTENSION_LISTS
         }
@@ -104,7 +114,7 @@ class ProjectRepository:
             **values,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
-            raise AccountError("project was not created")
+            raise AccountError("project was not created", key="error.project.not_created")
         return _project(row["project"])
 
     async def get(self, project_id: str) -> Project | None:
@@ -129,14 +139,14 @@ class ProjectRepository:
     async def rename(self, project_id: str, name: str) -> Project:
         name = name.strip()
         if not name or len(name) > MAX_NAME:
-            raise AccountError(f"project name: 1-{MAX_NAME} characters")
+            raise AccountError(f"project name: 1-{MAX_NAME} characters", key="error.project.name_length", max=MAX_NAME)
         row = await self.graph.one(
             "MATCH (p:Project {project_id: $id}) SET p.name = $name RETURN properties(p) AS project",
             id=project_id,
             name=name,
         )
         if row is None:
-            raise AccountError("no such project")
+            raise AccountError("no such project", key="error.project.not_found")
         return _project(row["project"])
 
     async def delete(self, project_id: str) -> bool:
@@ -173,7 +183,7 @@ class ProjectRepository:
             now=now_iso(),
         )
         if row is None:
-            raise AccountError("no such user or project")
+            raise AccountError("no such user or project", key="error.project.member_not_found")
 
     async def remove_member(self, project_id: str, user_id: str) -> bool:
         counters = await self.graph.write(
@@ -218,7 +228,8 @@ class ProjectRepository:
     async def set_extensions(self, project_id: str, values: dict[str, list[str]]) -> dict[str, list[str]]:
         unknown = set(values) - set(EXTENSION_LISTS)
         if unknown:
-            raise AccountError(f"unknown extension lists: {', '.join(sorted(unknown))}")
+            names = ", ".join(sorted(unknown))
+            raise AccountError(f"unknown extension lists: {names}", key="error.project.unknown_extensions", names=names)
         cleaned = {key: _clean_list(key, value) for key, value in values.items()}
         assignments = ", ".join(f"e.{key} = ${key}" for key in cleaned)
         row = await self.graph.one(
@@ -227,8 +238,8 @@ class ProjectRepository:
             **cleaned,
         )
         if row is None:
-            raise AccountError("no such project")
+            raise AccountError("no such project", key="error.project.not_found")
         result = await self.extensions(project_id)
         if result is None:
-            raise AccountError("no such project")
+            raise AccountError("no such project", key="error.project.not_found")
         return result

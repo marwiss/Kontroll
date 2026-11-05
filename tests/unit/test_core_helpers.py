@@ -47,7 +47,9 @@ def test_ids_and_secrets() -> None:
 
 def test_password_policy_and_hashing() -> None:
     assert password_problems("short", "alice")
-    assert any("user name" in p for p in password_problems("alice-is-my-name-1234", "alice"))
+    assert any("user name" in str(p) for p in password_problems("alice-is-my-name-1234", "alice"))
+    assert [p.key for p in password_problems("short", "alice")] == ["error.password.too_short"]
+    assert password_problems("short", "alice")[0].params == {"min": 12}
     assert password_problems("password12345678")  # weak despite length
     assert password_problems("a-long-and-strong-passphrase", "alice") == []
     digest = hash_password("a-long-and-strong-passphrase")

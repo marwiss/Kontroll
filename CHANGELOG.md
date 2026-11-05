@@ -4,6 +4,13 @@ Kontroll takes the same release numbers as [Dataspatium](https://github.com/marw
 the same number on both means they work together. Every release lists what
 a client can see; internal changes are in the commit history.
 
+## Unreleased
+
+- The validation messages of the administration and account pages (user
+  names, passwords, project names and extension lists, clients and their
+  redirect URIs) follow the page language; the CLI and the API keep the
+  English texts.
+
 ## 2.1.0 — 2026-11-05
 
 Works with Dataspatium 2.1.0.

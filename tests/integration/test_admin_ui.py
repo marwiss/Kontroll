@@ -95,6 +95,19 @@ def test_csrf_protections_on_admin_forms(client: TestClient, world: World) -> No
     assert "No token" not in client.get("/admin/projects").text and "Cross" not in client.get("/admin/projects").text
 
 
+def test_validation_messages_follow_the_page_language(client: TestClient, world: World) -> None:
+    web_sign_in(client, world, "admin")
+    page = client.get("/admin/users/new", params={"lang": "sv"}).text  # sets the language cookie as well
+    refused = post(client, "/admin/users", page, username="x", full_name="", email="")
+    assert "Användarnamnet måste vara 3–128 tecken" in refused.text, "the repository's message in the page language"
+    assert "user name: 3-128" not in refused.text
+    weak = post(client, "/admin/users", page, username="weak_user", full_name="", email="", password="short")
+    assert "Lösenordet avvisades: använd minst 12 tecken" in weak.text
+    english = client.get("/admin/clients/new", params={"lang": "en"}).text
+    bad_client = post(client, "/admin/clients", english, name="x", redirect_uris="not a uri", public="on")
+    assert "The redirect URI must be absolute." in bad_client.text
+
+
 def test_user_management(client: TestClient, world: World) -> None:
     web_sign_in(client, world, "admin")
     created = post(

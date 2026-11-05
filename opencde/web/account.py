@@ -17,7 +17,7 @@ from opencde.admin.access import NOTICES, SignedInDep, redirect_with_notice, tex
 from opencde.auth.dependencies import TokensDep
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, UsersDep, client_ip
-from opencde.ui.i18n import tr
+from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
 from opencde.web.dependencies import form_tokens, page_context, require_same_origin
 from opencde.web.sessions import WebSessionsDep
@@ -93,7 +93,7 @@ async def account_action(
         try:
             await users.set_password(web_user.user.id, new, must_change=False)
         except AccountError as exc:
-            return await _page(request, web_user, tokens, graph, error=str(exc), status_code=400)
+            return await _page(request, web_user, tokens, graph, error=tr_error(request, exc), status_code=400)
         await audit.record(graph, "account.password.changed", actor=web_user.user.id, ip=ip)
         return redirect_with_notice("/account", "password_changed")
 

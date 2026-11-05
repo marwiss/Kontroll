@@ -15,7 +15,6 @@
   "nav.requests": "Begärandelogg",
   "nav.settings": "Inställningar",
   "nav.my_account": "Mitt konto",
-
   "opencde.signin": "Logga in",
   "opencde.signout": "Logga ut",
   "opencde.project": "Projekt",
@@ -66,7 +65,6 @@
   "common.danger_zone": "Riskzon",
   "common.redirect_uris": "Redirect-URI:er",
   "common.open_in_dataspatium": "Öppna i Dataspatium",
-
   "js.filter_rows": "Filtrera rader",
   "js.filter_placeholder": "Filtrera rader…",
   "js.rows_match": "{shown} av {total} rader matchar",
@@ -74,13 +72,11 @@
   "js.confirm": "Bekräfta",
   "js.copied": "Kopierat",
   "js.copy_failed": "Kopiering misslyckades",
-
   "signin.lead": "Använd ditt konto på den här servern.",
   "signin.error.credentials": "Användarnamnet eller lösenordet är inte korrekt.",
   "signin.error.expired": "Formuläret har gått ut. Försök igen.",
   "signout.error.title": "Kan inte logga ut",
   "signout.error.expired": "Formuläret har gått ut. Ladda om sidan.",
-
   "consent.asks": "ber om att få agera för din räkning på den här servern.",
   "consent.will": "Applikationen kommer att kunna",
   "consent.redirect": "När du har loggat in skickas du tillbaka till",
@@ -97,10 +93,8 @@
   "auth.error.no_client": "Begäran anger ingen klient (client_id).",
   "auth.error.no_redirect": "Begäran anger ingen redirect-URI och klienten har flera registrerade.",
   "auth.error.bad_redirect": "Redirect-URI:n är inte registrerad för den här klienten.",
-
   "page.not_found.title": "Hittades inte",
   "page.not_found.message": "Det finns ingen sådan sida.",
-
   "account.title": "Mitt konto",
   "account.must_change": "Ditt lösenord sattes av en administratör. Välj ett eget innan du fortsätter.",
   "account.administrator": "administratör",
@@ -118,7 +112,6 @@
   "account.this_browser": "den här webbläsaren",
   "account.sign_out_everywhere": "Logga ut överallt",
   "account.error.mismatch": "De två nya lösenorden skiljer sig åt.",
-
   "notice.saved": "Sparat.",
   "notice.created": "Skapat.",
   "notice.deleted": "Borttaget.",
@@ -132,13 +125,11 @@
   "notice.form_expired": "Formuläret hade gått ut; inget ändrades. Försök igen.",
   "notice.not_yourself": "Det kan du inte göra med ditt eget konto.",
   "notice.invalid": "Formuläret var inte giltigt; inget ändrades.",
-
   "index.lead": "En OpenCDE-server enligt buildingSMART: Foundation API 1.0, BCF API 3.0 och Documents API 1.0.",
   "index.discovery": "Tjänsteupptäckt",
   "index.auth": "Autentisering",
   "index.auth_value": "OAuth2 authorization code med PKCE",
   "index.version": "Version",
-
   "docs.upload.title": "Ladda upp dokument",
   "docs.upload.lead": "Din applikation vill ladda upp {count} filer.",
   "docs.upload.lead.one": "Din applikation vill ladda upp en fil.",
@@ -184,10 +175,8 @@
   "docs.message.other_account_hint": "Logga ut och logga in som den användare som startade det i applikationen.",
   "docs.message.callback_expired": "Applikationens länk har gått ut",
   "docs.message.callback_expired_text": "Applikationens återhoppslänk har gått ut, så du kan inte skickas tillbaka till den.",
-
   "macro.confirm_label": "Ditt lösenord",
   "macro.confirm_hint": "Riskfyllda åtgärder frågar efter ditt eget lösenord igen.",
-
   "admin.title": "Administration",
   "admin.overview.title": "Översikt",
   "admin.overview.db_down": "Grafdatabasen svarar inte. Inget kan läsas eller ändras förrän den är tillbaka.",
@@ -202,7 +191,6 @@
   "admin.overview.actor": "Aktör",
   "admin.overview.full_audit": "Hela revisionsloggen",
   "admin.overview.no_events": "Inga händelser ännu.",
-
   "admin.users.new": "Ny användare",
   "admin.users.search": "Sök användare",
   "admin.users.search_placeholder": "Sök på användarnamn, namn eller e-post",
@@ -235,7 +223,6 @@
   "admin.user_new.must_change": "Måste byta lösenord vid första inloggningen",
   "admin.user_new.admin_hint": "Administratörer hanterar den här servern. De har ingen projektåtkomst förrän de fått en roll.",
   "admin.user_new.create": "Skapa användare",
-
   "admin.secret.shown_once": "Visas en gång.",
   "admin.secret.password_for": "Lösenord för {user}",
   "admin.secret.password_lead": "Ge användaren det här lösenordet via en säker kanal. Det visas en gång och måste bytas vid första inloggningen.",
@@ -248,7 +235,6 @@
   "admin.secret.client_secret_rotated_lead": "Den gamla hemligheten slutade fungera. Uppdatera applikationen nu.",
   "admin.secret.client_id": "Klient-id",
   "admin.secret.open_client": "Öppna klienten",
-
   "admin.projects.new": "Nytt projekt",
   "admin.projects.none": "Inga projekt ännu.",
   "admin.project.id": "Projekt-id",
@@ -273,7 +259,6 @@
   "admin.project_new.name_hint": "Visas för alla medlemmar och för BCF-klienter.",
   "admin.project_new.defaults": "Projektet börjar med standardvärdena för BCF-extensions (typer, statusar, etiketter, prioriteter, skeden); redigera dem efteråt.",
   "admin.project_new.create": "Skapa projekt",
-
   "admin.clients.title": "OAuth2-klienter",
   "admin.clients.register": "Registrera klient",
   "admin.clients.lead": "En klient är en applikation som loggar in användare genom den här servern: ett BCF-tillägg, en visare, ett skript.",
@@ -300,13 +285,11 @@
   "admin.client_new.public_option": "Publik: inbyggd app eller webbläsarapp, ingen hemlighet, PKCE krävs",
   "admin.client_new.confidential_option": "Konfidentiell: serverapplikation med en hemlighet",
   "admin.client_new.type_hint": "Båda typerna måste använda PKCE. En konfidentiell klients hemlighet visas en gång efter registreringen.",
-
   "admin.sessions.apps": "Applikationer med åtkomst",
   "admin.sessions.apps_lead": "Varje rad är en familj av refresh-tokens: en användares inloggning genom en applikation. Återkallning avslutar den direkt.",
   "admin.sessions.no_apps": "Ingen applikation har någon token just nu.",
   "admin.sessions.browser": "Webbläsarsessioner",
   "admin.sessions.no_browser": "Inga webbläsarsessioner.",
-
   "admin.audit.csv": "Ladda ned CSV",
   "admin.audit.type_label": "Händelsetypen börjar med",
   "admin.audit.type_placeholder": "Filtrera på händelsetyp, t.ex. auth. eller admin.user",
@@ -315,7 +298,6 @@
   "admin.audit.no_secrets": "Hemligheter visas aldrig här.",
   "admin.audit.details": "Detaljer",
   "admin.audit.none": "Inga händelser.",
-
   "admin.requests.off_1": "Begärandeloggen är avstängd. Sätt",
   "admin.requests.off_2": "för att registrera varje begäran (metod, sökväg, status, tid och anropare; aldrig kroppar eller tokens). Tidigare registrerade poster visas nedan tills de går ut.",
   "admin.requests.client_id": "Klient-id",
@@ -332,7 +314,6 @@
   "admin.requests.ms": "ms",
   "admin.requests.in_out": "In / ut",
   "admin.requests.none": "Inga begäranden registrerade.",
-
   "admin.settings.health": "Hälsokontroller",
   "admin.settings.check": "Kontroll",
   "admin.settings.detail": "Detalj",
@@ -343,5 +324,37 @@
   "admin.settings.lead_2": ". Hemligheter visas aldrig. Ändra värden i miljön eller i",
   "admin.settings.lead_3": "och starta om.",
   "admin.settings.setting": "Inställning",
-  "admin.settings.value": "Värde"
+  "admin.settings.value": "Värde",
+  "error.redirect_uri.length": "Redirect-URI:n saknas eller är för lång.",
+  "error.redirect_uri.fragment": "Redirect-URI:n får inte innehålla ett fragment.",
+  "error.redirect_uri.absolute": "Redirect-URI:n måste vara absolut.",
+  "error.redirect_uri.host": "Redirect-URI:n behöver en värd.",
+  "error.redirect_uri.http_loopback": "http-redirect-URI:er tillåts bara för loopback-adressen (127.0.0.1 eller [::1]).",
+  "error.redirect_uri.scheme": "Redirect-URI:n använder ett osäkert schema.",
+  "error.redirect_uri.required": "Minst en redirect-URI krävs.",
+  "error.redirect_uri.too_many": "Högst {max} redirect-URI:er.",
+  "error.client.name_length": "Klientnamnet måste vara 1–{max} tecken.",
+  "error.client.id_uuid": "client_id måste vara ett UUID.",
+  "error.client.not_created": "Klienten skapades inte.",
+  "error.client.not_found": "Det finns ingen sådan klient.",
+  "error.client.public_no_secret": "Publika klienter har ingen hemlighet.",
+  "error.user.name_invalid": "Användarnamnet måste vara 3–128 tecken: bokstäver, siffror och . _ @ + -",
+  "error.user.name_taken": "Användarnamnet är redan upptaget.",
+  "error.user.not_created": "Användaren skapades inte.",
+  "error.user.not_found": "Det finns ingen sådan användare.",
+  "error.password.rejected": "Lösenordet avvisades: {problems}.",
+  "error.password.too_short": "använd minst {min} tecken",
+  "error.password.too_long": "använd högst {max} tecken",
+  "error.password.contains_username": "ta inte med användarnamnet",
+  "error.password.too_weak": "för svagt: {hint}",
+  "error.project.values_strings": "{name}: värdena måste vara strängar.",
+  "error.project.values_length": "{name}: värdena måste vara 1–{max} tecken.",
+  "error.project.too_many_values": "{name}: högst {max} värden.",
+  "error.project.name_length": "Projektnamnet måste vara 1–{max} tecken.",
+  "error.project.id_uuid": "project_id måste vara ett UUID.",
+  "error.project.id_exists": "project_id finns redan.",
+  "error.project.not_created": "Projektet skapades inte.",
+  "error.project.not_found": "Det finns inget sådant projekt.",
+  "error.project.member_not_found": "Det finns ingen sådan användare eller inget sådant projekt.",
+  "error.project.unknown_extensions": "Okända utökningslistor: {names}."
 }

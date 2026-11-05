@@ -15,6 +15,7 @@ from typing import Any
 
 from opencde.accounts.roles import Role
 from opencde.auth.passwords import hash_password, password_problems, verify_password
+from opencde.errors import UserFacingError
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
 from opencde.timeutil import now_iso
@@ -22,8 +23,8 @@ from opencde.timeutil import now_iso
 USERNAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._@+-]{2,127}$")
 
 
-class AccountError(ValueError):
-    """A request that cannot be fulfilled; the message is safe to show."""
+class AccountError(UserFacingError):
+    """A request that cannot be fulfilled; the message is safe to show, ``key`` names it in the catalogues."""
 
 
 @dataclass(frozen=True)
@@ -78,12 +79,18 @@ class UserRepository:
     ) -> User:
         username = username.strip()
         if not USERNAME.match(username):
-            raise AccountError("user name: 3-128 characters, letters, digits and . _ @ + -")
+            raise AccountError(
+                "user name: 3-128 characters, letters, digits and . _ @ + -", key="error.user.name_invalid"
+            )
         problems = password_problems(password, username, [email or "", full_name or ""])
         if problems:
-            raise AccountError("password rejected: " + "; ".join(problems))
+            raise AccountError(
+                "password rejected: " + "; ".join(str(p) for p in problems),
+                key="error.password.rejected",
+                problems=problems,
+            )
         if await self.get_by_username(username):
-            raise AccountError("user name already taken")
+            raise AccountError("user name already taken", key="error.user.name_taken")
         row = await self.graph.one(
             f"""
             CREATE (u:User {{
@@ -103,7 +110,7 @@ class UserRepository:
             must_change=must_change_password,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
-            raise AccountError("user was not created")
+            raise AccountError("user was not created", key="error.user.not_created")
         return _user(row["user"])
 
     async def get_by_username(self, username: str) -> User | None:
@@ -156,10 +163,14 @@ class UserRepository:
     async def set_password(self, user_id: str, password: str, *, must_change: bool = False) -> None:
         user = await self.get(user_id)
         if user is None:
-            raise AccountError("no such user")
+            raise AccountError("no such user", key="error.user.not_found")
         problems = password_problems(password, user.username, [user.email or "", user.full_name or ""])
         if problems:
-            raise AccountError("password rejected: " + "; ".join(problems))
+            raise AccountError(
+                "password rejected: " + "; ".join(str(p) for p in problems),
+                key="error.password.rejected",
+                problems=problems,
+            )
         await self.graph.run(
             "MATCH (u:User {id: $id}) SET u.password_hash = $hash, u.must_change_password = $must_change",
             id=user_id,
@@ -192,7 +203,7 @@ class UserRepository:
             disabled=disabled,
         )
         if row is None:
-            raise AccountError("no such user")
+            raise AccountError("no such user", key="error.user.not_found")
         return _user(row["user"])
 
     async def delete(self, user_id: str) -> bool:

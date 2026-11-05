@@ -15,7 +15,6 @@
   "nav.requests": "Beiðnaskrá",
   "nav.settings": "Stillingar",
   "nav.my_account": "Reikningurinn minn",
-
   "opencde.signin": "Skrá inn",
   "opencde.signout": "Skrá út",
   "opencde.project": "Verkefni",
@@ -66,7 +65,6 @@
   "common.danger_zone": "Hættusvæði",
   "common.redirect_uris": "Redirect-URI",
   "common.open_in_dataspatium": "Opna í Dataspatium",
-
   "js.filter_rows": "Sía raðir",
   "js.filter_placeholder": "Sía raðir…",
   "js.rows_match": "{shown} af {total} röðum passa",
@@ -74,13 +72,11 @@
   "js.confirm": "Staðfesta",
   "js.copied": "Afritað",
   "js.copy_failed": "Afritun mistókst",
-
   "signin.lead": "Notaðu reikninginn þinn á þessum þjóni.",
   "signin.error.credentials": "Notandanafnið eða lykilorðið er ekki rétt.",
   "signin.error.expired": "Eyðublaðið er útrunnið. Reyndu aftur.",
   "signout.error.title": "Ekki er hægt að skrá út",
   "signout.error.expired": "Eyðublaðið er útrunnið. Endurhladdu síðuna.",
-
   "consent.asks": "biður um að fá að starfa fyrir þína hönd á þessum þjóni.",
   "consent.will": "Forritið mun geta",
   "consent.redirect": "Eftir innskráningu ertu send(ur) aftur til",
@@ -97,10 +93,8 @@
   "auth.error.no_client": "Beiðnin tilgreinir engan biðlara (client_id).",
   "auth.error.no_redirect": "Beiðnin tilgreinir ekkert redirect-URI og biðlarinn hefur nokkur skráð.",
   "auth.error.bad_redirect": "Þetta redirect-URI er ekki skráð fyrir þennan biðlara.",
-
   "page.not_found.title": "Fannst ekki",
   "page.not_found.message": "Engin slík síða er til.",
-
   "account.title": "Reikningurinn minn",
   "account.must_change": "Stjórnandi setti lykilorðið þitt. Veldu þitt eigið áður en þú heldur áfram.",
   "account.administrator": "stjórnandi",
@@ -118,7 +112,6 @@
   "account.this_browser": "þessi vafri",
   "account.sign_out_everywhere": "Skrá út alls staðar",
   "account.error.mismatch": "Nýju lykilorðin tvö eru ólík.",
-
   "notice.saved": "Vistað.",
   "notice.created": "Búið til.",
   "notice.deleted": "Eytt.",
@@ -132,13 +125,11 @@
   "notice.form_expired": "Eyðublaðið var útrunnið; engu var breytt. Reyndu aftur.",
   "notice.not_yourself": "Þetta getur þú ekki gert við þinn eigin reikning.",
   "notice.invalid": "Eyðublaðið var ekki gilt; engu var breytt.",
-
   "index.lead": "buildingSMART OpenCDE-þjónn: Foundation API 1.0, BCF API 3.0 og Documents API 1.0.",
   "index.discovery": "Uppgötvun þjónustu",
   "index.auth": "Auðkenning",
   "index.auth_value": "OAuth2 authorization code með PKCE",
   "index.version": "Útgáfa",
-
   "docs.upload.title": "Hlaða upp skjölum",
   "docs.upload.lead": "Forritið þitt vill hlaða upp {count} skrám.",
   "docs.upload.lead.one": "Forritið þitt vill hlaða upp einni skrá.",
@@ -184,10 +175,8 @@
   "docs.message.other_account_hint": "Skráðu þig út og skráðu þig inn sem notandinn sem hóf það í forritinu.",
   "docs.message.callback_expired": "Tengill forritsins er útrunninn",
   "docs.message.callback_expired_text": "Tengill forritsins til baka er útrunninn, svo ekki er hægt að senda þig aftur þangað.",
-
   "macro.confirm_label": "Lykilorðið þitt",
   "macro.confirm_hint": "Hættulegar aðgerðir biðja aftur um þitt eigið lykilorð.",
-
   "admin.title": "Stjórnun",
   "admin.overview.title": "Yfirlit",
   "admin.overview.db_down": "Grafgagnagrunnurinn svarar ekki. Ekkert er hægt að lesa eða breyta fyrr en hann er kominn aftur.",
@@ -202,7 +191,6 @@
   "admin.overview.actor": "Gerandi",
   "admin.overview.full_audit": "Öll endurskoðunarskráin",
   "admin.overview.no_events": "Engir atburðir enn.",
-
   "admin.users.new": "Nýr notandi",
   "admin.users.search": "Leita að notendum",
   "admin.users.search_placeholder": "Leita eftir notandanafni, nafni eða netfangi",
@@ -235,7 +223,6 @@
   "admin.user_new.must_change": "Þarf að breyta lykilorði við fyrstu innskráningu",
   "admin.user_new.admin_hint": "Stjórnendur stjórna þessum þjóni. Þeir hafa engan aðgang að verkefnum fyrr en þeir fá hlutverk.",
   "admin.user_new.create": "Búa til notanda",
-
   "admin.secret.shown_once": "Sýnt einu sinni.",
   "admin.secret.password_for": "Lykilorð fyrir {user}",
   "admin.secret.password_lead": "Gefðu notandanum þetta lykilorð um örugga leið. Það er sýnt einu sinni og þarf að breyta því við fyrstu innskráningu.",
@@ -248,7 +235,6 @@
   "admin.secret.client_secret_rotated_lead": "Gamla leyndarmálið hætti að virka. Uppfærðu forritið núna.",
   "admin.secret.client_id": "Auðkenni biðlara",
   "admin.secret.open_client": "Opna biðlarann",
-
   "admin.projects.new": "Nýtt verkefni",
   "admin.projects.none": "Engin verkefni enn.",
   "admin.project.id": "Auðkenni verkefnis",
@@ -273,7 +259,6 @@
   "admin.project_new.name_hint": "Sýnt öllum þátttakendum og BCF-biðlurum.",
   "admin.project_new.defaults": "Verkefnið byrjar með sjálfgefnum BCF-extensions-gildum (tegundir, stöður, merki, forgangur, áfangar); breyttu þeim eftir á.",
   "admin.project_new.create": "Búa til verkefni",
-
   "admin.clients.title": "OAuth2-biðlarar",
   "admin.clients.register": "Skrá biðlara",
   "admin.clients.lead": "Biðlari er forrit sem skráir notendur inn um þennan þjón: BCF-viðbót, skoðari, skrifta.",
@@ -300,13 +285,11 @@
   "admin.client_new.public_option": "Opinber: innbyggt forrit eða vafraforrit, ekkert leyndarmál, PKCE áskilið",
   "admin.client_new.confidential_option": "Trúnaðar: þjónsforrit með leyndarmál",
   "admin.client_new.type_hint": "Báðar gerðir þurfa að nota PKCE. Leyndarmál trúnaðarbiðlara er sýnt einu sinni eftir skráningu.",
-
   "admin.sessions.apps": "Forrit með aðgang",
   "admin.sessions.apps_lead": "Hver röð er fjölskylda refresh-tákna: ein innskráning notanda um eitt forrit. Afturköllun lýkur henni strax.",
   "admin.sessions.no_apps": "Ekkert forrit hefur tákn núna.",
   "admin.sessions.browser": "Vafrasetur",
   "admin.sessions.no_browser": "Engar vafrasetur.",
-
   "admin.audit.csv": "Sækja CSV",
   "admin.audit.type_label": "Atburðategund byrjar á",
   "admin.audit.type_placeholder": "Sía eftir atburðategund, t.d. auth. eða admin.user",
@@ -315,7 +298,6 @@
   "admin.audit.no_secrets": "Leyndarmál birtast aldrei hér.",
   "admin.audit.details": "Nánar",
   "admin.audit.none": "Engir atburðir.",
-
   "admin.requests.off_1": "Beiðnaskráin er óvirk. Settu",
   "admin.requests.off_2": "til að skrá hverja beiðni (aðferð, slóð, stöðu, tíma og kallanda; aldrei innihald eða tákn). Færslur sem voru skráðar áður eru sýndar hér fyrir neðan þar til þær renna út.",
   "admin.requests.client_id": "Auðkenni biðlara",
@@ -332,7 +314,6 @@
   "admin.requests.ms": "ms",
   "admin.requests.in_out": "Inn / út",
   "admin.requests.none": "Engar beiðnir skráðar.",
-
   "admin.settings.health": "Heilsuathuganir",
   "admin.settings.check": "Athugun",
   "admin.settings.detail": "Nánar",
@@ -343,5 +324,37 @@
   "admin.settings.lead_2": ". Leyndarmál eru aldrei sýnd. Breyttu gildum í umhverfinu eða í",
   "admin.settings.lead_3": "og endurræstu.",
   "admin.settings.setting": "Stilling",
-  "admin.settings.value": "Gildi"
+  "admin.settings.value": "Gildi",
+  "error.redirect_uri.length": "Redirect-URI vantar eða er of langt.",
+  "error.redirect_uri.fragment": "Redirect-URI má ekki innihalda brot (fragment).",
+  "error.redirect_uri.absolute": "Redirect-URI verður að vera algilt.",
+  "error.redirect_uri.host": "Redirect-URI þarf hýsil.",
+  "error.redirect_uri.http_loopback": "http-redirect-URI eru aðeins leyfð fyrir loopback-vistfangið (127.0.0.1 eða [::1]).",
+  "error.redirect_uri.scheme": "Redirect-URI notar óöruggt skema.",
+  "error.redirect_uri.required": "Minnst eitt redirect-URI er áskilið.",
+  "error.redirect_uri.too_many": "Hæst {max} redirect-URI.",
+  "error.client.name_length": "Heiti biðlarans verður að vera 1–{max} stafir.",
+  "error.client.id_uuid": "client_id verður að vera UUID.",
+  "error.client.not_created": "Biðlarinn var ekki búinn til.",
+  "error.client.not_found": "Enginn slíkur biðlari.",
+  "error.client.public_no_secret": "Opinberir biðlarar hafa ekkert leyndarmál.",
+  "error.user.name_invalid": "Notandanafnið verður að vera 3–128 stafir: bókstafir, tölustafir og . _ @ + -",
+  "error.user.name_taken": "Notandanafnið er þegar í notkun.",
+  "error.user.not_created": "Notandinn var ekki búinn til.",
+  "error.user.not_found": "Enginn slíkur notandi.",
+  "error.password.rejected": "Lykilorðinu var hafnað: {problems}.",
+  "error.password.too_short": "notaðu minnst {min} stafi",
+  "error.password.too_long": "notaðu hæst {max} stafi",
+  "error.password.contains_username": "hafðu ekki notandanafnið með",
+  "error.password.too_weak": "of veikt: {hint}",
+  "error.project.values_strings": "{name}: gildin verða að vera strengir.",
+  "error.project.values_length": "{name}: gildin verða að vera 1–{max} stafir.",
+  "error.project.too_many_values": "{name}: hæst {max} gildi.",
+  "error.project.name_length": "Heiti verkefnisins verður að vera 1–{max} stafir.",
+  "error.project.id_uuid": "project_id verður að vera UUID.",
+  "error.project.id_exists": "project_id er þegar til.",
+  "error.project.not_created": "Verkefnið var ekki búið til.",
+  "error.project.not_found": "Ekkert slíkt verkefni.",
+  "error.project.member_not_found": "Enginn slíkur notandi eða verkefni.",
+  "error.project.unknown_extensions": "Óþekktir viðbótalistar: {names}."
 }

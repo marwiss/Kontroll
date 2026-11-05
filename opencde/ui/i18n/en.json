@@ -15,7 +15,6 @@
   "nav.requests": "Request log",
   "nav.settings": "Settings",
   "nav.my_account": "My account",
-
   "opencde.signin": "Sign in",
   "opencde.signout": "Sign out",
   "opencde.project": "Project",
@@ -66,7 +65,6 @@
   "common.danger_zone": "Danger zone",
   "common.redirect_uris": "Redirect URIs",
   "common.open_in_dataspatium": "Open in Dataspatium",
-
   "js.filter_rows": "Filter rows",
   "js.filter_placeholder": "Filter rows…",
   "js.rows_match": "{shown} of {total} rows match",
@@ -74,13 +72,11 @@
   "js.confirm": "Confirm",
   "js.copied": "Copied",
   "js.copy_failed": "Copy failed",
-
   "signin.lead": "Use your account on this server.",
   "signin.error.credentials": "The user name or password is not correct.",
   "signin.error.expired": "The form has expired. Please try again.",
   "signout.error.title": "Cannot sign out",
   "signout.error.expired": "The form has expired. Reload the page.",
-
   "consent.asks": "asks to act on your behalf on this server.",
   "consent.will": "The application will be able to",
   "consent.redirect": "After you sign in you are sent back to",
@@ -97,10 +93,8 @@
   "auth.error.no_client": "The request does not name a client (client_id).",
   "auth.error.no_redirect": "The request does not name a redirect URI and the client has several registered.",
   "auth.error.bad_redirect": "The redirect URI is not registered for this client.",
-
   "page.not_found.title": "Not found",
   "page.not_found.message": "There is no such page.",
-
   "account.title": "My account",
   "account.must_change": "Your password was set by an administrator. Choose your own before you continue.",
   "account.administrator": "administrator",
@@ -118,7 +112,6 @@
   "account.this_browser": "this browser",
   "account.sign_out_everywhere": "Sign out everywhere",
   "account.error.mismatch": "The two new passwords differ.",
-
   "notice.saved": "Saved.",
   "notice.created": "Created.",
   "notice.deleted": "Deleted.",
@@ -132,13 +125,11 @@
   "notice.form_expired": "The form had expired; nothing was changed. Please try again.",
   "notice.not_yourself": "You cannot do that to your own account.",
   "notice.invalid": "The form was not valid; nothing was changed.",
-
   "index.lead": "A buildingSMART OpenCDE server: Foundation API 1.0, BCF API 3.0 and Documents API 1.0.",
   "index.discovery": "Service discovery",
   "index.auth": "Authentication",
   "index.auth_value": "OAuth2 authorization code with PKCE",
   "index.version": "Version",
-
   "docs.upload.title": "Upload documents",
   "docs.upload.lead": "Your application wants to upload {count} files.",
   "docs.upload.lead.one": "Your application wants to upload one file.",
@@ -184,10 +175,8 @@
   "docs.message.other_account_hint": "Sign out and sign in as the user who started it in the application.",
   "docs.message.callback_expired": "Application link expired",
   "docs.message.callback_expired_text": "The application's callback link has expired, so you cannot be sent back to it.",
-
   "macro.confirm_label": "Your password",
   "macro.confirm_hint": "Dangerous actions ask for your own password again.",
-
   "admin.title": "Administration",
   "admin.overview.title": "Overview",
   "admin.overview.db_down": "The graph database does not answer. Nothing can be read or changed until it is back.",
@@ -202,7 +191,6 @@
   "admin.overview.actor": "Actor",
   "admin.overview.full_audit": "Full audit log",
   "admin.overview.no_events": "No events yet.",
-
   "admin.users.new": "New user",
   "admin.users.search": "Search users",
   "admin.users.search_placeholder": "Search by user name, name or e-mail",
@@ -235,7 +223,6 @@
   "admin.user_new.must_change": "Must change the password at first sign-in",
   "admin.user_new.admin_hint": "Administrators manage this server. They have no project access until given a role.",
   "admin.user_new.create": "Create user",
-
   "admin.secret.shown_once": "Shown once.",
   "admin.secret.password_for": "Password for {user}",
   "admin.secret.password_lead": "Give this password to the user through a secure channel. It is shown once and must be changed at first sign-in.",
@@ -248,7 +235,6 @@
   "admin.secret.client_secret_rotated_lead": "The old secret stopped working. Update the application now.",
   "admin.secret.client_id": "Client id",
   "admin.secret.open_client": "Open the client",
-
   "admin.projects.new": "New project",
   "admin.projects.none": "No projects yet.",
   "admin.project.id": "Project id",
@@ -273,7 +259,6 @@
   "admin.project_new.name_hint": "Shown to every member and to BCF clients.",
   "admin.project_new.defaults": "The project starts with the default BCF extension values (types, statuses, labels, priorities, stages); edit them afterwards.",
   "admin.project_new.create": "Create project",
-
   "admin.clients.title": "OAuth2 clients",
   "admin.clients.register": "Register client",
   "admin.clients.lead": "A client is an application that signs users in through this server: a BCF plugin, a viewer, a script.",
@@ -300,13 +285,11 @@
   "admin.client_new.public_option": "Public: native or browser app, no secret, PKCE required",
   "admin.client_new.confidential_option": "Confidential: server application with a secret",
   "admin.client_new.type_hint": "Both types must use PKCE. A confidential client's secret is shown once after registration.",
-
   "admin.sessions.apps": "Applications with access",
   "admin.sessions.apps_lead": "Each row is a refresh-token family: one sign-in of a user through an application. Revoking ends it at once.",
   "admin.sessions.no_apps": "No application holds a token right now.",
   "admin.sessions.browser": "Browser sessions",
   "admin.sessions.no_browser": "No browser sessions.",
-
   "admin.audit.csv": "Download CSV",
   "admin.audit.type_label": "Event type starts with",
   "admin.audit.type_placeholder": "Filter by event type, e.g. auth. or admin.user",
@@ -315,7 +298,6 @@
   "admin.audit.no_secrets": "Secrets never appear here.",
   "admin.audit.details": "Details",
   "admin.audit.none": "No events.",
-
   "admin.requests.off_1": "The request log is off. Set",
   "admin.requests.off_2": "to record every request (method, path, status, timing and caller; never bodies or tokens). Entries recorded earlier are shown below until they expire.",
   "admin.requests.client_id": "Client id",
@@ -332,7 +314,6 @@
   "admin.requests.ms": "ms",
   "admin.requests.in_out": "In / out",
   "admin.requests.none": "No requests recorded.",
-
   "admin.settings.health": "Health checks",
   "admin.settings.check": "Check",
   "admin.settings.detail": "Detail",
@@ -343,5 +324,37 @@
   "admin.settings.lead_2": "settings. Secrets are never shown. Change values in the environment or",
   "admin.settings.lead_3": "and restart.",
   "admin.settings.setting": "Setting",
-  "admin.settings.value": "Value"
+  "admin.settings.value": "Value",
+  "error.redirect_uri.length": "The redirect URI is missing or too long.",
+  "error.redirect_uri.fragment": "The redirect URI must not contain a fragment.",
+  "error.redirect_uri.absolute": "The redirect URI must be absolute.",
+  "error.redirect_uri.host": "The redirect URI needs a host.",
+  "error.redirect_uri.http_loopback": "http redirect URIs are only allowed for the loopback address (127.0.0.1 or [::1]).",
+  "error.redirect_uri.scheme": "The redirect URI uses an unsafe scheme.",
+  "error.redirect_uri.required": "At least one redirect URI is required.",
+  "error.redirect_uri.too_many": "At most {max} redirect URIs.",
+  "error.client.name_length": "The client name must be 1–{max} characters.",
+  "error.client.id_uuid": "client_id must be a UUID.",
+  "error.client.not_created": "The client was not created.",
+  "error.client.not_found": "No such client.",
+  "error.client.public_no_secret": "Public clients have no secret.",
+  "error.user.name_invalid": "The user name must be 3–128 characters: letters, digits and . _ @ + -",
+  "error.user.name_taken": "The user name is already taken.",
+  "error.user.not_created": "The user was not created.",
+  "error.user.not_found": "No such user.",
+  "error.password.rejected": "The password was rejected: {problems}.",
+  "error.password.too_short": "use at least {min} characters",
+  "error.password.too_long": "use at most {max} characters",
+  "error.password.contains_username": "do not include the user name",
+  "error.password.too_weak": "too weak: {hint}",
+  "error.project.values_strings": "{name}: the values must be strings.",
+  "error.project.values_length": "{name}: the values must be 1–{max} characters.",
+  "error.project.too_many_values": "{name}: at most {max} values.",
+  "error.project.name_length": "The project name must be 1–{max} characters.",
+  "error.project.id_uuid": "project_id must be a UUID.",
+  "error.project.id_exists": "project_id already exists.",
+  "error.project.not_created": "The project was not created.",
+  "error.project.not_found": "No such project.",
+  "error.project.member_not_found": "No such user or project.",
+  "error.project.unknown_extensions": "Unknown extension lists: {names}."
 }
