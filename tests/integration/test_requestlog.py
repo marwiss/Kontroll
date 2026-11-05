@@ -83,6 +83,15 @@ def test_requests_are_logged_without_bodies_and_served_to_administrators(logged:
     assert topic_post["request_id"] and topic_post["at"].endswith("Z")
     assert "DO-NOT-STORE-THIS-BODY" not in response.text and editor.access_token not in response.text
 
+    # The token endpoint authenticates the client by form, not bearer, yet its rows name the client.
+    token_rows = client.get(
+        "/admin/api/requests", params={"path": "/foundation/oauth2/token"}, headers=admin_api.headers
+    ).json()["requests"]
+    assert token_rows and all(
+        row["client_id"] == world.public_client_id and row["username"] is None for row in token_rows
+    )
+    assert editor.refresh_token not in response.text and all(row["status"] == 201 for row in token_rows)
+
     anonymous = client.get("/admin/api/requests", params={"status": 401}, headers=admin_api.headers).json()["requests"]
     assert anonymous and all(entry["username"] is None and entry["client_id"] is None for entry in anonymous)
 
