@@ -59,7 +59,8 @@ class ApiSession:
 
     def _refresh(self) -> TokenSet:
         """Rotate the tokens; a refused refresh means the session is gone (revoked or expired)."""
-        assert self.refresher is not None and self.tokens is not None  # noqa: S101 - internal invariant
+        if self.refresher is None or self.tokens is None:
+            raise AuthError("no way to refresh the session; sign in again")
         try:
             return self.refresher(self.tokens)
         except ApiError as exc:

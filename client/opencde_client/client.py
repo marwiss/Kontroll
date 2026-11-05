@@ -98,7 +98,8 @@ class OpenCdeClient:
         """Revoke the refresh token (and with it the family) when the server supports RFC 7009."""
         tokens = self.session.tokens
         if tokens and tokens.refresh_token:
-            self.oauth.revoke(tokens.refresh_token, token_type_hint="refresh_token")  # noqa: S106 - RFC 7009 hint
+            # The RFC 7009 token_type_hint, not a secret.
+            self.oauth.revoke(tokens.refresh_token, token_type_hint="refresh_token")  # noqa: S106 # nosec B106
         self.session.tokens = None
 
     # -- lifecycle --------------------------------------------------------------------------------
