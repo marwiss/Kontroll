@@ -7,7 +7,11 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## Unreleased
+## 2.2.0 — 2026-11-05
+
+The release kept for 2.x. Works with Dataspatium 2.2.0. It contains 2.0.0
+and 2.1.0 of the same day, withdrawn under the rule above together with
+their Dataspatium counterparts.
 
 - The validation messages of the administration and account pages (user
   names, passwords, project names and extension lists, clients and their
@@ -35,13 +39,6 @@ the commit history.
 - The quick start names the demo user it signs in as, `inspection_manager`
   (the editor of *Building permit*), instead of a user that the seed does
   not create.
-
-## 2.1.0 — 2026-11-05
-
-The first release kept. Works with Dataspatium 2.1.0. It contains the first
-tagged version, 2.0.0 of the same day, withdrawn under the rule above
-together with Dataspatium 2.0.0.
-
 - Foundation API 1.0, BCF API 3.0 and Documents API 1.0, validated against
   the buildingSMART schemas pinned in `spec/`; OAuth2 authorization code
   with PKCE for every client, rotating refresh tokens, token revocation (RFC
