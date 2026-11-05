@@ -168,6 +168,8 @@ står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 
 ## Lær meir
 
+- [docs/quickstart.md](quickstart.md): Kontroll og Dataspatium saman på tjue
+  minutt, frå ei tom maskin til ei sak oppretta i 3D-visinga.
 - [docs/client-guide.md](../client-guide.md) og [docs/examples/](../examples/):
   korleis byggje ein klient, kapabilitetsdokumentet, feilkodane og køyrbare
   døme med Python-biblioteket i [client/](../../client/).

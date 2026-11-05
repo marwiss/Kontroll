@@ -287,10 +287,14 @@ All four were taken on 2026-11-05.
   separately, so both READMEs and the joint quick start (item 8) explain how
   to get the other one. Kontroll never bundles Dataspatium; Dataspatium may
   bundle or download Kontroll (the AGPL allows redistribution with source),
-  which is that project's choice. Later the same day the owner, as
-  Dataspatium's copyright holder, permitted Kontroll to use Dataspatium's
-  design (item 5): the tokens are carried over as they are, under Kontroll's
-  licence, as the one exception to "nothing is copied".
+  which is that project's choice. Later the same day the owner, who holds
+  the copyright of both projects, gave two permissions: Kontroll may use
+  Dataspatium's design (item 5; the tokens are carried over as they are,
+  under Kontroll's licence), and Dataspatium may use all of Kontroll's own
+  code and resources under its licence (the quick start and the sample model
+  move over verbatim). The licences stay as they are; third-party material
+  (specification files, the Inter font, dependencies) keeps its own terms.
+  Both repositories say so: `CONTRIBUTING.md` here, `docs/licenser.md` there.
 - **C. First Kontroll release**: when to tag `v0.1.0` (item 6). The code is
   there; what remains is the owner's acceptance runs A and B
   (`docs/acceptance.md`) and the OAuch/testssl runs before a production

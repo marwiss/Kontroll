@@ -167,6 +167,8 @@ hvad de to projekter samordner, står i
 
 ## Lær mere
 
+- [docs/quickstart.md](quickstart.md): Kontroll og Dataspatium sammen på tyve
+  minutter, fra en tom maskine til en sag oprettet i 3D-visningen.
 - [docs/client-guide.md](../client-guide.md) og [docs/examples/](../examples/):
   hvordan man bygger en klient, kapabilitetsdokumentet, fejlkoderne og kørbare
   eksempler med Python-biblioteket i [client/](../../client/).
