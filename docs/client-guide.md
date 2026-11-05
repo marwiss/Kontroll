@@ -21,6 +21,38 @@ library in [client/](../client/) does all of this; the examples in
 }
 ```
 
+### The capabilities document (extension)
+
+Beyond the specifications, `GET /.well-known/kontroll` (no authentication,
+CORS as for the API, cacheable for five minutes) says which extensions this
+server has turned on and which limits apply, so that a client adapts instead
+of probing:
+
+```json
+{
+  "server": {"name": "Kontroll OpenCDE server", "version": "0.1.0", "public_url": "https://cde.example.org"},
+  "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
+  "scopes": ["profile", "bcf", "documents", "admin"],
+  "extensions": {
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+                                    "url": "/foundation/oauth2/reg"},
+    "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
+    "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
+    "ifcgraph": {"enabled": true, "bolt": null},
+    "graph_query": {"enabled": false}
+  },
+  "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
+  "links": {"dataspatium": null}
+}
+```
+
+A `404` means a server without extensions (another OpenCDE server, or an
+older Kontroll). Treat unknown keys as absent. `ifcgraph.bolt` is set only
+when the operator has deliberately published the graph database
+(`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `links.dataspatium` carries the address of
+a Dataspatium installation when the operator has set `OPENCDE_DATASPATIUM_URL`.
+Nothing in the document is secret.
+
 ## 2. Sign in (OAuth2 authorization code with PKCE)
 
 1. Ask the server's administrator to register your application: a **public**
@@ -123,7 +155,9 @@ Authorization: Bearer <token with the admin scope>
 The token must carry the `admin` scope, which a client asks for explicitly
 (`scope=profile bcf documents admin`), and the user must be an administrator.
 Entries hold method, path, operation, status, timing, request id, byte counts
-and the caller, never bodies or tokens.
+and the caller, never bodies or tokens. The JSON administration API is served
+while `OPENCDE_ADMIN_API_ENABLED` is true (the default), independently of the
+HTML administration; the capabilities document (§1) tells you whether it is on.
 
 ## 6. Testing against this server
 

@@ -16,8 +16,9 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from opencde import __version__, health
+from opencde import __version__, capabilities, health
 from opencde.admin import router as admin_router
+from opencde.admin import routes_requests
 from opencde.admin.access import install_page_handlers
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
@@ -63,6 +64,10 @@ OPENAPI_TAGS = [
     {
         "name": "Administration (extension)",
         "description": "Outside the OpenCDE specifications: administration for clients holding the `admin` scope.",
+    },
+    {
+        "name": "Capabilities (extension)",
+        "description": "Outside the OpenCDE specifications: which extensions and limits this server has.",
     },
 ]
 
@@ -131,7 +136,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.add_middleware(ETagMiddleware)
     app.add_middleware(
         ApiCORSMiddleware,
-        include_prefixes=("/foundation/", "/bcf/", "/documents/1.0/", "/admin/api/"),
+        include_prefixes=("/foundation/", "/bcf/", "/documents/1.0/", "/admin/api/", "/.well-known/"),
         exclude_patterns=documents_ui.PAGE_PATHS,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
@@ -168,6 +173,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(account_routes.router)
     if settings.admin_ui_enabled:
         app.include_router(admin_router.router)
+    if settings.admin_api_enabled:
+        app.include_router(routes_requests.api_router)
+    app.include_router(capabilities.router)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     @app.get("/", include_in_schema=False, response_class=HTMLResponse)

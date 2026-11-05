@@ -24,9 +24,9 @@ with Dataspatium's own release plan; the counterpart on the app side is its
 Ordered by value for the pair against effort. "K" marks work in Kontroll,
 "D" work in Dataspatium.
 
-### 1. Make the server describe itself to the app (K, small)
+### 1. Make the server describe itself to the app (K, small) — done 2026-11-05
 
-Dataspatium has to guess which extensions a Kontroll server offers (request
+Dataspatium had to guess which extensions a Kontroll server offers (request
 log, administration API, IFC graph, dynamic registration, graph access). A
 small capabilities document lets the app adapt instead of probing:
 `GET /.well-known/kontroll` (outside the specifications, no auth) listing
@@ -35,9 +35,11 @@ of the request log, whether Bolt is published, and the registration policy.
 Dataspatium shows this in its source settings and switches features on and
 off by it. Pairs with a first tagged Kontroll release (item 6).
 
-Proposed shape (unauthenticated, CORS as for the API, cacheable for a few
-minutes, never a secret; `bolt` appears only when the operator states a
-published Bolt address explicitly):
+Shape (unauthenticated, CORS as for the API, cacheable for five minutes,
+never a secret; `bolt` appears only when the operator states a published Bolt
+address explicitly with `OPENCDE_GRAPH_PUBLIC_BOLT_URL`; `links.dataspatium`
+comes from `OPENCDE_DATASPATIUM_URL`; the administration API is mounted by
+`OPENCDE_ADMIN_API_ENABLED` independently of the HTML administration):
 
 ```json
 {

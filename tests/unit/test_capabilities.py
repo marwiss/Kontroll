@@ -1,0 +1,57 @@
+# This file was generated with the assistance of an AI coding tool.
+"""The capabilities document: shape, no secrets, settings reflected, and the administration API switch."""
+
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from opencde.main import create_app
+from tests.conftest import test_settings as make_settings
+
+
+def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestClient) -> None:
+    response = client.get("/.well-known/kontroll", headers={"Origin": "https://app.example"})
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "public, max-age=300"
+    assert response.headers["access-control-allow-origin"] == "*", "clients read it cross-origin"
+    body = response.json()
+    assert set(body) == {"server", "apis", "scopes", "extensions", "limits", "links"}
+    assert body["server"]["name"] == "Kontroll OpenCDE server" and body["server"]["public_url"] == "http://testserver"
+    assert body["apis"] == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
+    assert body["scopes"] == ["profile", "bcf", "documents", "admin"]
+    extensions = body["extensions"]
+    assert set(extensions) == {"dynamic_client_registration", "request_log", "admin_api", "ifcgraph", "graph_query"}
+    assert extensions["dynamic_client_registration"] == {
+        "enabled": False,
+        "public_clients": True,
+        "unused_days": 30,
+        "url": "/foundation/oauth2/reg",
+    }
+    assert extensions["request_log"] == {"enabled": False, "retention_hours": 72, "url": "/admin/api/requests"}
+    assert extensions["admin_api"] == {"enabled": True, "version": 1, "url": "/admin/api", "scope": "admin"}
+    assert extensions["ifcgraph"] == {"enabled": False, "bolt": None}
+    assert extensions["graph_query"] == {"enabled": False}
+    assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0
+    assert body["links"] == {"dataspatium": None}
+    secret_like = ("test-password", "test-secret-key", "bolt://127.0.0.1:9", "secret", "password")
+    assert not any(word in response.text for word in secret_like), "nothing from the configuration's secrets"
+
+
+def test_capabilities_reflect_the_settings_and_the_admin_api_can_be_off(tmp_path: Path) -> None:
+    settings = make_settings(
+        tmp_path,
+        request_log_enabled=True,
+        dynamic_client_registration=True,
+        dataspatium_url="https://app.example/",
+        graph_public_bolt_url="bolt://cde.example.org:7687",
+        admin_api_enabled=False,
+    )
+    with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+        body = client.get("/.well-known/kontroll").json()
+        assert body["extensions"]["request_log"]["enabled"] is True
+        assert body["extensions"]["dynamic_client_registration"]["enabled"] is True
+        assert body["extensions"]["admin_api"]["enabled"] is False
+        assert body["extensions"]["ifcgraph"]["bolt"] == "bolt://cde.example.org:7687"
+        assert body["links"]["dataspatium"] == "https://app.example/"
+        assert client.get("/admin/api/requests").status_code == 404, "the API is not mounted"
+        assert client.get("/admin/requests", follow_redirects=False).status_code == 302, "the page still is"
