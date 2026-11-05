@@ -98,7 +98,8 @@ def _caller(scope: Scope) -> tuple[str | None, str | None]:
     web_user = state.get("web_user")
     if web_user is not None:
         return getattr(getattr(web_user, "user", None), "username", None), None
-    return None, None
+    # The token and revocation endpoints authenticate the client by form, not bearer; they leave its id here.
+    return None, state.get("log_client_id")
 
 
 def _client_address(scope: Scope) -> str | None:

@@ -291,6 +291,7 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
             exc.status, exc.error, exc.description, {"WWW-Authenticate": 'Basic realm="opencde"'} if basic else None
         )
 
+    request.state.log_client_id = client.client_id  # for the request log, which otherwise sees no bearer here
     grant_type = params.get("grant_type", "")
     ip = client_ip(request)
     try:
@@ -355,6 +356,7 @@ async def revoke(request: Request, clients: ClientsDep, tokens: TokensDep, graph
         client = await _authenticate_client(request, clients, params)
     except GrantError as exc:
         return _oauth_error(exc.status, exc.error, exc.description)
+    request.state.log_client_id = client.client_id
     revoked = await tokens.revoke(params.get("token", ""), client_id=client.client_id)
     if revoked:
         await audit.record(graph, "auth.token.revoked", client_id=client.client_id, ip=client_ip(request))
