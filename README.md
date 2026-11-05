@@ -14,11 +14,12 @@ The project grew out of a 2023 research prototype that tested whether the BCF
 API and IFC-graph could carry the digital inspection plans required for
 building permits in Sweden. This repository is a rewrite from scratch of that
 prototype with the same functionality, modern dependencies and security as the
-first requirement. Status: **stages 0–10 of 11 done** (all three APIs, the
-admin UI, the client library, deployment, IFC-graph and the acceptance
-checklist; hardening and upstream preparation follow), see
-[docs/inventory.md](docs/inventory.md) for what the prototype did and where
-each function stands in the new code.
+first requirement. Status: **all 11 stages of the plan are implemented** (the
+three APIs, the admin UI, the client library, deployment, IFC-graph, the
+acceptance checklist and the security hardening); the contribution to
+IfcOpenShell waits for its maintainers' answer (drafts in
+[docs/upstream/](docs/upstream/)). See [docs/inventory.md](docs/inventory.md)
+for what the prototype did and where each function stands in the new code.
 
 ## Quick start (local, Docker)
 
@@ -85,7 +86,10 @@ password.
   independent clients (Bonsai, ifc-lite, Dataspatium)
 - [docs/adr/](docs/adr/): architecture decision records (graph backend,
   opaque tokens, portable Cypher, vanilla web UI, repository strategy)
-- [docs/security/](docs/security/): threat model and controls
+- [docs/security/](docs/security/): threat model, controls mapped to tests,
+  the OWASP ASVS Level 2 checklist and how to run the scanners
+- [docs/upstream/](docs/upstream/): drafts of the issue and pull request for
+  IfcOpenShell (not sent)
 - [spec/SOURCES.md](spec/SOURCES.md): the exact specification revisions the
   server is tested against
 
