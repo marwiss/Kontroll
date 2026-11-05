@@ -1,0 +1,80 @@
+# Contributing to Kontroll
+
+Thank you for helping. Kontroll is a server for the buildingSMART OpenCDE
+APIs, licensed under the GNU Affero General Public License v3.0 or later
+([LICENSE](LICENSE)); the client library in [client/](client/) is
+LGPL-3.0-or-later. Both licences let you change the code and pass it on
+under the same terms, and contributions are taken in under those terms
+(inbound = outbound). No contributor agreement is needed.
+
+## Bug reports and suggestions
+
+Open an issue on GitHub. Say which version of the server you run (the
+`version` field of `GET /healthz` or `/.well-known/kontroll`), which client
+you used, what you did, what happened and what you expected. Include the
+`X-Request-ID` of a failing call when you have it; the server's request log
+and your client's log share it. Attach no personal data and no secrets; a
+small example (an IFC model, a BCF request body with made-up text) is enough.
+
+For a security vulnerability do not open an issue: follow
+[SECURITY.md](SECURITY.md).
+
+When the server and a client disagree, the specification decides
+(`spec/`, pinned revisions in [spec/SOURCES.md](spec/SOURCES.md)). Report a
+specification problem, or a place where the specification is silent, as an
+issue too: the list of such quirks lives in
+[docs/inventory.md](docs/inventory.md) (section 10), with the client side's
+view from Dataspatium.
+
+## Code changes
+
+Agree on the change in an issue first for anything beyond a small fix. Then
+send a pull request against `main` that follows the house rules, which are
+those of IfcOpenShell, where the server and the client library are meant to
+end up:
+
+- Code, comments, tests and commit messages are in English. Commit subjects
+  are imperative and at most 50 characters; the body says why.
+- Say in the commit body when a change was generated with an AI coding tool,
+  and start new files written that way with
+  `# This file was generated with the assistance of an AI coding tool.`
+- `uv run ruff format .`, `uv run ruff check .` and
+  `uv run ty check opencde client/opencde_client` are clean; no cosmetic
+  changes to unrelated code.
+- A new endpoint is route + schema + conformance test + security test + docs
+  in one series of commits, with a row in [docs/inventory.md](docs/inventory.md).
+- The golden rules in [docs/security/controls.md](docs/security/controls.md)
+  hold: Cypher takes parameters only, every query starts at the user node,
+  nothing secret is logged, nothing client-provided lands in a file path,
+  and everything that expires carries `expires_at`.
+- Cypher stays portable between Neo4j and Memgraph (ADR 0003): no APOC, no
+  `elementId()`/`id()` as keys, no Neo4j-only functions.
+- Web pages are server-rendered with the design system in `opencde/ui/`,
+  work without JavaScript, and follow
+  [docs/ui-styleguide.md](docs/ui-styleguide.md).
+
+Run the suites before you push:
+
+```sh
+uv run pytest                    # unit, conformance and security tests
+uv run pytest -m integration     # Neo4j and Memgraph in testcontainers (Docker)
+uv run pytest -m ui              # Playwright and axe-core (uv sync --group ui)
+```
+
+## Translations
+
+The README and, in time, the documentation and the web pages exist in
+English, Swedish, Danish, Norwegian (Bokmål and Nynorsk), Finnish and
+Icelandic, under `docs/<lang>/`. English is the source. Shared terms follow
+the glossary that Kontroll and [Dataspatium](https://github.com/marwiss/Dataspatium)
+keep together (`presets/i18n-shared.json` there); keep "viewpoint" and the
+API names untranslated, and send corrections of a translation as an issue or
+a pull request like any other change.
+
+## Working with Dataspatium
+
+Kontroll and Dataspatium are developed to work together but are separate
+projects with different licences (AGPL here, PolyForm Strict there). Nothing
+is copied between the repositories; shared values (colours, terms, test
+geometry) are re-stated as facts. What the two coordinate, and in which
+order, is in [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).

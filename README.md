@@ -1,47 +1,62 @@
-<img src="opencde/ui/static/icon.svg" alt="" width="72" height="72" align="left">
+[Svenska](docs/sv/README.md) · [Dansk](docs/da/README.md) · [Norsk bokmål](docs/nb/README.md) · [Norsk nynorsk](docs/nn/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md) · **English**
+
+<img src="opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
 # Kontroll OpenCDE server
 
-*English · [Svenska](docs/sv/README.md) · [Dansk](docs/da/README.md) · [Norsk bokmål](docs/nb/README.md) · [Norsk nynorsk](docs/nn/README.md) · [Suomi](docs/fi/README.md) · [Íslenska](docs/is/README.md)*
+Kontroll is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
+BCF API 3.0 and Documents API 1.0), built on a graph database, with a web
+administration and an optional IFC-graph module that joins BCF components to
+the building elements they point at. It grew out of a 2023 research prototype
+for the digital inspection plans of Swedish building permits and was rewritten
+from scratch with security as the first requirement.
 
-A server for the buildingSMART **OpenCDE APIs**, built on a graph database:
+![The administration overview of a Kontroll server: counts of users, projects, clients, topics and documents, the database status and the latest audit events](docs/images/admin-overview.png)
 
-- **Foundation API 1.0**: service discovery, OAuth2 authorization code with PKCE, current user
-- **BCF API 3.0**: projects, extensions, topics, comments, viewpoints, files, document references, documents, events
-- **Documents API 1.0**: document selection and download, multipart upload, version queries
+**Contents**
 
-plus a web administration UI for users, OAuth2 clients and projects, and an
-optional IFC-graph module that turns uploaded IFC models into graph data so
-BCF components can be joined to the building elements they point at.
+- [Download and get started](#download-and-get-started)
+- [Requirements](#requirements)
+- [What you can do](#what-you-can-do)
+- [Kontroll and Dataspatium](#kontroll-and-dataspatium)
+- [Learn more](#learn-more)
+- [Limitations in brief](#limitations-in-brief)
+- [Bugs and suggestions](#bugs-and-suggestions)
+- [Development](#development)
+- [Licence](#licence)
 
-The project grew out of a 2023 research prototype that tested whether the BCF
-API and IFC-graph could carry the digital inspection plans required for
-building permits in Sweden. This repository is a rewrite from scratch of that
-prototype with the same functionality, modern dependencies and security as the
-first requirement. Status: **all 11 stages of the plan are implemented** (the
-three APIs, the admin UI, the client library, deployment, IFC-graph, the
-acceptance checklist and the security hardening); the contribution to
-IfcOpenShell waits for its maintainers' answer (drafts in
-[docs/upstream/](docs/upstream/)). See [docs/inventory.md](docs/inventory.md)
-for what the prototype did and where each function stands in the new code.
+## Download and get started
 
-## Quick start (local, Docker)
+### Quick start (local, Docker)
 
-Requirements: Docker (Desktop on Windows/macOS, Engine on Linux) and
-[uv](https://docs.astral.sh/uv/).
+1. **Download.** Clone the repository, or pull the published image
+   `ghcr.io/marwiss/opencdeserver` (multi-arch, scanned and with an SBOM on
+   every release):
 
-```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
-cp .env.example .env            # set OPENCDE_GRAPH_PASSWORD (16+ characters)
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-```
+   ```sh
+   git clone https://github.com/marwiss/Kontroll.git
+   cd Kontroll
+   ```
 
-Then open <http://localhost:8000/docs> for the interactive API documentation,
-<http://localhost:8000/readyz> for the readiness check, and
-<http://localhost:7484> for Neo4j Browser (Bolt on `localhost:7697`; the
-development overlay avoids Neo4j's default ports, which another Neo4j on the
-same machine often occupies). `docker compose logs -f api` shows the server log.
+2. **Configure.** Copy `.env.example` to `.env` and set `OPENCDE_GRAPH_PASSWORD`
+   (16 characters or more). Every setting is explained in
+   [.env.example](.env.example).
+3. **Start.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+   starts the server on <http://localhost:8000> and a Neo4j database.
+   `docker compose logs -f api` shows the server log.
+4. **Look around.** <http://localhost:8000/docs> is the interactive API
+   documentation, <http://localhost:8000/readyz> the readiness check and
+   <http://localhost:7484> Neo4j Browser (Bolt on `localhost:7697`; the
+   development overlay avoids Neo4j's default ports, which another Neo4j on
+   the same machine often occupies).
+5. **Add demo data and sign in.**
+   `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
+   creates demonstration users and projects and prints their passwords once.
+   Sign in at <http://localhost:8000/signin> as `admin` and open `/admin`.
+6. **Connect a client.** Register your application under *Clients* (or let it
+   register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
+   it at `http://localhost:8000`; [Dataspatium](#kontroll-and-dataspatium) and
+   the Python library in [client/](client/) are ready-made clients.
 
 Without Docker for the server itself (a database is still needed):
 
@@ -51,10 +66,9 @@ uv run opencde doctor            # checks configuration and the database
 uv run opencde serve             # http://127.0.0.1:8000
 ```
 
-## Deployment
+### Deployment
 
-One compose file plus an overlay per scenario, and a published multi-arch image
-(`ghcr.io/marwiss/opencdeserver`, scanned and with an SBOM on every release):
+One compose file plus an overlay per scenario:
 
 | Scenario | Guide |
 |---|---|
@@ -68,75 +82,142 @@ One compose file plus an overlay per scenario, and a published multi-arch image
 `uv run opencde init --public-url https://cde.example.org` writes a production
 `.env` with fresh secrets; `opencde doctor` checks the result.
 
-## Configuration
+### Configuration
 
 Everything is read from environment variables prefixed `OPENCDE_`, from
 `.env`, or from Docker secrets in `/run/secrets/opencde_<name>`. The
 annotated list is in [.env.example](.env.example). Defaults are safe:
 production refuses to start without an `https` public URL and a database
-password.
+password, and nothing is open until it is configured.
 
-## Documentation
+## Requirements
 
-- [docs/inventory.md](docs/inventory.md): functional inventory of the 2023
-  prototype and status in the rewrite, plus notes on specification quirks
-- [docs/client-guide.md](docs/client-guide.md) and [docs/examples/](docs/examples/):
-  how to build a client; runnable examples with the Python library in [client/](client/)
-- [docs/flows/](docs/flows/): sequence diagrams of the OAuth2 and Documents API flows
-- [docs/graph-schema.md](docs/graph-schema.md): the graph model
-- [docs/ifcgraph.md](docs/ifcgraph.md): the optional IFC-graph module and example Cypher queries
-- [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages
-- [docs/acceptance.md](docs/acceptance.md): visual acceptance checklist with
-  independent clients (Bonsai, ifc-lite, Dataspatium)
-- [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): what
-  Kontroll and Dataspatium share and what more to coordinate, with the
-  decisions that remain
-- [docs/adr/](docs/adr/): architecture decision records (graph backend,
-  opaque tokens, portable Cypher, vanilla web UI, repository strategy)
-- [docs/security/](docs/security/): threat model, controls mapped to tests,
-  the OWASP ASVS Level 2 checklist and how to run the scanners
-- [docs/upstream/](docs/upstream/): drafts of the issue and pull request for
-  IfcOpenShell (not sent)
-- [spec/SOURCES.md](spec/SOURCES.md): the exact specification revisions the
-  server is tested against
+- Windows, macOS or Linux with Docker (Desktop on Windows/macOS, Engine on
+  Linux), or Python 3.11 or later with [uv](https://docs.astral.sh/uv/) and a
+  Neo4j 5.26 or Memgraph 3.14 database of your own.
+- About 1 GB of memory for the database container (`NEO4J_HEAP` and
+  `NEO4J_PAGECACHE` in `.env`), more with the IFC-graph module.
+- Locally: port 8000 for the server and 7484/7697 for the database, all bound
+  to `127.0.0.1`. In production: ports 80 and 443 reachable from the internet
+  and a DNS name for the server.
+- Clients need an `https` address in production; locally `http://localhost`
+  redirect URIs are accepted with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
-## Administration
+## What you can do
 
-Sign in at `/signin` with an administrator account and open `/admin` to manage
-users and their project roles, projects and their BCF extension values, OAuth2
-clients, sessions, the audit log, the optional request log and the server's
-health checks. Every user has `/account` for their own password, applications
-and sessions. The CLI (`uv run opencde --help`) does the same from a terminal,
-and administration clients holding the `admin` scope can read the request log
-at `/admin/api/requests`.
+- **Foundation API 1.0**: service discovery, OAuth2 authorization code with
+  PKCE for every client, current user, token revocation, and dynamic client
+  registration with public clients (off by default).
+- **BCF API 3.0**: projects, extensions, topics with OData queries, comments,
+  viewpoints with snapshots, bitmaps and components, files, document
+  references, documents and the event logs, all validated against the
+  buildingSMART schemas.
+- **Documents API 1.0**: document selection and download, multipart upload
+  with the server's web pages for metadata and selection, version queries with
+  ETags.
+- **Administration** in the browser: sign in at `/signin` with an
+  administrator account and open `/admin` to manage users and their project
+  roles, projects and their BCF extension values, OAuth2 clients, sessions, the
+  audit log, the optional request log and the server's health checks. Every
+  user has `/account` for their own password, applications and sessions. The
+  CLI (`uv run opencde --help`) does the same from a terminal.
+- **Extensions outside the specifications**, each marked as such: a
+  capabilities document at `/.well-known/kontroll` that tells a client which
+  extensions are on, a stable `code` in every error body, a request log for
+  debugging clients (`/admin/requests`, `GET /admin/api/requests` with the
+  `admin` scope), and the IFC-graph module that turns uploaded IFC models into
+  graph data linked to BCF components.
+- **A client library** in Python ([client/](client/), LGPL) with runnable
+  examples, and a Dockerfile, compose overlays and a published image for every
+  deployment scenario.
+- **Status**: all eleven stages of the plan are implemented (the three APIs,
+  the administration, the client library, deployment, IFC-graph, the acceptance
+  checklist and the security hardening); the contribution to IfcOpenShell waits
+  for its maintainers' answer (drafts in [docs/upstream/](docs/upstream/)).
+  [docs/inventory.md](docs/inventory.md) records what the 2023 prototype did
+  and where each function stands in the new code.
 
 ## Kontroll and Dataspatium
 
 Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
 (a data app that runs entirely in the browser) are developed to work together
-as server and client. Dataspatium adds a Kontroll server as a source: it
-discovers the APIs through `/foundation/versions`, signs in with OAuth2
-authorization code and PKCE and registers itself as a public client when
-dynamic registration is on, lists the project's models and documents, reads
-and writes BCF issues with comments and viewpoints taken from its 3D view,
-uploads datasets, files and workspace bundles through the Documents API,
-queries the IFC graph with Cypher over Bolt when the operator exposes it, and
-sends `X-Request-ID` on every request so that the request log here and the
-log in the app show the same conversation. It reads the server's capabilities
-document (`/.well-known/kontroll`) to see which extensions are on, and acts
-on the stable error codes the server adds to its error bodies. Apart from the
-graph queries, the administration API, the capabilities document and the
-error codes, which are extensions outside the specifications, everything
-Dataspatium does against the server goes through the three OpenCDE APIs, so
-any other OpenCDE client works too, and Kontroll serves any OpenCDE client.
-The two products are installed separately: this repository does not bundle
-Dataspatium (the licences differ, AGPL here and PolyForm Strict there), and
-Dataspatium's README says how to download it. The client side is described
-in Dataspatium's README and its documentation (`docs/kallor.md`,
-`docs/cad-bim.md`); the acceptance runs of the pair are in
+as server and client, and the same release number on both means they work
+together: Dataspatium 2.0.0 works with Kontroll 2.0.0. Dataspatium adds a
+Kontroll server as a source: it discovers the APIs through
+`/foundation/versions`, signs in with OAuth2 authorization code and PKCE and
+registers itself as a public client when dynamic registration is on, lists the
+project's models and documents, reads and writes BCF issues with comments and
+viewpoints taken from its 3D view, uploads datasets, files and workspace
+bundles through the Documents API, queries the IFC graph with Cypher over Bolt
+when the operator exposes it, and sends `X-Request-ID` on every request so
+that the request log here and the log in the app show the same conversation.
+It reads the server's capabilities document to see which extensions are on
+and acts on the error codes the server adds to its error bodies.
+
+Apart from the marked extensions, everything Dataspatium does against the
+server goes through the three OpenCDE APIs, so any other OpenCDE client works
+too, and Kontroll serves any OpenCDE client. The two products are installed
+separately: this repository does not bundle Dataspatium (the licences differ,
+AGPL here and PolyForm Strict there), and Dataspatium's README says how to
+download it. The client side is described in Dataspatium's README and its
+documentation; the acceptance runs of the pair are in
 [docs/acceptance.md](docs/acceptance.md) here, and what the two projects
 coordinate is in
 [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
+
+## Learn more
+
+- [docs/client-guide.md](docs/client-guide.md) and [docs/examples/](docs/examples/):
+  how to build a client, the capabilities document, the error codes, and
+  runnable examples with the Python library in [client/](client/).
+- [docs/flows/](docs/flows/): sequence diagrams of the OAuth2 and Documents API flows.
+- [docs/graph-schema.md](docs/graph-schema.md): the graph model.
+- [docs/ifcgraph.md](docs/ifcgraph.md): the optional IFC-graph module and example Cypher queries.
+- [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages and the mark.
+- [docs/acceptance.md](docs/acceptance.md): visual acceptance checklist with
+  independent clients (Bonsai, ifc-lite, Dataspatium).
+- [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): what
+  Kontroll and Dataspatium share, what more is coordinated, and the owner's decisions.
+- [docs/inventory.md](docs/inventory.md): functional inventory of the 2023
+  prototype and status in the rewrite, plus notes on specification quirks.
+- [docs/adr/](docs/adr/): architecture decision records (graph backend,
+  opaque tokens, portable Cypher, vanilla web UI, repository strategy).
+- [docs/security/](docs/security/): threat model, controls mapped to tests,
+  the OWASP ASVS Level 2 checklist and how to run the scanners.
+- [docs/upstream/](docs/upstream/): drafts of the issue and pull request for
+  IfcOpenShell (not sent).
+- [spec/SOURCES.md](spec/SOURCES.md): the exact specification revisions the
+  server is tested against.
+
+## Limitations in brief
+
+- The server implements BCF API 3.0, not 2.1; only the three legacy discovery
+  aliases under `/bcf/` exist for older clients.
+- Exporting a project as a BCFzip is left to clients; the server stores
+  topics, comments and viewpoints as the API defines them.
+- The community editions of Neo4j and Memgraph have no read-only database
+  users, so an exposed Bolt port gives full access to whoever holds the
+  password. The port stays closed unless the administrator publishes it on
+  purpose; a read-only query endpoint is planned instead.
+- The IFC-graph import runs in a separate process with memory and time limits
+  (`OPENCDE_IFCGRAPH_*`); very large models are refused rather than left half
+  imported.
+- The web pages serve administrators and the OAuth2 and Documents API flows;
+  end users work in a client such as Dataspatium or Bonsai.
+- The pages are in English for now; the language layer in the seven languages
+  of this README is being built together with Dataspatium.
+- No external audit yet. The OAuch and testssl runs described in
+  [docs/security/pentest-howto.md](docs/security/pentest-howto.md) are the
+  operator's steps before a production deployment.
+
+## Bugs and suggestions
+
+Report bugs and wishes as *Issues* here on GitHub. Say which server version
+you run (the `version` of `/.well-known/kontroll` or `/healthz`), which client
+you used and the `X-Request-ID` of a failing call; the request log and your
+client's log share it. Attach no personal data and no secrets. How changes are
+taken in is in [CONTRIBUTING.md](CONTRIBUTING.md). For a security
+vulnerability follow [SECURITY.md](SECURITY.md) instead of opening an issue.
 
 ## Development
 
@@ -155,18 +236,17 @@ columns) the style follows. The README exists in English, Swedish, Danish,
 Norwegian (Bokmål and Nynorsk), Finnish and Icelandic (`docs/<lang>/README.md`,
 the layout Dataspatium uses); the documentation and the web UI are to be
 available in the same languages, with English always one of the choices, and
-shared terms follow Dataspatium's glossary.
+shared terms follow Dataspatium's glossary. Every push runs linting, type
+checks, the test suites on three Python versions, browser tests with axe-core,
+and static security checks; nightly jobs run OWASP ZAP, Schemathesis and
+Trivy. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Security
-
-See [SECURITY.md](SECURITY.md) for how to report a vulnerability and what the
-project does to stay secure.
-
-## License
+## Licence
 
 The server is licensed under the GNU Affero General Public License v3.0 or
 later ([LICENSE](LICENSE)): it is server software, and the AGPL's network
 clause keeps improvements to hosted instances open. The client library in
 [client/](client/) is LGPL-3.0-or-later. Specification files under
 [spec/](spec/) are © buildingSMART International and redistributed unmodified
-for testing.
+for testing. See [SECURITY.md](SECURITY.md) for how to report a vulnerability
+and what the project does to stay secure.
