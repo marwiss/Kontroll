@@ -35,6 +35,32 @@ of the request log, whether Bolt is published, and the registration policy.
 Dataspatium shows this in its source settings and switches features on and
 off by it. Pairs with a first tagged Kontroll release (item 6).
 
+Proposed shape (unauthenticated, CORS as for the API, cacheable for a few
+minutes, never a secret; `bolt` appears only when the operator states a
+published Bolt address explicitly):
+
+```json
+{
+  "server": {"name": "Kontroll OpenCDE server", "version": "0.1.0", "public_url": "https://cde.example.org"},
+  "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
+  "scopes": ["profile", "bcf", "documents", "admin"],
+  "extensions": {
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+                                    "url": "/foundation/oauth2/reg"},
+    "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
+    "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
+    "ifcgraph": {"enabled": true, "bolt": null},
+    "graph_query": {"enabled": false}
+  },
+  "limits": {"max_upload_bytes": 104857600, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
+  "links": {"dataspatium": null}
+}
+```
+
+`version` under `admin_api` counts breaking changes of that extension;
+`links.dataspatium` carries the app's address when the operator sets it
+(item 7, deep links). Clients treat unknown keys as absent.
+
 ### 2. Say which app registered (D + K, small)
 
 RFC 7591 lets a client send `software_id` and `software_version`. Dataspatium
@@ -196,7 +222,11 @@ font or keeps system fonts is part of item 5.
   PolyForm Strict. Nothing stops them from working together over the network,
   but code and assets cannot move between the repositories, and Kontroll's
   compose files cannot bundle Dataspatium. If a one-command install of both
-  is wanted, Dataspatium's licence for that purpose has to be decided.
+  is wanted, Dataspatium's licence for that purpose has to be decided. The
+  pieces the two projects want to share (the token file, the glossary JSON,
+  the test model, the quick-start text) need a separate permissive licence
+  (CC0 or MIT) stated in both repositories; otherwise Kontroll writes its own
+  files with the same values, which are facts, not copies.
 - **C. First Kontroll release**: when to tag `v0.1.0` (item 6). The code is
   there; what remains is the owner's acceptance runs A and B
   (`docs/acceptance.md`) and the OAuch/testssl runs before a production
