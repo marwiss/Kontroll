@@ -1,8 +1,8 @@
-<img src="opencde/ui/static/icon.svg" alt="" width="72" height="72" align="left">
+<img src="../../opencde/ui/static/icon.svg" alt="" width="72" height="72" align="left">
 
 # Kontroll OpenCDE-server
 
-*Svenska · [English](README.md)*
+*[English](../../README.md) · Svenska · [Dansk](../da/README.md) · [Norsk](../nb/README.md) · [Suomi](../fi/README.md) · [Íslenska](../is/README.md)*
 
 En server för buildingSMARTs **OpenCDE-API:er**, byggd på en grafdatabas:
 
@@ -21,8 +21,8 @@ funktioner, moderna beroenden och säkerhet som första krav. Status: **alla
 11 etapper i planen är genomförda** (de tre API:erna, administrationsgräns-
 snittet, klientbiblioteket, driftsättning, IFC-graf, acceptanschecklistan och
 säkerhetshärdningen); bidraget till IfcOpenShell väntar på underhållarnas
-svar (utkast i [docs/upstream/](docs/upstream/)). Se
-[docs/inventory.md](docs/inventory.md) för vad prototypen gjorde och var
+svar (utkast i [docs/upstream/](../upstream/)). Se
+[docs/inventory.md](../inventory.md) för vad prototypen gjorde och var
 varje funktion står i den nya koden.
 
 ## Snabbstart (lokalt, Docker)
@@ -59,12 +59,12 @@ varje release):
 
 | Scenario | Guide |
 |---|---|
-| Lokalt test på din dator | [docs/deploy/local.md](docs/deploy/local.md) |
-| Publik https-adress för klienttester utan egen server (tunnel) | [docs/deploy/tunnel.md](docs/deploy/tunnel.md) |
-| Produktion på egen server med Caddy (automatisk TLS) och nattliga säkerhetskopior | [docs/deploy/vps-caddy.md](docs/deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](docs/deploy/paas.md) |
-| Containertjänst plus hanterad Neo4j AuraDB eller Memgraph Cloud | [docs/deploy/cloud-aura.md](docs/deploy/cloud-aura.md) |
-| Säkerhetskopiering och återställning (flyttbar mellan Neo4j och Memgraph) | [docs/deploy/backup.md](docs/deploy/backup.md) |
+| Lokalt test på din dator | [docs/deploy/local.md](../deploy/local.md) |
+| Publik https-adress för klienttester utan egen server (tunnel) | [docs/deploy/tunnel.md](../deploy/tunnel.md) |
+| Produktion på egen server med Caddy (automatisk TLS) och nattliga säkerhetskopior | [docs/deploy/vps-caddy.md](../deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](../deploy/paas.md) |
+| Containertjänst plus hanterad Neo4j AuraDB eller Memgraph Cloud | [docs/deploy/cloud-aura.md](../deploy/cloud-aura.md) |
+| Säkerhetskopiering och återställning (flyttbar mellan Neo4j och Memgraph) | [docs/deploy/backup.md](../deploy/backup.md) |
 
 `uv run opencde init --public-url https://cde.example.org` skriver en
 produktions-`.env` med nya hemligheter; `opencde doctor` kontrollerar
@@ -74,33 +74,35 @@ resultatet.
 
 Allt läses från miljövariabler med prefixet `OPENCDE_`, från `.env` eller
 från Docker-hemligheter i `/run/secrets/opencde_<namn>`. Den kommenterade
-listan finns i [.env.example](.env.example). Standardvärdena är säkra:
+listan finns i [.env.example](../../.env.example). Standardvärdena är säkra:
 produktion vägrar starta utan en publik `https`-adress och ett
 databaslösenord.
 
 ## Dokumentation
 
-Dokumentationen är på engelska; översättningar till svenska, norska, danska,
+Dokumentationen är på engelska; översättningar till svenska, danska, norska,
 finska och isländska är planerade.
 
-- [docs/inventory.md](docs/inventory.md): funktionsinventering av prototypen
+- [docs/inventory.md](../inventory.md): funktionsinventering av prototypen
   från 2023 och status i omskrivningen, med noteringar om specifikationernas
   egenheter
-- [docs/client-guide.md](docs/client-guide.md) och [docs/examples/](docs/examples/):
-  hur man bygger en klient; körbara exempel med Python-biblioteket i [client/](client/)
-- [docs/flows/](docs/flows/): sekvensdiagram för OAuth2- och Documents API-flödena
-- [docs/graph-schema.md](docs/graph-schema.md): grafmodellen
-- [docs/ifcgraph.md](docs/ifcgraph.md): den valfria IFC-grafmodulen och exempel på Cypher-frågor
-- [docs/ui-styleguide.md](docs/ui-styleguide.md): regler för serverns sidor
-- [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans
+- [docs/client-guide.md](../client-guide.md) och [docs/examples/](../examples/):
+  hur man bygger en klient; körbara exempel med Python-biblioteket i [client/](../../client/)
+- [docs/flows/](../flows/): sekvensdiagram för OAuth2- och Documents API-flödena
+- [docs/graph-schema.md](../graph-schema.md): grafmodellen
+- [docs/ifcgraph.md](../ifcgraph.md): den valfria IFC-grafmodulen och exempel på Cypher-frågor
+- [docs/ui-styleguide.md](../ui-styleguide.md): regler för serverns sidor
+- [docs/acceptance.md](../acceptance.md): checklista för visuell acceptans
   med oberoende klienter (Bonsai, ifc-lite, Dataspatium)
-- [docs/adr/](docs/adr/): arkitekturbeslut (grafdatabas, opaka tokens,
+- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): vad
+  Kontroll och Dataspatium delar och vad mer som samordnas, med ägarens beslut
+- [docs/adr/](../adr/): arkitekturbeslut (grafdatabas, opaka tokens,
   portabel Cypher, webbgränssnitt utan ramverk, repostrategi)
-- [docs/security/](docs/security/): hotmodell, kontroller kopplade till
+- [docs/security/](../security/): hotmodell, kontroller kopplade till
   tester, OWASP ASVS nivå 2-checklistan och hur skannrarna körs
-- [docs/upstream/](docs/upstream/): utkast till ärende och pull request för
+- [docs/upstream/](../upstream/): utkast till ärende och pull request för
   IfcOpenShell (inte skickade)
-- [spec/SOURCES.md](spec/SOURCES.md): de exakta specifikationsversioner som
+- [spec/SOURCES.md](../../spec/SOURCES.md): de exakta specifikationsversioner som
   servern testas mot
 
 ## Administration
@@ -121,18 +123,25 @@ Kontroll (servern) och [Dataspatium](https://github.com/marwiss/Dataspatium)
 tillsammans som server och klient. Dataspatium lägger till en Kontroll-server
 som källa: appen upptäcker API:erna genom `/foundation/versions`, loggar in
 med OAuth2 authorization code och PKCE och registrerar sig själv som publik
-klient när dynamisk registrering är påslagen, listar projektets modeller och
+klient när självregistrering är påslagen, listar projektets modeller och
 dokument, läser och skriver BCF-ärenden med kommentarer och viewpoints tagna
 ur sin 3D-vy, laddar upp datamängder, filer och arbetsytepaket genom
 Documents API, frågar IFC-grafen med Cypher över Bolt när operatören exponerar
 den, och skickar `X-Request-ID` på varje anrop så att begärandeloggen här och
-loggen i appen visar samma samtal. Bortsett från graffrågorna och
-administrations-API:t, som är tillägg utanför specifikationerna, går allt
-Dataspatium gör mot servern genom de tre OpenCDE-API:erna, så andra
-OpenCDE-klienter fungerar också, och Kontroll betjänar vilken OpenCDE-klient
-som helst. Klientsidan beskrivs i Dataspatiums README och dess dokumentation
-(`docs/kallor.md`, `docs/cad-bim.md`); parets acceptanskörningar står i
-[docs/acceptance.md](docs/acceptance.md) här.
+loggen i appen visar samma samtal. Appen läser serverns kapabilitetsdokument
+(`/.well-known/kontroll`) för att se vilka tillägg som är påslagna och
+reagerar på de stabila felkoder servern lägger i sina felkroppar. Bortsett
+från graffrågorna, administrations-API:t, kapabilitetsdokumentet och
+felkoderna, som är tillägg utanför specifikationerna, går allt Dataspatium
+gör mot servern genom de tre OpenCDE-API:erna, så andra OpenCDE-klienter
+fungerar också, och Kontroll betjänar vilken OpenCDE-klient som helst. De två
+produkterna installeras var för sig: det här repot buntar inte Dataspatium
+(licenserna skiljer sig, AGPL här och PolyForm Strict där), och Dataspatiums
+README beskriver hur appen hämtas. Klientsidan beskrivs i Dataspatiums README
+och dess dokumentation (`docs/kallor.md`, `docs/cad-bim.md`); parets
+acceptanskörningar står i [docs/acceptance.md](../acceptance.md) här, och
+vad de två projekten samordnar står i
+[docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 
 ## Utveckling
 
@@ -147,20 +156,21 @@ uv run ty check opencde client/opencde_client
 
 Kod och kommentarer är på engelska eftersom servern och klientbiblioteket
 ska bidras till IfcOpenShell, vars konventioner (ruff, 120 kolumner) följs.
-README finns på engelska och svenska; dokumentationen och webbgränssnittet
-ska finnas på svenska, norska, danska, finska, isländska och engelska, med
-engelska alltid som ett val.
+README finns på engelska, svenska, danska, norska, finska och isländska
+(`docs/<språk>/README.md`, samma upplägg som Dataspatium); dokumentationen
+och webbgränssnittet ska finnas på samma sex språk, med engelska alltid som
+ett val, och gemensamma termer följer Dataspatiums ordlista.
 
 ## Säkerhet
 
-Se [SECURITY.md](SECURITY.md) för hur en sårbarhet rapporteras och vad
+Se [SECURITY.md](../../SECURITY.md) för hur en sårbarhet rapporteras och vad
 projektet gör för att förbli säkert.
 
 ## Licens
 
 Servern är licensierad under GNU Affero General Public License v3.0 eller
-senare ([LICENSE](LICENSE)): den är servermjukvara, och AGPL:s nätverksklausul
+senare ([LICENSE](../../LICENSE)): den är servermjukvara, och AGPL:s nätverksklausul
 håller förbättringar av driftsatta instanser öppna. Klientbiblioteket i
-[client/](client/) är LGPL-3.0-or-later. Specifikationsfilerna under
-[spec/](spec/) är © buildingSMART International och vidaredistribueras
+[client/](../../client/) är LGPL-3.0-or-later. Specifikationsfilerna under
+[spec/](../../spec/) är © buildingSMART International och vidaredistribueras
 oförändrade för testning.
