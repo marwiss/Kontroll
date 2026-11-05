@@ -240,23 +240,34 @@ def test_dynamic_registration_when_enabled(graph_target, tmp_path, clean_databas
                 "redirect_uris": [redirect],
                 "token_endpoint_auth_method": "none",
                 "grant_types": ["authorization_code", "refresh_token"],
+                "software_id": "dataspatium",
+                "software_version": "2.33.0",
             },
         )
         assert public.status_code == 201, public.text
         registered = public.json()
         assert "client_secret" not in registered and registered["token_endpoint_auth_method"] == "none"
         assert registered["redirect_uris"] == [redirect] and isinstance(registered["client_id_issued_at"], int)
+        # RFC 7591 software_id/software_version are stored and echoed, so the operator can tell apps apart.
+        assert registered["software_id"] == "dataspatium" and registered["software_version"] == "2.33.0"
+        assert "software_id" not in body, "absent when the client did not send it"
 
         # Self-registered clients expire when unused; a token issuance moves the expiry forward.
-        def expiry(client_id: str) -> str:
+        def stored(client_id: str) -> dict[str, str | None]:
             with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
                 rows, _, _ = driver.execute_query(
-                    "MATCH (c:Client {client_id: $id}) RETURN c.expires_at AS e",
+                    "MATCH (c:Client {client_id: $id}) "
+                    "RETURN c.expires_at AS e, c.software_id AS sid, c.software_version AS sv",
                     id=client_id,
                     database_=settings.database_name,
                 )
-                return rows[0]["e"]
+                return dict(rows[0])
 
+        def expiry(client_id: str) -> str:
+            return stored(client_id)["e"] or ""
+
+        assert stored(registered["client_id"])["sid"] == "dataspatium"
+        assert stored(registered["client_id"])["sv"] == "2.33.0"
         before = expiry(registered["client_id"])
         assert before > later_iso(29 * 86400), "about 30 days (OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS)"
         time.sleep(0.01)

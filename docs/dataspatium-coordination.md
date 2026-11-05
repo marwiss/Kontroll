@@ -61,12 +61,13 @@ published Bolt address explicitly):
 `links.dataspatium` carries the app's address when the operator sets it
 (item 7, deep links). Clients treat unknown keys as absent.
 
-### 2. Say which app registered (D + K, small)
+### 2. Say which app registered (D + K, small) — server side done 2026-11-05
 
 RFC 7591 lets a client send `software_id` and `software_version`. Dataspatium
-sends them when it registers; Kontroll stores them on the `Client` node, shows
-them in the administration UI and the request log, and the operator can tell
-app versions apart when debugging. One release each.
+sends them when it registers (2.33); Kontroll stores them on the `Client`
+node, echoes them in the registration response and shows them on the clients
+page and in `opencde client list`, so the operator can tell app versions
+apart when debugging.
 
 ### 3. Graph access in production (K, medium; D, small)
 

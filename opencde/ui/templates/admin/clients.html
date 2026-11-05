@@ -15,7 +15,7 @@
       {% for client in clients %}
       <tr>
         <td><a href="/admin/clients/{{ client.client_id }}">{{ client.name }}</a></td>
-        <td>{% if client.is_public %}public (PKCE){% else %}confidential{% endif %}{% if client.dynamic %} <span class="badge badge--neutral">self-registered</span>{% endif %}</td>
+        <td>{% if client.is_public %}public (PKCE){% else %}confidential{% endif %}{% if client.dynamic %} <span class="badge badge--neutral">self-registered</span>{% endif %}{% if client.software_id %} <span class="muted">{{ client.software_id }}{% if client.software_version %} {{ client.software_version }}{% endif %}</span>{% endif %}</td>
         <td>{% for uri in client.redirect_uris %}<code>{{ uri }}</code>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
         <td>{% if client.disabled %}<span class="badge badge--danger">disabled</span>{% else %}<span class="badge badge--success">active</span>{% endif %}</td>
         <td>{{ when(client.created_at) }}</td>

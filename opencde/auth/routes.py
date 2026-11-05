@@ -382,6 +382,9 @@ class RegistrationRequest(BaseModel):
     # "none" registers a public client (browser or native app) that gets no secret and relies on PKCE.
     token_endpoint_auth_method: Literal["client_secret_basic", "client_secret_post", "none"] = AUTH_METHOD_BASIC
     grant_types: list[str] | None = Field(None, max_length=4)
+    # RFC 7591 §2: which software registered, shown to administrators and useful when debugging.
+    software_id: str | None = Field(None, max_length=100)
+    software_version: str | None = Field(None, max_length=50)
 
 
 @router.post("/reg", summary="Dynamic client registration (Foundation API 2.2.3)", status_code=201)
@@ -414,6 +417,8 @@ async def register_client(
             url=body.client_url,
             dynamic=True,
             expires_at=later_iso(settings.dynamic_client_unused_days * 86400),  # deleted if never used
+            software_id=body.software_id,
+            software_version=body.software_version,
         )
     except ClientError as exc:
         raise HTTPException(400, str(exc)) from None
@@ -432,6 +437,10 @@ async def register_client(
         "token_endpoint_auth_method": body.token_endpoint_auth_method,
         "grant_types": grant_types,
     }
+    if client.software_id:
+        payload["software_id"] = client.software_id
+    if client.software_version:
+        payload["software_version"] = client.software_version
     if secret is not None:
         payload["client_secret"] = secret
         payload["client_secret_expires_at"] = 0  # RFC 7591 §3.2.1: 0 means the secret does not expire
