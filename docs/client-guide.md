@@ -122,6 +122,12 @@ and the caller, never bodies or tokens.
 
 ## 6. Testing against this server
 
+[Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
+developed together with this server; its OpenCDE source (sign-in, BCF tables,
+Documents API, graph queries, request ids) is a worked example of everything
+above, and its live test suites run against the development stack
+(see [acceptance.md](acceptance.md)).
+
 - `uv run opencde seed` fills an empty database with demo users and
   projects (passwords are printed once).
 - `docker compose -f compose.yaml -f compose.dev.yaml up -d` gives you a

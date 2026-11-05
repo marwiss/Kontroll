@@ -1,3 +1,5 @@
+<img src="opencde/ui/static/icon.svg" alt="" width="72" height="72" align="left">
+
 # Kontroll OpenCDE server
 
 A server for the buildingSMART **OpenCDE APIs**, built on a graph database:
@@ -102,6 +104,26 @@ health checks. Every user has `/account` for their own password, applications
 and sessions. The CLI (`uv run opencde --help`) does the same from a terminal,
 and administration clients holding the `admin` scope can read the request log
 at `/admin/api/requests`.
+
+## Kontroll and Dataspatium
+
+Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
+(a data app that runs entirely in the browser) are developed to work together
+as server and client. Dataspatium adds a Kontroll server as a source: it
+discovers the APIs through `/foundation/versions`, signs in with OAuth2
+authorization code and PKCE and registers itself as a public client when
+dynamic registration is on, lists the project's models and documents, reads
+and writes BCF issues with comments and viewpoints taken from its 3D view,
+uploads datasets, files and workspace bundles through the Documents API,
+queries the IFC graph with Cypher over Bolt when the operator exposes it, and
+sends `X-Request-ID` on every request so that the request log here and the
+log in the app show the same conversation. Apart from the graph queries and
+the administration API, which are extensions outside the specifications,
+everything Dataspatium does against the server goes through the three OpenCDE
+APIs, so any other OpenCDE client works too, and Kontroll serves any OpenCDE
+client. The client side is described in Dataspatium's README and its
+documentation (`docs/kallor.md`, `docs/cad-bim.md`); the acceptance runs of
+the pair are in [docs/acceptance.md](docs/acceptance.md) here.
 
 ## Development
 
