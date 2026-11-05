@@ -17,7 +17,7 @@ eller leje en server.
    TUNNEL_TOKEN=<token>
    ```
 
-   Produktionstilstanden kræver https-adressen, en databaseadgangskode og en
+   Produktionstilstanden kræver https-adressen, et databasekodeord og en
    hemmelig nøgle; `opencde init --public-url https://cde.example.org` skriver
    dem.
 3. Start:
@@ -54,5 +54,5 @@ og CORS tillader alle oprindelser som standard.
 ## Bagefter
 
 En tunnelført udviklingsstak er en produktionslignende server med
-demoadgangskoder. Stop den (`docker compose ... down`), eller rotér de seedede
-adgangskoder, når testen er slut.
+demokodeord. Stop den (`docker compose ... down`), eller rotér de seedede
+kodeord, når testen er slut.

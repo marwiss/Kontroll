@@ -62,7 +62,7 @@ mot `localhost:7697`.
 ## Testing med Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium) er nettlesarklienten
-som vert utvikla saman med denne serveren. Server ei utsjekking av han over
+som blir utvikla saman med denne serveren. Server ei utsjekking av han over
 http (`python -m http.server 8080` i mappa hans), opne
 `http://127.0.0.1:8080/`, registrer appen som ein offentleg klient, og legg til
 serveren som OpenCDE-kjelde i Dataspatium (*Inhämta*) med

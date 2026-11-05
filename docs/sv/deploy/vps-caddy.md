@@ -61,7 +61,7 @@ användare och OAuth2-klienter som dina program behöver.
   självbetjänad klientregistrering (Foundation API 2.2.3); registrera klienter
   i `/admin`.
 - Rotera den hemliga nyckeln och databaslösenordet enligt din policy
-  (`docs/security/controls.md`), starta om och logga in igen.
+  (`docs/sv/security/controls.md`), starta om och logga in igen.
 - Kör `testssl.sh https://cde.example.org` och kontrollera
   <https://observatory.mozilla.org> efter första starten.
 - Brandvägg: tillåt bara 22 (från dina adresser), 80 och 443.

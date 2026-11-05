@@ -9,7 +9,7 @@
 | `storage.tar.gz` | lagringsmappa: dokument, snapshots, bitmaps, snippets |
 | `manifest.json` | format, tid, serverversjon, dialekt, tal, SHA-256 for kvar fil |
 
-Nodar vert identifiserte med dei unike nøklane i skjemaet (`id`, `guid`,
+Nodar blir identifiserte med dei unike nøklane i skjemaet (`id`, `guid`,
 `project_id`, …), aldri med databaseinterne id-ar, så ein tryggingskopi
 teken frå Neo4j kan gjenopprettast i Memgraph og omvendt (ADR 0006). Databasen
 køyrer vidare under tryggingskopieringa; ein kopi teken medan opplastingar
@@ -25,7 +25,7 @@ opencde restore MAPPE/opencde-backup-20261105T031700Z --force   # erstatt det no
 
 `restore` verifiserer kontrollsummane, avviser ein ikkje-tom database utan
 `--force`, gjenskaper nodar og relasjonar i buntar og pakkar ut filene i
-lagringsmappa. Sesjonar og tokens vert gjenoppretta òg; køyr
+lagringsmappa. Sesjonar og tokens blir gjenoppretta òg; køyr
 `opencde revoke --all` etterpå om kopien er gammal eller kjem frå ein annan
 server.
 
@@ -42,7 +42,7 @@ docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
   tar czf /out/kontroll-backups.tgz -C /backups .
 ```
 
-For å gjenopprette på ein ny vert: start stakken, kopier ei
+For å gjenopprette på ein ny blir: start stakken, kopier ei
 tryggingskopimappe inn i containeren `api` (eller monter henne) og køyr
 `docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /sti --force`.
 

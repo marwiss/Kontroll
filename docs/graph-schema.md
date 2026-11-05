@@ -1,8 +1,8 @@
 # Graph schema
 
 The database is schemaless; `opencde/graph/schema.py` is the schema. This page
-explains the conventions and the labels. Later stages add the BCF and
-Documents labels as they are implemented.
+explains the conventions and the labels, section by section in the order the
+stages of the plan added them.
 
 ## Conventions
 

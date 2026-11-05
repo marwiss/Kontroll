@@ -154,9 +154,10 @@ and our own areas for the rest (`nav.*`, `account.*`, `docs.*`, `admin.*`,
   `test_every_language_has_every_key_of_the_english_source` keeps the seven
   catalogues identical in their key sets and parameters, so add every new key
   to all of them in the same commit.
-- Not yet translated: the messages that the account, project and client
-  code raise on invalid input (`AccountError`, `ClientError`), which the CLI
-  shares; they stay English until they are keyed.
+- The messages that the account, project and client code raise on invalid
+  input (`UserFacingError` with a key and parameters, shared with the CLI)
+  are translated at the page boundary with `tr_error(request, exc)`; the CLI
+  and the API keep the English text.
 
 ## JavaScript rules
 

@@ -161,7 +161,7 @@ dynaaminen rekisteröinti on päällä, luettelee projektin mallit ja asiakirjat
 lukee ja kirjoittaa BCF-asioita kommentteineen ja 3D-näkymästään otettuine
 viewpoint-näkymineen, lähettää datamäärät, tiedostot ja työtilapaketit
 Documents API:n kautta, kyselee IFC-graafia Cypherillä Boltin yli, kun
-operaattori julkaisee sen, ja lähettää jokaisessa kutsussa
+ylläpitäjä julkaisee sen, ja lähettää jokaisessa kutsussa
 `X-Request-ID`-otsakkeen, jotta pyyntöloki täällä ja sovelluksen loki
 näyttävät saman keskustelun. Sovellus lukee palvelimen kyvykkyysasiakirjan
 nähdäkseen, mitkä laajennukset ovat päällä, ja toimii palvelimen
@@ -181,15 +181,15 @@ sovittavat yhteen, on tiedostossa
 
 ## Lue lisää
 
-- [docs/quickstart.md](quickstart.md): Kontroll ja Dataspatium yhdessä
+- [docs/fi/quickstart.md](quickstart.md): Kontroll ja Dataspatium yhdessä
   kahdessakymmenessä minuutissa, tyhjästä koneesta 3D-näkymässä luotuun asiaan.
-- [docs/client-guide.md](../client-guide.md) ja [docs/examples/](../examples/):
+- [docs/fi/client-guide.md](client-guide.md) ja [docs/examples/](../examples/):
   miten asiakasohjelma rakennetaan, kyvykkyysasiakirja, virhekoodit ja
   ajettavia esimerkkejä Python-kirjastolla kansiossa [client/](../../client/).
-- [docs/flows/](../flows/): OAuth2- ja Documents API -kulkujen sekvenssikaaviot.
-- [docs/graph-schema.md](../graph-schema.md): graafimalli.
-- [docs/ifcgraph.md](../ifcgraph.md): valinnainen IFC-graafimoduuli ja esimerkkejä Cypher-kyselyistä.
-- [docs/ui-styleguide.md](../ui-styleguide.md): palvelimen sivujen ja tunnuksen säännöt.
+- [docs/fi/flows/](flows/): OAuth2- ja Documents API -kulkujen sekvenssikaaviot.
+- [docs/fi/graph-schema.md](graph-schema.md): graafimalli.
+- [docs/fi/ifcgraph.md](ifcgraph.md): valinnainen IFC-graafimoduuli ja esimerkkejä Cypher-kyselyistä.
+- [docs/fi/ui-styleguide.md](ui-styleguide.md): palvelimen sivujen ja tunnuksen säännöt.
 - [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
   tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
@@ -199,15 +199,18 @@ sovittavat yhteen, on tiedostossa
   spesifikaatioiden erikoisuuksista.
 - [docs/adr/](../adr/): arkkitehtuuripäätökset (graafitietokanta, läpinäkymättömät
   tokenit, siirrettävä Cypher, kehyksetön selainkäyttöliittymä, repostrategia).
-- [docs/security/](../security/): uhkamalli, testeihin kytketyt kontrollit,
-  OWASP ASVS tason 2 tarkistuslista ja skannerien ajaminen.
+- [docs/fi/security/](security/): uhkamalli, testeihin kytketyt kontrollit,
+  OWASP ASVS tason 2 tarkistuslista, henkilötiedot ja säilytysajat sekä
+  skannerien ajaminen.
 - [docs/upstream/](../upstream/): luonnokset IfcOpenShellin issueksi ja pull
   requestiksi (ei lähetetty).
 - [spec/SOURCES.md](../../spec/SOURCES.md): tarkat spesifikaatioversiot,
   joita vastaan palvelin testataan.
 
-Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
-(bokmål ja nynorsk), suomeksi ja islanniksi ovat suunnitelmissa.
+Dokumentaatio on tämän README-tiedoston seitsemällä kielellä: englanti
+hakemistossa `docs/`, muut hakemistoissa `docs/<kieli>/`. Projektilokit
+(hyväksyntä, toimintoluettelo, yhteensovitus), arkkitehtuuripäätökset,
+IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
 
 ## Rajoitukset lyhyesti
 
@@ -219,7 +222,8 @@ Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
 - Neo4j:n ja Memgraphin community-versioissa ei ole vain lukuun oikeutettuja
   tietokantakäyttäjiä, joten julkaistu Bolt-portti antaa täydet oikeudet
   salasanan haltijalle. Portti pysyy kiinni, ellei järjestelmänvalvoja julkaise
-  sitä tarkoituksella; sen sijaan on suunnitteilla vain lukeva kyselyrajapinta.
+  sitä tarkoituksella; hallintarajapinnan lukeva graafikysely
+  (`OPENCDE_GRAPH_QUERY_ENABLED`) antaa Cypherin ilman porttia.
 - IFC-graafin tuonti ajetaan erillisessä prosessissa muisti- ja aikarajoin
   (`OPENCDE_IFCGRAPH_*`); hyvin suuret mallit hylätään sen sijaan, että ne
   jäisivät puoliksi tuoduiksi.
@@ -227,10 +231,10 @@ Dokumentaatio on englanniksi; käännökset ruotsiksi, tanskaksi, norjaksi
   -kulkuja; loppukäyttäjät työskentelevät asiakasohjelmassa, kuten
   Dataspatiumissa tai Bonsaissa.
 - Sivut ovat tämän README-tiedoston seitsemällä kielellä (vaihda jokaisen sivun
-  alareunasta); palvelimen validointikoodin viestit ovat toistaiseksi englanniksi.
+  alareunasta); komentorivi ja rajapintojen virheviestit ovat englanniksi.
 - Ulkoista auditointia ei ole vielä tehty. Tiedostossa
-  [docs/security/pentest-howto.md](../security/pentest-howto.md) kuvatut
-  OAuch- ja testssl-ajot ovat operaattorin askeleet ennen tuotantokäyttöönottoa.
+  [docs/fi/security/pentest-howto.md](security/pentest-howto.md) kuvatut
+  OAuch- ja testssl-ajot ovat ylläpitäjän askeleet ennen tuotantokäyttöönottoa.
 
 ## Virheet ja ehdotukset
 
@@ -258,8 +262,8 @@ Koodi ja kommentit ovat englanniksi, koska palvelin ja asiakaskirjasto on
 tarkoitus luovuttaa IfcOpenShelliin, jonka käytäntöjä (ruff, 120 saraketta)
 tyyli noudattaa. README on englanniksi, ruotsiksi, tanskaksi, norjaksi
 (bokmål ja nynorsk), suomeksi ja islanniksi (`docs/<kieli>/README.md`, sama
-rakenne kuin Dataspatiumissa); dokumentaation ja selainkäyttöliittymän on
-tarkoitus olla saatavilla samoilla kielillä, englanti aina yhtenä
+rakenne kuin Dataspatiumissa); dokumentaatio ja selainkäyttöliittymä ovat
+saatavilla samoilla kielillä, englanti aina yhtenä
 vaihtoehtona, ja yhteiset termit noudattavat Dataspatiumin sanastoa. Jokainen
 push ajaa lintauksen, tyyppitarkistuksen, testisarjat kolmella
 Python-versiolla, selaintestit axe-corella ja staattiset tietoturvatarkistukset;

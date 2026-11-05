@@ -6,7 +6,7 @@ Memgraph Cloud-instans.
 
 ## Database
 
-- **Neo4j AuraDB Free** passar for demonstrasjonar: om lag 200 000 nodar, vert
+- **Neo4j AuraDB Free** passar for demonstrasjonar: om lag 200 000 nodar, blir
   sett på pause etter 72 timar utan aktivitet og sletta etter 30 dagars pause.
   AuraDB Professional for alt som må haldast oppe.
 - Opprett instansen og noter URI-en `neo4j+s://xxxx.databases.neo4j.io`,

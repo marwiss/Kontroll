@@ -14,7 +14,7 @@ uv run opencde init --public-url https://cde.example.org
 ```
 
 `init` skriver `.env` med `OPENCDE_ENVIRONMENT=production`, en hemmelig nøgle,
-en databaseadgangskode og `OPENCDE_DOMAIN`. Tilføj
+et databasekodeord og `OPENCDE_DOMAIN`. Tilføj
 `OPENCDE_ACME_EMAIL=dig@example.org`, så Let's Encrypt kan kontakte dig om
 certifikaterne. Hold `.env` privat (den er git-ignoreret); det er den eneste
 fil med hemmeligheder.
@@ -32,7 +32,7 @@ docker compose -f compose.yaml -f compose.prod.yaml exec api opencde doctor
 docker compose -f compose.yaml -f compose.prod.yaml exec api opencde user create admin --admin
 ```
 
-Den sidste kommando udskriver administratorens adgangskode én gang. Log ind på
+Den sidste kommando udskriver administratorens kodeord én gang. Log ind på
 `https://cde.example.org/signin`, åbn `/admin`, og opret de projekter, brugere
 og OAuth2-klienter, dine programmer har brug for.
 
@@ -52,7 +52,7 @@ og OAuth2-klienter, dine programmer har brug for.
 - Databasen udgives ikke; kun Caddy lytter på værten. At udgive Bolt-porten
   til grafklienter er et bevidst skridt med sin egen overlejring og TLS, se
   [bolt.md](bolt.md); en åben port giver fuld databaseadgang til den, der har
-  adgangskoden.
+  kodeordet.
 - API-containeren er skrivebeskyttet, kører uden root og uden capabilities;
   lageret er en navngivet volume.
 - `OPENCDE_TRUSTED_PROXIES` dækker compose-netværket, så klientadressen i
@@ -60,8 +60,8 @@ og OAuth2-klienter, dine programmer har brug for.
 - Behold `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false`, medmindre du har brug for
   selvbetjent klientregistrering (Foundation API 2.2.3); registrér klienter i
   `/admin`.
-- Rotér den hemmelige nøgle og databaseadgangskoden efter din politik
-  (`docs/security/controls.md`), genstart, og log ind igen.
+- Rotér den hemmelige nøgle og databasekodeordet efter din politik
+  (`docs/da/security/controls.md`), genstart, og log ind igen.
 - Kør `testssl.sh https://cde.example.org`, og tjek
   <https://observatory.mozilla.org> efter den første start.
 - Firewall: tillad kun 22 (fra dine adresser), 80 og 443.

@@ -15,7 +15,7 @@ uv run opencde init --public-url https://cde.example.org
 
 `init` kirjoittaa `.env`-tiedoston, jossa on `OPENCDE_ENVIRONMENT=production`,
 salainen avain, tietokannan salasana ja `OPENCDE_DOMAIN`. Lisää
-`OPENCDE_ACME_EMAIL=sinä@example.org`, jotta Let's Encrypt voi tavoittaa
+`OPENCDE_ACME_EMAIL=you@example.org`, jotta Let's Encrypt voi tavoittaa
 sinut varmenteista. Pidä `.env` yksityisenä (git ohittaa sen); se on ainoa
 tiedosto, jossa on salaisuuksia.
 
@@ -61,7 +61,7 @@ käyttäjät ja OAuth2-asiakkaat, joita sovelluksesi tarvitsevat.
   itsepalveluna tapahtuvaa asiakasrekisteröintiä (Foundation API 2.2.3);
   rekisteröi asiakkaat `/admin`-sivulla.
 - Kierrätä salainen avain ja tietokannan salasana käytäntösi mukaan
-  (`docs/security/controls.md`), käynnistä uudelleen ja kirjaudu taas.
+  (`docs/fi/security/controls.md`), käynnistä uudelleen ja kirjaudu taas.
 - Aja `testssl.sh https://cde.example.org` ja tarkista
   <https://observatory.mozilla.org> ensimmäisen käynnistyksen jälkeen.
 - Palomuuri: salli vain 22 (omista osoitteistasi), 80 ja 443.

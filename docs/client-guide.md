@@ -189,7 +189,7 @@ act on or translate, while `message` stays an English sentence for people:
 | `invalid_token` | 401 | The token is unknown, expired or revoked (`WWW-Authenticate: Bearer error="invalid_token"`) | Refresh, then sign in again |
 | `insufficient_scope` | 403 | The token lacks the scope the route needs, such as `admin` | Authorize again with that scope |
 | `forbidden` | 403 | The user's role in the project does not allow the action (Foundation API 1.5), or the user is not an administrator on the administration API | Show the message |
-| `reauthentication_required` | 403 | A dangerous administration action and the sign-in is older than ten minutes (planned with the administration API) | Authorize again, then repeat the call |
+| `reauthentication_required` | 403 | A dangerous administration action and the sign-in is older than ten minutes | Authorize again, then repeat the call |
 | `not_found` | 404 | No such resource, a resource outside the user's projects, or a feature that is off (registration, request log, administration API) | Show the message, refresh lists |
 | `conflict` | 409 | A guid that already exists, or a duplicate link | Fetch again |
 | `payload_too_large` | 413 | The request body is over the server's limit, or a BCF binary is over `max_image_bytes`/`max_upload_bytes` | Fix the request |

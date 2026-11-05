@@ -186,11 +186,17 @@ coordinate is in
 - [docs/adr/](../adr/): architecture decision records (graph backend,
   opaque tokens, portable Cypher, vanilla web UI, repository strategy).
 - [docs/security/](../security/): threat model, controls mapped to tests,
-  the OWASP ASVS Level 2 checklist and how to run the scanners.
+  the OWASP ASVS Level 2 checklist, personal data and retention, and how to
+  run the scanners.
 - [docs/upstream/](../upstream/): drafts of the issue and pull request for
   IfcOpenShell (not sent).
 - [spec/SOURCES.md](../../spec/SOURCES.md): the exact specification revisions the
   server is tested against.
+
+The documentation exists in the seven languages of this README: English under
+`docs/`, the others under `docs/<language>/`. The project logs (acceptance,
+inventory, coordination), the architecture decisions, the upstream drafts and
+CONTRIBUTING are kept in English.
 
 ## Limitations in brief
 
@@ -201,14 +207,15 @@ coordinate is in
 - The community editions of Neo4j and Memgraph have no read-only database
   users, so an exposed Bolt port gives full access to whoever holds the
   password. The port stays closed unless the administrator publishes it on
-  purpose; a read-only query endpoint is planned instead.
+  purpose; the administration API's read-only graph query
+  (`OPENCDE_GRAPH_QUERY_ENABLED`) gives Cypher without the port.
 - The IFC-graph import runs in a separate process with memory and time limits
   (`OPENCDE_IFCGRAPH_*`); very large models are refused rather than left half
   imported.
 - The web pages serve administrators and the OAuth2 and Documents API flows;
   end users work in a client such as Dataspatium or Bonsai.
 - The pages exist in the seven languages of this README (switch at the foot of
-  every page); messages from the server's validation code are English for now.
+  every page); the command line and the APIs' error messages are in English.
 - No external audit yet. The OAuch and testssl runs described in
   [docs/security/pentest-howto.md](../security/pentest-howto.md) are the
   operator's steps before a production deployment.
@@ -237,7 +244,7 @@ Code and comments are in English because the server and the client library
 are intended to be contributed to IfcOpenShell, whose conventions (ruff, 120
 columns) the style follows. The README exists in English, Swedish, Danish,
 Norwegian (Bokmål and Nynorsk), Finnish and Icelandic (`docs/<lang>/README.md`,
-the layout Dataspatium uses); the documentation and the web UI are to be
+the layout Dataspatium uses); the documentation and the web UI are
 available in the same languages, with English always one of the choices, and
 shared terms follow Dataspatium's glossary. Every push runs linting, type
 checks, the test suites on three Python versions, browser tests with axe-core,

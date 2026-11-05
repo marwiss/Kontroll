@@ -7,7 +7,7 @@ Dataspatiums grafvy gör mot utvecklingsstacken. Den här sidan beskriver hur en
 administratör publicerar porten med avsikt, vad det kostar och hur porten
 stängs igen. Alternativet som håller databasen privat är serverns
 skrivskyddade graffråga för administratörer, `POST /admin/api/graph/query`
-bakom `OPENCDE_GRAPH_QUERY_ENABLED` ([client-guide.md §7](../../client-guide.md));
+bakom `OPENCDE_GRAPH_QUERY_ENABLED` ([client-guide.md §7](../client-guide.md));
 publicera porten bara när en klient behöver Bolt i sig.
 
 ## Vad en öppen port innebär
@@ -81,7 +81,7 @@ Ta bort `compose.bolt.yaml` från kommandoraden, töm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env` och kör `up -d` igen. Porten
 försvinner från värden och `bolt` blir `null` igen i kapabilitetsdokumentet.
 Rotera databaslösenordet efteråt om det delades bredare än avsett
-(`docs/security/controls.md`).
+(`docs/sv/security/controls.md`).
 
 ## Memgraph
 

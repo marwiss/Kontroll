@@ -108,7 +108,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
 ## Hvað þú getur gert
 
 - **Foundation API 1.0**: uppgötvun þjónustu, OAuth2 authorization code með
-  PKCE fyrir hvern biðlara, núverandi notandi, afturköllun tákna og kvik
+  PKCE fyrir hvern biðlara, núverandi notandi, afturköllun tóka og kvik
   biðlaraskráning með opinberum biðlurum (óvirk sjálfgefið).
 - **BCF API 3.0**: verkefni, extensions, mál með OData-fyrirspurnum,
   athugasemdir, viewpoint með skjámyndum, bitamyndum og einingum, skrár,
@@ -168,15 +168,15 @@ og það sem verkefnin tvö samræma er í
 
 ## Lærðu meira
 
-- [docs/quickstart.md](quickstart.md): Kontroll og Dataspatium saman á tuttugu
+- [docs/is/quickstart.md](quickstart.md): Kontroll og Dataspatium saman á tuttugu
   mínútum, frá tómri tölvu að máli sem er búið til í þrívíddarsýninni.
-- [docs/client-guide.md](../client-guide.md) og [docs/examples/](../examples/):
+- [docs/is/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   hvernig biðlari er smíðaður, getuskjalið, villukóðarnir og keyranleg dæmi
   með Python-safninu í [client/](../../client/).
-- [docs/flows/](../flows/): raðrit fyrir OAuth2- og Documents API-ferlin.
-- [docs/graph-schema.md](../graph-schema.md): graflíkanið.
-- [docs/ifcgraph.md](../ifcgraph.md): valkvæða IFC-grafeiningin og dæmi um Cypher-fyrirspurnir.
-- [docs/ui-styleguide.md](../ui-styleguide.md): reglur um síður þjónsins og merkið.
+- [docs/is/flows/](flows/): raðrit fyrir OAuth2- og Documents API-ferlin.
+- [docs/is/graph-schema.md](graph-schema.md): graflíkanið.
+- [docs/is/ifcgraph.md](ifcgraph.md): valkvæða IFC-grafeiningin og dæmi um Cypher-fyrirspurnir.
+- [docs/is/ui-styleguide.md](ui-styleguide.md): reglur um síður þjónsins og merkið.
 - [docs/acceptance.md](../acceptance.md): gátlisti fyrir sjónræna samþykkt
   með óháðum biðlurum (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvað
@@ -184,17 +184,20 @@ og það sem verkefnin tvö samræma er í
   ákvarðanir eigandans.
 - [docs/inventory.md](../inventory.md): yfirlit yfir virkni frumgerðarinnar
   frá 2023 og staða í endurskrifinu, með athugasemdum um sérkenni forskriftanna.
-- [docs/adr/](../adr/): arkitektúrákvarðanir (grafgagnagrunnur, ógegnsæ tákn,
+- [docs/adr/](../adr/): arkitektúrákvarðanir (grafgagnagrunnur, ógegnsæir tókar,
   flytjanlegt Cypher, vefviðmót án umgjarða, safnstefna).
-- [docs/security/](../security/): ógnarlíkan, varnir tengdar prófunum,
-  OWASP ASVS stigs 2-gátlistinn og hvernig skannarnir eru keyrðir.
+- [docs/is/security/](security/): ógnarlíkan, varnir tengdar prófunum,
+  OWASP ASVS stigs 2-gátlistinn, persónuupplýsingar og varðveisla, og hvernig
+  skannarnir eru keyrðir.
 - [docs/upstream/](../upstream/): uppköst að máli og pull request fyrir
   IfcOpenShell (ekki send).
 - [spec/SOURCES.md](../../spec/SOURCES.md): nákvæmar útgáfur forskriftanna
   sem þjónninn er prófaður gegn.
 
-Skjölunin er á ensku; þýðingar á sænsku, dönsku, norsku (bokmál og nynorsk),
-finnsku og íslensku eru áætlaðar.
+Skjölunin er til á sjö tungumálum þessarar README-skrár: enska undir `docs/`,
+hin undir `docs/<tungumál>/`. Verkefnaskrárnar (samþykkt, yfirlit, samræming),
+arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru höfð
+á ensku.
 
 ## Takmarkanir í stuttu máli
 
@@ -205,16 +208,17 @@ finnsku og íslensku eru áætlaðar.
 - Community-útgáfur Neo4j og Memgraph hafa enga gagnagrunnsnotendur með
   lesaðgang eingöngu, svo að opin Bolt-gátt veitir þeim sem hefur lykilorðið
   fullan aðgang. Gáttin er lokuð nema stjórnandinn opni hana viljandi; lesandi
-  fyrirspurnarendapunktur er áætlaður í staðinn.
+  graffyrirspurn stjórnunarforritaskilanna (`OPENCDE_GRAPH_QUERY_ENABLED`) gefur
+  Cypher án gáttarinnar.
 - IFC-grafinnflutningurinn keyrir í sérstöku ferli með minnis- og tímamörkum
   (`OPENCDE_IFCGRAPH_*`); mjög stórum líkönum er hafnað frekar en að skilja
   þau eftir hálfinnflutt.
 - Vefsíðurnar þjóna stjórnendum og OAuth2- og Documents API-ferlunum;
   endanotendur vinna í biðlara eins og Dataspatium eða Bonsai.
 - Síðurnar eru til á sjö tungumálum þessarar README-skrár (skiptu neðst á hverri
-  síðu); skilaboð úr sannprófunarkóða þjónsins eru á ensku enn sem komið er.
+  síðu); skipanalínan og villuboð forritaskilanna eru á ensku.
 - Engin ytri úttekt enn. OAuch- og testssl-keyrslurnar í
-  [docs/security/pentest-howto.md](../security/pentest-howto.md) eru skref
+  [docs/is/security/pentest-howto.md](security/pentest-howto.md) eru skref
   rekstraraðilans fyrir uppsetningu í rekstur.
 
 ## Villur og tillögur
@@ -242,7 +246,7 @@ Kóði og athugasemdir eru á ensku því að þjónninn og biðlarasafnið eiga
 verða framlag til IfcOpenShell, en stíllinn fylgir venjum þess (ruff, 120
 dálkar). README er til á ensku, sænsku, dönsku, norsku (bokmál og nynorsk),
 finnsku og íslensku (`docs/<tungumál>/README.md`, sama skipan sem Dataspatium
-notar); skjölunin og vefviðmótið eiga að vera til á sömu tungumálum, með ensku
+notar); skjölunin og vefviðmótið eru til á sömu tungumálum, með ensku
 alltaf sem einn kostinn, og sameiginleg hugtök fylgja orðalista Dataspatium.
 Hvert push keyrir lint, tegundarathugun, prófunarsvíturnar á þremur
 Python-útgáfum, vafraprófanir með axe-core og stöðugar öryggisathuganir;

@@ -169,15 +169,15 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 
 ## Lär dig mer
 
-- [docs/quickstart.md](docs/sv/quickstart.md): Kontroll och Dataspatium tillsammans på
+- [docs/sv/quickstart.md](docs/sv/quickstart.md): Kontroll och Dataspatium tillsammans på
   tjugo minuter, från tom dator till ett ärende skapat i 3D-vyn.
-- [docs/client-guide.md](docs/client-guide.md) och [docs/examples/](docs/examples/):
+- [docs/sv/client-guide.md](docs/sv/client-guide.md) och [docs/examples/](docs/examples/):
   hur man bygger en klient, kapabilitetsdokumentet, felkoderna och körbara
   exempel med Python-biblioteket i [client/](client/).
-- [docs/flows/](docs/flows/): sekvensdiagram för OAuth2- och Documents API-flödena.
-- [docs/graph-schema.md](docs/graph-schema.md): grafmodellen.
-- [docs/ifcgraph.md](docs/ifcgraph.md): den valfria IFC-grafmodulen och exempel på Cypher-frågor.
-- [docs/ui-styleguide.md](docs/ui-styleguide.md): regler för serverns sidor och märket.
+- [docs/sv/flows/](docs/sv/flows/): sekvensdiagram för OAuth2- och Documents API-flödena.
+- [docs/sv/graph-schema.md](docs/sv/graph-schema.md): grafmodellen.
+- [docs/sv/ifcgraph.md](docs/sv/ifcgraph.md): den valfria IFC-grafmodulen och exempel på Cypher-frågor.
+- [docs/sv/ui-styleguide.md](docs/sv/ui-styleguide.md): regler för serverns sidor och märket.
 - [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans med
   oberoende klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): vad
@@ -187,15 +187,18 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
   egenheter.
 - [docs/adr/](docs/adr/): arkitekturbeslut (grafdatabas, opaka tokens, portabel
   Cypher, webbgränssnitt utan ramverk, repostrategi).
-- [docs/security/](docs/security/): hotmodell, kontroller kopplade till tester,
-  OWASP ASVS nivå 2-checklistan och hur skannrarna körs.
+- [docs/sv/security/](docs/sv/security/): hotmodell, kontroller kopplade till tester,
+  OWASP ASVS nivå 2-checklistan, personuppgifter och lagringstid, och hur
+  skannrarna körs.
 - [docs/upstream/](docs/upstream/): utkast till ärende och pull request för
   IfcOpenShell (inte skickade).
 - [spec/SOURCES.md](spec/SOURCES.md): de exakta specifikationsversioner
   som servern testas mot.
 
-Dokumentationen är på engelska; översättningar till svenska, danska, norska
-(bokmål och nynorsk), finska och isländska är planerade.
+Dokumentationen finns på den här README-filens sju språk: engelska under
+`docs/`, de andra under `docs/<språk>/`. Projektloggarna (acceptans, inventering,
+samordning), arkitekturbesluten, utkasten till IfcOpenShell och CONTRIBUTING
+hålls på engelska.
 
 ## Begränsningar i korthet
 
@@ -206,16 +209,17 @@ Dokumentationen är på engelska; översättningar till svenska, danska, norska
 - Gemenskapsutgåvorna av Neo4j och Memgraph saknar läsbegränsade
   databasanvändare, så en exponerad Bolt-port ger full åtkomst åt den som
   har lösenordet. Porten förblir stängd om inte administratören avsiktligt
-  publicerar den; en läsande fråge-ändpunkt är planerad i stället.
+  publicerar den; administrations-API:ts läsande graffråga
+  (`OPENCDE_GRAPH_QUERY_ENABLED`) ger Cypher utan porten.
 - IFC-grafimporten körs i en separat process med minnes- och tidsgränser
   (`OPENCDE_IFCGRAPH_*`); mycket stora modeller avvisas i stället för att
   lämnas halvimporterade.
 - Webbsidorna är till för administratörer och för OAuth2- och Documents
   API-flödena; slutanvändare arbetar i en klient som Dataspatium eller Bonsai.
 - Sidorna finns på den här README-filens sju språk (byt längst ned på varje
-  sida); meddelanden från serverns valideringskod är på engelska tills vidare.
+  sida); kommandoraden och API:ernas felmeddelanden är på engelska.
 - Ingen extern granskning ännu. OAuch- och testssl-körningarna i
-  [docs/security/pentest-howto.md](docs/security/pentest-howto.md) är
+  [docs/sv/security/pentest-howto.md](docs/sv/security/pentest-howto.md) är
   operatörens steg före en produktionsdriftsättning.
 
 ## Fel och förslag
@@ -243,7 +247,7 @@ Kod och kommentarer är på engelska eftersom servern och klientbiblioteket
 ska bidras till IfcOpenShell, vars konventioner (ruff, 120 kolumner) följs.
 README finns på engelska, svenska, danska, norska (bokmål och nynorsk),
 finska och isländska (`docs/<språk>/README.md`, samma upplägg som
-Dataspatium); dokumentationen och webbgränssnittet ska finnas på samma språk,
+Dataspatium); dokumentationen och webbgränssnittet finns på samma språk,
 med engelska alltid som ett val, och gemensamma termer följer Dataspatiums
 ordlista. Varje push kör lint, typkontroll, testsviterna på tre
 Python-versioner, webbläsartester med axe-core och statiska

@@ -1,6 +1,6 @@
 # Ei offentleg https-adresse for klienttestar (tunnel)
 
-BCF- og Documents-klientar insisterer som regel på https og ein vert som kan
+BCF- og Documents-klientar insisterer som regel på https og ein blir som kan
 nåast. Ein tunnel gjev den lokale stakken din ei offentleg adresse utan å opne
 portar eller leige ein server.
 
@@ -38,7 +38,7 @@ Med Tailscale på maskina publiserer `tailscale serve --bg 8000` etterfølgt av
 `https://<maskin>.<tailnet>.ts.net`. Set `OPENCDE_PUBLIC_URL` til den adressa
 og `OPENCDE_ENVIRONMENT=production` (eller hald på `development` og godta at
 serveren trur han er på http: lenkjene verkar likevel fordi den offentlege
-adressa vert brukt til dei).
+adressa blir brukt til dei).
 
 ## ngrok (raskt, skiftande vertsnamn)
 
@@ -47,7 +47,7 @@ og start API-et på nytt. Greitt for ein eingongstest, ikkje for noko som lagrar
 adressa.
 
 Ein nettlesarklient som [Dataspatium](https://github.com/marwiss/Dataspatium)
-kan bruke tunneladressa som serveradresse medan appen sjølv vert servert frå
+kan bruke tunneladressa som serveradresse medan appen sjølv blir servert frå
 `http://127.0.0.1:<port>`; redirect-URI-en til appen held fram å vere ei
 loopback-adresse, og CORS tillèt alle opphav som standard.
 
