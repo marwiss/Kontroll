@@ -144,6 +144,15 @@ overlay, seed it, and run the live suite headless, so a server change that
 breaks the app (or the reverse) shows up before a release. Kontroll's side:
 a `compose` profile and a seed option with a fixed demo password for CI, both
 already present in the nightly ZAP job, and the image tag to pin.
+**Kontroll's side done 2026-11-05:** `.github/workflows/dataspatium-nightly.yml`
+checks out the paired Dataspatium release (`DATASPATIUM_REF`, the same
+number as this server), starts the development stack with demo data, the IFC
+graph, dynamic registration and the request log, registers a public client
+for `http://127.0.0.1:8080/oauth-callback.html`, serves Dataspatium with
+`python3 -m http.server`, starts `tools/cde-helper.py` as the user (`officer`)
+and as the administrator, and runs `tools/run-tests.sh` headless in Chromium
+with the `DATASPATIUM_CDE_*` parameters, nightly and on demand. Dataspatium's
+own job with the pinned server image is their side.
 
 ### 8. A joint quick start (K + D, small)
 
@@ -264,9 +273,10 @@ the Dataspatium side:
    sides; the seed gets known BCF guids. Server side done 2026-11-05: the
    seed stores the model as a document and creates a topic, viewpoint and
    comment with fixed ids (client-guide §7, inventory §9).
-5. The pair's CI (item 7): Dataspatium's live suite from its release zip,
-   headless, in Kontroll's nightly job; the same job in Dataspatium with a
-   pinned server image.
+5. The pair's CI (item 7): Dataspatium's live suite from its release,
+   headless, in Kontroll's nightly job (done 2026-11-05,
+   `dataspatium-nightly.yml`, against Dataspatium v2.1.0); the same job in
+   Dataspatium with a pinned server image.
 6. Deep links both ways: `OPENCDE_DATASPATIUM_URL` gives the server's project
    and document pages an "Open in Dataspatium" link (also for workspace
    packages, `.dataspatium.zip`), and the app links to the server's detail and

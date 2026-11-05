@@ -137,6 +137,14 @@ finding belongs under *Client deviations*, not in the server.
 
 ## 4. Checklist C: Dataspatium (browser, own repository)
 
+Dataspatium's automated live suite covers this checklist and more. It runs
+every night in the workflow `dataspatium-nightly.yml`: the development stack
+with demo data, the paired Dataspatium release served over http, its helpers
+playing the user and the administrator at the server's pages, and Chromium
+running `tests/index.html?only=opencde live` with the `DATASPATIUM_CDE_*`
+parameters (the IFC graph over Bolt and the request log included). A failure
+there is a server regression or a client finding to record in §5.
+
 [Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
 developed together with this server (see "Kontroll and Dataspatium" in the
 README): its OpenCDE source family signs in with PKCE as a public client,
