@@ -124,3 +124,50 @@ def test_uploaded_model_becomes_graph_and_components_link(
         assert [(r["guid"], r["gtin"]) for r in gtins] == [(WALLS[2], "1"), (WALLS[1], "2"), (WALLS[0], "3")]
         walls, _, _ = driver.execute_query("MATCH (w:IfcEntity:IfcWall) RETURN count(w) AS n", database_=database)
         assert walls[0]["n"] == 3
+
+
+def test_components_created_before_the_model_are_linked_when_it_finishes(
+    ifc_client: tuple[TestClient, World], graph_target: GraphTarget
+) -> None:
+    """A viewpoint may exist before the model is uploaded or while it is still importing (a client test suite does
+    exactly that); the links are made when the model reaches `done`. The model arrives as a BCF document here."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    topic = client.post(
+        f"/bcf/3.0/projects/{world.project_id}/topics", json={"title": "Before the model"}, headers=editor.headers
+    ).json()
+    viewpoint = client.post(
+        f"/bcf/3.0/projects/{world.project_id}/topics/{topic['guid']}/viewpoints",
+        json={
+            "orthogonal_camera": {
+                "camera_view_point": {"x": 0, "y": 0, "z": 10},
+                "camera_direction": {"x": 0, "y": 0, "z": -1},
+                "camera_up_vector": {"x": 0, "y": 1, "z": 0},
+                "view_to_world_scale": 1,
+                "aspect_ratio": 1,
+            },
+            "components": {
+                "selection": [{"ifc_guid": WALLS[0]}, {"ifc_guid": WALLS[2]}],
+                "visibility": {"default_visibility": True},
+            },
+        },
+        headers=editor.headers,
+    )
+    assert viewpoint.status_code == 201, viewpoint.text
+
+    uploaded = client.post(
+        f"/bcf/3.0/projects/{world.project_id}/documents",
+        content=(FIXTURES_DIR / "three_walls_gtin.ifc").read_bytes(),
+        headers={**editor.headers, "Content-Disposition": 'attachment; filename="three_walls_gtin.ifc"'},
+    )
+    assert uploaded.status_code == 201, uploaded.text
+    model = wait_for_model(graph_target, client.app.state.settings.database_name)  # type: ignore[attr-defined]
+    assert model["state"] == "done", model.get("error")
+    assert model["bcf_document_guid"] == uploaded.json()["guid"]
+
+    with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
+        rows, _, _ = driver.execute_query(
+            "MATCH (c:Component)-[:SAME_AS]->(e:IfcEntity) RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
+            database_=client.app.state.settings.database_name,  # type: ignore[attr-defined]
+        )
+        assert [(r["guid"], r["gtin"]) for r in rows] == sorted([(WALLS[0], "3"), (WALLS[2], "1")])

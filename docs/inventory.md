@@ -133,7 +133,7 @@ project plan. This file is updated with every stage.
 | One node per IFC entity with the class hierarchy as labels, literal attributes as properties | done; `IfcEntity` nodes with `id = <model>:<step>`, `IfcModel` node per document version or BCF document, indexes on `GlobalId` and `model_id`; geometry left out unless `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY` | 9 |
 | Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | done (owner history kept for the `IfcProject` only) | 9 |
 | Synchronous py2neo `merge` during upload (hours for a normal model) | done: separate worker process with time, memory and entity limits, batched `UNWIND … CREATE`, status on the `IfcModel` node | 9 |
-| `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | done; property set and property configurable; `files_information` shows the `IfcProject` guid | 9 |
+| `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | done; linked when a viewpoint is created and again for every existing component when a model finishes importing; property set and property configurable; `files_information` shows the `IfcProject` guid | 9, 11 |
 
 ## 8. Web pages
 

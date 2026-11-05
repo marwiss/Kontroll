@@ -137,7 +137,13 @@ class IfcGraphService:
                 relationships=counts["relationships"],
                 skipped=header.get("skipped", 0),
             )
-            log.info("ifcgraph_imported", model_id=model_id, **counts)
+            # Viewpoints created before the model finished (or before it was uploaded) get their links now.
+            try:
+                linked = await self._link_model(model_id)
+            except Exception as exc:  # the import itself succeeded; linking can be repeated by a new viewpoint
+                log.warning("ifcgraph_link_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:200])
+                linked = 0
+            log.info("ifcgraph_imported", model_id=model_id, linked=linked, **counts)
 
     def _prepare_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
         """The IFC file to convert; an ``.ifczip`` is unpacked with a cap on the unpacked size."""
@@ -198,26 +204,39 @@ class IfcGraphService:
     # -- linking BCF components ----------------------------------------------------------------------
 
     async def link_viewpoint(self, *, project_id: str, viewpoint_guid: str) -> int:
-        """``SAME_AS`` from the viewpoint's components to matching elements of the project's models, plus GTIN."""
-        rows = await self.graph.run(
+        """``SAME_AS`` from one viewpoint's components to the project's finished models, plus GTIN (at viewpoint POST)."""
+        return await self._link(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(v:Viewpoint {guid: $guid})
                   -[:HAS_COMPONENT]->(c:Component)
             WHERE c.ifc_guid IS NOT NULL
             MATCH (m:IfcModel {project_id: $project_id, state: 'done'})
             MATCH (e:IfcEntity {model_id: m.id, GlobalId: c.ifc_guid})
-            MERGE (c)-[:SAME_AS]->(e)
-            WITH c, e
-            OPTIONAL MATCH (e)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]
-                  ->(ps:IfcPropertySet {Name: $pset})-[:HasProperties]->(p:IfcPropertySingleValue {Name: $prop})
-            WITH c, e, collect(p.NominalValue)[0] AS gtin
-            SET c.gtin = CASE WHEN gtin IS NULL THEN c.gtin ELSE toString(gtin) END
-            RETURN count(DISTINCT e) AS linked
             """,
             project_id=project_id,
             guid=viewpoint_guid,
+        )
+
+    async def _link_model(self, model_id: str) -> int:
+        """``SAME_AS`` from every component of the project to a model that has just finished importing."""
+        return await self._link(
+            """
+            MATCH (m:IfcModel {id: $model_id})
+            MATCH (:Project {project_id: m.project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(:Viewpoint)
+                  -[:HAS_COMPONENT]->(c:Component)
+            WHERE c.ifc_guid IS NOT NULL
+            MATCH (e:IfcEntity {model_id: m.id, GlobalId: c.ifc_guid})
+            """,
+            model_id=model_id,
+        )
+
+    async def _link(self, scope: str, **params: Any) -> int:
+        """Merge the ``SAME_AS`` edges for the ``(c, e)`` pairs a scope matches and copy the GTIN property."""
+        rows = await self.graph.run(
+            scope + _LINK_TAIL,
             pset=self.settings.ifcgraph_gtin_property_set,
             prop=self.settings.ifcgraph_gtin_property,
+            **params,
         )
         return int(rows[0]["linked"]) if rows else 0
 
@@ -227,6 +246,18 @@ class IfcGraphService:
             project_id=project_id,
         )
         return [row["model"] for row in rows]
+
+
+# The shared tail of both linking queries: the edge, then the GTIN from the configured property set.
+_LINK_TAIL = """
+            MERGE (c)-[:SAME_AS]->(e)
+            WITH c, e
+            OPTIONAL MATCH (e)-[:IsDefinedBy]->(:IfcRelDefinesByProperties)-[:RelatingPropertyDefinition]
+                  ->(ps:IfcPropertySet {Name: $pset})-[:HasProperties]->(p:IfcPropertySingleValue {Name: $prop})
+            WITH c, e, collect(p.NominalValue)[0] AS gtin
+            SET c.gtin = CASE WHEN gtin IS NULL THEN c.gtin ELSE toString(gtin) END
+            RETURN count(DISTINCT e) AS linked
+            """
 
 
 async def delete_model_entities(graph: Graph, model_id: str) -> None:
