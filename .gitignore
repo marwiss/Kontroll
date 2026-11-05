@@ -1,12 +1,40 @@
-/api/app/logs/*
-/api/app/favicon.ico
-/data/
-/etc/
-/neo4j/data/*
-/neo4j/import/*
-/neo4j/logs/*
-/secrets/*
-/TODO.txt
-/venv/
-/.idea/
+# Secrets and local configuration: never commit these.
+.env
+.env.*
+!.env.example
+secrets/
+Caddyfile.local
 
+# Local working notes for the maintainer and AI tooling: stay on this machine.
+CLAUDE.md
+PLAN.md
+.claude/
+
+# Runtime data created by the server or by docker compose.
+data/
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.ty_cache/
+.coverage
+htmlcov/
+
+# Tooling
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Playwright
+test-results/
+playwright-report/

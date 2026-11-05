@@ -1,0 +1,755 @@
+openapi: 3.0.0
+info:
+  title: OpenCDE Documents API
+  description: OpenCDE Documents API Specification
+  version: '1.0'
+paths:
+  /select-documents:
+    post:
+      summary: 'Initiate document selection and download flow' 
+      operationId: /select-documents
+      tags:
+        - Download
+      description: > 
+        The client will call this endpoint to initiate the flow of selecting and downloading documents. 
+      requestBody:
+        description: 'The body of this request contains a callback URL to the client, which is used later in the flow to communicate from the CDE server back to the client via query parameters.'      
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectDocuments'
+        required: true
+      responses:
+        200:
+          description: 'The CDE returns a URL for the client to open in a local browser. The user will then be presented with the CDE UI to select and download documents'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDiscoverySessionInitialization'
+          links:
+            /server-provided-path-selected-documents-url:
+              operationId: /server-provided-path-selected-documents-url
+              description: >
+                * Once the user has completed selecting documents in the CDE UI, the CDE will append `?selected_documents_url=/server-provided-path-selected-documents-url` to the client's callback (see request) and provide it to the client via a browser redirect.
+                
+                * IF the user has cancelled the download the CDE server will append `?user_cancelled_selection=true` to the client's callback (see request) and provide it to the client via a browser redirect.
+
+  /server-provided-path-selected-documents-url:
+    get:
+      summary: 'Retrieve the user''s selection from the CDE' 
+      operationId: /server-provided-path-selected-documents-url
+      tags:
+        - Download
+      description: This endpoint returns the document selection. The client retrieves its URL via the callback URL from the CDE after the selection has finished from a query parameter named `selected_documents_url`. In case when the user cancels the selection on the CDE UI, this callback will still be called, but the `selected_documents_url` query parameter will not be present, instead the server will provide a query parameter called `user_cancelled_selection=true`.
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectedDocuments'
+          links:
+            /server-provided-path-document-download:
+              operationId: /server-provided-path-document-download
+              description: >
+                Use the `document_version_download` operation to download the file contents
+            /server-provided-path-document-metadata:
+              operationId: /server-provided-path-document-metadata
+              description: >
+                Use the `document_version_metadata` URL operation to retrieve document metadata                 
+                
+  /upload-documents:
+    post:
+      summary: 'Initiate the upload flow' 
+      operationId: /upload-documents
+      tags:
+        - Upload
+      description: 'The client will call this endpoint to initiate the flow of uploading documents to the CDE.' 
+      requestBody:
+        description: 'The body of this request contains a list of files to upload and a callback URL to the client, which is used later in the flow to communicate from the CDE server back to the client via query parameters.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadDocuments'
+        required: true
+      responses:
+        200:
+          description: 'The CDE returns a URL for the client to open in a local browser. The user will then be presented with the CDE UI to enter document metadata'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUploadSessionInitialization'
+          links:
+            /server-provided-path-upload-documents-url:
+              operationId: /server-provided-path-upload-documents-url
+              description: >
+                * Once the user has completed entering document metadata in the CDE UI, the CDE will append `?upload_documents_url=/server-provided-path-upload-documents-url` to the client's callback (see request) and provide it to the client via a browser redirect 
+                
+                * If the user has cancelled the download the CDE server will append `?user_cancelled_selection=true` to the client's callback (see request) and provide it to the client via a browser redirect.
+
+
+  /server-provided-path-document-download:
+    get:
+      summary: 'Download the document'
+      operationId: /server-provided-path-document-download
+      tags:
+        - Download
+      description: Use this endpoint to download the document. Its URL is retrieved from the links object in the initial document selection response, with the `document_version_download` property.
+      responses:
+        200:
+          description: 'The file content'
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /server-provided-path-document-metadata:
+    get:
+      summary: 'Get document metadata for a single document'
+      operationId: /server-provided-path-document-metadata
+      tags:
+        - Download
+      description: This endpoint returns the metadata for a single document. Its URL is retrieved from the links object in the initial document selection response, with the `document_version_metadata` property.
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMetadata'
+  /server-provided-path-document-versions:
+    get:
+      summary: 'Get the versions of a single document'
+      operationId: /server-provided-path-document-versions
+      tags:
+        - Download
+      description: This endpoint returns the versions for a single document. Its URL is retrieved from the links object in the initial document selection response, with the `document_versions` property.
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentVersions'
+          links:
+            /document-versions:
+              operationId: /document-versions
+              parameters: 
+                document_id: '$response.body#..document_id'
+              description: >
+                Use the `document_id` to query for updates for this document 
+          
+  /server-provided-path-document-version:
+    get:
+      summary: "Get the information for a single document version"
+      operationId: /server-provided-path-document-version
+      tags:
+        - Download
+      description: This endpoint returns the document data for a single document. Its URL is retrieved from the links object in the initial document selection response, with the `document_version` property.
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentVersion'
+          links:
+            /document-versions:
+              operationId: /document-versions
+              parameters: 
+                document_id: '$response.body#..document_id'
+              description: >
+                Use the `document_id` to query for updates for this document 
+          
+  /server-provided-path-upload-documents-url:
+    post:
+      summary: 'Retrieve upload instructions after the user has entered document metadata on the CDE' 
+      operationId: /server-provided-path-upload-documents-url
+      tags:
+        - Upload
+      description: This endpoint returns the document upload information. The client retrieves this URL via the callback URL from the server after the user's completion of the upload metadata entry from a query parameter named `upload_documents_url`. In case when the user cancels the upload on the CDE UI, this callback will still be called, but the `upload_documents_url` query parameter will not be present, instead the server will provide a query parameter called `user_cancelled_upload=true`.
+      requestBody:
+        description: 'The client sends the list of files to be uploaded with this request. The file sizes are then used by the server to break the file to multiple upload parts, as required.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadFileDetails'
+        required: true
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentsToUpload'
+          links:
+            /server-provided-path-document-upload-file-part:
+              operationId: /server-provided-path-document-upload-part
+              description: >
+                This operation should be called for each part specified in this reponse          
+            /server-provided-path-document-upload-completion:
+              operationId: /server-provided-path-document-upload-completion
+              description: >
+                This operation should be called when all the parts have been successfully uploaded         
+            /server-provided-path-document-upload-cancellation:
+              operationId: /server-provided-path-document-upload-cancellation
+              description: >
+                This operation should be called to cancel the upload        
+                
+        400:
+          description: 'This error may be returned if the file size exceeds the maximum length supported by the server.'
+  /server-provided-path-document-upload-file-part:
+    put:
+      summary: 'Upload a single file part' 
+      description: > 
+        This endpoint allows the client to upload the content of a single file part. 
+        
+        * The `/server-provided-path-upload-documents-url` operation specifies the list of part upload requests for each file
+        
+        * For each part, the URL, method (put or post), headers and request body are specified
+        
+        * The client must upload all parts before proceeding to complete the upload
+        
+        * Parts can be uploaded concurrently and in any order
+        
+      operationId: /server-provided-path-document-upload-file-put
+      tags:
+      - Upload
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: ''
+          links:
+            /server-provided-path-document-upload-completion:
+              operationId: /server-provided-path-document-upload-completion
+              description: >
+                This operation should be called when all the parts have been successfully uploaded         
+            /server-provided-path-document-upload-cancellation:
+              operationId: /server-provided-path-document-upload-cancellation
+              description: >
+                This operation should be called to cancel the upload        
+               
+    post:
+      summary: 'Upload a single file part' 
+      description: > 
+        This endpoint allows the client to upload the content of a single file part.
+        
+        * The `/server-provided-path-upload-documents-url` operation specifies the list of part upload requests for each file
+        
+        * For each part, the URL, method (put or post), headers and request body are specified
+        
+        * The client must upload all parts before proceeding to complete the upload
+        
+        * Parts can be uploaded concurrently and in any order
+        
+      operationId: /server-provided-path-document-upload-file-post
+      tags:
+        - Upload
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: ''    
+          links:
+            /server-provided-path-document-upload-completion:
+              operationId: /server-provided-path-document-upload-completion
+              description: >
+                This operation should be called when all the parts have been successfully uploaded         
+            /server-provided-path-document-upload-cancellation:
+              operationId: /server-provided-path-document-upload-cancellation
+              description: >
+                This operation should be called to cancel the upload        
+               
+          
+  /server-provided-path-document-upload-completion:
+    post:
+      summary: 'Complete a file upload after all the parts have been successfully uploaded' 
+      operationId: /server-provided-path-document-upload-completion
+      tags:
+        - Upload
+      description: > 
+        The `/server-provided-path-upload-documents-url` operation specifies the upload completion URL for each file. The upload completion endpoint must be called by the client when the file content upload has completed successfully. 
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentVersion'
+  /server-provided-path-document-upload-cancellation:
+    post:
+      summary: 'Cancel the upload of a single file' 
+      operationId: /server-provided-path-document-upload-cancellation
+      tags:
+        - Upload
+      description: > 
+        The `/server-provided-path-upload-documents-url` operation specifies the upload cancellation URL for each file. This endpoint must be called by the client when the file content upload has been cancelled. 
+      responses:
+        204:
+          description: ''
+  /document-versions:
+    post:
+      summary: 'Query for the latest versions of multiple documents' 
+      operationId: /document-versions
+      tags:
+        - Query
+      description: This endpoint can be called when querying for the latest versions for multiple documents. It's an aggregate endpoint that should make periodic polling of a collection of documents easier. 
+      parameters:
+        - in: header
+          name: If-None-Match
+          description: 'Clients may provide a previosuly received etag value to avoid receiving a response object if there were no changes since the last query'
+          schema:
+            type: string
+            format: etag_value
+          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentQuery'
+        required: true
+      responses:
+        200:
+          description: 'A list of DocumentVersion objects, where each DocumentVersion represents the latest version for each given document on the server.'
+          headers:
+            ETag:
+              schema:
+                type: string
+                format: etag_value
+              description: A unique identifier of the response that allows CDEs to save bandwidth and the clients to implement caching and avoid computation when the document versions haven't changed since the last query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentQueryResult'
+          links:
+            /server-provided-path-document-versions:
+              operationId: /server-provided-path-document-versions
+              description: >
+                This operations allows listing all the versions of a document that has been flagged to have a new version in the response. 
+components:
+  schemas:
+    DocumentMetadata:
+      type: object
+      additionalProperties: false
+      required:
+      - metadata
+      properties:
+        metadata:
+          description: 'An array of metadata entries'
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentMetadataEntry'
+    LinkData:
+      type: object
+      additionalProperties: false
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          minLength: 1
+    UploadFilePartInstruction:
+      description: 'This model describes how a single part of a multipart file upload should be processed by the client. The upload links may only be valid for a specific time period, after which the links expire. Server vendors should make sure to have a reasonably long expiration date for clients to upload large files'
+      allOf:
+        - $ref: '#/components/schemas/LinkData'
+        - type: object
+          required:
+            - http_method
+            - content_range_start
+            - content_range_end
+          properties:
+            http_method:
+              type: string
+              enum: [POST, PUT]
+            additional_headers:
+              $ref: '#/components/schemas/Headers'
+            include_authorization:
+              description: 'Whether or not to include the authorization request header in the file upload request. Including the authorization header with some cloud storage providers might fail the request'
+              type: boolean
+              default: false
+            multipart_form_data:
+              $ref: '#/components/schemas/MultipartFormData'
+            content_range_start:
+              description: 'The inclusive, zero index based start for this part'
+              type: integer
+              format: int64
+            content_range_end:
+              description: 'The inclusive, zero index based end for this part'
+              type: integer
+              format: int64
+    MultipartFormData:
+      type: object
+      additionalProperties: false
+      description: 'Multipart Form Data descriptor. If the CDE provided custom data here to be used in multipart requests then it is very likely that the CDE will also set a custom Content-Type header with the multipart/form-data type and a server-provided boundary'
+      required:
+        - prefix
+        - suffix
+      properties:
+        prefix:
+          description: 'This is a server provided value. Its value must be prefixed to the binary content body when uploading this part'
+          type: string
+          format: byte
+        suffix:
+          description: 'This is a server provided value. Its value must be suffixed to the binary content body when uploading this part. Typically, this is the end boundary for a multipart/form-data request'
+          type: string
+          format: byte
+    DocumentMetadataEntry:
+      description: 'A single document metadata property - a key-value pair'
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - value
+      - data_type
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: 'The name of the metadata property'
+        value:
+          type: array
+          description: 'The value of the metadata property, can be a list'
+          items: 
+            type: string
+            minLength: 1
+        data_type:
+          type: string
+          description: 'The data type of the items in the value array'
+          enum:
+          - string
+          - boolean
+          - date-time
+          - date
+          - integer32
+          - integer64
+          - number
+          - url
+    DocumentVersions:
+      type: object
+      additionalProperties: false
+      required:
+      - documents
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentVersion'
+    SelectedDocuments:
+      type: object
+      additionalProperties: false
+      required:
+      - documents
+      properties:
+        server_context:
+          type: string
+          nullable: true
+          description:  'A CDE controlled identifier recording the user''s context on the CDE. For example which project and folder the user was on. If the client provides the `server_context` in subsequent calls then the CDE will attemp to load the UI at the same place.'
+        documents:
+          type: array
+          description: 'An array containing all the documents selected by the user'
+          items:
+            $ref: '#/components/schemas/DocumentVersion'
+    DocumentVersion:
+      type: object
+      additionalProperties: false
+      required:
+      - links
+      - version_number
+      - version_index
+      - creation_date
+      - title
+      - file_description
+      - document_id
+      properties:
+        links:
+          $ref: '#/components/schemas/DocumentVersionLinks'
+        version_number:
+          description: 'A human readable version number. This is not expected to be in any specific format across CDEs and may hold any value'
+          type: string
+          minLength: 1
+        version_index:
+          description: 'A machine readable sequence number of the version of the document. The sequence must be ordered, so that newer versions have higher values than previous ones. Each version index must be unique for that document, but there may be gaps in the sequence'
+          type: integer
+          format: int32
+        creation_date:
+          description: 'The creation date of the document revision'
+          type: string
+          format: date-time
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+          description: 'A human readable code or identifier'
+        file_description:
+          $ref: '#/components/schemas/FileDescription'
+        document_id:
+          type: string
+          minLength: 1
+          description: "A machine readable identifier that can be used to uniquely identify this version it future calls - see `Query` section"
+    DocumentVersionLinks:
+      type: object
+      additionalProperties: false
+      required:
+      - document_version
+      - document_version_metadata
+      - document_version_download
+      - document_versions
+      description: > 
+         * __document_version__ is a self-URL that can be used for future retrieval of the document version information
+         
+         * __document_version_metadata__ is a URL for retrieving the metadata associated with this document version
+         
+         * __document_version_download__ is a URL for downloading the file backing this document version
+         
+         * __document_versions__ is a URL for retrieving all the versions of the document
+         
+         * __document_details__ is a URL that should be opened in the system browser. It leads to a page on the CDE where users can view or edit document details
+         
+      properties:
+        document_version:
+          $ref: '#/components/schemas/LinkData'
+        document_version_metadata:
+          $ref: '#/components/schemas/LinkData'
+        document_version_download:
+          $ref: '#/components/schemas/LinkData'
+        document_versions:
+          $ref: '#/components/schemas/LinkData'
+        document_details:
+          $ref: '#/components/schemas/LinkData'
+    FileDescription:
+      type: object
+      additionalProperties: false
+      description: 'Basic file information'
+      required:
+      - name
+      - size_in_bytes
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size_in_bytes:
+          type: integer
+          format: int64
+    DocumentDiscoverySessionInitialization:
+      type: object
+      additionalProperties: false
+      required:
+      - select_documents_url
+      - expires_in
+      properties:
+        select_documents_url:
+          type: string
+          minLength: 1
+          description: 'A CDE UI URL for the client to open in a local browser. The user would search and select documents directly in the CDE'
+        expires_in:
+          type: integer
+          format: int32
+          description: '`select_documents_url` expiry in seconds'
+    SelectDocuments:
+      type: object
+      additionalProperties: false
+      required:
+      - callback
+      properties:
+        callback:
+          $ref: '#/components/schemas/CallbackLink'
+        server_context:
+          type: string
+          nullable: true
+          description:  'A CDE controlled identifier recording the user''s context on the CDE. For example which project and folder the user was on. If the client provides the `server_context` in subsequent calls then the CDE will attemp to load the UI at the same place.'
+        supported_file_extensions:
+          description: 'The client may optionally provide an array of accepted file extensions that should be opened during this flow. The CDE server UI should make an attempt to only show files matching these extensions to the user for the download selection or help the user in selecting the desired files. However, the server does not have to guarantee that only files matching the extensions will be selected. The extensions here must contain the dot separator.'
+          example: [".ifc", ".ifczip"]
+          type: array
+          items:
+            type: string
+    UploadFileDetails:
+      type: object
+      description: 'This object holds information about files to be uploaded. Each file in the array needs a file size so that the server can calculate the needed parts for a multipart upload. The session_file_id is used to identify the file.'
+      additionalProperties: false
+      required:
+      - files
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/UploadFileDetail'
+    UploadFileDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - size_in_bytes
+      - session_file_id
+      properties:
+        size_in_bytes:
+          type: integer
+          format: int64
+          description: 'The uploaded file size'
+        session_file_id:
+          type: string
+          minLength: 1
+          description: 'This is a client provided id to differentiate between multiple files that are being uploaded in the same session'
+    UploadDocuments:
+      type: object
+      additionalProperties: false
+      required:
+      - callback
+      - files
+      properties:
+        callback:
+          $ref: '#/components/schemas/CallbackLink'
+        server_context:
+          type: string
+          nullable: true
+          description:  'A CDE controlled identifier recording the user''s context on the CDE. For example which project and folder the user was on. If the client provides the `server_context` in subsequent calls then the CDE will attemp to load the UI at the same place.'
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileToUpload'
+    FileToUpload:
+      type: object
+      additionalProperties: false
+      required:
+        - file_name
+        - session_file_id
+      properties:
+        file_name:
+          type: string
+          minLength: 1
+          description: "The CDE UI will display this value to the User when entering document metadata"
+        session_file_id:
+          description: 'This is a client provided id to differentiate between multiple files that are being uploaded in the same session'
+          type: string
+          minLength: 1
+        document_id:
+          type: string
+          minLength: 1
+          description: "When present, indicates that this upload is a new version of an existing document"
+    DocumentUploadSessionInitialization:
+      type: object
+      additionalProperties: false
+      required:
+        - upload_ui_url
+        - expires_in
+        - max_size_in_bytes
+      properties:
+        upload_ui_url:
+          type: string
+          minLength: 1
+          description: 'A CDE UI URL for the client to open in a local browser. The user would enter document metadata directly in the CDE'
+        expires_in:
+          type: integer
+          format: int32
+          description: '`upload_ui_url` expiry in seconds'
+        max_size_in_bytes:
+          type: integer
+          format: int64
+          description: 'The maximum file size supported by the CDE. Attempts to upload a larger file will fail'
+    DocumentsToUpload:
+      type: object
+      additionalProperties: false
+      required:
+        - documents_to_upload
+      properties:
+        server_context:
+          type: string
+          nullable: true
+          description: 'A CDE controlled identifier recording the user''s context on the CDE. For example which project and folder the user was on. If the client provides the `server_context` in subsequent calls then the CDE will attemp to load the UI at the same place.'
+        documents_to_upload:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentToUpload'
+    DocumentToUpload:
+      description: 'A specification for the request sequence required to upload a document to the CDE'
+      type: object
+      additionalProperties: false
+      required:
+        - session_file_id
+        - upload_file_parts
+        - upload_completion
+        - upload_cancellation
+      properties:
+        session_file_id:
+          type: string
+          minLength: 1
+          description: 'A client-provided identifier that allows matching the specification with the correct file on the user''s machine'
+        upload_file_parts:
+          type: array
+          minLength: 1
+          items:
+            $ref: '#/components/schemas/UploadFilePartInstruction'
+          description: 'An array of request specifications detailing how to split the file to parts and upload each part to the CDE'
+        upload_completion:
+          $ref: '#/components/schemas/LinkData'
+        upload_cancellation:
+          $ref: '#/components/schemas/LinkData'
+    CallbackLink:
+      type: object
+      additionalProperties: false
+      required:
+      - url
+      - expires_in
+      properties:
+        url:
+          type: string
+          minLength: 1
+          description: >
+           The server will web-browser-redirect to this URL once the user has completed 
+           selecting documents or entering documenet metadata on the CDE
+           
+        expires_in:
+          type: integer
+          format: int32
+          description: 'The expiry period for the URL, in seconds'
+    Headers:
+      description: "An array of required HTTP headers"
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeaderValue'
+    HeaderValue:
+      description: 'HTTP header descriptor'
+      type: object
+      required:
+      - name
+      - value
+      properties:
+        name:
+          type: string
+          minLength: 1
+        value:
+          type: string
+          minLength: 1
+    DocumentQuery:
+      type: object
+      description: 'An array of document IDs to track'
+      required:
+        - document_ids
+      properties:
+        document_ids:
+          type: array
+          items:
+            type: string
+    DocumentQueryResult:
+      type: object
+      description: 'The versions array contains all the latest document version objects.'
+      required:
+        - versions
+      properties:
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentVersion'

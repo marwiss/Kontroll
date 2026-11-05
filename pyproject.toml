@@ -1,0 +1,151 @@
+[project]
+name = "opencde-server"
+version = "0.1.0.dev0"
+description = "buildingSMART OpenCDE server: Foundation API 1.0, BCF API 3.0 and Documents API 1.0 on a graph database."
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+# 3.11 is IfcOpenShell's baseline (its CI lints and tests on 3.11); the container ships 3.13.
+requires-python = ">=3.11,<3.16"
+keywords = ["BCF", "OpenCDE", "IFC", "BIM", "buildingSMART", "Neo4j", "Memgraph", "FastAPI"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "fastapi>=0.162",
+    "pydantic>=2.14",
+    "pydantic-settings>=2.16",
+    "uvicorn[standard]>=0.54",
+    "neo4j>=6.4",
+    "structlog>=26.1",
+    "typer>=0.27",
+    "jinja2>=3.1.6",
+    "python-multipart>=0.0.33",
+    "itsdangerous>=2.2",
+    "pwdlib[argon2]>=0.3.1",
+    "zxcvbn>=4.5",
+    "slowapi>=0.1.10",
+    "odata-query>=0.11",
+    "httpx>=0.28",
+]
+
+[project.optional-dependencies]
+# IFC-graph import (stage 9). Pulls in IfcOpenShell, which is large; off by default.
+ifcgraph = ["ifcopenshell>=0.9.0"]
+
+[project.scripts]
+opencde = "opencde.cli:app"
+
+[project.urls]
+Source = "https://github.com/marwiss/Kontroll"
+Issues = "https://github.com/marwiss/Kontroll/issues"
+
+[dependency-groups]
+dev = [
+    "opencde-client",
+    "httpx2>=2.16",  # Starlette's TestClient prefers httpx2 over httpx
+    "pytest>=9.2",
+    "pytest-asyncio>=1.4",
+    "anyio>=4.16",
+    "testcontainers>=4.15",
+    "jsonschema>=4.26",
+    "openapi-core>=0.23",
+    "openapi-spec-validator>=0.8",
+    "pyyaml>=6.0",
+    "schemathesis>=4.33",
+    "ruff>=0.17",
+    "ty>=0.0.97",
+    "poethepoet>=0.49",
+    "bandit>=1.9",
+    "pip-audit>=2.10",
+]
+
+[build-system]
+requires = ["hatchling>=1.33"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["opencde"]
+
+[tool.uv]
+# One lockfile for the server and the client library (uv workspace).
+default-groups = ["dev"]
+
+[tool.uv.workspace]
+members = ["client"]
+
+[tool.uv.sources]
+opencde-client = { workspace = true }
+
+# ---------------------------------------------------------------------------
+# Tooling. Line length 120 and ruff format follow IfcOpenShell's conventions so
+# the code can move into that repository later without reformatting.
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["opencde", "client", "tests"]
+extend-exclude = ["spec"]
+
+[tool.ruff.lint]
+select = [
+    "E4", "E7", "E9", # pycodestyle errors
+    "F",              # pyflakes
+    "I",              # isort
+    "UP",             # pyupgrade
+    "B",              # bugbear
+    "S",              # bandit (security)
+    "ASYNC",          # async pitfalls
+    "T20",            # no print() in library code; use structlog
+    "RUF",            # ruff-specific
+]
+ignore = [
+    "RUF012", # mutable class attributes are fine with Pydantic/Typer
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency markers are meant to be used as argument defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Header", "fastapi.Body", "fastapi.Form", "fastapi.Security", "typer.Option", "typer.Argument"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S108", "T20"] # asserts, test secrets, tmp paths, prints
+"client/tests/**" = ["S101", "S105", "S106", "S108", "T20"]
+"opencde/cli.py" = ["T20"]                        # the CLI talks to a terminal
+
+[tool.ruff.lint.isort]
+known-first-party = ["opencde", "opencde_client"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "client/tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: needs a graph database (testcontainers starts one)",
+    "conformance: validates responses against the buildingSMART schemas",
+    "security: penetration-style tests",
+    "ui: browser tests with Playwright",
+    "e2e: whole flows against a running server",
+    "slow: takes more than a few seconds",
+]
+
+[tool.poe.tasks]
+lint = "ruff check ."
+format = "ruff format ."
+typecheck = "ty check opencde client/opencde_client"
+test = "pytest"
+security = ["lint", "_bandit", "_audit"]
+_bandit = "bandit -q -r opencde client/opencde_client -c pyproject.toml"
+_audit = "pip-audit --skip-editable"  # our own workspace packages are not on PyPI
+
+[tool.bandit]
+exclude_dirs = ["tests", "client/tests"]

@@ -1,0 +1,13 @@
+# Store and check out text files with LF line endings on every platform, so the
+# Docker image, CI and Windows/macOS/Linux checkouts see identical bytes.
+* text=auto eol=lf
+
+# Binary content
+*.ifc -text
+*.ifczip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff2 binary
+*.pdf binary

@@ -1,268 +1,89 @@
-# Kontroll BCF API server - OpenCDE APIs
-
-## What is this
-
-OpenCDE APIs:
-Foundation API,
-BCF API,
-Documents API
-implemented in python,
-the FastAPI framework
-and the Neo4j graph database.
-
-## Background
-
-You can read some background information about the project here:
-
-https://martin.wiss.se/data/bcf_ifc_graph.pdf
-
-This video show how to deploy the Kontroll API server on Ubuntu server
-and how to use it together with Solibri Office as a BCF and Documents API client.
-
-https://www.youtube.com/watch?v=MuFz9WPxbDM
-
-The name of this project is Kontroll BCF API server because it was originally
-developed as a POC prototype to test if BCF API could be used for digital inspection plans
-for building permits (translated as "kontroll-plan" in Swedish language).
-
-## Code structure
-
-/docker-compose.yml
-You bring up the project using this file.
-
-/api/Dockerfile
-Contains instructions for the FastAPI container.
-Referenced by /docker-compose.yml
-
-/api/app
-Contains the server application.
-
-/api/app/main.py
-This is where the application starts.
-The FastAPI-container will run this script on uvicorn.
-main.py will load routes from scripts in the /api/app/api folder.
-
-/api/app/api
-This is where the FastAPI routes are defined.
-
-/api/app/repository
-Routes often runs methods that will read or write data to or from a database.
-This is where methods that read or write data from database are declared.
-
-/api/app/database
-Some general methods to interact with database.
-
-/api/app/db_config
-When the Neo4j container is launched it will initialize a database
-with some test data from init.cypher. This initial state does not represent
-all data. Model.cypher contains a more complete model.
-
-/api/app/ifcgraph
-Script to import data from IFC STEP file to Neo4j.
-
-/api/app/models
-Pydantic models used to define the JSON structures of requests and responses.
-Models are arranged in files depending on if it is request or response
-or both (common) or not at all (other).
-
-/api/app/security
-Contains methods for OAuth2 and a method to get the secrets used.
-You need to create your own secrets and put them in the /secrets folder.
-Secrets are more secure than environment values.
-
-/api/app/templets
-Jinja2 templates used to generate some webpages necessary for OAuth2 flow and Documents API flow.
-
-/api/app/requirements.txt
-Generated using pipreqs not pip freeze.
-
-## Deployment
-
-To get this code running properly you need:
-
-- your own linux server, on premise or in the cloud
-- a domain name and a TLS-certificate for your domain name
-- a proxy server, nginx was used
-- to set up your proxy server to use HTTPS
-- to use proxy as bridge between docker network and remote
-- proxy (outside container) and uvicorn (inside container) should access same TLS certificate
-- to edit your .env file with values specific for your server and API
-- to replace hard coded values in code with  specific values for your server and API
-- to create three secrets and put them in the /secrets folder
-- to put apoc-5.7.0-core and apoc-5.7.0-extended jars in /neo4j/plugins folder
-- to put an ifcopenshell.zip in /api/app/ifcopenshell folder
-- Docker and Neo4j software
-- a favicon at /favicon.ico
-- to run "bash restart.sh" to start and restart containers
-- a BCF client, registered with client ID and secret
-
-This code was developed and tested using Solibri Office as BCF client, however:
-Solibri Office can only connect to pre-registered servers. This means that you cannot
-connect to your server using a regular version of Solibri Office. If you want to use Solibri,
-then you will have to first kindly ask Solibri if they want to add your server
-to the list of registered servers. An alternative is to develop your own BCF client
-or to use this existing BCF API client module for python to build your own client script:
-
-https://pypi.org/project/bcf-client/
-
-I do not know of any working BCF API client plugins for Revit or Archicad that allows
-connecting to arbitrary BCF API servers. It seems like most plugins instead were developed to
-only connect to a specific BCF API server. I think that is contradictory because BCF is an open standard
-intended to facilitate communication between multiple clients and servers.
-A BCF API client that can connect to multiple arbitrary BCF API servers would be a good thing to develop.
-
-## TODO
-
-The original intention of the code was just to create a prototype for private testing.
-Improvements are needed to collaborate on this code or to deploy this system in production.
-
-Suggested improvements:
-
-- General code structure refactoring
-- Better commenting
-- Testing scripts, unit testing
-- Better error handling
-- More consistent logging
-- Easier deployment
-- User registration and admin system
-- BCF client registration functionality
-- OData to Cypher converter
-- Documents API and BCF API integration
-- More complete OpenAPI documentation of routes
-- More complete documentation of pydantic models
-- Improvements on IFC-graph
-- BCF event logging
-- Implement also the routes that Solibri Office does not support
-- Replace hard coded values with .env values
-- Improve security before any kind of deployment in production
-- Making full use of native IFC (for example allowing BCF API to edit IFC directly using BIM snippets)
-- Integrate BCF API BIM snippets editing with GIT commits
-
-## Prototype
-
-This code was developed and tested on a system using:
-
-- Ubuntu 20
-- Nginx 1.18
-- Lets encrypt, certbot
-- Docker 20
-
-## Suggested reading
-
-### API
-
-- FastAPI documentation
-  https://fastapi.tiangolo.com/
-
-- Building Python Microservices with FastAPI
-  https://www.packtpub.com/product/building-python-microservices-with-fastapi/9781803245966
-
-- Building Python Web APIs with FastAPI
-  https://www.packtpub.com/product/building-python-web-apis-with-fastapi/9781801076630
-
-- Building Data Science Applications with FastAPI - Second Edition
-  https://www.packtpub.com/product/building-data-science-applications-with-fastapi-second-edition/9781837632749
-
-- Pydantic docs
-https://docs.pydantic.dev/latest/
-
-- OData v4
-https://www.odata.org/documentation/
-
-### OAuth2
-
-- Mastering OAuth 2.0
-https://www.packtpub.com/product/mastering-oauth-20/9781784395407
-
-- OAuth 2.0 Cookbook
-https://www.packtpub.com/product/oauth-20-cookbook/9781788295963
-
-- OAuth2 with Password (and hashing), Bearer with JWT tokens
-https://fastapi.tiangolo.com/ur/tutorial/security/oauth2-jwt/
-
-- Authorization Code Flow
-https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow
-
-- What is the OAuth 2.0 Authorization Code Grant Type?
-https://developer.okta.com/blog/2018/04/10/oauth-authorization-code-grant-type
-
-### Neo4j and Cypher
-
-- Neo4j Cypher Manual
-https://neo4j.com/docs/cypher-manual/current/introduction/
-
-- Using Neo4j from python
-https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/
-
-- Building Neo4j Applications with Python
-https://graphacademy.neo4j.com/courses/app-python/
-
-- The Property Graph Model
-https://neo4j.com/developer/graph-database/#property-graph
-
-### OpenCDE APIs
-
-- BCF API
-https://github.com/buildingSMART/BCF-API
-
-- Documents API
-https://github.com/buildingSMART/documents-API
-
-- Foundation API
-https://github.com/buildingSMART/foundation-API
-
-- Open CDE APIs OAuth2 Example
-https://github.com/buildingSMART/foundation-API/blob/v1.0/OAuth2Examples.md
-
-### Server
-
-- Docker documentation
-https://docs.docker.com/
-
-- Docker Compose overview
-https://docs.docker.com/compose/
-
-- How to use secrets in Docker Compose
-https://docs.docker.com/compose/use-secrets/
-
-- NGINX Reverse Proxy documentation
-https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
-
-- Certbot documentation
-https://eff-certbot.readthedocs.io/en/stable/
-
-### IFC
-
-- Native IFC
-https://github.com/brunopostle/ifcmerge/blob/main/docs/whitepaper.rst
-
-- IFC Specifications Database
-https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
-
-- IFC-graph for facilitating building information access and query
-https://www.sciencedirect.com/science/article/pii/S0926580523000389
-
-- IFCOpenShell documentation
-https://blenderbim.org/docs-python/
-
-### Frontend
-
-- Jinja2 Documentation
-https://svn.python.org/projects/external/Jinja-2.1.1/docs/_build/html/index.html
-
-- Bootstrap
-https://getbootstrap.com/docs/4.1/getting-started/introduction/
-
-- jQuery
-https://api.jquery.com/
+# Kontroll OpenCDE server
+
+A server for the buildingSMART **OpenCDE APIs**, built on a graph database:
+
+- **Foundation API 1.0**: service discovery, OAuth2 authorization code with PKCE, current user
+- **BCF API 3.0**: projects, extensions, topics, comments, viewpoints, files, document references, documents, events
+- **Documents API 1.0**: document selection and download, multipart upload, version queries
+
+plus a web administration UI for users, OAuth2 clients and projects, and an
+optional IFC-graph module that turns uploaded IFC models into graph data so
+BCF components can be joined to the building elements they point at.
+
+The project grew out of a 2023 research prototype that tested whether the BCF
+API and IFC-graph could carry the digital inspection plans required for
+building permits in Sweden. This repository is a rewrite from scratch of that
+prototype with the same functionality, modern dependencies and security as the
+first requirement. Status: **stage 0 of 11**, see [docs/inventory.md](docs/inventory.md)
+for what the prototype did and where each function stands in the new code.
+
+## Quick start (local, Docker)
+
+Requirements: Docker (Desktop on Windows/macOS, Engine on Linux) and
+[uv](https://docs.astral.sh/uv/).
+
+```sh
+git clone https://github.com/marwiss/Kontroll.git
+cd Kontroll
+cp .env.example .env            # set OPENCDE_GRAPH_PASSWORD (16+ characters)
+docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+```
+
+Then open <http://localhost:8000/docs> for the interactive API documentation,
+<http://localhost:8000/readyz> for the readiness check, and
+<http://localhost:7484> for Neo4j Browser (Bolt on `localhost:7697`; the
+development overlay avoids Neo4j's default ports, which another Neo4j on the
+same machine often occupies). `docker compose logs -f api` shows the server log.
+
+Without Docker for the server itself (a database is still needed):
+
+```sh
+uv sync                          # installs Python 3.13 and all dependencies
+uv run opencde doctor            # checks configuration and the database
+uv run opencde serve             # http://127.0.0.1:8000
+```
+
+## Configuration
+
+Everything is read from environment variables prefixed `OPENCDE_`, from
+`.env`, or from Docker secrets in `/run/secrets/opencde_<name>`. The
+annotated list is in [.env.example](.env.example). Defaults are safe:
+production refuses to start without an `https` public URL and a database
+password.
+
+## Documentation
+
+- [docs/inventory.md](docs/inventory.md): functional inventory of the 2023
+  prototype and status in the rewrite
+- [docs/adr/](docs/adr/): architecture decision records (graph backend,
+  opaque tokens, portable Cypher, vanilla web UI, repository strategy)
+- [docs/security/](docs/security/): threat model and controls
+- [spec/SOURCES.md](spec/SOURCES.md): the exact specification revisions the
+  server is tested against
+
+## Development
+
+```sh
+uv run pytest                    # unit, conformance and security tests
+uv run pytest -m integration     # starts Neo4j/Memgraph with testcontainers (Docker required)
+uv run ruff format . && uv run ruff check .
+uv run ty check opencde
+```
+
+Code, comments and documentation are in English. The style follows
+IfcOpenShell's conventions (ruff, 120 columns) because the server and the
+client library are intended to be contributed there later.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability and what the
+project does to stay secure.
 
 ## License
 
-The GNU Affero General Public License is a free,
-copyleft license for software and other kinds of works,
-specifically designed to ensure cooperation with the community
-in the case of network server software.
-
-https://www.gnu.org/licenses/agpl-3.0.en.html
-
-See the /LICENSE file.
+The server is licensed under the GNU Affero General Public License v3.0 or
+later ([LICENSE](LICENSE)): it is server software, and the AGPL's network
+clause keeps improvements to hosted instances open. The client library in
+[client/](client/) is LGPL-3.0-or-later. Specification files under
+[spec/](spec/) are © buildingSMART International and redistributed unmodified
+for testing.
