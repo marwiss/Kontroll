@@ -108,7 +108,7 @@ som är påslagna.
 
 ## Nästa steg
 
-- [docs/client-guide.md](../client-guide.md) för API:erna,
+- [docs/client-guide.md](client-guide.md) för API:erna,
   kapabilitetsdokumentet och felkoderna.
 - [docs/acceptance.md](../acceptance.md) för checklistorna paret testas med,
   och [docs/dataspatium-coordination.md](../dataspatium-coordination.md) för

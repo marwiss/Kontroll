@@ -113,7 +113,7 @@ mitkä laajennukset ovat päällä.
 
 ## Seuraavaksi
 
-- [docs/client-guide.md](../client-guide.md): rajapinnat, kyvykkyysasiakirja
+- [docs/client-guide.md](client-guide.md): rajapinnat, kyvykkyysasiakirja
   ja virhekoodit.
 - [docs/acceptance.md](../acceptance.md): tarkistuslistat, joilla paria
   testataan, ja [docs/dataspatium-coordination.md](../dataspatium-coordination.md):

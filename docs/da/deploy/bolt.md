@@ -8,15 +8,15 @@ hvordan en administrator udgiver porten med vilje, hvad det koster, og hvordan
 den lukkes igen. Alternativet, der holder databasen privat, er serverens
 skrivebeskyttede grafforespørgsel for administratorer,
 `POST /admin/api/graph/query` bag `OPENCDE_GRAPH_QUERY_ENABLED`
-([client-guide.md §7](../../client-guide.md)); udgiv kun porten, når en klient
+([client-guide.md §7](../client-guide.md)); udgiv kun porten, når en klient
 har brug for selve Bolt.
 
 ## Hvad en åben port betyder
 
 - **Fuld adgang.** Community-udgaverne af Neo4j og Memgraph har ingen
   skrivebeskyttede databasebrugere: den, der har databasebrugeren og
-  adgangskoden, kan læse og skrive alt, herunder brugere, tokens og
-  revisionsposter. Giv kun adgangskoden til personer, du ville gøre til
+  kodeordet, kan læse og skrive alt, herunder brugere, tokens og
+  revisionsposter. Giv kun kodeordet til personer, du ville gøre til
   administratorer.
 - **Altid krypteret.** Overlejringen slår TLS til for Bolt (`bolt+s://`), og
   serveren afviser at annoncere en ukrypteret `bolt://`-adresse i produktion.
@@ -74,15 +74,15 @@ curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
 ```
 
 Dataspatiums grafvisning, Neo4j Browser (`bolt+s://cde.example.org:7687`) og de
-officielle drivere forbinder med databasebrugeren og adgangskoden.
+officielle drivere forbinder med databasebrugeren og kodeordet.
 
 ## 3. Luk den igen
 
 Fjern `compose.bolt.yaml` fra kommandolinjen, ryd
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og kør `up -d` igen. Porten
 forsvinder fra værten, og `bolt` bliver igen `null` i kapabilitetsdokumentet.
-Rotér databaseadgangskoden bagefter, hvis den blev delt bredere end tiltænkt
-(`docs/security/controls.md`).
+Rotér databasekodeordet bagefter, hvis det blev delt bredere end tiltænkt
+(`docs/da/security/controls.md`).
 
 ## Memgraph
 

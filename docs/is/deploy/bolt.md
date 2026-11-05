@@ -7,7 +7,7 @@ Dataspatium gerir gegn þróunarstaflanum. Þessi síða lýsir því hvernig
 stjórnandi birtir gáttina af ásettu ráði, hvað það kostar og hvernig henni er
 lokað aftur. Kosturinn sem heldur gagnagrunninum lokuðum er skrifvarða
 graffyrirspurn þjónsins fyrir stjórnendur, `POST /admin/api/graph/query` að
-baki `OPENCDE_GRAPH_QUERY_ENABLED` ([client-guide.md §7](../../client-guide.md));
+baki `OPENCDE_GRAPH_QUERY_ENABLED` ([client-guide.md §7](../client-guide.md));
 birtu gáttina aðeins þegar biðlari þarf Bolt sjálft.
 
 ## Hvað opin gátt þýðir
@@ -81,7 +81,7 @@ Fjarlægðu `compose.bolt.yaml` úr skipanalínunni, hreinsaðu
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` í `.env` og keyrðu `up -d` aftur. Gáttin
 hverfur af hýslinum og `bolt` verður aftur `null` í getuskjalinu. Skiptu um
 lykilorð gagnagrunnsins eftir á ef því var deilt víðar en ætlað var
-(`docs/security/controls.md`).
+(`docs/is/security/controls.md`).
 
 ## Memgraph
 

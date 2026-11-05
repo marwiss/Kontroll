@@ -1,6 +1,6 @@
 # Produksjon på eigen server (Docker Compose + Caddy)
 
-Éin Linux-vert (2 vCPU og 4 GB RAM er rikeleg til å byrje med), Docker med
+Éin Linux-blir (2 vCPU og 4 GB RAM er rikeleg til å byrje med), Docker med
 compose-tillegget, eit DNS-namn som peikar på han, portane 80 og 443 opne.
 Caddy hentar og fornyar TLS-sertifikatet; API-et, databasen og
 tryggingskopieringsjobben køyrer på eit privat nettverk.
@@ -49,7 +49,7 @@ brukarane og OAuth2-klientane programma dine treng.
 
 ## 4. Sjekkliste for herding
 
-- Databasen vert ikkje publisert; berre Caddy lyttar på verten. Å publisere
+- Databasen blir ikkje publisert; berre Caddy lyttar på verten. Å publisere
   Bolt-porten for grafklientar er eit medvite steg med eige overlegg og TLS,
   sjå [bolt.md](bolt.md); ein open port gjev full databasetilgang til den som
   har passordet.
@@ -62,7 +62,7 @@ brukarane og OAuth2-klientane programma dine treng.
   sjølvbetent klientregistrering (Foundation API 2.2.3); registrer klientar i
   `/admin`.
 - Roter den løynde nøkkelen og databasepassordet etter din policy
-  (`docs/security/controls.md`), start på nytt og logg inn igjen.
+  (`docs/nn/security/controls.md`), start på nytt og logg inn igjen.
 - Køyr `testssl.sh https://cde.example.org` og sjekk
   <https://observatory.mozilla.org> etter første start.
 - Brannmur: tillat berre 22 (frå adressene dine), 80 og 443.

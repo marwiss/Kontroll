@@ -110,7 +110,7 @@ viðbætur eru virkar.
 
 ## Næstu skref
 
-- [docs/client-guide.md](../client-guide.md) um forritaskilin, getuskjalið og
+- [docs/client-guide.md](client-guide.md) um forritaskilin, getuskjalið og
   villukóðana.
 - [docs/acceptance.md](../acceptance.md) um gátlistana sem parið er prófað
   með, og [docs/dataspatium-coordination.md](../dataspatium-coordination.md)

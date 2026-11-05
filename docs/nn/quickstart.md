@@ -109,7 +109,7 @@ frå kapabilitetsdokumentet til serveren og seier kva tillegg som er slått på.
 
 ## Neste steg
 
-- [docs/client-guide.md](../client-guide.md) om API-ane,
+- [docs/client-guide.md](client-guide.md) om API-ane,
   kapabilitetsdokumentet og feilkodane.
 - [docs/acceptance.md](../acceptance.md) om sjekklistene paret blir testa
   med, og [docs/dataspatium-coordination.md](../dataspatium-coordination.md)

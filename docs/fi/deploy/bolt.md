@@ -8,7 +8,7 @@ sivu kertoo, miten järjestelmänvalvoja julkaisee portin tarkoituksella, mitä
 se maksaa ja miten portti suljetaan taas. Vaihtoehto, joka pitää tietokannan
 yksityisenä, on palvelimen vain luku -graafikysely järjestelmänvalvojille,
 `POST /admin/api/graph/query` asetuksen `OPENCDE_GRAPH_QUERY_ENABLED` takana
-([client-guide.md §7](../../client-guide.md)); julkaise portti vain, kun
+([client-guide.md §7](../client-guide.md)); julkaise portti vain, kun
 asiakas tarvitsee nimenomaan Boltia.
 
 ## Mitä avoin portti tarkoittaa
@@ -85,7 +85,7 @@ Poista `compose.bolt.yaml` komentoriviltä, tyhjennä
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` `.env`-tiedostosta ja aja `up -d` uudelleen.
 Portti katoaa isännästä, ja `bolt` palaa arvoon `null` kyvykkyysasiakirjassa.
 Kierrätä tietokannan salasana jälkeenpäin, jos se jaettiin laajemmalle kuin
-oli tarkoitus (`docs/security/controls.md`).
+oli tarkoitus (`docs/fi/security/controls.md`).
 
 ## Memgraph
 

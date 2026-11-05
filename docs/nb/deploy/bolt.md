@@ -8,7 +8,7 @@ beskriver hvordan en administrator publiserer porten med hensikt, hva det
 koster, og hvordan den lukkes igjen. Alternativet som holder databasen privat,
 er serverens skrivebeskyttede grafspørring for administratorer,
 `POST /admin/api/graph/query` bak `OPENCDE_GRAPH_QUERY_ENABLED`
-([client-guide.md §7](../../client-guide.md)); publiser porten bare når en
+([client-guide.md §7](../client-guide.md)); publiser porten bare når en
 klient trenger selve Bolt.
 
 ## Hva en åpen port betyr
@@ -81,7 +81,7 @@ Fjern `compose.bolt.yaml` fra kommandolinjen, tøm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og kjør `up -d` igjen. Porten
 forsvinner fra verten, og `bolt` går tilbake til `null` i
 kapabilitetsdokumentet. Roter databasepassordet etterpå hvis det ble delt
-bredere enn tiltenkt (`docs/security/controls.md`).
+bredere enn tiltenkt (`docs/nb/security/controls.md`).
 
 ## Memgraph
 

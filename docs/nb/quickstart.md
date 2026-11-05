@@ -112,7 +112,7 @@ på.
 
 ## Neste steg
 
-- [docs/client-guide.md](../client-guide.md) om API-ene,
+- [docs/client-guide.md](client-guide.md) om API-ene,
   kapabilitetsdokumentet og feilkodene.
 - [docs/acceptance.md](../acceptance.md) om sjekklistene paret testes med, og
   [docs/dataspatium-coordination.md](../dataspatium-coordination.md) om hva de

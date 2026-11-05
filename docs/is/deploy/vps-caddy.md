@@ -15,7 +15,7 @@ uv run opencde init --public-url https://cde.example.org
 
 `init` skrifar `.env` með `OPENCDE_ENVIRONMENT=production`, leynilykli,
 lykilorði gagnagrunnsins og `OPENCDE_DOMAIN`. Bættu við
-`OPENCDE_ACME_EMAIL=þú@example.org` svo að Let's Encrypt geti náð í þig vegna
+`OPENCDE_ACME_EMAIL=you@example.org` svo að Let's Encrypt geti náð í þig vegna
 skírteina. Haltu `.env` leyndri (git hunsar hana); hún er eina skráin með
 leyndarmálum.
 
@@ -61,7 +61,7 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
   sjálfsafgreidda biðlaraskráningu (Foundation API 2.2.3); skráðu biðlara í
   `/admin`.
 - Skiptu um leynilykilinn og lykilorð gagnagrunnsins samkvæmt þinni stefnu
-  (`docs/security/controls.md`), endurræstu og skráðu þig inn aftur.
+  (`docs/is/security/controls.md`), endurræstu og skráðu þig inn aftur.
 - Keyrðu `testssl.sh https://cde.example.org` og athugaðu
   <https://observatory.mozilla.org> eftir fyrstu ræsingu.
 - Eldveggur: leyfðu aðeins 22 (frá þínum vistföngum), 80 og 443.

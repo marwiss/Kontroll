@@ -1,6 +1,6 @@
 # Threat model
 
-Status: covers stages 0–9. Each stage adds the assets, threats and controls
+Status: covers stages 0–11. Each stage adds the assets, threats and controls
 it introduces, `controls.md` maps every control to a test, and
 `asvs-checklist.md` records the OWASP ASVS Level 2 self-assessment.
 

@@ -19,7 +19,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 
 `opencde seed` opretter demonstrationsbrugere (en administrator og en bruger
 for hver af rollerne manager, editor, contributor og viewer), to projekter og
-en offentlig OAuth2-klient og udskriver adgangskoderne én gang.
+en offentlig OAuth2-klient og udskriver kodeordene én gang.
 
 | Hvad | Hvor |
 |---|---|

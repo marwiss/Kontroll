@@ -123,8 +123,10 @@ exposes the database, as the development overlay does on `localhost:7697`.
 Its Kontroll workspace uses the patterns above (models, classes, components
 through `SAME_AS`, the latest finished model per document); the queries live in
 Dataspatium's documentation (`docs/cad-bim.md`), and the live runs are listed
-in [acceptance.md](acceptance.md). A production server does not publish Bolt,
-so such queries need an operator who does, or a future server-side query API.
+in [acceptance.md](acceptance.md). A production server does not publish Bolt;
+the administration API's graph query (`OPENCDE_GRAPH_QUERY_ENABLED`,
+[client-guide.md §7](client-guide.md)) gives administrators read-only Cypher
+without the port.
 
 ## Limits and status
 

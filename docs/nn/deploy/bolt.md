@@ -5,10 +5,10 @@ grafdatabasen ligg på det private compose-nettverket, og berre serveren
 snakkar med han. Nokre klientar vil spørje IFC-grafen direkte med Cypher over
 Bolt, slik grafvisinga i Dataspatium gjer mot utviklingsstakken. Denne sida
 fortel korleis ein administrator publiserer porten med hensikt, kva det
-kostar, og korleis han vert lukka igjen. Alternativet som held databasen
+kostar, og korleis han blir lukka igjen. Alternativet som held databasen
 privat, er den skriveverna grafspørjinga i serveren for administratorar,
 `POST /admin/api/graph/query` bak `OPENCDE_GRAPH_QUERY_ENABLED`
-([client-guide.md §7](../../client-guide.md)); publiser porten berre når ein
+([client-guide.md §7](../client-guide.md)); publiser porten berre når ein
 klient treng sjølve Bolt.
 
 ## Kva ein open port tyder
@@ -21,7 +21,7 @@ klient treng sjølve Bolt.
   serveren nektar å annonsere ei ukryptert `bolt://`-adresse i produksjon.
   Nettlesarklientar som Dataspatium treng eit sertifikat nettlesaren stolar
   på, så sjølvsignerte sertifikat verkar ikkje for dei.
-- **Annonsert til klientar.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` vert publisert i
+- **Annonsert til klientar.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` blir publisert i
   kapabilitetsdokumentet (`/.well-known/kontroll`, `extensions.ifcgraph.bolt`),
   der Dataspatium les han, og vist på sida Innstillingar i administrasjonen.
   Lat han stå tom medan porten er lukka.
@@ -81,7 +81,7 @@ Fjern `compose.bolt.yaml` frå kommandolinja, tøm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og køyr `up -d` igjen. Porten
 forsvinn frå verten, og `bolt` går tilbake til `null` i kapabilitetsdokumentet.
 Roter databasepassordet etterpå om det vart delt breiare enn tenkt
-(`docs/security/controls.md`).
+(`docs/nn/security/controls.md`).
 
 ## Memgraph
 

@@ -342,7 +342,7 @@
   "error.user.name_taken": "Brugernavnet er allerede taget.",
   "error.user.not_created": "Brugeren blev ikke oprettet.",
   "error.user.not_found": "Der findes ingen sådan bruger.",
-  "error.password.rejected": "Adgangskoden blev afvist: {problems}.",
+  "error.password.rejected": "Kodeordet blev afvist: {problems}.",
   "error.password.too_short": "brug mindst {min} tegn",
   "error.password.too_long": "brug højst {max} tegn",
   "error.password.contains_username": "medtag ikke brugernavnet",

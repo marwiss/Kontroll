@@ -63,9 +63,13 @@ uv run pytest -m ui              # Playwright and axe-core (uv sync --group ui)
 
 ## Translations
 
-The README and, in time, the documentation and the web pages exist in
-English, Swedish, Danish, Norwegian (Bokmål and Nynorsk), Finnish and
-Icelandic, under `docs/<lang>/`. English is the source. Shared terms follow
+The README, the documentation and the web pages exist in English, Swedish,
+Danish, Norwegian (Bokmål and Nynorsk), Finnish and Icelandic: the English
+pages under `docs/`, the translations under `docs/<lang>/`. English is the
+source, and a change to a page is made in all seven languages in the same
+commit (`tests/unit/test_docs.py` checks that they keep up). The project logs
+(`acceptance.md`, `inventory.md`, `dataspatium-coordination.md`), the ADRs,
+the upstream drafts and this file stay in English. Shared terms follow
 the glossary that Kontroll and [Dataspatium](https://github.com/marwiss/Dataspatium)
 keep together (`presets/i18n-shared.json` there); keep "viewpoint" and the
 API names untranslated, and send corrections of a translation as an issue or

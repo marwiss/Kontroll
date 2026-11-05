@@ -110,6 +110,12 @@ words. Planned as Dataspatium's "uniformity" release (2.34); Kontroll builds
 the language layer and the translations, Dataspatium delivers the glossary
 and the tokens.
 
+**Status: done.** The pages exist in the seven languages, and since
+2026-11-06 so does the documentation (English under `docs/`, the others under
+`docs/<lang>/`; the project logs, the ADRs and the upstream drafts stay in
+English, and `tests/unit/test_docs.py` keeps the translations in step with the
+source). Dataspatium's links to Kontroll's pages may go to `docs/<lang>/` now.
+
 ### 5. One look (K, small) — done 2026-11-05
 
 The owner decided that one look applies to both products and that it is

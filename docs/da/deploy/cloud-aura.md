@@ -10,7 +10,7 @@ Memgraph Cloud-instans.
   på pause efter 72 timer uden aktivitet og slettes efter 30 dages pause.
   AuraDB Professional til alt, der skal holdes kørende.
 - Opret instansen, og notér URI'en `neo4j+s://xxxx.databases.neo4j.io`,
-  brugeren og adgangskoden.
+  brugeren og kodeordet.
 - **Memgraph Cloud** fungerer på samme måde med `bolt+s://` og
   `OPENCDE_GRAPH_DIALECT=memgraph`.
 
