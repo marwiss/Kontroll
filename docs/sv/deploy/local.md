@@ -32,7 +32,9 @@ en gång.
 
 Utvecklingsöverlagringen publicerar Neo4j på 7484/7697 i stället för
 standardportarna 7474/7687, som en annan Neo4j på samma dator ofta upptar.
-Ändra portarna med `OPENCDE_DEV_*` i `.env`.
+Ändra portarna med `OPENCDE_DEV_*` i `.env`. Två utcheckningar på samma dator
+delar Compose-projektnamnet `kontroll` (`compose.yaml` sätter det); ge den
+andra `COMPOSE_PROJECT_NAME=kontroll-2` och andra portar i sin `.env`.
 
 ## Utan Docker för servern
 

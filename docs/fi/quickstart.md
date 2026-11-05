@@ -30,6 +30,16 @@ Tarkista <http://localhost:8000/readyz> (vastaa `ready`) ja kirjaudu
 osoitteessa <http://localhost:8000/signin> käyttäjänä `admin`: `/admin`
 näyttää projektit *Building permit* ja *Demolition permit*.
 
+Jos Compose pysähtyy ilmoitukseen `dependency failed to start: container
+kontroll-graph-1 is unhealthy`, lue `docker compose -f compose.yaml -f
+compose.dev.yaml logs graph`. Tavallinen syy on alle 16 merkin salasana, jonka
+Neo4j hylkää (`A password must be at least 16 characters`); toinen on
+aiemmasta asennuksesta jäänyt tietokannan taltio, jossa on eri salasana ja
+jonka `docker compose -f compose.yaml -f compose.dev.yaml down -v` poistaa
+tietoineen. Kaksi lähdekoodikopiota samalla koneella jakavat
+Compose-projektinimen `kontroll`, joten toinen tarvitsee `.env`-tiedostoonsa
+`COMPOSE_PROJECT_NAME=kontroll-2` ja eri `OPENCDE_DEV_*`-portit.
+
 ## 2. Käynnistä Dataspatium
 
 1. Lataa `dataspatium-<version>.zip` kohdasta
