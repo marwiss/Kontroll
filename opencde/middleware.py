@@ -16,6 +16,7 @@ from typing import Any
 import structlog
 from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 REQUEST_ID_HEADER = b"x-request-id"
@@ -102,6 +103,41 @@ class ApiCORSMiddleware:
                 await self.cors(scope, receive, send)
                 return
         await self.app(scope, receive, send)
+
+
+class UnhandledErrorMiddleware:
+    """Turn an unhandled exception into the spec error body (Foundation API 1.6) *inside* the other layers.
+
+    Starlette answers unhandled exceptions in its outermost layer, beyond CORS and the security headers, so a
+    browser client would see a network error instead of a 500. Here the response is built where those layers
+    still apply. The error is logged with the request id bound by RequestIDMiddleware; nothing else leaves.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        started = False
+
+        async def send_tracking(message: Message) -> None:
+            nonlocal started
+            if message["type"] == "http.response.start":
+                started = True
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_tracking)
+        except Exception as exc:
+            if started:  # the response is under way; nothing can be sent any more
+                raise
+            structlog.get_logger("opencde.errors").exception(
+                "unhandled_error", path=scope["path"], error_type=type(exc).__name__
+            )
+            response = JSONResponse({"message": "Internal server error"}, status_code=500)
+            await response(scope, receive, send)
 
 
 class RequestIDMiddleware:

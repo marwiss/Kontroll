@@ -36,6 +36,7 @@ from opencde.middleware import (
     BodySizeLimitMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
+    UnhandledErrorMiddleware,
 )
 from opencde.ratelimit import install_rate_limiting
 from opencde.settings import Settings
@@ -112,6 +113,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     install_rate_limiting(app, settings.rate_limits_enabled)
 
     # Middleware runs outermost-last: request id first, then size limit, CORS, ETag, headers on the way out.
+    # Unhandled errors are turned into the spec 500 innermost, so CORS and the security headers still apply.
+    app.add_middleware(UnhandledErrorMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(ETagMiddleware)
     app.add_middleware(
@@ -121,8 +124,16 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         allow_origins=settings.cors_origins,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "Accept", "If-None-Match", "X-Request-ID"],
-        expose_headers=["ETag", "Location", "X-Request-ID"],
+        # Content-Disposition carries the file name of binary uploads (Foundation API 1.9) and downloads.
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "Content-Disposition",
+            "Accept",
+            "If-None-Match",
+            "X-Request-ID",
+        ],
+        expose_headers=["ETag", "Location", "Content-Disposition", "X-Request-ID"],
         max_age=600,
     )
     app.add_middleware(

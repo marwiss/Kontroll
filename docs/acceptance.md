@@ -163,7 +163,7 @@ the address the server redirected to.
 |---|---|---|---|---|---|
 | | | Bonsai | A1–A9 | not yet run | |
 | | | ifc-lite | B1–B7 | not yet run | |
-| | | Dataspatium | C1–C9 | not yet run | the family's own tests against a mocked server are green |
+| 2026-11-05 | 4ee9425 | Dataspatium (checkout of the same day, Edge) | C1–C9 | passed after three server fixes | Found and fixed in the next commit: 3.8.2 POST Document answered 500 with rate limits on (slowapi had no Response for its headers); CORS did not allow or expose `Content-Disposition`; an unhandled 500 carried no CORS headers. Everything else in the checklist worked, including the Documents API upload and selection, refresh with rotation and sign-out with revocation |
 
 ## 6. Client deviations (draft reports, nothing sent)
 

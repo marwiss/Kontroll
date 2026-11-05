@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from opencde.main import create_app
 from opencde.settings import Settings
 from tests.conformance.schemas import validate
 from tests.integration.conftest_accounts import World, build_world, login_as
@@ -40,6 +41,17 @@ def upload(
     if filename is not None:
         headers["Content-Disposition"] = filename
     return client.post(f"/bcf/3.0/projects/{world.project_id}/documents", content=data, headers=headers, params=params)
+
+
+def test_upload_works_with_rate_limits_enabled(settings: Settings, clean_database: None) -> None:
+    """3.8.2 with the limiter on: slowapi needs a Response to write its headers into (a deployment found this)."""
+    limited = settings.model_copy(update={"rate_limits_enabled": True})
+    world = build_world(limited)
+    with TestClient(create_app(limited, startup_wait_seconds=30)) as client:
+        editor = login_as(client, world, "editor")
+        created = upload(client, world, editor, 'attachment; filename="walls.ifc"')
+        assert created.status_code == 201, created.text
+        assert "x-ratelimit-limit" in created.headers
 
 
 def test_documents_and_files_information(client: TestClient, world: World) -> None:

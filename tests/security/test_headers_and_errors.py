@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from opencde.main import create_app
+from opencde.settings import Settings
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 
 pytestmark = pytest.mark.security
@@ -82,6 +83,38 @@ def test_cors_is_bearer_only_never_credentials(client: TestClient) -> None:
     )
     assert response.headers.get("access-control-allow-origin") == "*"
     assert "access-control-allow-credentials" not in response.headers
+
+
+def test_cors_allows_and_exposes_content_disposition(client: TestClient) -> None:
+    """Binary uploads carry the file name in Content-Disposition (Foundation API 1.9), so browsers must send it."""
+    preflight = client.options(
+        "/bcf/3.0/projects/some-project/documents",
+        headers={
+            "Origin": "https://viewer.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization,content-type,content-disposition",
+        },
+    )
+    assert preflight.status_code == 200, preflight.text
+    assert "content-disposition" in preflight.headers["access-control-allow-headers"].lower()
+    response = client.get("/foundation/versions", headers={"Origin": "https://viewer.example"})
+    assert "content-disposition" in response.headers["access-control-expose-headers"].lower()
+
+
+def test_unhandled_errors_keep_cors_and_security_headers(settings: Settings) -> None:
+    """A 500 built outside the CORS layer looks like a network error to a browser client."""
+    app = create_app(settings, startup_wait_seconds=0)
+
+    @app.get("/bcf/3.0/boom")
+    async def boom() -> None:
+        raise RuntimeError("boom")
+
+    with TestClient(app) as client:
+        response = client.get("/bcf/3.0/boom", headers={"Origin": "https://viewer.example"})
+    assert response.status_code == 500
+    assert response.json() == {"message": "Internal server error"}
+    assert response.headers["access-control-allow-origin"] == "*"
+    assert response.headers["x-content-type-options"] == "nosniff"
 
 
 @pytest.mark.parametrize("path", ["/signin", "/", "/documents/1.0/select-ui/some-token", "/healthz"])
