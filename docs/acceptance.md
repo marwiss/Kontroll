@@ -137,9 +137,11 @@ finding belongs under *Client deviations*, not in the server.
 
 ## 4. Checklist C: Dataspatium (browser, own repository)
 
-Dataspatium is this project's visual test client: the OpenCDE source family
-signs in with PKCE as a public client, fetches BCF data as tables and imports
-documents chosen on the server's own page. Serve a checkout of Dataspatium
+[Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
+developed together with this server (see "Kontroll and Dataspatium" in the
+README): its OpenCDE source family signs in with PKCE as a public client,
+fetches BCF data as tables and imports documents chosen on the server's own
+page. Serve a checkout of Dataspatium
 over http (`python -m http.server 8080` in its folder) and open
 `http://127.0.0.1:8080/`; with that origin the registration in §1.2 applies.
 Under `file://` the family falls back to a manual flow where the user pastes
