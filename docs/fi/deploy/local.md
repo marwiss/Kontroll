@@ -31,7 +31,10 @@ ja julkisen OAuth2-asiakkaan ja tulostaa salasanat kerran.
 
 Kehityskerros (`compose.dev.yaml`) julkaisee Neo4j:n porteissa 7484/7697
 oletusporttien 7474/7687 sijaan, jotka toinen samalla koneella oleva Neo4j
-usein varaa. Vaihda portit `.env`-tiedoston `OPENCDE_DEV_*`-muuttujilla.
+usein varaa. Vaihda portit `.env`-tiedoston `OPENCDE_DEV_*`-muuttujilla. Kaksi
+lähdekoodikopiota samalla koneella jakavat Compose-projektinimen `kontroll`
+(`compose.yaml` asettaa sen); anna toiselle `.env`-tiedostossa
+`COMPOSE_PROJECT_NAME=kontroll-2` ja eri portit.
 
 ## Ilman Dockeria palvelimelle
 

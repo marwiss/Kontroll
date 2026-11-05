@@ -30,6 +30,16 @@ kodeord én gang; gem kodeordene til `admin` og `editor`. Kontrollér
 <http://localhost:8000/signin> som `admin`: `/admin` viser projekterne
 *Building permit* og *Demolition permit*.
 
+Hvis Compose stopper med `dependency failed to start: container
+kontroll-graph-1 is unhealthy`, så læs `docker compose -f compose.yaml -f
+compose.dev.yaml logs graph`. Den sædvanlige årsag er en adgangskode på under
+16 tegn, som Neo4j afviser (`A password must be at least 16 characters`); den
+anden er en databasevolume fra en tidligere installation med en anden
+adgangskode, som `docker compose -f compose.yaml -f compose.dev.yaml down -v`
+fjerner sammen med dens data. To checkouts på samme maskine deler
+Compose-projektnavnet `kontroll`, så det andet skal have
+`COMPOSE_PROJECT_NAME=kontroll-2` og andre `OPENCDE_DEV_*`-porte i sin `.env`.
+
 ## 2. Start Dataspatium
 
 1. Download `dataspatium-<version>.zip` fra

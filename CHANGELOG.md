@@ -10,6 +10,11 @@ a client can see; internal changes are in the commit history.
   names, passwords, project names and extension lists, clients and their
   redirect URIs) follow the page language; the CLI and the API keep the
   English texts.
+- The development overlay's public URL follows `OPENCDE_DEV_PORT`, so a
+  second local stack on another port signs in correctly; the quick start and
+  the local guide explain the `kontroll-graph-1 is unhealthy` stop (a
+  password under 16 characters, or an old database volume) and how two
+  checkouts share one machine (`COMPOSE_PROJECT_NAME`).
 
 ## 2.1.0 — 2026-11-05
 

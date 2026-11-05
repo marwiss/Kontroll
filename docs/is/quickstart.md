@@ -30,6 +30,16 @@ einu sinni; geymdu lykilorð `admin` og `editor`. Athugaðu
 <http://localhost:8000/signin> sem `admin`: `/admin` sýnir verkefnin
 *Building permit* og *Demolition permit*.
 
+Ef Compose stöðvast með `dependency failed to start: container
+kontroll-graph-1 is unhealthy`, lestu `docker compose -f compose.yaml -f
+compose.dev.yaml logs graph`. Venjulega orsökin er lykilorð undir 16 stöfum,
+sem Neo4j hafnar (`A password must be at least 16 characters`); hin er
+gagnagrunnsgeymsla frá fyrri uppsetningu með öðru lykilorði, sem
+`docker compose -f compose.yaml -f compose.dev.yaml down -v` fjarlægir ásamt
+gögnunum. Tvö útgáfusöfn á sömu tölvu deila Compose-verkefnisheitinu
+`kontroll`, svo hið síðara þarf `COMPOSE_PROJECT_NAME=kontroll-2` og aðrar
+`OPENCDE_DEV_*`-gáttir í sinni `.env`.
+
 ## 2. Ræstu Dataspatium
 
 1. Sæktu `dataspatium-<version>.zip` úr

@@ -31,7 +31,9 @@ and prints the passwords once.
 
 The development overlay publishes Neo4j on 7484/7697 rather than the default
 7474/7687, which another Neo4j on the same machine often holds. Change the
-ports with `OPENCDE_DEV_*` in `.env`.
+ports with `OPENCDE_DEV_*` in `.env`. Two checkouts on one machine share the
+Compose project name `kontroll` (`compose.yaml` sets it); give the second one
+`COMPOSE_PROJECT_NAME=kontroll-2` and other ports in its `.env`.
 
 ## Without Docker for the server
 
