@@ -79,7 +79,7 @@ def require_same_origin(request: Request) -> None:
 
 def page_context(request: Request, web_user: WebUser | None, **extra: Any) -> dict[str, Any]:
     """Context every signed-in page needs: who is signed in and a token for the sign-out form."""
-    context: dict[str, Any] = {"web_user": web_user, "signout_token": None}  # nosec B105 - filled in below
+    context: dict[str, Any] = {"web_user": web_user, "signout_token": None}  # nosec B105
     if web_user is not None:
         context["signout_token"] = form_tokens(request).sign(SIGNOUT_PURPOSE, {"session": web_user.session_hash})
     context.update(extra)

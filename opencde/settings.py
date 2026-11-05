@@ -124,6 +124,14 @@ class Settings(BaseSettings):
     ifcgraph_enabled: bool = Field(
         False, description="Convert uploaded IFC models to graph data (needs the ifcgraph extra)."
     )
+    ifcgraph_timeout_seconds: int = Field(900, ge=10, description="Kill a conversion that takes longer.")
+    ifcgraph_memory_mb: int = Field(4096, ge=256, description="Address-space limit of the conversion worker (POSIX).")
+    ifcgraph_max_entities: int = Field(5_000_000, ge=1000, description="Refuse models with more entities.")
+    ifcgraph_include_geometry: bool = Field(
+        False, description="Also import representation items, profiles and placements (much larger graphs)."
+    )
+    ifcgraph_gtin_property_set: str = Field("Reuse", description="Property set holding the GTIN of an element.")
+    ifcgraph_gtin_property: str = Field("GTIN", description="Property within that set.")
 
     # --- logging ----------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"

@@ -22,7 +22,7 @@ project plan. This file is updated with every stage.
 | 6 | Admin UI (users, projects, clients, sessions, audit log, settings) and account page | done |
 | 7 | Client library (`client/opencde_client`: discovery, PKCE, BCF, Documents, CLI, test helpers), examples and the end-to-end scenario | done |
 | 8 | Deployment: production compose with Caddy and nightly backups, tunnel and Memgraph overlays, release pipeline (multi-arch image, SBOM, Trivy), nightly security workflow, `backup`/`restore`/`revoke`, deployment guides | done |
-| 9 | IFC-graph | |
+| 9 | IFC-graph: worker process with limits, batched import, `IfcModel` per version, `SAME_AS` and GTIN for viewpoint components | done |
 | 10 | Visual acceptance, Dataspatium | |
 | 11 | Hardening, documentation, upstream preparation | |
 
@@ -130,10 +130,10 @@ project plan. This file is updated with every stage.
 
 | Prototype | Status | Stage |
 |---|---|---|
-| One node per IFC entity with the class hierarchy as labels, literal attributes as properties | keep; `IfcModel` node per document version, index on `GlobalId` | 9 |
-| Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | keep | 9 |
-| Synchronous py2neo `merge` during upload (hours for a normal model) | reshape: background worker process with limits, batched `UNWIND ... CREATE` | 9 |
-| `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | keep; property set and name configurable | 9 |
+| One node per IFC entity with the class hierarchy as labels, literal attributes as properties | done; `IfcEntity` nodes with `id = <model>:<step>`, `IfcModel` node per document version or BCF document, indexes on `GlobalId` and `model_id`; geometry left out unless `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY` | 9 |
+| Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | done (owner history kept for the `IfcProject` only) | 9 |
+| Synchronous py2neo `merge` during upload (hours for a normal model) | done: separate worker process with time, memory and entity limits, batched `UNWIND … CREATE`, status on the `IfcModel` node | 9 |
+| `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | done; property set and property configurable; `files_information` shows the `IfcProject` guid | 9 |
 
 ## 8. Web pages
 

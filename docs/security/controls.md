@@ -81,6 +81,15 @@ Every control has at least one automated test. "Suite" names the test module.
 | Pages carry the strict CSP, no inline code; the enhancement scripts build DOM with `textContent` only | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (no console errors) |
 | Accessibility: no serious or critical axe-core violations on any admin page | WCAG 2.2 AA | `tests/ui/test_admin_browser.py` |
 
+## IFC-graph (stage 9)
+
+| Control | Standard | Suite |
+|---|---|---|
+| IFC parsing runs in a separate worker process with a time limit, a memory limit (POSIX) and an entity cap; a crash or hang fails the model, not the server | OWASP ASVS 12.4 | `test_ifcgraph_convert::test_geometry_can_be_included_and_limits_are_enforced`, `test_ifcgraph` |
+| `.ifczip` is unpacked only when it holds exactly one `.ifc`, with the upload size cap on the unpacked bytes | Zip bomb | `service._prepare_input` |
+| Labels and relationship types from the converter are validated as identifiers before they reach Cypher; everything else is a parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
+| Conversion failures are recorded on the `IfcModel` node and logged without the file's content | OWASP ASVS 7.1 | `test_ifcgraph` |
+
 ## Platform (stage 0–1)
 
 | Control | Suite |

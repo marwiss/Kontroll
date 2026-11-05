@@ -14,6 +14,7 @@ from opencde.bcf.binary import file_response, filename_from_content_disposition,
 from opencde.bcf.schemas import dump
 from opencde.deps import SettingsDep, StorageDep
 from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import make_key
 
@@ -46,6 +47,7 @@ async def document_post(
     documents: BcfDocumentsDep,
     storage: StorageDep,
     settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
     guid: Annotated[str | None, Query(max_length=64)] = None,
 ) -> dict[str, Any]:
     """Upload a document as the request body (Foundation API 1.9); the file name comes from
@@ -71,6 +73,10 @@ async def document_post(
     except BaseException:
         storage.delete(key)
         raise
+    if ifcgraph is not None:
+        await ifcgraph.schedule(
+            project_id=ctx.project_id, storage_key=key, file_name=filename, bcf_document_guid=document_guid
+        )
     return dump(created)
 
 

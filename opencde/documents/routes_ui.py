@@ -35,6 +35,7 @@ from opencde.documents.sessions import (
     UploadSessionsDep,
 )
 from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.ifcgraph.service import IfcGraphDep
 from opencde.storage import TooLargeError, make_key
 from opencde.timeutil import now_iso
 from opencde.ui.templating import render
@@ -390,6 +391,7 @@ async def select_ui_upload(
     projects: ProjectsDep,
     storage: StorageDep,
     settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
 ) -> Response:
     """Upload a file from the selection page so it can be selected right away (not part of the specification)."""
     require_same_origin(request)
@@ -427,7 +429,7 @@ async def select_ui_upload(
         raise HTTPException(400, "The file is empty")
     project = next((p for p, _ in await projects.list_for_user(web_user.user.id) if p.project_id == project_id), None)
     try:
-        await documents.create_version(
+        record = await documents.create_version(
             project_id=project_id,
             document_id=None,
             title=title,
@@ -448,6 +450,14 @@ async def select_ui_upload(
     except BaseException:
         storage.delete(key)
         raise
+    if ifcgraph is not None:
+        await ifcgraph.schedule(
+            project_id=project_id,
+            storage_key=key,
+            file_name=file_name,
+            document_id=record.document_id,
+            version_index=record.version_index,
+        )
     return RedirectResponse(request.url.path.removesuffix("/upload"), status_code=303, headers=NO_STORE)
 
 

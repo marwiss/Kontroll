@@ -102,7 +102,8 @@ class BcfDocumentRepository:
                   -[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
             WITH d, v ORDER BY v.version_index DESC
             WITH d, collect(v)[0] AS v
-            RETURN d.document_id AS document_id, properties(v) AS version
+            OPTIONAL MATCH (m:IfcModel {document_id: d.document_id, version_index: v.version_index, state: 'done'})
+            RETURN d.document_id AS document_id, properties(v) AS version, m.ifc_project_guid AS ifc_project
             ORDER BY v.creation_date, d.document_id
             """,
             user_id=user_id,
@@ -118,13 +119,16 @@ class BcfDocumentRepository:
                     f"{base_url}/documents/1.0/documents/{row['document_id']}"
                     f"/versions/{row['version']['version_index']}/download"
                 ),
+                ifc_project=row.get("ifc_project"),
             )
             for row in versions
         )
         return entries
 
 
-def _entry(*, filename: str, date: str, author: str, source: str, reference: str) -> ProjectFileInformation:
+def _entry(
+    *, filename: str, date: str, author: str, source: str, reference: str, ifc_project: str | None = None
+) -> ProjectFileInformation:
     return ProjectFileInformation(
         display_information=[
             ProjectFileDisplayInformation(field_display_name="File name", field_value=filename),
@@ -132,7 +136,7 @@ def _entry(*, filename: str, date: str, author: str, source: str, reference: str
             ProjectFileDisplayInformation(field_display_name="Uploaded by", field_value=author),
             ProjectFileDisplayInformation(field_display_name="Source", field_value=source),
         ],
-        file=FileRef(filename=filename, date=date, reference=reference),
+        file=FileRef(filename=filename, date=date, reference=reference, ifc_project=ifc_project),
     )
 
 
