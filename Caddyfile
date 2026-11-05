@@ -1,0 +1,26 @@
+# Caddy in front of the API (compose.prod.yaml). Automatic HTTPS for OPENCDE_DOMAIN.
+{
+	email {$OPENCDE_ACME_EMAIL}
+}
+
+{$OPENCDE_DOMAIN} {
+	encode zstd gzip
+
+	# Documents can be large; the application enforces its own limits as well.
+	request_body {
+		max_size 1100MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	reverse_proxy api:8000 {
+		# Long uploads and keep-alive completion responses.
+		transport http {
+			read_timeout 10m
+			write_timeout 10m
+		}
+	}
+}

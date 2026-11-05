@@ -1,0 +1,81 @@
+# Production overlay: Caddy terminates TLS with automatic Let's Encrypt
+# certificates and proxies to the API; the image comes from GHCR; a backup
+# sidecar writes a dated backup folder every night.
+#
+#   uv run opencde init --public-url https://cde.example.org   (writes .env)
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d
+#   docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose ... up -d   (update)
+#
+# Requirements: ports 80 and 443 reachable from the internet, DNS for
+# OPENCDE_DOMAIN pointing at this host. See docs/deploy/vps-caddy.md.
+
+services:
+  api:
+    pull_policy: always
+    environment:
+      OPENCDE_ENVIRONMENT: production
+      # Caddy's address on the compose network is the only trusted proxy.
+      OPENCDE_TRUSTED_PROXIES: '["172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/16"]'
+
+  proxy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      OPENCDE_DOMAIN: "${OPENCDE_DOMAIN:?Set OPENCDE_DOMAIN in .env (e.g. cde.example.org)}"
+      OPENCDE_ACME_EMAIL: "${OPENCDE_ACME_EMAIL:-}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - internal
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+  backup:
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      graph:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      OPENCDE_GRAPH_URI: bolt://graph:7687
+      OPENCDE_DATA_DIR: /data
+    volumes:
+      - api-data:/data:ro
+      - backups:/backups
+    networks:
+      - internal
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # One backup a day into /backups, keeping the newest 14 folders. Copy the volume off the host.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          opencde backup /backups || echo "backup failed"
+          ls -1dt /backups/opencde-backup-* 2>/dev/null | tail -n +15 | xargs -r rm -rf
+          sleep 86400
+        done
+
+volumes:
+  caddy-data:
+  caddy-config:
+  backups:

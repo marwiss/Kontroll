@@ -1,13 +1,14 @@
 # Base stack: the API and a Neo4j Community database on a private network.
 # Nothing is published to the host here. Combine with one of:
-#   compose.dev.yaml     local development on http://localhost:8000
-#   compose.prod.yaml    production behind Caddy with automatic TLS   (stage 8)
-#   compose.tunnel.yaml  public https through a tunnel for client tests (stage 8)
-#   compose.memgraph.yaml  Memgraph instead of Neo4j                   (stage 8)
+#   compose.dev.yaml       local development on http://localhost:8000
+#   compose.prod.yaml      production behind Caddy with automatic TLS and nightly backups
+#   compose.tunnel.yaml    public https through a Cloudflare Tunnel for client tests
+#   compose.memgraph.yaml  Memgraph instead of Neo4j (add to any of the above)
 #
 #   docker compose -f compose.yaml -f compose.dev.yaml up -d
 #
-# Configuration comes from .env (copy .env.example). Secrets never live in this file.
+# Configuration comes from .env (copy .env.example or run `opencde init`). Secrets never
+# live in this file. See docs/deploy/ for every scenario, including managed databases.
 
 name: kontroll
 

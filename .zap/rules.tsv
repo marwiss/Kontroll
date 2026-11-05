@@ -1,0 +1,2 @@
+10021	IGNORE	(X-Content-Type-Options header missing on 304 and redirects: the server sets it on every response with a body)
+10049	IGNORE	(Storable and cacheable content: static assets are deliberately cacheable)

@@ -186,6 +186,90 @@ def cleanup() -> None:
 
 
 @app.command()
+def backup(
+    target: Annotated[Path, typer.Argument(help="Directory that receives a new, timestamped backup folder.")],
+) -> None:
+    """Export the whole graph and all stored files to a folder (restorable into Neo4j or Memgraph)."""
+    from opencde import backup as backups
+    from opencde.bootstrap import make_storage
+    from opencde.timeutil import now
+
+    folder = target / ("opencde-backup-" + now().strftime("%Y%m%dT%H%M%SZ"))
+
+    async def work(graph, settings):
+        return await backups.export(graph, make_storage(settings), folder)
+
+    manifest = _run(work)
+    print(f"OK      {folder}")
+    print(f"        {manifest.nodes} nodes, {manifest.relationships} relationships, {manifest.files} files")
+    if manifest.skipped_nodes:
+        print(f"WARN    {manifest.skipped_nodes} nodes without a unique key were not exported")
+
+
+@app.command()
+def restore(
+    source: Annotated[Path, typer.Argument(help="A backup folder written by `opencde backup`.")],
+    force: Annotated[bool, typer.Option("--force", help="Wipe the database and storage first.")] = False,
+) -> None:
+    """Load a backup. Refuses to touch a database that is not empty unless --force is given."""
+    from opencde import backup as backups
+    from opencde.bootstrap import make_storage
+    from opencde.seed import is_empty, wipe
+
+    try:
+        manifest = backups.read_manifest(source)
+    except backups.BackupError as exc:
+        raise _fail(str(exc)) from None
+
+    async def work(graph, settings):
+        if not await is_empty(graph):
+            if not force:
+                raise backups.BackupError("the database is not empty; use --force to replace its contents")
+            await wipe(graph)
+        return await backups.restore(graph, make_storage(settings), source)
+
+    try:
+        _run(work)
+    except backups.BackupError as exc:
+        raise _fail(str(exc)) from None
+    print(f"OK      restored backup from {manifest.created_at} ({manifest.dialect}, server {manifest.server_version})")
+    print(f"        {manifest.nodes} nodes, {manifest.relationships} relationships, {manifest.files} files")
+
+
+@app.command()
+def revoke(
+    username: Annotated[str | None, typer.Option("--user", help="Revoke every token and session of this user.")] = None,
+    client_id: Annotated[str | None, typer.Option("--client", help="Revoke every token issued to this client.")] = None,
+    everything: Annotated[bool, typer.Option("--all", help="Revoke every token and session on the server.")] = False,
+) -> None:
+    """Revoke access: after a leaked laptop, a compromised client, or as the first step of an incident response."""
+    from opencde.accounts.users import UserRepository
+    from opencde.auth.dependencies import token_repository
+
+    if sum(bool(x) for x in (username, client_id, everything)) != 1:
+        raise _fail("give exactly one of --user, --client or --all")
+
+    async def work(graph, settings):
+        tokens = token_repository(graph, settings)
+        if everything:
+            counters = await graph.write(
+                lambda tx: tx.counters(
+                    "MATCH (t) WHERE t:AccessToken OR t:RefreshToken OR t:AuthorizationCode OR t:WebSession DETACH DELETE t"
+                )
+            )
+            return counters.nodes_deleted
+        if username:
+            user = await UserRepository(graph).get_by_username(username)
+            if user is None:
+                raise typer.BadParameter(f"no user named {username}")
+            return await tokens.revoke_all_for_user(user.id)
+        return await tokens.revoke_all_for_client(client_id or "")
+
+    deleted = _run(work)
+    print(f"OK      revoked {deleted} tokens and sessions")
+
+
+@app.command()
 def seed(
     password: Annotated[
         str | None, typer.Option(help="Use this password for every demo user instead of random ones.")

@@ -1,0 +1,31 @@
+# Memgraph instead of Neo4j. The server speaks dialect-neutral Cypher (ADR 0003),
+# so only the database container and OPENCDE_GRAPH_DIALECT change.
+#
+#   docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d
+#
+# Memgraph Community authenticates with the user created from MEMGRAPH_USER and
+# MEMGRAPH_PASSWORD on first start; the server reuses OPENCDE_GRAPH_USER/PASSWORD.
+
+services:
+  graph:
+    image: memgraph/memgraph:3.14.0
+    environment:
+      NEO4J_AUTH: ""
+      MEMGRAPH_USER: "${OPENCDE_GRAPH_USER:-memgraph}"
+      MEMGRAPH_PASSWORD: "${OPENCDE_GRAPH_PASSWORD:?Set OPENCDE_GRAPH_PASSWORD in .env}"
+    command: ["--log-level=WARNING", "--storage-snapshot-interval-sec=300", "--storage-wal-enabled=true"]
+    volumes:
+      - graph-data:/var/lib/memgraph
+      - graph-logs:/var/log/memgraph
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'RETURN 1;' | mgconsole --username \"$MEMGRAPH_USER\" --password \"$MEMGRAPH_PASSWORD\" >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    user: memgraph
+
+  api:
+    environment:
+      OPENCDE_GRAPH_DIALECT: memgraph
+      OPENCDE_GRAPH_USER: "${OPENCDE_GRAPH_USER:-memgraph}"
