@@ -87,7 +87,7 @@ project plan. This file is updated with every stage.
 | Function | Prototype | Status | Stage |
 |---|---|---|---|
 | Start page `/` | sign-in form | keep: index with links to docs (stage 0 returns JSON) | 0, 2 |
-| `/favicon.ico` from a file outside the repo | yes | keep; icon in the repo | 2 |
+| `/favicon.ico` from a file outside the repo | yes | keep; the mark lives in the repo as SVG, PNG (32, 180, 192, 512) and `favicon.ico`, served from `/static` and `/favicon.ico` | 2, 11 |
 | OpenAPI with tags and descriptions | yes | keep; descriptions from the specification | 0 |
 | CORS for all origins with credentials | yes | reshape: configurable origins, Bearer only, never credentials | 0 |
 | Request/response body logging to a file | yes | reshape: structured logs with request id and redaction, no bodies | 0 |
@@ -105,7 +105,7 @@ project plan. This file is updated with every stage.
 |---|---|
 | `User` with role labels (Admin, Officer, Developer, Auditor, Tester), `hashed_password` (bcrypt) | keep; roles as `MEMBER_OF {role}` relationships, Argon2id |
 | Five test users named after the roles in a building-permit process (administrator, municipal building officer, developer, inspection manager, inspector) | keep in seed data with English user names; passwords generated at seed time, printed once |
-| `Municipality`, `Building` | keep in seed data as inspection-plan context |
+| `Municipality`, `Building` | keep in seed data as inspection-plan context; `Municipality` is now the more general `Reviewer` (same node, same role) |
 | Two projects, a building permit and a demolition permit, with `Extensions` | keep, with English names |
 | `HAS_ACTIONS_ON` relationship with boolean flags | reshape: role → spec `*_actions` enums |
 | `Document` node with version fields | reshape: `Document` + `DocumentVersion`, SHA-256 |
@@ -132,7 +132,7 @@ project plan. This file is updated with every stage.
 | Prototype | Status | Stage |
 |---|---|---|
 | One node per IFC entity with the class hierarchy as labels, literal attributes as properties | done; `IfcEntity` nodes with `id = <model>:<step>`, `IfcModel` node per document version or BCF document, indexes on `GlobalId` and `model_id`; geometry left out unless `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY` | 9 |
-| Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | done (owner history kept for the `IfcProject` only) | 9 |
+| Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | done (owner history kept for the `IfcProject` only); the types are written in upper case with underscores like every relationship in the graph (`IS_DEFINED_BY`) | 9, 11 |
 | Synchronous py2neo `merge` during upload (hours for a normal model) | done: separate worker process with time, memory and entity limits, batched `UNWIND … CREATE`, status on the `IfcModel` node | 9 |
 | `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | done; linked when a viewpoint is created and again for every existing component when a model finishes importing; property set and property configurable; `files_information` shows the `IfcProject` guid | 9, 11 |
 | Housekeeping of imported models | no | new: `opencde ifcgraph list` and `opencde ifcgraph prune` (failed and superseded models, or a whole project); documents and files stay | 11 |
@@ -186,6 +186,6 @@ The prototype was only ever exercised by Solibri, which no longer exists.
 | Client | Role | Status | Stage |
 |---|---|---|---|
 | `client/opencde_client` (Python, LGPL) | automated end-to-end scenario, examples, command line | done; proposed later for IfcOpenShell `src/bcf` | 7 |
-| Dataspatium (own repository) | visual test client in the browser: OpenCDE source family with PKCE sign-in, BCF tables (topics, comments, viewpoint components, events, files), Documents API selection and import | done; tests against a mocked server in that repository | 10 |
+| [Dataspatium](https://github.com/marwiss/Dataspatium) (own repository, developed together with this server; see "Kontroll and Dataspatium" in the README) | visual test client in the browser: OpenCDE source family with PKCE sign-in and self-registration, BCF tables and issue writing, Documents API selection, upload and import, graph queries over Bolt, request ids for the request log | done; tests against a mocked server in that repository and live suites against the development stack (`docs/acceptance.md`) | 10, 11 |
 | Bonsai (openBCF, Blender) | independent BCF desktop client | checklist A in `docs/acceptance.md`, to be run by hand | 10 |
 | ifc-lite | independent browser client with BCF and Documents API libraries | checklist B in `docs/acceptance.md`, to be run by hand | 10 |

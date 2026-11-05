@@ -101,17 +101,18 @@ async def seed(
     await projects.set_member(demolition_permit.project_id, created["officer"].id, Role.MANAGER)
     await projects.set_member(demolition_permit.project_id, created["developer"].id, Role.CONTRIBUTOR)
 
-    # Context nodes from the inspection-plan use case: who issues the permit and what it concerns.
+    # Context nodes from the inspection-plan use case: the reviewing organisation (a municipality in the
+    # original story, hence the name) that issues the permit, and the building it concerns.
     await graph.run(
         """
         MATCH (p:Project {project_id: $project_id})
-        CREATE (m:Municipality {id: $municipality_id, name: 'Example Municipality', created_at: $now})
+        CREATE (r:Reviewer {id: $reviewer_id, name: 'Example Municipality', created_at: $now})
         CREATE (b:Building {id: $building_id, status: 'Under construction', created_at: $now})
-        CREATE (m)-[:ISSUES]->(p)
+        CREATE (r)-[:ISSUES]->(p)
         CREATE (p)-[:CONCERNS]->(b)
         """,
         project_id=building_permit.project_id,
-        municipality_id=secrets.token_hex(16),
+        reviewer_id=secrets.token_hex(16),
         building_id=secrets.token_hex(16),
         now=now_iso(),
     )
