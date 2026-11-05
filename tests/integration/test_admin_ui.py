@@ -99,7 +99,7 @@ def test_validation_messages_follow_the_page_language(client: TestClient, world:
     web_sign_in(client, world, "admin")
     page = client.get("/admin/users/new", params={"lang": "sv"}).text  # sets the language cookie as well
     refused = post(client, "/admin/users", page, username="x", full_name="", email="")
-    assert "Användarnamnet måste vara 3–128 tecken" in refused.text, "the repository's message in the page language"
+    assert "Användarnamnet måste vara 3–128 tecken" in refused.text, "the repository's message in the page language"  # noqa: RUF001
     assert "user name: 3-128" not in refused.text
     weak = post(client, "/admin/users", page, username="weak_user", full_name="", email="", password="short")
     assert "Lösenordet avvisades: använd minst 12 tecken" in weak.text
