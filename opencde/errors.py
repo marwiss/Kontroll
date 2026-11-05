@@ -34,7 +34,7 @@ log = get_logger(__name__)
 # Codes a client may act on, by status. Statuses outside this table (405, 415 from the framework) carry no code.
 CODE_VALIDATION = "validation_error"  # 400: body, query, OData or extension value not accepted
 CODE_UNAUTHENTICATED = "unauthenticated"  # 401: no bearer token at all
-CODE_INVALID_TOKEN = "invalid_token"  # 401: token unknown, expired or revoked  # noqa: S105 (a label, not a secret)
+CODE_INVALID_TOKEN = "invalid_token"  # noqa: S105  # nosec B105 (401: a label for a stale token, not a secret)
 CODE_INSUFFICIENT_SCOPE = "insufficient_scope"  # 403: token lacks the scope the route needs
 CODE_FORBIDDEN = "forbidden"  # 403: the role does not allow the action
 CODE_REAUTHENTICATION_REQUIRED = "reauthentication_required"  # 403: a fresh sign-in is needed (administration)
