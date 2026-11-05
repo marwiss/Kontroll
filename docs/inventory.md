@@ -175,6 +175,21 @@ this server does:
 | Documents `UploadFilePartInstruction` is `allOf: [LinkData, …]` where `LinkData` has `additionalProperties: false`; read as strict JSON Schema nothing could satisfy it | The conformance test reads `allOf` as composition, as OpenAPI tooling does |
 | Documents API: no callback parameter is defined for the user cancelling an upload in some wording (`user_cancelled_selection` appears under the upload flow once) | `user_cancelled_upload=true` for uploads, `user_cancelled_selection=true` for selections, as the operation descriptions state |
 
+Seen from the client side (Dataspatium, 2026-11-05), the same list continues;
+the "client" column says what that application does:
+
+| Observation | Server | Client |
+|---|---|---|
+| Foundation API 1.0 defines no revocation URL | `oauth2_revocation_url` in `GET /foundation/1.0/auth` (extension, RFC 7009) | Revokes through it when present, otherwise skips revocation |
+| Foundation API 1.6 fixes `{"message"}` but no machine-readable code | A stable `code` next to `message` (extension, client-guide §6) | Translates `code`, shows `message` for unknown codes |
+| BCF 3.0 does not say which fields a client may send in `PUT` topic | Server-set fields in a `PUT` body are ignored (Foundation 1.8) | Omits `guid`, `creation_author`, `creation_date`, `modified_author`, `modified_date` |
+| BCF 3.0 gives no guidance for `aspect_ratio` and `field_of_view` of a camera taken from a 3D view | Stored as sent; validated as numbers only | Sends `perspective_camera` with `field_of_view` 60 and the view's `aspect_ratio` |
+| Documents API: a declared file size over the server's limit at `upload-instructions` has no defined answer | `413` with `code: upload_too_large` and the limit in the message | Shows the limit to the user |
+| Documents API: how `version_index` starts and what identifies "the same document" across versions | `version_index` counts from 1; `document_id` is stable across versions and appears in `files_information` | Uses `document_id` from the address, `bcf_document_guid` as fallback |
+| Foundation 1.2: `If-None-Match`/`304` on list responses is optional | Served on `document-versions` and other GETs with an `ETag` | Treats `304` as "not modified" and keeps its cache |
+| RFC 7591: `software_id` and `software_version` are optional | Stored and shown when sent | Always sends them |
+| RFC 8252 §7.3 and local development: `http://localhost` redirect URIs without TLS | Loopback IPs are always accepted; `localhost` with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` outside production | Registers `http://localhost:<port>/oauth-callback.html` when served locally |
+
 ## 11. README items of the prototype
 
 Code structure, deployment steps, suggested reading and the TODO list of the
