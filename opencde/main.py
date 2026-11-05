@@ -13,7 +13,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from opencde import __version__, health
@@ -173,5 +173,12 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     @app.get("/", include_in_schema=False, response_class=HTMLResponse)
     async def index(request: Request) -> HTMLResponse:
         return render(request, "index.html", {"version": __version__, "admin_enabled": settings.admin_ui_enabled})
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon() -> FileResponse:
+        """Browsers ask for this path unprompted; the pages themselves link the SVG and PNG icons."""
+        return FileResponse(
+            STATIC_DIR / "favicon.ico", media_type="image/x-icon", headers={"Cache-Control": "public, max-age=86400"}
+        )
 
     return app
