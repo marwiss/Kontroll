@@ -41,7 +41,7 @@ from opencde.storage import TooLargeError, make_key
 from opencde.timeutil import now_iso
 from opencde.ui.i18n import tr
 from opencde.ui.links import dataspatium_link
-from opencde.ui.templating import render
+from opencde.ui.templating import origin_of, render
 from opencde.web.dependencies import (
     NO_STORE,
     WebUserDep,
@@ -170,6 +170,7 @@ async def _upload_page(
             action=request.url.path,
             error=error,
         ),
+        form_action=origin_of(session.callback_url),  # saving or cancelling redirects to the client
         status_code=status_code,
     )
 
@@ -304,6 +305,7 @@ async def _select_page(
             error=error,
         ),
         status_code=status_code,
+        form_action=origin_of(session.callback_url),  # selecting or cancelling redirects to the client
     )
 
 

@@ -41,7 +41,7 @@ from opencde.logging import get_logger
 from opencde.ratelimit import RATE_EXCHANGE, RATE_REGISTRATION, RATE_SIGN_IN, limiter
 from opencde.timeutil import later_iso
 from opencde.ui.i18n import tr
-from opencde.ui.templating import render
+from opencde.ui.templating import origin_of, render
 
 log = get_logger(__name__)
 
@@ -166,6 +166,7 @@ async def authorize_page(
             "form_token": token,
             "error": None,
         },
+        form_action=origin_of(redirect_to),  # the form's answer is a redirect to the client
     )
 
 
@@ -219,6 +220,7 @@ async def authorize_submit(
                 "form_token": token,
                 "error": tr(request, "signin.error.credentials"),
             },
+            form_action=origin_of(redirect_to),
         )
 
     code = await tokens.issue_code(

@@ -254,3 +254,26 @@ def test_sign_in_is_rate_limited(graph_target, tmp_path, clean_database: None) -
             statuses.append(response.status_code)
         assert 429 in statuses, statuses
         assert statuses.index(429) <= 10
+
+
+def test_the_authorization_page_lets_the_browser_follow_the_redirect_to_the_client(
+    client: TestClient, world: World
+) -> None:
+    """Chromium checks form-action against the redirect that answers the sign-in form, so the page names
+    the client's origin (and only that one); a loopback redirect keeps its port."""
+    page = client.get("/foundation/oauth2/auth", params=_authorize_params(world))
+    assert page.status_code == 200
+    assert "form-action 'self' http://127.0.0.1;" in page.headers["content-security-policy"]
+    with_port = client.get(
+        "/foundation/oauth2/auth", params=_authorize_params(world, redirect_uri="http://127.0.0.1:5173/callback")
+    )
+    assert "form-action 'self' http://127.0.0.1:5173;" in with_port.headers["content-security-policy"]
+    token = FORM_TOKEN.search(page.text).group(1)  # type: ignore[union-attr]
+    retry = client.post(
+        "/foundation/oauth2/auth",
+        data={"form_token": token, "username": "editor", "password": "wrong", "decision": "allow"},
+    )
+    assert (
+        retry.status_code == 200 and "form-action 'self' http://127.0.0.1;" in retry.headers["content-security-policy"]
+    )
+    assert "form-action 'self';" in client.get("/signin").headers["content-security-policy"], "other pages stay strict"
