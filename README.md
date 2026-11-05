@@ -88,6 +88,9 @@ password.
 - [docs/ui-styleguide.md](docs/ui-styleguide.md): rules for the server's pages
 - [docs/acceptance.md](docs/acceptance.md): visual acceptance checklist with
   independent clients (Bonsai, ifc-lite, Dataspatium)
+- [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): what
+  Kontroll and Dataspatium share and what more to coordinate, with the
+  decisions that remain
 - [docs/adr/](docs/adr/): architecture decision records (graph backend,
   opaque tokens, portable Cypher, vanilla web UI, repository strategy)
 - [docs/security/](docs/security/): threat model, controls mapped to tests,
