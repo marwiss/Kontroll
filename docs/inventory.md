@@ -145,6 +145,7 @@ project plan. This file is updated with every stage.
 | Prototype | Status | Stage |
 |---|---|---|
 | `login.html` (Bootstrap and jQuery from CDN, AJAX) | reshape: same content, own CSS, form POST, CSRF token, no CDN | 2 |
+| Bootstrap look | reshape: Dataspatium's design (its tokens with the `--dm-*` names, Inter self-hosted, 32 px controls, the same component looks on plain HTML), used with the permission of Dataspatium's copyright holder; `docs/ui-styleguide.md` | 2, 11 |
 | `select_files.html` | done: `documents/select.html`, form POST, filtering, cancel, upload form for editors | 5 |
 | `upload_files.html` | done: `documents/upload.html`, project choice, cancel | 5 |
 | `index.html`, missing `document_details.html` | done: `index.html`, `documents/details.html` | 2, 5 |

@@ -9,9 +9,15 @@ normative for new pages (ADR 0004).
 1. **Server-rendered, works without JavaScript.** Every action is a form POST;
    JavaScript only makes things smoother (filtering, sorting, confirmation
    dialogs, copy buttons).
-2. **One source of design.** Colours, type, spacing and radii come from
-   `opencde/ui/static/css/tokens.css`; components from `components.css`. Never
-   hard-code a colour or a pixel value in a template.
+2. **One source of design, and it is Dataspatium's.** The owner decided that
+   the server's pages and the Dataspatium app share one look, based on
+   Dataspatium's, and as Dataspatium's copyright holder permitted Kontroll to
+   use that design despite the different licences (2026-11-05). Colours,
+   type, spacing and radii come from `opencde/ui/static/css/tokens.css`,
+   which carries Dataspatium's tokens with their `--dm-*` names; components
+   from `components.css`, which expresses Dataspatium's components on the
+   server's plain HTML. Never hard-code a colour or a pixel value in a
+   template, and when Dataspatium's tokens change, change ours the same way.
 3. **Strict CSP.** No inline `<script>` or `style=`, no `on*` attributes, no
    `innerHTML` with server data, no CDN. Scripts are ES modules under
    `/static/js/`, loaded with `<script type="module">`.
@@ -48,17 +54,51 @@ normative for new pages (ADR 0004).
 | `user_nav(web_user, signout_token)` | Signed-in user and sign-out form in the header |
 | `when(iso)` | A `<time>` element for an ISO timestamp |
 
-Badges: `.badge` (accent), `.badge--neutral`, `.badge--success`, `.badge--danger`.
-Danger zones: `.card.card--danger` with one form per destructive action and
-`data-confirm="question"` on the form.
+Badges: `.badge` (accent), `.badge--neutral`, `.badge--success`,
+`.badge--warning`, `.badge--danger`. Danger zones: `.card.card--danger` with
+one form per destructive action and `data-confirm="question"` on the form.
 
-## Tokens
+## Tokens and the shared look
 
-Change the brand in `tokens.css` only: `--color-accent` and its `-strong` and
-`-soft` variants. The accent is the mark's blue, `#2b6cb0`, the same value
-Dataspatium uses (`--dm-accent`; hover `#245c96`, soft `#e6effa`), with a
-lighter blue in dark mode; light and dark follow the system setting. Type scale
-`--text-xs … --text-xl`, spacing `--space-1 … --space-7`, radii `--radius-sm/md/lg`.
+`tokens.css` is Dataspatium's token file (`src/ui/design/tokens.css` there)
+minus the data palette and the panel layout the app alone needs. The names
+are the same, `--dm-*`, so that a value can be compared line by line:
+
+- Type: Inter (self-hosted under `/static/fonts/`, SIL Open Font License,
+  weights 400, 500 and 600), scale `--dm-text-xs` 12 px … `--dm-text-2xl`
+  24 px, body 15 px, line height 1.45.
+- Spacing: the 4 px scale `--dm-s-1` … `--dm-s-12`.
+- Shape: `--dm-radius-sm` 6 px for controls, `--dm-radius-md` 10 px for cards
+  and dialogs; shadows only on dialogs.
+- Colour: the neutral scale, the semantic surfaces and text, the accent
+  (`#2b6cb0`, the mark's blue), the status colours `ok`/`warn`/`error`, each
+  with a `-soft` background, and the dark theme under
+  `:root[data-theme="dark"]` and `prefers-color-scheme: dark`.
+- Layout: the top bar is `--dm-topbar-h` 48 px, the footer `--dm-statusbar-h`
+  28 px, the administration's side navigation `--dm-panel-min-w` 200 px;
+  below 760 px the layout stacks and controls grow to 44 px touch targets.
+
+The components map onto Dataspatium's like this:
+
+| Kontroll class | Dataspatium component | Look |
+|---|---|---|
+| `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` with `variant` and `size` | 32 px (26 px small), radius 6 px, 13 px medium text; primary filled accent; danger red text, red on hover |
+| `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, input border, focus ring inside; textareas monospace |
+| `.badge` | `dm-badge` | pill, 12 px medium |
+| `.card` | `dm-panel[card]`, `.dm-card` | surface, border, radius 10 px, no shadow |
+| `.table` in `.table-wrap` | `dm-table` | 13 px, header on surface-2 at 34 px, 30 px rows, sorted header in accent |
+| `.nav a`, `.sidenav__list a` | `.dm-list-item` | 13 px, radius 6 px, hover surface, current accent-soft |
+| `.alert` | `.dm-toast` | surface with a 3 px coloured left edge |
+| `dialog` | `dialog.dm-dialog` | 560 px, radius 10 px, large shadow, backdrop |
+| `.consent` | `.dm-course-task` | surface-2 with an accent left edge |
+| `.stat` | a card with `--dm-text-2xl` | tabular numbers |
+
+Dataspatium's rules hold on the server's pages too: at most one primary
+button per view; destructive actions use the danger variant and a
+confirmation dialog; numbers right-aligned with tabular figures; dates
+`YYYY-MM-DD`, times `HH:MM`; everything reachable by keyboard with a visible
+focus ring; no animation beyond short transitions, none at all under
+`prefers-reduced-motion`.
 
 ## Mark
 

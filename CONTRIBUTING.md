@@ -74,7 +74,12 @@ a pull request like any other change.
 ## Working with Dataspatium
 
 Kontroll and Dataspatium are developed to work together but are separate
-projects with different licences (AGPL here, PolyForm Strict there). Nothing
-is copied between the repositories; shared values (colours, terms, test
-geometry) are re-stated as facts. What the two coordinate, and in which
-order, is in [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
+projects with different licences (AGPL here, PolyForm Strict there). Code is
+not copied between the repositories; shared values (terms, test geometry)
+are re-stated as facts. The one exception is the look: Dataspatium's
+copyright holder has permitted Kontroll to use Dataspatium's design (tokens,
+type, spacing, component styles), so `opencde/ui/static/css/tokens.css`
+carries Dataspatium's tokens under this project's licence and the components
+follow Dataspatium's. Keep them in step. What the two coordinate, and in
+which order, is in
+[docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).

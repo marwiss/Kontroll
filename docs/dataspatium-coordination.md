@@ -95,15 +95,23 @@ words. Planned as Dataspatium's "uniformity" release (2.34); Kontroll builds
 the language layer and the translations, Dataspatium delivers the glossary
 and the tokens.
 
-### 5. One look (K, small) — accent done 2026-11-05, tokens with item 4
+### 5. One look (K, small) — done 2026-11-05
 
-The marks share the blue `#2b6cb0`, and since 2026-11-05 Kontroll's pages
-use it as their accent too (`tokens.css`: `#2b6cb0`, hover `#245c96`, soft
-`#e6effa`, a lighter blue in dark mode, focus ring from the same hue) instead
-of the earlier teal. Still to do with item 4: align the type scale and radii
-with Dataspatium's tokens where they differ for no reason. The two projects
-stay separate code bases (different licences, see item B), so token values are
-re-stated as facts, not copied as files.
+The owner decided that one look applies to both products and that it is
+Dataspatium's: the same font (Inter, self-hosted in Kontroll under the SIL
+Open Font License), type scale, weights, 4 px spacing scale, radii, shadows,
+light and dark colours, status colours, control sizes (32 px buttons and
+fields, 44 px touch targets below 760 px) and component looks. As the
+copyright holder of Dataspatium the owner permitted Kontroll to use that
+design despite the different licences, so Kontroll's `tokens.css` carries
+Dataspatium's tokens with the same `--dm-*` names, and `base.css` and
+`components.css` express Dataspatium's components (`dm-button`, `.dm-field`,
+`dm-badge`, `dm-table`, `.dm-list-item`, `dialog.dm-dialog`, `.dm-toast`) on
+the server's plain HTML classes. Dataspatium's style rules apply too: one
+primary button per view, danger actions confirmed in a dialog, tabular
+numbers, dates as `YYYY-MM-DD` and times as `HH:MM`, keyboard reachability,
+reduced motion respected. The source of the design stays Dataspatium; when
+its tokens change, Kontroll's follow.
 
 ### 6. Releases that can be matched (K, small; D, small)
 
@@ -279,7 +287,10 @@ All four were taken on 2026-11-05.
   separately, so both READMEs and the joint quick start (item 8) explain how
   to get the other one. Kontroll never bundles Dataspatium; Dataspatium may
   bundle or download Kontroll (the AGPL allows redistribution with source),
-  which is that project's choice.
+  which is that project's choice. Later the same day the owner, as
+  Dataspatium's copyright holder, permitted Kontroll to use Dataspatium's
+  design (item 5): the tokens are carried over as they are, under Kontroll's
+  licence, as the one exception to "nothing is copied".
 - **C. First Kontroll release**: when to tag `v0.1.0` (item 6). The code is
   there; what remains is the owner's acceptance runs A and B
   (`docs/acceptance.md`) and the OAuch/testssl runs before a production
