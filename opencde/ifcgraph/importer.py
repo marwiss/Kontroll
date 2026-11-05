@@ -12,12 +12,19 @@ from opencde.graph.graph import Graph
 
 BATCH = 2_000
 _IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 
 
 def _safe(name: str) -> str:
     if not _IDENTIFIER.match(name):
         raise ValueError(f"unsafe identifier from converter: {name!r}")
     return name
+
+
+def relationship_type(attribute: str) -> str:
+    """The relationship type for an IFC attribute: upper case with underscores, as every relationship in the
+    graph is written (``IsDefinedBy`` becomes ``IS_DEFINED_BY``, ``HasProperties`` ``HAS_PROPERTIES``)."""
+    return _safe(_CAMEL_BOUNDARY.sub("_", _safe(attribute)).upper())
 
 
 async def import_records(graph: Graph, model_id: str, records_path: Path) -> dict[str, int]:
@@ -61,7 +68,7 @@ async def import_records(graph: Graph, model_id: str, records_path: Path) -> dic
                     {"id": f"{model_id}:{record['step']}", "step": record["step"], "props": record["props"]}
                 )
             elif kind == "e":
-                edge_groups.setdefault(_safe(record["type"]), []).append(
+                edge_groups.setdefault(relationship_type(record["type"]), []).append(
                     {"a": f"{model_id}:{record['a']}", "b": f"{model_id}:{record['b']}"}
                 )
             else:
