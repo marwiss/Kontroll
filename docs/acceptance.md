@@ -31,7 +31,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 ```
 
 `seed` prints the demo users and their one-time passwords, the ids of the
-projects *Bygglov* and *Rivningslov*, a public client and a confidential
+projects *Building permit* and *Demolition permit*, a public client and a confidential
 client. The example model `tests/fixtures/three_walls_gtin.ifc` (three walls
 with GUIDs `1Xezbq735AdBO_4DerG66G`, `3eT96F_cnDsOufCEsotwtp`,
 `3k3LbXmTfDWODxdSuyCGYE`) is the model to open in the clients.
@@ -159,7 +159,7 @@ the address the server redirected to.
 |---|---|---|
 | C1 | *Inhämta* → add a database source → family "OpenCDE (BCF, Documents)" with the server URL and the client id | Dataspatium asks for consent to contact the host once; discovery lists foundation 1.0, bcf 3.0 and documents 1.0; the connector is created without a secret |
 | C2 | Sign in (popup) | The popup shows the server's sign-in page; after consent it closes by itself, the view shows the user name and the project picker with the user's projects |
-| C3 | Fetch topics, comments, components, events and files for *Bygglov* | Five tables; the components table has one row per selected or coloured element with `ifc_guid`, `role` and `color`; the events table has one row per action; the files table shows the uploaded IFC, with its `ifc_project` when the IFC-graph module is enabled ([docs/ifcgraph.md](ifcgraph.md)) |
+| C3 | Fetch topics, comments, components, events and files for *Building permit* | Five tables; the components table has one row per selected or coloured element with `ifc_guid`, `role` and `color`; the events table has one row per action; the files table shows the uploaded IFC, with its `ifc_project` when the IFC-graph module is enabled ([docs/ifcgraph.md](ifcgraph.md)) |
 | C4 | Save the topics table as a dataset and refresh it later | The dataset records the source (connector, project, table); refreshing fetches again through the family and the row count follows the server |
 | C5 | "Hämta dokument" | A popup with the server's selection page; the chosen IFC is downloaded and imported as a model dataset; the element GUIDs match the `ifc_guid` column of the components table, so the two datasets can be joined in Dataspatium |
 | C6 | Cancel the selection page | Dataspatium reports the cancellation, no error |
