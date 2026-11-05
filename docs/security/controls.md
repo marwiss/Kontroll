@@ -107,6 +107,9 @@ Every control has at least one automated test. "Suite" names the test module.
 | Request body size limit before parsing | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request id sanitised | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |
 | CORS without credentials, on the API paths only; pages are never shared cross-origin | `test_headers_and_errors::test_cors_is_bearer_only_never_credentials`, `::test_pages_are_never_shared_cross_origin` |
+| CORS allows and exposes `Content-Disposition`, so browser clients can upload and download binaries (Foundation API 1.9) | `test_headers_and_errors::test_cors_allows_and_exposes_content_disposition` |
+| Unhandled errors become the spec 500 inside the CORS and security-header layers, so browser clients see the status, not a network error | `test_headers_and_errors::test_unhandled_errors_keep_cors_and_security_headers` |
+| Rate-limited endpoints hand slowapi a Response for its headers (with limits on, a dict-returning endpoint failed) | `test_rate_limit_endpoints`, `test_bcf_links_documents::test_upload_works_with_rate_limits_enabled` |
 | The interactive API documentation (third-party Swagger UI from a CDN) has a policy of its own and is off in production by default | `test_headers_and_errors::test_api_docs_have_their_own_policy_and_are_off_in_production` |
 | Production refuses to start without https, database password and secret key | `test_settings` |
 | Storage keys built from UUIDs only; path traversal impossible | `test_core_helpers::test_storage_keys_cannot_escape` |

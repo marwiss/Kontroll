@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Path, Query, Request
+from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from opencde.bcf.access import ProjectCtx, parse_guid
@@ -43,6 +43,7 @@ async def documents_get(ctx: ProjectCtx, documents: BcfDocumentsDep) -> list[dic
 @limiter.limit(RATE_UPLOAD)
 async def document_post(
     request: Request,
+    response: Response,  # slowapi writes its rate-limit headers here, since the endpoint returns a dict
     ctx: ProjectCtx,
     documents: BcfDocumentsDep,
     storage: StorageDep,
