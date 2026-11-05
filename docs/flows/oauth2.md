@@ -35,6 +35,12 @@ sequenceDiagram
     S-->>C: 201 new access_token and refresh_token
 ```
 
+A worked example of the client side of this flow in a browser is the OpenCDE
+source of [Dataspatium](https://github.com/marwiss/Dataspatium)
+(`src/api/families/opencde.js`): PKCE verifier and challenge, the popup to the
+authorization page, the callback page that reports the code back, the token
+exchange as a public client, refresh with rotation and revocation at sign-out.
+
 ## What each party must do
 
 | Step | Client | Server |

@@ -57,6 +57,24 @@ Set `OPENCDE_GRAPH_DIALECT=memgraph` and `OPENCDE_GRAPH_USER=memgraph` in `.env`
 when running the server outside Docker. Memgraph Lab (`memgraph/lab`) can be
 pointed at `localhost:7697`.
 
+## Testing with Dataspatium
+
+[Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
+developed together with this server. Serve a checkout of it over http
+(`python -m http.server 8080` in its folder), open `http://127.0.0.1:8080/`,
+register the app as a public client, and add the server as an OpenCDE source
+in Dataspatium (*Inhämta*) with `http://localhost:8000` and that client id:
+
+```sh
+uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.0.1:8080/oauth-callback.html
+```
+
+With `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` in `.env` the app registers
+itself instead. CORS allows every origin by default, so no further setting is
+needed; `OPENCDE_REQUEST_LOG_ENABLED=true` lets `/admin/requests` show the
+server side of the app's calls. The full checklist is
+[docs/acceptance.md](../acceptance.md), section C.
+
 ## Clean slate
 
 ```sh

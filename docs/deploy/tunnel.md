@@ -44,6 +44,11 @@ for them).
 `ngrok http 8000` prints an https URL; put it in `OPENCDE_PUBLIC_URL` and restart
 the API. Fine for a one-off test, not for anything that stores the URL.
 
+A browser client such as [Dataspatium](https://github.com/marwiss/Dataspatium)
+can use the tunnel URL as its server address while the app itself is served
+from `http://127.0.0.1:<port>`; the app's redirect URI stays a loopback
+address, and CORS allows every origin by default.
+
 ## Afterwards
 
 A tunnelled development stack is a production-like server with demo passwords.
