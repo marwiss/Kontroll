@@ -127,6 +127,20 @@ class Settings(BaseSettings):
         "for /admin/requests and /admin/api/requests. An extension outside the specifications.",
     )
     request_log_retention_hours: int = Field(72, ge=1, description="How long request log entries are kept.")
+    admin_api_enabled: bool = Field(
+        True, description="Serve the JSON administration API under /admin/api (bearer tokens with the admin scope)."
+    )
+    dataspatium_url: str | None = Field(
+        None,
+        description="Address of a Dataspatium installation to link to from the server's pages and the "
+        "capabilities document (an extension outside the specifications).",
+    )
+    graph_public_bolt_url: str | None = Field(
+        None,
+        description="Bolt address of the graph database as clients may reach it, announced in the capabilities "
+        "document. Leave empty unless the database is deliberately published (the development overlay does on "
+        "bolt://localhost:7697).",
+    )
     allow_localhost_redirects: bool = Field(
         False,
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",
