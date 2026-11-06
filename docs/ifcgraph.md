@@ -26,6 +26,8 @@ for a slimmer image without IfcOpenShell when the module stays off.
 4. The records are imported in batches of `UNWIND … CREATE` (portable Cypher,
    no APOC). The `IfcModel` ends in state `done` with counts and the
    `IfcProject` guid, or `failed` with an error.
+5. A conversion a stopped server left behind starts over: a queued one as soon as the server is back, a
+   running one once twice the time limit has passed, since it could be running in another server process.
 
 ## The graph
 

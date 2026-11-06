@@ -10,7 +10,12 @@ import pytest
 from fastapi.testclient import TestClient
 from neo4j import GraphDatabase
 
+from opencde.bootstrap import make_storage
+from opencde.documents.assembly import store_stream
+from opencde.ids import new_id
 from opencde.main import create_app
+from opencde.storage import make_key
+from opencde.timeutil import later_iso, now_iso
 from tests.conftest import FIXTURES_DIR, test_settings
 from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as
@@ -52,6 +57,69 @@ def wait_for_model(graph_target: GraphTarget, database: str | None, timeout: flo
                 return records[0]["m"]
             time.sleep(1.0)
     raise AssertionError("the IFC import did not finish in time")
+
+
+def test_a_conversion_a_stopped_server_left_behind_starts_over(
+    graph_target: GraphTarget, clean_database: None, tmp_path
+) -> None:
+    settings = test_settings(
+        tmp_path,
+        graph_dialect=graph_target.dialect,
+        graph_uri=graph_target.uri,
+        graph_user=graph_target.user,
+        graph_password=graph_target.password,
+        graph_connect_timeout_seconds=10.0,
+        ifcgraph_enabled=True,
+        ifcgraph_timeout_seconds=300,
+    )
+    world = build_world(settings)
+    key = make_key("documents", new_id())
+    with (FIXTURES_DIR / "three_walls_gtin.ifc").open("rb") as source:
+        store_stream(make_storage(settings), source, key, 10_000_000)
+    left_behind = {
+        "queued": {},
+        "long-gone": {"running_at": later_iso(-3600)},
+        "just-started": {"running_at": now_iso()},
+    }
+    with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
+        for model_id, fields in left_behind.items():
+            driver.execute_query(
+                """
+                MATCH (p:Project {project_id: $project_id})
+                CREATE (p)-[:HAS_MODEL]->(m:IfcModel {
+                    id: $id, project_id: $project_id, file_name: 'a.ifc', storage_key: $key, created_at: $now
+                })
+                SET m.state = CASE WHEN $id = 'queued' THEN 'queued' ELSE 'running' END, m += $fields
+                """,
+                project_id=world.project_id,
+                id=model_id,
+                key=key,
+                now=now_iso(),
+                fields=fields,
+                database_=settings.database_name,
+            )
+        driver.execute_query(
+            "CREATE (:IfcEntity {model_id: 'long-gone', GlobalId: 'half-way-through'})",
+            database_=settings.database_name,
+        )
+
+        def states() -> dict[str, str]:
+            records, _, _ = driver.execute_query(
+                "MATCH (m:IfcModel) RETURN m.id AS id, m.state AS state", database_=settings.database_name
+            )
+            return {record["id"]: record["state"] for record in records}
+
+        with TestClient(create_app(settings, startup_wait_seconds=30)):
+            deadline = time.monotonic() + 240
+            while {states()["queued"], states()["long-gone"]} != {"done"}:
+                assert time.monotonic() < deadline, states()
+                assert "failed" not in states().values(), states()
+                time.sleep(1.0)
+        assert states()["just-started"] == "running", "it may be running in another server process"
+        half_way, _, _ = driver.execute_query(
+            "MATCH (e:IfcEntity {GlobalId: 'half-way-through'}) RETURN count(e) AS n", database_=settings.database_name
+        )
+        assert half_way[0]["n"] == 0
 
 
 def test_uploaded_model_becomes_graph_and_components_link(

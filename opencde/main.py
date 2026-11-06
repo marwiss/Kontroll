@@ -85,9 +85,14 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.state.started_at = time.monotonic()  # the administration API reports the uptime from it
         app.state.graph = make_graph(settings)
         app.state.storage = make_storage(settings)
-        cleaner = ExpiryCleaner(app.state.graph, settings.cleanup_interval_seconds, app.state.storage)
         app.state.ifcgraph = (
             IfcGraphService(app.state.graph, app.state.storage, settings) if settings.ifcgraph_enabled else None
+        )
+        cleaner = ExpiryCleaner(
+            app.state.graph,
+            settings.cleanup_interval_seconds,
+            app.state.storage,
+            each_round=app.state.ifcgraph.resume_interrupted if app.state.ifcgraph else None,
         )
         app.state.requestlog = (
             RequestLogWriter(app.state.graph, settings.request_log_retention_hours)

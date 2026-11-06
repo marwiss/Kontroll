@@ -29,6 +29,8 @@ IfcOpenShelliä, kun moduuli pysyy pois päältä.
 4. Tietueet tuodaan erissä `UNWIND … CREATE` -lauseilla (siirrettävä Cypher,
    ei APOC:ia). `IfcModel` päätyy tilaan `done` lukumäärineen ja
    `IfcProject`-guidin kanssa, tai tilaan `failed` virheen kanssa.
+5. Muunnos, jonka pysäytetty palvelin jätti kesken, alkaa alusta: jonossa oleva heti, kun palvelin on taas
+   käynnissä, ja käynnissä ollut, kun kaksinkertainen aikaraja on kulunut, koska se voi olla käynnissä toisessa palvelinprosessissa.
 
 ## Graafi
 

@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- A conversion to the IFC graph that a stopped server left behind starts over; it used to stay
+  queued or running for good.
 - A registration that asks to come back to `http://localhost` is refused with its own code,
   `localhost_redirect`, and a message that says what to do, so that a client can translate it.
 - The limit per address on the API, which the documentation described but no code applied,
