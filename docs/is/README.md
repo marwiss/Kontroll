@@ -10,6 +10,8 @@ vefstjórnun og valkvæðri IFC-grafeiningu sem tengir BCF-einingar við
 byggingarhlutana sem þær vísa á. Hann spratt upp úr rannsóknarfrumgerð frá
 2023 fyrir stafrænar eftirlitsáætlanir í sænskum byggingarleyfum og var
 endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
+Biðlarar sem fylgja forskriftunum eiga að geta tengst, svo að þjónninn er ekki
+bundinn við eitt tiltekið forrit.
 
 ![Yfirlit stjórnunar á Kontroll-þjóni: fjöldi notenda, verkefna, biðlara, mála og skjala, staða gagnagrunnsins og nýjustu endurskoðunaratburðir](../images/admin-overview.png)
 
@@ -18,6 +20,7 @@ endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
 - [Sækja og hefjast handa](#sækja-og-hefjast-handa)
 - [Kröfur](#kröfur)
 - [Hvað þú getur gert](#hvað-þú-getur-gert)
+- [OpenCDE-forritaskilin og biðlarar þeirra](#opencde-forritaskilin-og-biðlarar-þeirra)
 - [Kontroll og Dataspatium](#kontroll-og-dataspatium)
 - [Lærðu meira](#lærðu-meira)
 - [Takmarkanir í stuttu máli](#takmarkanir-í-stuttu-máli)
@@ -54,7 +57,7 @@ endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
    býr til sýninotendur og -verkefni og prentar lykilorð þeirra einu sinni.
    Skráðu þig inn á <http://127.0.0.1:8000/signin> sem `admin` og opnaðu
    `/admin`.
-6. **Tengja biðlara.** Skráðu forritið þitt undir *Clients* (eða láttu það
+6. **Tengja biðlara.** Skráðu forritið þitt undir *Biðlarar* (eða láttu það
    skrá sig sjálft þegar `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
    beindu því á `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
    og Python-safnið í [client/](../../client/) eru tilbúnir biðlarar.
@@ -140,6 +143,36 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   [docs/inventory.md](../inventory.md) sýnir hvað frumgerðin frá 2023 gerði og
   hvar hver aðgerð stendur í nýja kóðanum.
 
+## OpenCDE-forritaskilin og biðlarar þeirra
+
+OpenCDE er fjölskylda buildingSMART International af opnum vefforritaskilum fyrir
+sameiginlegt gagnaumhverfi, staðinn þar sem verkefni deilir líkönum sínum, skjölum og
+málum. Biðlari og þjónn sem fylgja sömu forskriftum geta unnið saman, hver sem smíðaði þá.
+Kontroll útfærir öll þrjú:
+
+| Forritaskil | Til hvers þau eru | Forskrift |
+|---|---|---|
+| Foundation API 1.0 | Segja hvaða forritaskil þjónn býður, hvernig á að skrá sig inn og hver notandinn er | [foundation-API](https://github.com/buildingSMART/foundation-API) |
+| BCF API 3.0 | Mál um líkan, með athugasemdum og sjónarhornum með myndavél, einingum og myndum | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| Documents API 1.0 | Að velja, sækja og hlaða upp skjölum og útgáfum þeirra, á síðum á þjóninum | [documents-API](https://github.com/buildingSMART/documents-API) |
+
+**Dataspatium er einn biðlari, ekki sá eini.** Sérhver biðlari sem fylgir þessum forskriftum
+á að geta tengst: ekkert á þjóninum er háð Dataspatium, og viðbæturnar utan forskriftanna
+eru valfrjálsar, svo að biðlari sem þekkir þær ekki verður ekki var við þær. Biðlari þarf
+þrennt:
+
+- skráningu á þjóninum, sem stjórnandi gerir undir *Biðlarar* eða biðlarinn sjálfur þegar
+  `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
+- OAuth2 authorization code með PKCE `S256`, sem þjónninn krefst af hverjum biðlara;
+- BCF API 3.0: beiðnir til eldri útgáfunnar undir `/bcf/2.1/` fá 404.
+
+Svo langt hefur þetta verið sýnt: svör þjónsins eru prófuð gagnvart skemum buildingSMART við
+hvert push, og Dataspatium og Python-safnið í [client/](../../client/) keyra gagnvart þjóninum.
+Óháðir biðlarar eins og Bonsai og ifc-lite hafa tilbúinn gátlista í
+[docs/acceptance.md](../acceptance.md) sem hefur ekki enn verið keyrður. Ef þú prófar biðlara,
+segðu frá hvernig gekk undir [Villur og tillögur](#villur-og-tillögur). Þegar biðlari og forskrift stangast
+á ræður forskriftin. [docs/is/client-guide.md](client-guide.md) er fyrir þá sem smíða biðlara.
+
 ## Kontroll og Dataspatium
 
 Kontroll (þjónninn) og [Dataspatium](https://github.com/marwiss/Dataspatium)
@@ -159,8 +192,8 @@ til að sjá hvaða viðbætur eru virkar og bregst við villukóðunum sem þj�
 setur í villusvör sín.
 
 Fyrir utan merktu viðbæturnar fer allt sem Dataspatium gerir gagnvart þjóninum
-um OpenCDE-forritaskilin þrjú, svo að aðrir OpenCDE-biðlarar virka líka, og
-Kontroll þjónar hverjum þeim OpenCDE-biðlara sem er. Vörurnar tvær eru settar
+um OpenCDE-forritaskilin þrjú, svo að forritið notar ekkert sem annar biðlari
+getur ekki notað, sjá [OpenCDE-forritaskilin og biðlarar þeirra](#opencde-forritaskilin-og-biðlarar-þeirra). Vörurnar tvær eru settar
 upp hvor fyrir sig: þetta safn pakkar Dataspatium ekki með (leyfin eru ólík,
 AGPL hér og PolyForm Strict þar), og README Dataspatium lýsir hvernig forritið
 er sótt. Biðlarahliðinni er lýst í README Dataspatium og skjölun þess;

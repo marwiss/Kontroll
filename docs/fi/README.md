@@ -11,6 +11,8 @@ IFC-graafimoduuli, joka yhdistää BCF-komponentit rakennusosiin, joihin ne
 viittaavat. Se sai alkunsa vuoden 2023 tutkimusprototyypistä Ruotsin
 rakennuslupien digitaalisia tarkastussuunnitelmia varten ja kirjoitettiin
 uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
+Määrittelyjä noudattavien asiakkaiden pitäisi pystyä muodostamaan yhteys, joten
+palvelin ei ole sidottu yhteen sovellukseen.
 
 ![Kontroll-palvelimen hallinnan yleiskuva: käyttäjien, projektien, asiakkaiden, asioiden ja asiakirjojen määrät, tietokannan tila ja viimeisimmät tapahtumalokin merkinnät](../images/admin-overview.png)
 
@@ -19,6 +21,7 @@ uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
 - [Lataa ja aloita](#lataa-ja-aloita)
 - [Vaatimukset](#vaatimukset)
 - [Mitä voit tehdä](#mitä-voit-tehdä)
+- [OpenCDE-rajapinnat ja niiden asiakkaat](#opencde-rajapinnat-ja-niiden-asiakkaat)
 - [Kontroll ja Dataspatium](#kontroll-ja-dataspatium)
 - [Lue lisää](#lue-lisää)
 - [Rajoitukset lyhyesti](#rajoitukset-lyhyesti)
@@ -55,7 +58,7 @@ uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
    luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran.
    Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja
    avaa `/admin`.
-6. **Yhdistä asiakasohjelma.** Rekisteröi sovelluksesi kohdassa *Clients*
+6. **Yhdistä asiakasohjelma.** Rekisteröi sovelluksesi kohdassa *Asiakkaat*
    (tai anna sen rekisteröityä itse, kun
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se osoitteeseen
    `http://127.0.0.1:8000`; [Dataspatium](#kontroll-ja-dataspatium) ja
@@ -148,6 +151,38 @@ mikään ole auki ennen kuin se on määritetty.
   kertoo, mitä vuoden 2023 prototyyppi teki ja missä kukin toiminto on
   uudessa koodissa.
 
+## OpenCDE-rajapinnat ja niiden asiakkaat
+
+OpenCDE on buildingSMART Internationalin avoimien verkkorajapintojen perhe yhteiselle
+tietoympäristölle, paikalle, jossa projekti jakaa mallinsa, asiakirjansa ja asiansa.
+Asiakas ja palvelin, jotka noudattavat samoja määrittelyjä, voivat toimia yhdessä, olipa
+ne rakentanut kuka tahansa. Kontroll toteuttaa ne kaikki kolme:
+
+| API | Mihin se on tarkoitettu | Määrittely |
+|---|---|---|
+| Foundation API 1.0 | Kertoo, mitä rajapintoja palvelin tarjoaa, miten kirjaudutaan ja kuka käyttäjä on | [foundation-API](https://github.com/buildingSMART/foundation-API) |
+| BCF API 3.0 | Mallia koskevat asiat, kommentit ja näkymät kameroineen, komponentteineen ja kuvineen | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| Documents API 1.0 | Asiakirjojen ja niiden versioiden valinta, nouto ja lataaminen palvelimen sivuilla | [documents-API](https://github.com/buildingSMART/documents-API) |
+
+**Dataspatium on yksi asiakas, ei ainoa.** Jokaisen näitä määrittelyjä noudattavan
+asiakkaan pitäisi pystyä muodostamaan yhteys: mikään palvelimella ei riipu Dataspatiumista,
+ja määrittelyjen ulkopuoliset laajennukset ovat valinnaisia, joten asiakas, joka ei tunne
+niitä, ei huomaa niitä. Asiakas tarvitsee kolme asiaa:
+
+- rekisteröinnin palvelimelle, jonka tekee ylläpitäjä kohdassa *Asiakkaat* tai asiakas itse,
+  kun `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
+- OAuth2 authorization code -kulun ja PKCE:n `S256`, jota palvelin vaatii jokaiselta
+  asiakkaalta;
+- BCF API 3.0:n: pyynnöt vanhempaan versioon osoitteessa `/bcf/2.1/` saavat vastauksen 404.
+
+Näin pitkälle tämä on osoitettu: palvelimen vastaukset testataan buildingSMARTin skeemoja
+vasten jokaisella pushilla, ja Dataspatium ja Python-kirjasto kansiossa [client/](../../client/)
+ajetaan palvelinta vasten. Riippumattomille asiakkaille, kuten Bonsaille ja ifc-litelle, on
+valmis tarkistuslista tiedostossa [docs/acceptance.md](../acceptance.md), mutta sitä ei ole vielä
+ajettu. Jos kokeilet jotakin asiakasta, kerro, miten kävi, kohdassa
+[Virheet ja ehdotukset](#virheet-ja-ehdotukset). Kun asiakas ja määrittely ovat ristiriidassa, määrittely ratkaisee.
+[docs/fi/client-guide.md](client-guide.md) on tarkoitettu asiakkaan rakentajille.
+
 ## Kontroll ja Dataspatium
 
 Kontroll (palvelin) ja [Dataspatium](https://github.com/marwiss/Dataspatium)
@@ -169,9 +204,8 @@ nähdäkseen, mitkä laajennukset ovat päällä, ja toimii palvelimen
 virhevastauksiin lisäämien virhekoodien mukaan.
 
 Merkittyjä laajennuksia lukuun ottamatta kaikki, mitä Dataspatium tekee
-palvelinta vastaan, kulkee kolmen OpenCDE-rajapinnan kautta, joten muutkin
-OpenCDE-asiakkaat toimivat, ja Kontroll palvelee mitä tahansa
-OpenCDE-asiakasta. Kaksi tuotetta asennetaan erikseen: tämä repo ei niputa
+palvelinta vastaan, kulkee kolmen OpenCDE-rajapinnan kautta, joten sovellus ei käytä mitään, mitä toinen
+asiakas ei voisi käyttää, katso [OpenCDE-rajapinnat ja niiden asiakkaat](#opencde-rajapinnat-ja-niiden-asiakkaat). Kaksi tuotetta asennetaan erikseen: tämä repo ei niputa
 Dataspatiumia mukaansa (lisenssit eroavat, AGPL täällä ja PolyForm Strict
 siellä), ja Dataspatiumin README kertoo, miten sovellus ladataan.
 Asiakaspuoli kuvataan Dataspatiumin README-tiedostossa ja sen

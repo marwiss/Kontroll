@@ -10,6 +10,8 @@ webadministrasjon og ein valfri IFC-grafmodul som knyter BCF-komponentar til
 bygningsdelane dei peikar på. Han voks fram av ein forskingsprototyp frå 2023
 for digitale kontrollplanar i svenske byggjeløyve og vart skriven om frå
 grunnen av med tryggleik som fyrste krav.
+Klientar som følgjer spesifikasjonane, skal kunne kople seg til, så serveren
+ikkje er bunden til eitt bestemt program.
 
 ![Oversikta i administrasjonen til ein Kontroll-server: talet på brukarar, prosjekt, klientar, saker og dokument, statusen til databasen og dei siste revisjonshendingane](../images/admin-overview.png)
 
@@ -18,6 +20,7 @@ grunnen av med tryggleik som fyrste krav.
 - [Last ned og kom i gang](#last-ned-og-kom-i-gang)
 - [Kva som krevst](#kva-som-krevst)
 - [Kva du kan gjere](#kva-du-kan-gjere)
+- [OpenCDE-API-a og klientane deira](#opencde-api-a-og-klientane-deira)
 - [Kontroll og Dataspatium](#kontroll-og-dataspatium)
 - [Lær meir](#lær-meir)
 - [Avgrensingar i korte trekk](#avgrensingar-i-korte-trekk)
@@ -53,7 +56,7 @@ grunnen av med tryggleik som fyrste krav.
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
    opprettar demobrukarar og prosjekt og skriv ut passorda deira éin gong.
    Logg inn på <http://127.0.0.1:8000/signin> som `admin` og opne `/admin`.
-6. **Kople til ein klient.** Registrer appen din under *Clients* (eller lat
+6. **Kople til ein klient.** Registrer appen din under *Klientar* (eller lat
    han registrere seg sjølv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
    peik han mot `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
    og Python-biblioteket i [client/](../../client/) er ferdige klientar.
@@ -140,6 +143,37 @@ databasepassord, og ingenting er ope før det er konfigurert.
   [docs/inventory.md](../inventory.md) viser kva prototypen frå 2023 gjorde og
   kvar kvar funksjon står i den nye koden.
 
+## OpenCDE-API-a og klientane deira
+
+OpenCDE er familien til buildingSMART International av opne web-API-ar for eit felles
+datamiljø, staden der eit prosjekt deler modellar, dokument og saker. Ein klient og ein
+server som følgjer dei same spesifikasjonane, kan arbeide saman, same kven som har bygd
+dei. Kontroll implementerer alle tre:
+
+| API | Kva det er til | Spesifikasjon |
+|---|---|---|
+| Foundation API 1.0 | Seier kva API-ar ein server tilbyr, korleis ein loggar inn, og kven brukaren er | [foundation-API](https://github.com/buildingSMART/foundation-API) |
+| BCF API 3.0 | Saker om ein modell, med kommentarar og viewpointar med kamera, komponentar og bilete | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| Documents API 1.0 | Å velje, hente og laste opp dokument og versjonane deira, via sider på serveren | [documents-API](https://github.com/buildingSMART/documents-API) |
+
+**Dataspatium er éin klient, ikkje den einaste.** Kvar klient som følgjer desse
+spesifikasjonane, skal kunne kople seg til: ingenting på serveren er avhengig av
+Dataspatium, og utvidingane utanfor spesifikasjonane er valfrie, så ein klient som ikkje
+kjenner dei, merkar dei ikkje. Ein klient treng tre ting:
+
+- ei registrering på serveren, gjord av ein administrator under *Klientar* eller av klienten
+  sjølv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
+- OAuth2 authorization code med PKCE `S256`, som serveren krev av kvar klient;
+- BCF API 3.0: førespurnader til den eldre versjonen under `/bcf/2.1/` får 404.
+
+Så langt er det vist: svara frå serveren blir testa mot skjemaa til buildingSMART ved kvar
+push, og Dataspatium og Python-biblioteket i [client/](../../client/) køyrer mot serveren.
+Uavhengige klientar som Bonsai og ifc-lite har ei ferdig sjekkliste i
+[docs/acceptance.md](../acceptance.md) som enno ikkje er køyrd. Om du prøver ein klient, fortel
+korleis det gjekk under [Feil og framlegg](#feil-og-framlegg). Når ein klient og ein spesifikasjon ikkje
+stemmer overeins, avgjer spesifikasjonen. [docs/nn/client-guide.md](client-guide.md) er for dei som byggjer
+ein klient.
+
 ## Kontroll og Dataspatium
 
 Kontroll (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
@@ -159,8 +193,8 @@ les kapabilitetsdokumentet til serveren for å sjå kva tillegg som er slått
 på, og reagerer på feilkodane serveren legg i feilkroppane sine.
 
 Bortsett frå dei merkte tillegga går alt Dataspatium gjer mot serveren
-gjennom dei tre OpenCDE-API-ane, så andre OpenCDE-klientar verkar òg, og
-Kontroll tener kvar OpenCDE-klient. Dei to produkta blir installerte kvar for
+gjennom dei tre OpenCDE-API-ane, så appen brukar ingenting ein annan klient
+ikkje kan bruke, sjå [OpenCDE-API-a og klientane deira](#opencde-api-a-og-klientane-deira). Dei to produkta blir installerte kvar for
 seg: dette repoet buntar ikkje Dataspatium (lisensane er ulike, AGPL her og
 PolyForm Strict der), og README-fila til Dataspatium fortel korleis appen
 blir henta. Klientsida er skildra i README-fila til Dataspatium og
