@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- `opencde init` without options asks for what it needs, in a terminal, and then says what comes
+  next, including the administrator and the first client.
 - The health checks on the settings page speak the language of the page. The command line and
   the administration API go on in English.
 - `opencde seed` builds the graph of the sample model when the IFC graph is on, so the quick
@@ -29,7 +31,8 @@ the commit history.
   `localhost_redirect`, and a message that says what to do, so that a client can translate it.
 - The limit per address on the API, which the documentation described but no code applied,
   now holds at 600 requests a minute, with 240 on the administration. `OPENCDE_RATE_LIMIT_API`
-  raises it for an office behind one address, and several server processes can share the counts
+  raises it for an office behind one address, as `OPENCDE_RATE_LIMIT_SIGN_IN` does the limit on
+  signing in, and several server processes can share the counts
   through `OPENCDE_RATE_LIMIT_STORAGE`.
 - Outside production a client can register 60 times an hour rather than five, since someone
   trying a server out registers again and again.

@@ -13,6 +13,8 @@ cd /opt/kontroll
 uv run opencde init --public-url https://cde.example.org
 ```
 
+Án `--public-url` spyr `opencde init` um gildin og prentar síðan skipanirnar sem koma næst, einnig fyrir stjórnandann og fyrsta biðlarann.
+
 `init` skrifar `.env` með `OPENCDE_ENVIRONMENT=production`, leynilykli,
 lykilorði gagnagrunnsins og `OPENCDE_DOMAIN`. Bættu við
 `OPENCDE_ACME_EMAIL=you@example.org` svo að Let's Encrypt geti náð í þig vegna
@@ -67,7 +69,7 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
   respond @admin_outside 404
   ```
 
-- API-ið leyfir 600 beiðnir á mínútu á hvert vistfang. Allir á bak við sama vistfang deila þeim, svo að hækkaðu mörkin fyrir stóra skrifstofu, til dæmis `OPENCDE_RATE_LIMIT_API=3000/minute`.
+- API-ið leyfir 600 beiðnir á mínútu á hvert vistfang. Allir á bak við sama vistfang deila þeim, svo að hækkaðu mörkin fyrir stóra skrifstofu, til dæmis `OPENCDE_RATE_LIMIT_API=3000/minute`. Hið sama gildir um 10 innskráningartilraunir á mínútu, `OPENCDE_RATE_LIMIT_SIGN_IN=60/minute`; biðin á hvert notandanafn stöðvar ágiskanir hvort sem er.
 - Haltu `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` nema þú þurfir
   sjálfsafgreidda biðlaraskráningu (Foundation API 2.2.3); skráðu biðlara í
   `/admin`.

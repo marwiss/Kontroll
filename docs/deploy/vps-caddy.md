@@ -13,6 +13,8 @@ cd /opt/kontroll
 uv run opencde init --public-url https://cde.example.org
 ```
 
+Without `--public-url`, `opencde init` asks for the values and then prints the commands that come next, for the administrator and the first client too.
+
 `init` writes `.env` with `OPENCDE_ENVIRONMENT=production`, a secret key, a
 database password and `OPENCDE_DOMAIN`. Add `OPENCDE_ACME_EMAIL=you@example.org`
 so Let's Encrypt can reach you about certificates. Keep `.env` private (it is
@@ -66,7 +68,7 @@ OAuth2 clients your applications need.
   respond @admin_outside 404
   ```
 
-- The API allows 600 requests a minute per address. Everyone behind one address shares them, so raise the limit for a large office, for example `OPENCDE_RATE_LIMIT_API=3000/minute`.
+- The API allows 600 requests a minute per address. Everyone behind one address shares them, so raise the limit for a large office, for example `OPENCDE_RATE_LIMIT_API=3000/minute`. The same goes for the 10 sign-in attempts a minute, `OPENCDE_RATE_LIMIT_SIGN_IN=60/minute`; the wait per user name stops guessing anyway.
 - Keep `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` unless you need self-service
   client registration (Foundation API 2.2.3); register clients in `/admin`.
 - Rotate the secret key and database password per your policy

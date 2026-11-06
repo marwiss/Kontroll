@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Literal, Self
 
 from limits import parse
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SECRETS_DIR = Path("/run/secrets")
@@ -210,6 +210,10 @@ class Settings(BaseSettings):
         "600/minute",
         description="Requests per address. Everyone behind one address shares them, so a large office may raise it.",
     )
+    rate_limit_sign_in: str = Field(
+        "10/minute",
+        description="Sign-in attempts per address, shared the same way; the wait per user name stops guessing anyway.",
+    )
     rate_limit_storage: SecretStr = Field(
         SecretStr("memory://"),
         description="Where the counts live. Several server processes share a store such as redis://host:6379/0.",
@@ -245,13 +249,13 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     log_json: bool = Field(True, description="JSON logs for production; set false for readable console logs.")
 
-    @field_validator("rate_limit_api")
+    @field_validator("rate_limit_api", "rate_limit_sign_in")
     @classmethod
-    def _check_rate_limit_api(cls, value: str) -> str:
+    def _check_rate_limit(cls, value: str, info: ValidationInfo) -> str:
         try:
             parse(value)
         except ValueError:
-            raise ValueError('OPENCDE_RATE_LIMIT_API must read like "600/minute"') from None
+            raise ValueError(f'OPENCDE_{str(info.field_name).upper()} must read like "600/minute"') from None
         return value
 
     @field_validator("rate_limit_storage")
