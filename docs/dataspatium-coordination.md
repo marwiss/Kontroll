@@ -114,7 +114,8 @@ and the tokens.
 2026-11-06 so does the documentation (English under `docs/`, the others under
 `docs/<lang>/`; the project logs, the ADRs and the upstream drafts stay in
 English, and `tests/unit/test_docs.py` keeps the translations in step with the
-source). Dataspatium's links to Kontroll's pages may go to `docs/<lang>/` now.
+source). Dataspatium's links to Kontroll's pages go to `docs/<lang>/` since its
+2.4.0.
 
 ### 5. One look (K, small) — done 2026-11-05
 
@@ -165,7 +166,7 @@ number as this server), starts the development stack with demo data, the IFC
 graph, dynamic registration and the request log, registers a public client
 for `http://127.0.0.1:8080/oauth-callback.html`, serves Dataspatium with
 `python3 -m http.server`, starts `tools/cde-helper.py` as the user
-(`dm_manager`, which the job adds) and as the administrator, and runs
+(`officer` from the seed) and as the administrator, and runs
 `tools/run-tests.sh` headless in Chromium with the `DATASPATIUM_CDE_*`
 parameters, nightly and on demand. Dataspatium's own job with the pinned server
 image is their side. The job ran no test before 2026-11-06: Chromium aborted on
