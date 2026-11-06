@@ -78,6 +78,7 @@ själv i stället. CORS tillåter alla ursprung som standard, så ingen mer
 inställning behövs; `OPENCDE_REQUEST_LOG_ENABLED=true` låter `/admin/requests`
 visa serversidan av appens anrop. Hela checklistan finns i
 [docs/acceptance.md](../../acceptance.md), avsnitt C.
+[Snabbstarten](../quickstart.md) har alla steg och en felsökningstabell.
 
 ## Börja om från början
 

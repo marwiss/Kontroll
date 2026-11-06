@@ -1,10 +1,26 @@
 # Snabbstart: Kontroll och Dataspatium tillsammans
 
-Tjugo minuter från ingenting till ett ärende skapat i en 3D-vy och synligt i
-serverns loggar. Samma sida finns i Dataspatiums repo; de två hålls
-identiska. Du behöver Docker (Desktop på Windows/macOS, Engine på Linux),
-[uv](https://docs.astral.sh/uv/), Python 3 för en lokal webbserver, och
-Microsoft Edge, Google Chrome eller Firefox.
+Från en tom dator till inloggad i Kontroll från Dataspatium, med ett ärende skapat
+i en 3D-vy och synligt i serverns loggar. Det tar ungefär tjugo minuter, det mesta
+är det första bygget. Följ stegen i ordning och använd adresser och portar precis
+som de står: nästan alla problem kommer av en överhoppad inställning eller en annan
+adress. [Felsökning](#felsökning) säger vad du gör om något går fel. Samma sida
+finns i Dataspatiums repo; de två hålls identiska.
+
+## Det här behöver du
+
+- Docker: Docker Desktop på Windows och macOS, Docker Engine med
+  compose-tillägget på Linux. Det måste vara igång: `docker version` svarar för både
+  klient och server.
+- Git, eller källkods-ZIP:en från Kontrolls
+  [senaste utgåva](https://github.com/marwiss/Kontroll/releases/latest) i stället för
+  `git clone` nedan.
+- Python 3, som en liten lokal webbserver.
+- Microsoft Edge, Google Chrome eller Firefox.
+- Portarna 8000, 7484, 7697 och 8080 lediga på datorn.
+
+Har du provat Kontroll på den här datorn förut, börja med
+[Börja om](#börja-om).
 
 ## 1. Starta Kontroll
 
@@ -14,97 +30,188 @@ cd Kontroll
 cp .env.example .env
 ```
 
-Öppna `.env` och sätt `OPENCDE_GRAPH_PASSWORD` till valfritt värde på minst
-16 tecken, `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` så att Dataspatium kan
-registrera sig själv, och `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` så att en
-app som serveras från `http://localhost` får logga in. Sedan:
+I Windows kommandotolk används `copy` i stället för `cp`.
+
+Öppna `.env` i en textredigerare. De fem raderna nedan finns redan i filen: ändra
+dem så att de ser ut så här, och spara. Välj ett eget lösenord, minst 16 tecken,
+bara bokstäver och siffror.
+
+```ini
+OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
+OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
+OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true
+OPENCDE_REQUEST_LOG_ENABLED=true
+OPENCDE_IFCGRAPH_ENABLED=true
+```
+
+| Rad | Vad den gör | Utan den |
+|---|---|---|
+| `OPENCDE_GRAPH_PASSWORD` | Lösenordet till grafdatabasen | Kortare än 16 tecken: databasen startar inte |
+| `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Låter Dataspatium registrera sig själv hos servern | Steg 3 stannar, och appen frågar efter ett klient-id |
+| `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` | Låter en app som öppnats på `http://localhost` logga in | Steg 3 stannar med en misslyckad registrering |
+| `OPENCDE_REQUEST_LOG_ENABLED` | Sparar appens anrop | Begärandeloggen i steg 5 förblir tom |
+| `OPENCDE_IFCGRAPH_ENABLED` | Gör uppladdade modeller till en graf | Ingen graf i steg 5 |
+
+Inställningarna är till för att prova Kontroll på din egen dator, inte för en
+server som andra använder.
+
+Starta servern och lägg in demodata:
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
 docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
 ```
 
-Det andra kommandot skapar demoanvändare och projekt och skriver ut deras
-lösenord en gång; spara lösenorden för `admin` och `inspection_manager`. Kontrollera
-<http://localhost:8000/readyz> (svarar `ready`) och logga in på
-<http://localhost:8000/signin> som `admin`: `/admin` visar projekten
-*Building permit* och *Demolition permit*.
+Det första kommandot tar några minuter första gången och är klart när servern kör.
+Det andra skapar demoanvändare och projekt och skriver ut deras lösenord **en
+gång**: spara lösenorden för `admin` och `inspection_manager` nu. Bry dig inte om
+raderna som börjar med `client`; Dataspatium registrerar en egen klient.
 
-Om Compose stannar med `dependency failed to start: container kontroll-graph-1
-is unhealthy`, läs `docker compose -f compose.yaml -f compose.dev.yaml logs
-graph`. Den vanliga orsaken är ett lösenord kortare än 16 tecken, som Neo4j
-vägrar (`A password must be at least 16 characters`); den andra är en
-databasvolym från en tidigare installation med ett annat lösenord, som
-`docker compose -f compose.yaml -f compose.dev.yaml down -v` tar bort
-tillsammans med dess data. Två utcheckningar på samma dator delar
-Compose-projektnamnet `kontroll`, så den andra behöver
-`COMPOSE_PROJECT_NAME=kontroll-2` och andra `OPENCDE_DEV_*`-portar i sin
-`.env`.
+Kontrollera att det fungerar: <http://localhost:8000/readyz> svarar
+`"status":"ready"`. Logga in på <http://localhost:8000/signin> som `admin` och öppna
+<http://localhost:8000/admin/projects>, som listar *Building permit* och
+*Demolition permit*.
+
+När du ändrar `.env` senare kör du `up`-kommandot igen. `docker compose restart`
+läser inte filen.
 
 ## 2. Starta Dataspatium
 
-1. Hämta `dataspatium-<version>.zip` från
+1. Ladda ned `dataspatium-<version>.zip` från
    [senaste utgåvan](https://github.com/marwiss/Dataspatium/releases/latest)
-   och jämför dess SHA-256 med den i utgåvans text.
-2. Packa upp ZIP-filen i en egen mapp (inte inuti ZIP-filen).
-3. För allt utom OpenCDE-inloggningen räcker det att dubbelklicka på
-   `index.html`. För OpenCDE, servera mappen över http, eftersom
-   OAuth2-återhoppet behöver en http-adress:
+   och jämför dess SHA-256 med den i utgåvans text (`Get-FileHash` i PowerShell,
+   `shasum -a 256` på macOS och Linux).
+2. Packa upp ZIP-filen i en egen mapp. Windows kan skapa en mapp i mappen; det som
+   räknas är mappen där `index.html` ligger direkt.
+3. Öppna en terminal i den mappen och starta en webbserver på port 8080:
 
    ```sh
-   cd dataspatium-<version>
-   python -m http.server 8080
+   python -m http.server 8080 --bind 127.0.0.1
    ```
 
-   och öppna <http://localhost:8080/>. Appen registrerar sig själv hos
-   servern som publik klient med `http://localhost:8080/oauth-callback.html`
-   som redirect-URI. (Den webbpublicerade appen på
-   <https://marwiss.github.io/Dataspatium/> fungerar i stället mot en server
-   som tillåter den adressen.)
+   Kommandot kan heta `python3` på macOS och Linux och `py` på Windows. Låt
+   terminalen vara öppen medan du använder appen. Ange alltid porten: utan den tar
+   Python 8000, som är Kontrolls port, och appen lämnar då en service worker i din
+   webbläsare som förstör Kontrolls sidor (se [Felsökning](#felsökning)).
+4. Öppna <http://localhost:8080/>. Dubbelklicka inte på `index.html`: öppnad från
+   mappen kan appen inte registrera sig själv. Appen laddar om sig en gång vid
+   första starten.
+5. Första starten frågar efter språk: välj ett och tryck *Fortsätt på …*. Den här
+   sidan använder de svenska namnen. Panelen *Välkommen till Dataspatium* erbjuder en
+   kurs: tryck *Inte nu*.
 
-## 3. Koppla ihop dem
+## 3. Logga in i Kontroll från Dataspatium
 
-Appen måste vara öppnad via `http://localhost:8080` (steg 2). Öppnad från
-mappen kan den inte registrera sig själv, utan då måste ett klient-id från
-`/admin/clients` fyllas i.
+1. Välj läget *Inhämta*. I vänsterkolumnen, under *Lägg till källor*, väljer du
+   *OpenCDE*.
+2. Under *Adress* skriver du `http://localhost:8000`. **Lämna *Klient-id* och
+   hemligheten tomma**: appen registrerar sig själv, även om texten i dialogen talar
+   om ett klient-id från administratören. Tryck *Lägg till källa*.
+3. Appen frågar *Tillåta internetåtkomst?* upp till tre gånger, en gång per ändamål.
+   Här gäller det bara din egen server: tryck *Tillåt* varje gång.
+4. Källan öppnas och listas under *Tillagda källor*. Raden "Servern: Kontroll
+   OpenCDE server <version>. Tillägg: …" kommer från serverns kapabilitetsdokument
+   och säger vilka tillägg som är påslagna. Märket *Kräver nyckel* kan du bortse
+   från: det som krävs är inloggningen.
+5. Tryck *Logga in*. Ett popup-fönster öppnas med serverns inloggningssida. Om
+   webbläsaren blockerar det, tillåt popup-fönster för `http://localhost:8080` och
+   tryck igen.
+6. Logga in som `inspection_manager` med lösenordet från steg 1 och tryck *Tillåt
+   och logga in*. Använd inte `admin`, som inte är med i något projekt. Fönstret
+   stänger sig självt, och källan säger *Inloggad som Certified inspection manager*.
+7. *Building permit* är redan valt i listan *Projekt*.
 
-I Dataspatium: läget *Inhämta* → under *Lägg till källor* valet *OpenCDE* → *Adress*: `http://localhost:8000` →
-*Lägg till* (lämna *Klient-id* tomt, så registrerar appen sig själv). Källan öppnas i *Inhämta* och hamnar under
-*Tillagda källor*: tryck *Logga in* och logga in som
-`inspection_manager` i popup-fönstret, och välj sedan *Building permit* i listan
-*Projekt*. Raden under rubriken ("Servern: Kontroll OpenCDE server 2.0.0.
-Tillägg: …") kommer ur serverns kapabilitetsdokument och säger vilka tillägg
-som är påslagna.
+Du är inloggad tills sidan laddas om; tryck då *Logga in* igen. Källan finns kvar.
 
 ## 4. Skapa ett ärende från 3D-vyn
 
-1. Hämta exempelmodellen. Seeden har redan lagt `three_walls_gtin.ifc` (tre
-   väggar med GTIN 3, 2 och 1) som ett dokument i *Building permit*; i
-   källans vy i *Inhämta* har dokumentlistan en hämtaknapp per dokument, och
-   dokumentet blir en modelldatamängd. Vill du i stället skicka en egen fil,
-   använd läget *Dela* → fliken *Till CDE*: välj källa och projekt, *Vad*
-   (originalfil, export eller paket), *Hur* (Documents API eller BCF) och
-   *Skicka*; hämta sedan tillbaka den på samma sätt.
-2. Välj modellen i *Bearbeta*; den öppnas automatiskt i 3D. Markera en vägg,
-   öppna panelen *Ärenden* och tryck *Nytt ärende*: ge det en titel, behåll
-   statusen och kryssa i *Lägg till vyn som viewpoint*. Ärendet skapas genom
-   BCF API med en viewpoint vars komponent pekar på väggen.
-3. Skriv en kommentar i samma panel och skicka den.
+1. I källans vy, leta upp *Filer i projektet* och tryck *Visa filer*. `opencde seed`
+   lade `three_walls_gtin.ifc` där (tre väggar med GTIN 3, 2 och 1). Tryck *Hämta*:
+   filen blir en modelldatamängd.
+2. Välj läget *Bearbeta*; modellen öppnas i 3D. Klicka på en vägg för att markera
+   den.
+3. Tryck *Ärenden* ovanför 3D-vyn och sedan *Nytt ärende* i högerkolumnen. Skriv
+   något under *Rubrik* och tryck *Skapa ärende*. Ärendet skapas genom BCF API:t, och
+   vyn och den markerade väggen följer med som viewpoint.
+4. Under ärendet, skriv något i *Skriv en kommentar* och tryck *Skicka*.
 
 ## 5. Se det på servern
 
-- `/admin/projects` → *Building permit* visar två ärenden (det seedade och
-  ditt) och dokumentet.
-- `/admin/audit` listar inloggningen och appens registrering.
-- Med `OPENCDE_REQUEST_LOG_ENABLED=true` i `.env` (och omstart) visar
-  `/admin/requests` varje anrop appen gjorde, med samma `X-Request-ID`-värden
-  som kortet *Logg* längst ned i OpenCDE-källans vy i *Inhämta*, så att ett
-  misslyckat anrop hittas på båda sidor.
-- Med `OPENCDE_IFCGRAPH_ENABLED=true` blir den uppladdade modellen en graf;
-  Neo4j Browser på <http://localhost:7484> (`bolt://localhost:7697`,
-  användare och lösenord ur `.env`) visar väggen som en `IfcWall`-nod kopplad
-  till viewpointens komponent med `SAME_AS`, och Dataspatiums grafvy kan
-  fråga den med Cypher.
+Inloggad som `admin`, öppna <http://localhost:8000/admin>:
+
+- *Projekt* visar *Building permit* med två ärenden (det från `opencde seed` och
+  ditt) och ett dokument.
+- *Revisionslogg* listar inloggningen och appens registrering.
+- *Begärandelogg* visar varje anrop appen gjorde, med samma `X-Request-ID`-värden
+  som kortet *Logg* längst ned i källans vy i *Inhämta*, så att ett misslyckat anrop
+  kan hittas på båda sidor.
+
+Tryck sedan *Logga ut* högst upp på serverns sida, eftersom uppladdningen nedan görs
+som en annan användare.
+
+Grafen byggs av uppladdade modeller, inte av den från `opencde seed`. För att se den
+skickar du modellen till servern:
+
+1. I Dataspatium, välj läget *Dela* och fliken *Till CDE*. Under *Vad* väljer du
+   *Originalfilen*, och trycker *Skicka*.
+2. *Granskning före delning* listar vad som följer med: tryck *Fortsätt*.
+3. Serverns uppladdningssida öppnas i ett popup-fönster. Logga in som
+   `inspection_manager` och tryck *Spara och fortsätt*. Fönstret stänger sig självt.
+
+Inom några sekunder svarar Neo4j Browser på <http://localhost:7484> (anslut till
+`bolt://localhost:7697` som `neo4j` med lösenordet från `.env`) på den här frågan
+med väggen kopplad till viewpointens komponent:
+
+```cypher
+MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+```
+
+## Felsökning
+
+Varje rad citerar skärmen som den ser ut med de svenska namnen.
+
+| Det här ser du | Varför | Gör så här |
+|---|---|---|
+| `Cannot connect to the Docker daemon`, `error during connect` eller `docker: command not found` | Docker är inte igång | Starta Docker Desktop, vänta tills det säger att det kör, och kör kommandot igen |
+| `dependency failed to start: container kontroll-graph-1 is unhealthy` | Ett lösenord på färre än 16 tecken, som Neo4j vägrar (`docker compose -f compose.yaml -f compose.dev.yaml logs graph` säger `A password must be at least 16 characters`), eller en databasvolym kvar från en tidigare installation med ett annat lösenord | Rätta lösenordet och kör `up`-kommandot igen. För den gamla volymen, se [Börja om](#börja-om) |
+| `port is already allocated`, `Ports are not available` eller `address already in use` | Ett annat program har 8000, 7484 eller 7697, kanske en tidigare Kontroll (`docker ps` visar det) | Stoppa det, eller ange andra portar med `OPENCDE_DEV_PORT`, `OPENCDE_DEV_NEO4J_HTTP_PORT` och `OPENCDE_DEV_NEO4J_BOLT_PORT` i `.env` och använd din port i stället för 8000 från och med då |
+| Containrarna från en annan mapp ersätts | Två utcheckningar på en dator delar Compose-projektnamnet `kontroll` | Ge den andra `COMPOSE_PROJECT_NAME=kontroll-2` och andra `OPENCDE_DEV_*`-portar i dess `.env` |
+| `the database is not empty` | `opencde seed` har redan körts och skrev ut lösenorden då | Hämta ett nytt lösenord med `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde user set-password inspection_manager`, eller [börja om](#börja-om) |
+| `python` hittas inte, eller Microsoft Store öppnas | Kommandot heter något annat på den här datorn | Använd `py` eller `python3` |
+| En fillista i stället för appen | Webbservern kör i den yttre mappen | Stoppa den med Ctrl+C och starta den i mappen där `index.html` ligger |
+| En gammal version av appen, eller något helt annat | Något annat svarar på port 8080; på Windows kan en andra webbserver starta på samma port utan fel | Använd en annan port, `python -m http.server 8090 --bind 127.0.0.1`, och öppna `http://localhost:8090/` |
+| *Appen kan registrera sig själv hos servern bara när den körs från en webbserver …* | Appen öppnades från mappen | Öppna `http://localhost:8080/` |
+| *Kunde inte nå localhost:8000 …* | Kontroll kör inte, eller adressen är felskriven | <http://localhost:8000/readyz> måste svara. Adressen är `http://localhost:8000` utan något efter |
+| *Servern tillåter inte att appen registrerar sig själv …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` är inte `true` | Ändra `.env`, kör `up`-kommandot igen och tryck *Lägg till källa* igen |
+| *Registreringen misslyckades:* … `http redirect URIs are only allowed for the loopback address` | `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` är inte `true` | Ändra `.env`, kör `up`-kommandot igen och tryck *Lägg till källa* igen |
+| *Registreringen misslyckades:* … `rate_limited` | Fler än fem registreringar inom en timme; varje *Lägg till källa* med tomt *Klient-id* är en | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nollställer räknaren |
+| *Internetåtkomst för … är inte tillåten.* | *Neka* trycktes | Tillåt det under *Hantera*, *Arbetsyta*, *Internetåtkomst*, och försök igen |
+| *Webbläsaren blockerade inloggningsfönstret …* | Webbläsarens popup-blockering | Tillåt popup-fönster för `http://localhost:8080` och tryck *Logga in* igen |
+| I popup-fönstret: *Kan inte fortsätta* och *Okänd klient.* | Servern har glömt appens registrering, oftast efter `down -v` | Stäng fönstret och ladda om appen, eftersom *Logga in* annars snurrar i fem minuter. Ta bort källan med krysset bredvid den under *Tillagda källor* och lägg till den igen |
+| I popup-fönstret: *Kan inte fortsätta* och *Redirect-URI:n är inte registrerad för den här klienten.* | *Klient-id* fylldes i, till exempel från utskriften av `opencde seed` | Stäng fönstret och ladda om appen. Ta bort källan med krysset bredvid den under *Tillagda källor* och lägg till den igen med tomt *Klient-id* |
+| I popup-fönstret: *Användarnamnet eller lösenordet är inte korrekt.* | Varje användare har sitt eget lösenord från `opencde seed` | Använd rätt lösenord, eller hämta ett nytt enligt ovan |
+| *Formuläret har gått ut. Försök igen.* på `/signin`, eller i popup-fönstret *Kan inte fortsätta* och *Inloggningsformuläret har gått ut eller manipulerats. Börja om.*, trots att du nyss öppnade sidan. `docker compose -f compose.yaml -f compose.dev.yaml logs api` visar `GET /sw.js` med 404 | En service worker i din webbläsare från en annan webbapp som en gång kört på `http://localhost:8000`, till exempel startad med `python -m http.server` utan port. Den svarar med gamla kopior av Kontrolls sidor | Ta bort den: `about:debugging#/runtime/this-firefox` i Firefox, `edge://serviceworker-internals` i Edge, `chrome://serviceworker-internals` i Chrome; leta upp `localhost:8000` och välj *Unregister*. Varje webbläsare har sin egen, även en som är inbyggd i en editor. Ett privat fönster har ingen, vilket snabbt visar om det här är orsaken. Håll andra appar borta från port 8000 |
+| *Du är inte medlem i något projekt på servern.* | Du loggade in som `admin`, som inte är med i något projekt | Tryck *Logga ut* och sedan *Logga in* som `inspection_manager` |
+| *Logga in* snurrar och snurrar | Fönstret stängdes innan inloggningen var klar | Ladda om sidan |
+| Fönstret säger *Kopiera adressen … / Copy the address …* | Det kunde inte nå appens fönster, som kanske stängdes eller laddades om under tiden | Stäng fönstret och tryck *Logga in* igen |
+| *Ett annat konto* på uppladdningssidan | Webbläsaren är inloggad på servern som `admin`, som inte startade uppladdningen | Tryck *Logga ut* på den sidan och stäng fönstret. Ladda om appen, eftersom *Skicka* annars förblir upptagen, tryck *Logga in* i källans vy, välj modellen i vänsterkolumnen i *Dela* och skicka igen |
+
+## Börja om
+
+I mappen du startade från (eller var som helst, med `-p kontroll` i stället för de
+två `-f`-flaggorna):
+
+```sh
+docker compose -f compose.yaml -f compose.dev.yaml down -v
+```
+
+Det raderar databasen och demons filer. Kör sedan `up`- och `seed`-kommandona i
+steg 1 igen, vilket ger nya lösenord. I Dataspatium tar du bort källan med krysset
+bredvid den under *Tillagda källor* och lägger till den igen, eftersom servern har
+glömt appens registrering.
+
+För att stoppa utan att radera något utelämnar du `-v`, och webbservern stoppar du
+med Ctrl+C.
 
 ## Nästa steg
 
@@ -113,4 +220,4 @@ som är påslagna.
 - [docs/acceptance.md](../acceptance.md) för checklistorna paret testas med,
   och [docs/dataspatium-coordination.md](../dataspatium-coordination.md) för
   vad de två projekten samordnar.
-- [docs/deploy/](../deploy/) när servern ska köras för andra.
+- [docs/deploy/](deploy/) när servern ska köras för andra.

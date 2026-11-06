@@ -61,6 +61,8 @@ uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
    `http://localhost:8000`; [Dataspatium](#kontroll-ja-dataspatium) ja
    Python-kirjasto kansiossa [client/](../../client/) ovat valmiita
    asiakasohjelmia.
+   Jos kirjaudut Dataspatiumista, seuraa [pika-aloitusta](quickstart.md): siinä on
+   kaikki tarvittavat asetukset ja ohjeet siihen, mitä tehdä, jos jokin menee vikaan.
 
 Ilman Dockeria itse palvelimelle (tietokanta tarvitaan edelleen):
 

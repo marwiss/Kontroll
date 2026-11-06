@@ -76,6 +76,7 @@ selv i stedet. CORS tillader alle oprindelser som standard, så der skal ikke
 indstilles mere; `OPENCDE_REQUEST_LOG_ENABLED=true` lader `/admin/requests`
 vise serversiden af appens kald. Den fulde tjekliste er
 [docs/acceptance.md](../../acceptance.md), afsnit C.
+[Den hurtige start](../quickstart.md) har alle trin og en fejlfindingstabel.
 
 ## Ren tavle
 

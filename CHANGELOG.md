@@ -7,6 +7,18 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## Unreleased
+
+- The quick start covers everything it takes to sign in to Kontroll from
+  Dataspatium: what you need, exactly which lines of `.env` to change and why, the
+  words on the screen in each language, and a troubleshooting table that quotes each
+  message with its cause and what to do. It was followed literally from an empty
+  folder in Firefox and Chromium.
+- `opencde seed` run right after `docker compose up` no longer risks a deadlock with
+  the starting server, which restarted the server and killed the seed without output.
+- The page that refuses an authorization request states its reason in the user's
+  language, not only in English.
+
 ## 2.5.0 — 2026-11-06
 
 The release kept for 2.x. Works with Dataspatium 2.5.0. It contains 2.0.0,

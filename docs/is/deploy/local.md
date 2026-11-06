@@ -77,6 +77,7 @@ sjálft í staðinn. CORS leyfir sjálfgefið allan uppruna, svo engrar frekari
 stillingar er þörf; `OPENCDE_REQUEST_LOG_ENABLED=true` lætur `/admin/requests`
 sýna þjónshlið kalla forritsins. Gátlistinn í heild er
 [docs/acceptance.md](../../acceptance.md), kafli C.
+[Fljótlega byrjunin](../quickstart.md) hefur öll skrefin og bilanaleitartöflu.
 
 ## Hreint borð
 
