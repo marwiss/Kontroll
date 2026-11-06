@@ -47,7 +47,8 @@ DOCS_PATHS = ("/docs", "/docs/oauth2-redirect")
 # selection and upload pages, the sign-in they may need) and its callback page reports back to the
 # window that opened it; a Cross-Origin-Opener-Policy of "same-origin" on those pages would cut
 # that opener and strand the user on the callback page. They keep the browser's default, and only
-# the administration and account pages, which no other site opens, isolate themselves.
+# the administration and account pages, which no other site opens, isolate themselves. An account
+# page on its way somewhere (a new password in the middle of a sign-in) is a step in that popup too.
 ISOLATED_PREFIXES = ("/admin", "/account")
 COOP_DEFAULT = b"unsafe-none"
 DOCS_CSP = (
@@ -84,7 +85,8 @@ class SecurityHeadersMiddleware:
                     defaults[b"cache-control"] = b"public, max-age=86400"
                 if scope["path"] in DOCS_PATHS:
                     defaults[b"content-security-policy"] = DOCS_CSP
-                if not scope["path"].startswith(ISOLATED_PREFIXES):
+                going_on = scope["path"] == "/account" and b"next=" in scope.get("query_string", b"")
+                if going_on or not scope["path"].startswith(ISOLATED_PREFIXES):
                     defaults[b"cross-origin-opener-policy"] = COOP_DEFAULT
                 headers.extend((name, value) for name, value in defaults.items() if name not in present)
                 message["headers"] = headers

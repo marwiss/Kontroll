@@ -80,7 +80,7 @@ Hver kontroll har minst én automatisert test. "Suite" navngir testmodulen.
 | Hver admin-POST trenger et signert token bundet til administratorens sesjon og objektet, og en same-origin-nettleserforespørsel | CSRF, OWASP ASVS 4.2.2 | `test_admin_ui::test_csrf_protections_on_admin_forms` |
 | Tilbakestilling av passord, endring av adminflagget, rotasjon av klienthemmeligheter og sletting trenger administratorens eget passord igjen | OWASP ASVS 2.2.5 | `test_user_management`, `test_project_management_reaches_the_bcf_api`, `test_client_management_and_secret_rotation` |
 | Administratorer kan ikke deaktivere, degradere eller slette sin egen konto | Forebygging av utestengelse | `test_user_management` |
-| Genererte passord og klienthemmeligheter vises én gang; tilbakestilte passord må byttes ved neste innlogging; deaktivering trekker tilbake tokens | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation` |
+| Genererte passord og klienthemmeligheter vises én gang; tilbakestilte passord må byttes ved neste innlogging; deaktivering trekker tilbake tokens | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation`, `test_forced_password_change` |
 | Hver adminhandling registreres i revisjonsloggen uten hemmeligheter | OWASP ASVS 7.1 | `test_sessions_audit_and_settings_pages` |
 | Innstillingssiden viser aldri hemmeligheter | OWASP ASVS 14.3 | `test_sessions_audit_and_settings_pages` |
 | Sidene bærer den strenge CSP-en, ingen inline-kode; forbedringsskriptene bygger DOM bare med `textContent` | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (ingen konsollfeil) |

@@ -42,6 +42,8 @@ Työstetty esimerkki tämän kulun asiakaspuolesta selaimessa on
 valtuutussivulle, callback-sivu, joka raportoi koodin takaisin, tokenien
 vaihto julkisena asiakkaana, kiertävä refresh ja peruutus uloskirjautuessa.
 
+Käyttäjä, jonka salasanan joku toinen tietää (uusi tili tai palautus), ei saa koodia. Palvelin vie selaimen tilisivulle vaihtamaan sen ja sitten takaisin valtuutussivulle sen kanssa, mitä asiakasohjelma pyysi. Asiakasohjelma huomaa vain pidemmän odotuksen.
+
 ## Mitä kunkin osapuolen on tehtävä
 
 | Vaihe | Asiakas | Palvelin |

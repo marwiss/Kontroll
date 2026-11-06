@@ -42,6 +42,8 @@ sequenceDiagram
 á heimildarsíðuna, callback-síðan sem skilar kóðanum til baka, tókaskiptin
 sem opinber biðlari, endurnýjun með skiptum og afturköllun við útskráningu.
 
+Notandi með lykilorð sem einhver annar þekkir (nýr reikningur eða endurstilling) fær engan kóða. Þjónninn fer með vafrann á reikningssíðuna til að skipta um það og síðan aftur á heimildarsíðuna með því sem biðlarinn bað um. Biðlarinn verður ekki var við annað en lengri bið.
+
 ## Hvað hver aðili þarf að gera
 
 | Skref | Biðlari | Þjónn |

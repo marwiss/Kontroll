@@ -80,7 +80,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Every admin POST needs a signed token bound to the admin's session and the object, and a same-origin browser request | CSRF, OWASP ASVS 4.2.2 | `test_admin_ui::test_csrf_protections_on_admin_forms` |
 | Resetting passwords, changing the admin flag, rotating client secrets and deleting need the admin's own password again | OWASP ASVS 2.2.5 | `test_user_management`, `test_project_management_reaches_the_bcf_api`, `test_client_management_and_secret_rotation` |
 | Administrators cannot disable, demote or delete their own account | Lock-out prevention | `test_user_management` |
-| Generated passwords and client secrets are shown once; reset passwords must be changed at the next sign-in; disabling revokes tokens | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation` |
+| Generated passwords and client secrets are shown once; reset passwords must be changed at the next sign-in; disabling revokes tokens | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation`, `test_forced_password_change` |
 | Every admin action is recorded in the audit log without secrets | OWASP ASVS 7.1 | `test_sessions_audit_and_settings_pages` |
 | The settings page never shows secrets | OWASP ASVS 14.3 | `test_sessions_audit_and_settings_pages` |
 | Pages carry the strict CSP, no inline code; the enhancement scripts build DOM with `textContent` only | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (no console errors) |

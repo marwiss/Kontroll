@@ -81,7 +81,7 @@ prófunareininguna.
 | Hvert POST stjórnunar þarf undirritaðan tóka bundinn við setu stjórnandans og hlutinn, og vafrabeiðni frá sama uppruna | CSRF, OWASP ASVS 4.2.2 | `test_admin_ui::test_csrf_protections_on_admin_forms` |
 | Endurstilling lykilorða, breyting stjórnandamerkis, skipti biðlaraleyndarmála og eyðing þurfa eigið lykilorð stjórnandans aftur | OWASP ASVS 2.2.5 | `test_user_management`, `test_project_management_reaches_the_bcf_api`, `test_client_management_and_secret_rotation` |
 | Stjórnendur geta ekki gert eigin reikning óvirkan, lækkað hann eða eytt | Varnir gegn útilokun | `test_user_management` |
-| Mynduð lykilorð og biðlaraleyndarmál sýnd einu sinni; endurstilltum lykilorðum þarf að breyta við næstu innskráningu; að gera óvirkan afturkallar tóka | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation` |
+| Mynduð lykilorð og biðlaraleyndarmál sýnd einu sinni; endurstilltum lykilorðum þarf að breyta við næstu innskráningu; að gera óvirkan afturkallar tóka | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation`, `test_forced_password_change` |
 | Hver stjórnunaraðgerð skráð í endurskoðunarskrána án leyndarmála | OWASP ASVS 7.1 | `test_sessions_audit_and_settings_pages` |
 | Stillingasíðan sýnir aldrei leyndarmál | OWASP ASVS 14.3 | `test_sessions_audit_and_settings_pages` |
 | Síðurnar bera stranga CSP, engan innfelldan kóða; viðbótarskrifturnar byggja DOM aðeins með `textContent` | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (engar stjórnborðsvillur) |

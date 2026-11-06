@@ -55,6 +55,20 @@ def signin_redirect(request: Request) -> RedirectResponse:
     return RedirectResponse("/signin?" + urlencode({"next": safe_next(target)}), status_code=302, headers=NO_STORE)
 
 
+def change_password_url(target: str) -> str:
+    """The account page, asking for a new password; ``target`` is where to go on to afterwards."""
+    query = {"notice": "change_password"}
+    if target != "/":
+        query["next"] = target
+    return "/account?" + urlencode(query)
+
+
+def password_change_redirect(request: Request) -> RedirectResponse:
+    """A password someone else knows has to be changed first; the browser then comes back to the current page."""
+    target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
+    return RedirectResponse(change_password_url(safe_next(target)), status_code=302, headers=NO_STORE)
+
+
 def _origins(request: Request) -> set[str]:
     origins = {urlsplit(request.app.state.settings.public_url)._replace(path="").geturl()}
     host = request.headers.get("host")

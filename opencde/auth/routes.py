@@ -44,6 +44,8 @@ from opencde.ratelimit import RATE_EXCHANGE, RATE_SIGN_IN, limiter, registration
 from opencde.timeutil import later_iso
 from opencde.ui.i18n import tr
 from opencde.ui.templating import origin_of, render
+from opencde.web.dependencies import change_password_url, safe_next
+from opencde.web.sessions import WebSessionsDep, set_session_cookie
 
 log = get_logger(__name__)
 
@@ -184,6 +186,7 @@ async def authorize_submit(
     tokens: TokensDep,
     graph: GraphDep,
     settings: SettingsDep,
+    sessions: WebSessionsDep,
     form_token: Annotated[str | None, Form()] = None,
     username: Annotated[str, Form(max_length=128)] = "",
     password: Annotated[str, Form(max_length=256)] = "",
@@ -234,6 +237,18 @@ async def authorize_submit(
             graph, "auth.sign_in.failed", client_id=client.client_id, ip=ip, details={"username": username[:128]}
         )
         return ask_again(tr(request, "signin.error.credentials"))
+
+    if user.must_change_password:
+        # The password has just been proved, so changing it needs no second sign-in. The flow then starts over at
+        # the authorization page, with what the client asked for, and the client notices nothing.
+        session = await sessions.create(user.id, ip)
+        again = {name: data[name] for name in ("client_id", "redirect_uri", "state", "scope", "code_challenge")}
+        again |= {"response_type": "code", "code_challenge_method": "S256"}
+        target = safe_next(f"{request.url.path}?{urlencode(again)}")
+        response = RedirectResponse(change_password_url(target), status_code=303, headers=NO_STORE)
+        set_session_cookie(response, session, settings)
+        await audit.record(graph, "auth.sign_in.must_change_password", actor=user.id, client_id=client.client_id, ip=ip)
+        return response
 
     code = await tokens.issue_code(
         user_id=user.id,
