@@ -39,6 +39,7 @@ def token_repository(graph: Graph, settings: Settings) -> TokenRepository:
         code_ttl=settings.authorization_code_ttl_seconds,
         access_ttl=settings.access_token_ttl_seconds,
         refresh_ttl=settings.refresh_token_ttl_seconds,
+        refresh_idle=settings.refresh_token_idle_seconds,
     )
 
 

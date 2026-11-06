@@ -15,6 +15,7 @@ prófunareininguna.
 | Kóði bundinn við biðlara, redirect-URI og verifier | RFC 6749 §4.1.3 | `test_security_oauth2::test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |
 | Ógegnsæir tókar geymdir aðeins sem SHA-256-tætigildi | ADR 0002 | `test_graph_core` (skema), kóðayfirferð |
 | Skipti endurnýjunartóka með greiningu endurnotkunar sem afturkallar fjölskylduna | RFC 9700 §4.14 | `test_oauth2::test_refresh_rotates_and_reuse_revokes_the_family` |
+| Refresh-tóki sem ekki hefur verið notaður í tvær vikur (`refresh_token_idle_seconds`) hættir að virka og tekur fjölskyldu sína með sér, innan 30 daga algjörs líftíma | RFC 9700 §4.14 | `test_oauth2::test_a_refresh_token_left_unused_stops_working` |
 | Auðkenning biðlara: Basic eða eyðublað; opinberir biðlarar sýna aldrei leyndarmál; 401 með `WWW-Authenticate` | RFC 6749 §2.3 | `test_security_oauth2::test_client_authentication_failures` |
 | Tókasvör `Cache-Control: no-store`, `Pragma: no-cache`, staða 201 | RFC 6749 §5.1, Foundation API | `test_oauth2::test_token_response_is_never_cached_and_has_spec_fields` |
 | Afturköllun aðgangstóka og heilla endurnýjunarfjölskyldna | RFC 7009 | `test_oauth2::test_revocation` |

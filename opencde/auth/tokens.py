@@ -72,11 +72,12 @@ class _Refusal:
 
 
 class TokenRepository:
-    def __init__(self, graph: Graph, *, code_ttl: int, access_ttl: int, refresh_ttl: int) -> None:
+    def __init__(self, graph: Graph, *, code_ttl: int, access_ttl: int, refresh_ttl: int, refresh_idle: int) -> None:
         self.graph = graph
         self.code_ttl = code_ttl
         self.access_ttl = access_ttl
         self.refresh_ttl = refresh_ttl
+        self.refresh_idle = refresh_idle
 
     # -- authorization codes ------------------------------------------------------
 
@@ -227,7 +228,9 @@ class TokenRepository:
                 )
             if row["client_id"] != client_id:
                 return _Refusal(GrantError("invalid_grant", "refresh token was issued to another client"))
-            if stored["expires_at"] <= now_iso() or row["user_disabled"] or row["client_disabled"]:
+            # Every use rotates the token, so its age is the time since the session was last used.
+            idle = stored["created_at"] <= later_iso(-self.refresh_idle)
+            if idle or stored["expires_at"] <= now_iso() or row["user_disabled"] or row["client_disabled"]:
                 return _Refusal(
                     GrantError("invalid_grant", "refresh token expired or account disabled"),
                     revoke_family_id=stored["family_id"],

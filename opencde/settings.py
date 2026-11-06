@@ -135,6 +135,11 @@ class Settings(BaseSettings):
     authorization_code_ttl_seconds: int = Field(60, ge=10, le=600)
     access_token_ttl_seconds: int = Field(3600, ge=60)
     refresh_token_ttl_seconds: int = Field(30 * 24 * 3600, ge=3600)
+    refresh_token_idle_seconds: int = Field(
+        14 * 24 * 3600,
+        ge=3600,
+        description="A refresh token unused for this long stops working; the user signs in again.",
+    )
     web_session_ttl_seconds: int = Field(8 * 3600, ge=300, description="Absolute lifetime of a browser session.")
     web_session_idle_seconds: int = Field(
         30 * 60, ge=60, description="Browser session ends after this much inactivity."
