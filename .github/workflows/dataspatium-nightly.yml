@@ -38,6 +38,9 @@ jobs:
           ref: ${{ env.DATASPATIUM_REF }}
           path: dataspatium
           persist-credentials: false
+      - name: Let the browser use its sandbox
+        # Ubuntu restricts the unprivileged user namespaces that Chromium's sandbox needs, and it aborts without them.
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Check that the browser starts
         # Fails at once and shows why, instead of the suite waiting for a summary from a browser that has died.
         run: chromium --headless=new --disable-gpu --no-first-run --dump-dom about:blank | grep -q '<html'
