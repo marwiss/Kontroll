@@ -16,6 +16,13 @@ SIGN_IN = {
 }
 
 
+def test_the_start_page_leads_to_the_documentation_in_the_language_of_the_page(client: TestClient) -> None:
+    english = client.get("/", headers={"Accept-Language": "en"}).text
+    assert "blob/main/docs/quickstart.md" in english and "blob/main/docs/deploy/vps-caddy.md" in english
+    swedish = client.get("/", headers={"Accept-Language": "sv"}).text
+    assert "blob/main/docs/sv/architecture.md" in swedish and "blob/main/docs/sv/client-guide.md" in swedish
+
+
 def test_every_language_has_every_key_of_the_english_source() -> None:
     source = i18n.catalogue("en")
     assert source, "the English catalogue is the source"

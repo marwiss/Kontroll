@@ -137,6 +137,22 @@ class TopicFields(BcfModel):
 class TopicPOST(TopicFields):
     """``Topic/topic_POST.json``"""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "title": "Check the reuse marking of the first wall",
+                    "topic_type": "Inspection",
+                    "topic_status": "Open",
+                    "priority": "Medium",
+                    "labels": ["Reuse"],
+                    "assigned_to": "inspector",
+                    "description": "Confirm the marking on site before the inspection.",
+                }
+            ]
+        }
+    )
+
     guid: str | None = Field(None, max_length=64)
 
 
@@ -219,6 +235,10 @@ class CommentFields(BcfModel):
 
 class CommentPOST(CommentFields):
     """``Comment/comment_POST.json``"""
+
+    model_config = ConfigDict(
+        json_schema_extra={"examples": [{"comment": "The marking is missing on the north side."}]}
+    )
 
     guid: str | None = Field(None, max_length=GUID_MAX)
 
@@ -380,6 +400,26 @@ class Components(BcfModel):
 
 class ViewpointPOST(BcfModel):
     """``Viewpoint/viewpoint_POST.json`` with the rules of BCF 3.5.2."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "perspective_camera": {
+                        "camera_view_point": {"x": 8.0, "y": -6.0, "z": 4.0},
+                        "camera_direction": {"x": -0.6, "y": 0.7, "z": -0.3},
+                        "camera_up_vector": {"x": 0.0, "y": 0.0, "z": 1.0},
+                        "field_of_view": 60.0,
+                        "aspect_ratio": 1.6,
+                    },
+                    "components": {
+                        "selection": [{"ifc_guid": "1Xezbq735AdBO_4DerG66G"}],
+                        "visibility": {"default_visibility": True},
+                    },
+                }
+            ]
+        }
+    )
 
     guid: str | None = Field(None, max_length=GUID_MAX)
     index: int | None = Field(None, ge=0, le=1_000_000_000)

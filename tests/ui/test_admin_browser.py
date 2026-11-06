@@ -23,6 +23,7 @@ sync_playwright = _playwright.sync_playwright
 pytestmark = pytest.mark.ui
 
 PAGES = (
+    "/",
     "/admin",
     "/admin/users",
     "/admin/users/new",

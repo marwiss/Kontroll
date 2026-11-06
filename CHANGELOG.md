@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- The start page says where to start: trying the server, seeing how it is built, running it for
+  others and building a client. The API document has examples of the main request bodies.
 - `compose.external-db.yaml` runs the stack against a database elsewhere, with its address in
   `OPENCDE_STACK_GRAPH_URI`, and leaves the database container out.
 - A generated or reset password has to be changed before anything else works, as the
