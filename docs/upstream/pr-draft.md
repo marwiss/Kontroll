@@ -13,7 +13,7 @@ own.
 ## Summary
 
 Replaces the 2023 prototype in `src/opencdeserver` with a new implementation
-of the buildingSMART OpenCDE APIs: Foundation API 1.0, BCF API 3.0 and
+of the buildingSMART OpenCDE APIs: Foundation API 1.0, BCF API 3.0 and 2.1, and
 Documents API 1.0, with a web administration UI and an optional IFC-graph
 module. Same purpose and functionality as the prototype (see
 `docs/inventory.md` for the function-by-function mapping), modern

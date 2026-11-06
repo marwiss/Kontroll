@@ -6,7 +6,7 @@ Status: **draft, not sent**. The project owner reviews, adapts and posts it
 ---
 
 **Title:** OpenCDE server: a rewrite of `src/opencdeserver` (Foundation 1.0,
-BCF 3.0, Documents 1.0): where should it live?
+BCF 3.0 and 2.1, Documents 1.0): where should it live?
 
 ## Background
 
@@ -20,7 +20,7 @@ IFC graph for digital inspection plans).
 
 ## What the rewrite is
 
-- Foundation API 1.0, BCF API 3.0 (all 40 operations) and Documents API 1.0
+- Foundation API 1.0, BCF API 3.0 (all 40 operations) and 2.1, and Documents API 1.0
   (all 13 operations), tested against the pinned buildingSMART JSON schemas and
   the Documents swagger, with the deviations between the README examples and the
   schemas documented.
