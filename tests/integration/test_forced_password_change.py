@@ -19,7 +19,7 @@ from tests.integration.test_web_signin import form_token
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-NEW_PASSWORD = "correct-horse-battery-staple-2026"
+CHOSEN = "correct-horse-battery-staple-2026"
 VERIFIER = "v" * 50
 
 
@@ -76,7 +76,7 @@ def _change_form(client: TestClient, url: str) -> tuple[str, str]:
     return action.group(1).replace("&amp;", "&"), form_token(page.text)
 
 
-def _change(client: TestClient, url: str, *, current: str, new: str = NEW_PASSWORD, repeat: str | None = None):
+def _change(client: TestClient, url: str, *, current: str, new: str = CHOSEN, repeat: str | None = None):
     action, token = _change_form(client, url)
     return client.post(
         action,
@@ -109,7 +109,7 @@ def test_a_client_gets_no_code_for_a_password_that_has_to_change(
         "wrong_password"
     ]
     assert "next=" in wrong.headers["location"]
-    mismatch = _change(client, refused.headers["location"], current=one_time, repeat=NEW_PASSWORD + "x")
+    mismatch = _change(client, refused.headers["location"], current=one_time, repeat=CHOSEN + "x")
     assert mismatch.status_code == 400 and "next=" in re.search(
         r'action="([^"]*)"[^>]*class="stack"', mismatch.text
     ).group(1)  # type: ignore[union-attr]
@@ -123,7 +123,7 @@ def test_a_client_gets_no_code_for_a_password_that_has_to_change(
 
     client.cookies.clear()
     assert _submit_authorization(client, world, one_time).status_code == 200, "the old password is gone"
-    answer = _submit_authorization(client, world, NEW_PASSWORD)
+    answer = _submit_authorization(client, world, CHOSEN)
     assert answer.status_code == 302
     query = parse_qs(urlsplit(answer.headers["location"]).query)
     assert query["state"] == ["s1"] and query["code"]
