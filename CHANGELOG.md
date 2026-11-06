@@ -9,6 +9,9 @@ the commit history.
 
 ## Unreleased
 
+- The server's pages remove a service worker that another app left on the same
+  address, and fetch the page again once. Such a worker answers with old copies of
+  the pages, so that the sign-in fails with an expired form.
 - The quick start covers everything it takes to sign in to Kontroll from
   Dataspatium: what you need, exactly which lines of `.env` to change and why, the
   words on the screen in each language, and a troubleshooting table that quotes each
