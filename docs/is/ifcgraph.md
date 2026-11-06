@@ -55,6 +55,36 @@ framsetningaratriði, framsetningar, snið, staðsetningar og stílar; þau eru
 meirihluti líkans og sjaldan það sem CDE-fyrirspurn þarf. `IfcOwnerHistory`
 er aðeins haldið fyrir `IfcProject`.
 
+## Hvaðan aðferðin kemur
+
+Umbreytingin fylgir IFC-Graph-aðferð Zhu, Wu og Lei: einn hnútur fyrir hvert
+tilvik, flokkastigveldið sem merkimiðar, bókstafleg eigindi sem eiginleikar og
+eigindi sem vísa á önnur tilvik, andhverf eigindi meðtalin, sem vensl nefnd eftir
+eigindinu. Frumgerðin frá 2023 notaði kóða greinarinnar. Umbreyting þessa þjóns
+er skrifuð að nýju.
+
+Junxiang Zhu, Peng Wu og Xiang Lei: "IFC-graph for facilitating building
+information access and query". *Automation in Construction* 148 (2023), 104778.
+[doi:10.1016/j.autcon.2023.104778](https://doi.org/10.1016/j.autcon.2023.104778),
+í opnum aðgangi samkvæmt CC BY 4.0.
+
+Hún er frábrugðin greininni á þennan hátt:
+
+- Rúmfræði er sleppt nema beðið sé um hana. Greinin umbreytir öllu og nefnir
+  stærð grafsins sem takmörkun.
+- Færslur eru skrifaðar í lotum með `CREATE` úr sérstöku ferli. Greinin sameinar
+  hvern hnút og hver vensl, sem leitar að tvítekningum í grafinu og hægir á sér
+  eftir því sem grafið stækkar.
+- Select-gildi verða eiginleikar hnútar síns. Greinin gefur þeim eigin hnúta með
+  búnu til auðkenni.
+- Mörg líkön deila einum gagnagrunni og eru aðgreind með `model_id`. Greinin hefur
+  eitt líkan í hverjum gagnagrunni.
+- Venslagerðir eru skrifaðar með hástöfum, og `SAME_AS` og afrit af GTIN eru
+  viðbætur hér.
+
+Röð í listum glatast líka hér, eins og greinin bendir á um sitt eigið graf: vensl
+segja ekki hvar í lista markmið þeirra stóð.
+
 ## Umhirða
 
 Hvert upphal IFC-skrár bætir við `IfcModel` með einingum sínum, svo verkefni

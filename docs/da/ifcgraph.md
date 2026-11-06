@@ -61,6 +61,36 @@ stilarter; de udgør det meste af en model og er sjældent det, en
 CDE-forespørgsel har brug for. `IfcOwnerHistory` beholdes kun for
 `IfcProject`.
 
+## Hvor metoden kommer fra
+
+Omsætningen følger IFC-Graph-metoden af Zhu, Wu og Lei: én node pr. instans,
+klassehierarkiet som labels, literale attributter som egenskaber og attributter,
+der peger på andre instanser, inverse attributter medregnet, som relationer
+navngivet efter attributten. Prototypen fra 2023 brugte artiklens kode. Denne
+servers konvertering er skrevet på ny.
+
+Junxiang Zhu, Peng Wu og Xiang Lei: "IFC-graph for facilitating building
+information access and query". *Automation in Construction* 148 (2023), 104778.
+[doi:10.1016/j.autcon.2023.104778](https://doi.org/10.1016/j.autcon.2023.104778),
+frit tilgængelig under CC BY 4.0.
+
+Den adskiller sig fra artiklen på disse punkter:
+
+- Geometri udelades, medmindre den ønskes. Artiklen konverterer alt og nævner
+  grafens størrelse som en begrænsning.
+- Posterne skrives i portioner med `CREATE` fra en separat proces. Artiklen
+  fletter hver node og relation, hvilket søger efter dubletter i grafen og bliver
+  langsommere, jo større grafen bliver.
+- Select-værdier bliver egenskaber på deres node. Artiklen giver dem egne noder
+  med en genereret identifikator.
+- Flere modeller deler én database og skelnes med `model_id`. Artiklen har én
+  model pr. database.
+- Relationstyperne skrives med store bogstaver, og `SAME_AS` og kopien af GTIN er
+  tilføjelser her.
+
+Rækkefølgen i lister går også tabt her, som artiklen påpeger om sin egen graf: en
+relation siger ikke, hvor i en liste dens mål stod.
+
 ## Oprydning
 
 Hver upload af en IFC-fil tilføjer en `IfcModel` med dens entiteter, så et

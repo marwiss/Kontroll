@@ -57,6 +57,36 @@ items, representations, profiles, placements and styles; they are most of a
 model and seldom what a CDE query needs. `IfcOwnerHistory` is kept for the
 `IfcProject` only.
 
+## Where the method comes from
+
+The mapping follows the IFC-Graph method of Zhu, Wu and Lei: one node per
+instance, the class hierarchy as labels, literal attributes as properties, and
+attributes that point at other instances, inverse attributes included, as
+relationships named after the attribute. The 2023 prototype used the article's
+code. This server's conversion is written anew.
+
+Junxiang Zhu, Peng Wu and Xiang Lei: "IFC-graph for facilitating building
+information access and query". *Automation in Construction* 148 (2023), 104778.
+[doi:10.1016/j.autcon.2023.104778](https://doi.org/10.1016/j.autcon.2023.104778),
+open access under CC BY 4.0.
+
+It differs from the article in these ways:
+
+- Geometry is left out unless asked for. The article converts everything and
+  names the size of the graph as a limitation.
+- Records are written in batches with `CREATE`, from a separate process. The
+  article merges every node and relationship, which checks the graph for
+  duplicates and slows down as the graph grows.
+- Select values become properties of their node. The article gives them nodes
+  of their own with a generated identifier.
+- Several models share one database, told apart by `model_id`. The article
+  keeps one model per database.
+- Relationship types are written in upper case, and `SAME_AS` and the copy of
+  the GTIN are added here.
+
+The order of lists is lost here too, as the article notes for its own graph: a
+relationship does not say where in a list its target stood.
+
 ## Housekeeping
 
 Every upload of an IFC file adds an `IfcModel` with its entities, so a project

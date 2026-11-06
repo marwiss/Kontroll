@@ -134,6 +134,10 @@ progress table below. This file is updated whenever a route changes.
 
 ## 7. IFC-graph
 
+The prototype's conversion is the code published with Zhu, Wu and Lei, "IFC-graph for facilitating building
+information access and query", Automation in Construction 148 (2023), 104778, with some changes. The rewrite
+keeps its mapping and writes it anew; [ifcgraph.md](ifcgraph.md) says where it differs.
+
 | Prototype | Status | Stage |
 |---|---|---|
 | One node per IFC entity with the class hierarchy as labels, literal attributes as properties | done; `IfcEntity` nodes with `id = <model>:<step>`, `IfcModel` node per document version or BCF document, indexes on `GlobalId` and `model_id`; geometry left out unless `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY` | 9 |
