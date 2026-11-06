@@ -2,7 +2,8 @@
 # the administration through its pages with a session cookie. The baseline scan looks at what
 # anyone can reach; this one attacks what takes a sign-in. See docs/security/pentest-howto.md.
 #
-# TARGET, SESSION, TOKEN and ADMIN_TOKEN come from the environment (.zap/credentials.py).
+# TARGET comes from the environment. SESSION, TOKEN and ADMIN_TOKEN are filled in by .zap/credentials.py,
+# which writes the copy of this plan that runs, since ZAP leaves variables in a replacer rule as they stand.
 env:
   contexts:
     - name: kontroll

@@ -41,3 +41,7 @@ playwright-report/
 
 # Schemathesis
 .schemathesis/
+
+# The signed-in scan's plan with its values, and its reports
+.zap/authenticated-filled.yaml
+.zap/zap-authenticated.*
