@@ -7,6 +7,7 @@ import socket
 import threading
 import time
 from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -42,9 +43,9 @@ def _free_port() -> int:
         return int(sock.getsockname()[1])
 
 
-@pytest.fixture
-def live_server(graph_target: GraphTarget, clean_database: None, tmp_path: Path) -> Iterator[LiveServer]:
-    port = _free_port()
+@contextmanager
+def running_server(graph_target: GraphTarget, tmp_path: Path, port: int | None = None) -> Iterator[LiveServer]:
+    port = port or _free_port()
     live_settings = test_settings(
         tmp_path,
         graph_dialect=graph_target.dialect,
@@ -77,3 +78,9 @@ def live_server(graph_target: GraphTarget, clean_database: None, tmp_path: Path)
     finally:
         server.should_exit = True
         thread.join(timeout=15)
+
+
+@pytest.fixture
+def live_server(graph_target: GraphTarget, clean_database: None, tmp_path: Path) -> Iterator[LiveServer]:
+    with running_server(graph_target, tmp_path) as server:
+        yield server

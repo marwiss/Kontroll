@@ -37,6 +37,7 @@ from opencde.logging import configure_logging, get_logger
 from opencde.middleware import (
     ApiCORSMiddleware,
     BodySizeLimitMiddleware,
+    ForeignWorkerMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
     UnhandledErrorMiddleware,
@@ -147,6 +148,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     # Unhandled errors are turned into the spec 500 innermost, so CORS and the security headers still apply.
     app.add_middleware(UnhandledErrorMiddleware)
     app.add_middleware(PathRateLimitMiddleware, api_limit=settings.rate_limit_api)
+    app.add_middleware(ForeignWorkerMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(ETagMiddleware)
     app.add_middleware(

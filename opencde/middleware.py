@@ -11,12 +11,13 @@ import json
 import re
 import uuid
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 import structlog
 from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from opencde.errors import error_body
@@ -93,6 +94,28 @@ class SecurityHeadersMiddleware:
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
+
+
+class ForeignWorkerMiddleware:
+    """Answer a browser's check for a service worker's script, at any address, with a script that removes the worker.
+
+    The server has no worker of its own, so such a request comes from one another app left on the address. It answers
+    with old copies of the pages, and the check bypasses it, so this works even while a saved page is showing. It
+    repairs an accident and is no security control.
+    """
+
+    SCRIPT = (Path(__file__).parent / "ui" / "static" / "js" / "remove-foreign-worker.js").read_bytes()
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http" and scope["method"] == "GET" and (b"service-worker", b"script") in scope["headers"]:
+            structlog.get_logger("opencde.middleware").info("foreign_service_worker_removed", path=scope["path"])
+            answer = Response(self.SCRIPT, media_type="text/javascript", headers={"Cache-Control": "no-store"})
+            await answer(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
 
 
 class ApiCORSMiddleware:
