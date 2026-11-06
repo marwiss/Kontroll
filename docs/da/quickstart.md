@@ -188,7 +188,7 @@ Hver række citerer skærmen, som den ser ud med de danske navne.
 | *Du er ikke medlem af noget projekt på serveren.* | Du loggede ind som `admin`, som ikke er med i noget projekt | Tryk *Log ud* og derefter *Log ind* som `inspection_manager` |
 | *Log ind* bliver ved med at snurre | Vinduet blev lukket, før login var færdigt | Genindlæs siden |
 | Vinduet siger *Kopiera adressen … / Copy the address …* | Det kunne ikke nå appens vindue, som måske blev lukket eller genindlæst imens | Luk vinduet, og tryk *Log ind* igen |
-| *En anden konto* på upload-siden | Browseren er logget ind på serveren som `admin`, som ikke startede uploadet | Tryk *Log ud* på den side, og luk vinduet. Genindlæs appen, fordi *Send* ellers forbliver optaget, tryk *Log ind* i kildens visning, vælg modellen i venstre kolonne i *Del*, og send igen |
+| *En anden konto* på upload-siden | Browseren er logget ind på serveren som `admin`, som ikke startede uploadet | Tryk *Log ud* på den side, og log ind som `inspection_manager`; uploadet fortsætter så i samme vindue |
 
 ## Start forfra
 

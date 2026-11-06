@@ -191,7 +191,7 @@ Varje rad citerar skärmen som den ser ut med de svenska namnen.
 | *Du är inte medlem i något projekt på servern.* | Du loggade in som `admin`, som inte är med i något projekt | Tryck *Logga ut* och sedan *Logga in* som `inspection_manager` |
 | *Logga in* snurrar och snurrar | Fönstret stängdes innan inloggningen var klar | Ladda om sidan |
 | Fönstret säger *Kopiera adressen … / Copy the address …* | Det kunde inte nå appens fönster, som kanske stängdes eller laddades om under tiden | Stäng fönstret och tryck *Logga in* igen |
-| *Ett annat konto* på uppladdningssidan | Webbläsaren är inloggad på servern som `admin`, som inte startade uppladdningen | Tryck *Logga ut* på den sidan och stäng fönstret. Ladda om appen, eftersom *Skicka* annars förblir upptagen, tryck *Logga in* i källans vy, välj modellen i vänsterkolumnen i *Dela* och skicka igen |
+| *Ett annat konto* på uppladdningssidan | Webbläsaren är inloggad på servern som `admin`, som inte startade uppladdningen | Tryck *Logga ut* på den sidan och logga in som `inspection_manager`; uppladdningen fortsätter sedan i samma fönster |
 
 ## Börja om
 

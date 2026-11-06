@@ -192,7 +192,7 @@ Each row quotes the screen as it reads with the English names.
 | *You are not a member of any project on the server.* | You signed in as `admin`, who is in no project | Press *Sign out* and then *Sign in* as `inspection_manager` |
 | *Sign in* keeps spinning | The pop-up was closed before the sign-in was finished | Reload the page |
 | The pop-up says *Kopiera adressen … / Copy the address …* | It could not reach the app's window, which was perhaps closed or reloaded meanwhile | Close the pop-up and press *Sign in* again |
-| *Another account* on the upload page | The browser is signed in to the server as `admin`, who did not start the upload | Press *Sign out* on that page and close the pop-up. Reload the app, since *Send* otherwise stays busy, press *Sign in* in the source's view, choose the model in the left column of *Share*, and send again |
+| *Another account* on the upload page | The browser is signed in to the server as `admin`, who did not start the upload | Press *Sign out* on that page and sign in as `inspection_manager`; the upload then continues in the same window |
 
 ## Start over
 

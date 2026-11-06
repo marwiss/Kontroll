@@ -186,7 +186,7 @@ Hver lína vitnar í skjáinn eins og hann lítur út með íslensku heitunum.
 | *Þú ert ekki þátttakandi í neinu verkefni á þjóninum.* | Þú skráðir þig inn sem `admin`, sem er ekki í neinu verkefni | Ýttu á *Skrá út* og svo á *Skrá inn* sem `inspection_manager` |
 | *Skrá inn* heldur áfram að snúast | Glugganum var lokað áður en innskráningu var lokið | Endurhladdu síðuna |
 | Glugginn segir *Kopiera adressen … / Copy the address …* | Hann náði ekki í glugga forritsins, sem var kannski lokað eða endurhlaðið á meðan | Lokaðu glugganum og ýttu aftur á *Skrá inn* |
-| *Annar reikningur* á upphleðslusíðunni | Vafrinn er skráður inn á þjóninn sem `admin`, sem hóf ekki upphleðsluna | Ýttu á *Skrá út* á þeirri síðu og lokaðu glugganum. Endurhladdu forritið, því annars er *Senda* áfram upptekið, ýttu á *Skrá inn* í sýn uppsprettunnar, veldu líkanið í vinstri dálki í *Deila* og sendu aftur |
+| *Annar reikningur* á upphleðslusíðunni | Vafrinn er skráður inn á þjóninn sem `admin`, sem hóf ekki upphleðsluna | Ýttu á *Skrá út* á þeirri síðu og skráðu þig inn sem `inspection_manager`; upphleðslan heldur þá áfram í sama glugga |
 
 ## Byrjaðu aftur
 

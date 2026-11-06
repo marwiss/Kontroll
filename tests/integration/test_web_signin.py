@@ -39,6 +39,12 @@ def web_sign_in(client: TestClient, world: World, username: str, next_url: str =
     assert response.status_code == 302, response.text
 
 
+@pytest.mark.parametrize("target", ["https://evil.example/", "//evil.example/", "/\\evil.example"])
+def test_signing_out_leads_only_to_this_server(client: TestClient, world: World, target: str) -> None:
+    answer = client.post("/signout", data={"next": target}, follow_redirects=False)
+    assert answer.status_code == 302 and answer.headers["location"] == "/"
+
+
 def test_sign_in_sets_a_hardened_cookie_and_sign_out_removes_it(client: TestClient, world: World) -> None:
     page = client.get("/signin", params={"next": "/documents/1.0/upload-ui/x"})
     response = client.post(

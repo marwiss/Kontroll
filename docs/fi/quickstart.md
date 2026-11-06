@@ -192,7 +192,7 @@ Jokainen rivi lainaa näyttöä sellaisena kuin se on suomenkielisillä nimillä
 | *Et ole jäsenenä missään projektissa palvelimella.* | Kirjauduit käyttäjänä `admin`, joka ei kuulu mihinkään projektiin | Paina *Kirjaudu ulos* ja sitten *Kirjaudu* käyttäjänä `inspection_manager` |
 | *Kirjaudu* pyörii pyörimistään | Ikkuna suljettiin ennen kuin kirjautuminen oli valmis | Lataa sivu uudelleen |
 | Ikkunassa lukee *Kopiera adressen … / Copy the address …* | Se ei saanut yhteyttä sovelluksen ikkunaan, joka ehkä suljettiin tai ladattiin uudelleen sillä välin | Sulje ikkuna ja paina *Kirjaudu* uudelleen |
-| *Toinen tili* lataussivulla | Selain on kirjautunut palvelimelle käyttäjänä `admin`, joka ei aloittanut latausta | Paina sillä sivulla *Kirjaudu ulos* ja sulje ikkuna. Lataa sovellus uudelleen, koska *Lähetä* muuten pysyy varattuna, paina *Kirjaudu* lähteen näkymässä, valitse malli tilan *Jaa* vasemmasta sarakkeesta ja lähetä uudelleen |
+| *Toinen tili* lataussivulla | Selain on kirjautunut palvelimelle käyttäjänä `admin`, joka ei aloittanut latausta | Paina sillä sivulla *Kirjaudu ulos* ja kirjaudu käyttäjänä `inspection_manager`; lataus jatkuu sitten samassa ikkunassa |
 
 ## Aloita alusta
 

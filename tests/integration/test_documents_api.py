@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
@@ -93,9 +94,15 @@ def test_upload_flow_versions_and_queries(client: TestClient, world: World) -> N
         "/signin?next=%2Fdocuments%2F1.0%2Fupload-ui%2F"
     )
     web_sign_in(client, world, "viewer")
-    assert client.get(page_url).status_code == 403, "another account"
+    other_account = client.get(page_url)
+    assert other_account.status_code == 403, "another account"
+    fields = dict(re.findall(r'name="(signout_token|next)" value="([^"]+)"', other_account.text))
+    path = urlsplit(page_url).path
+    assert fields["next"] == path, "signing out on this page leads back to it"
+    signed_out = client.post("/signout", data=fields, follow_redirects=False)
+    assert signed_out.status_code == 302 and signed_out.headers["location"] == "/signin?" + urlencode({"next": path})
     client.cookies.clear()
-    web_sign_in(client, world, "editor")
+    web_sign_in(client, world, "editor", next_url=path)
     page = client.get(page_url)
     assert page.status_code == 200 and "walls.ifc" in page.text and "notes.pdf" in page.text
     assert "Building permit" in page.text and "Demolition permit" not in page.text, "only projects with createDocument"

@@ -15,6 +15,8 @@ the commit history.
   through `OPENCDE_RATE_LIMIT_STORAGE`.
 - Outside production a client can register 60 times an hour rather than five, since someone
   trying a server out registers again and again.
+- Signing out on a page that asks for another account leads to the sign-in and back to that
+  page, so that the upload or selection continues in the same window.
 - Dynamic registration can be limited further: `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN`
   asks for an initial access token, and `OPENCDE_DYNAMIC_CLIENT_APPROVAL` keeps a new client
   disabled until an administrator approves it under `/admin/clients` or with

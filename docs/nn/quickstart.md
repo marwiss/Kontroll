@@ -189,7 +189,7 @@ Kvar rad siterer skjermen slik han ser ut med dei nynorske namna.
 | *Du er ikkje medlem i noko prosjekt på tenaren.* | Du logga inn som `admin`, som ikkje er med i noko prosjekt | Trykk *Logg ut* og deretter *Logg inn* som `inspection_manager` |
 | *Logg inn* held fram med å spinne | Vindauget vart lukka før innlogginga var ferdig | Last sida på nytt |
 | Vindauget seier *Kopiera adressen … / Copy the address …* | Det kunne ikkje nå vindauget til appen, som kanskje vart lukka eller lasta på nytt i mellomtida | Lukk vindauget, og trykk *Logg inn* igjen |
-| *Ein annan konto* på opplastingssida | Nettlesaren er logga inn på serveren som `admin`, som ikkje starta opplastinga | Trykk *Logg ut* på den sida, og lukk vindauget. Last appen på nytt, fordi *Send* elles blir verande oppteken, trykk *Logg inn* i visinga av kjelda, vel modellen i venstre kolonne i *Del*, og send på nytt |
+| *Ein annan konto* på opplastingssida | Nettlesaren er logga inn på serveren som `admin`, som ikkje starta opplastinga | Trykk *Logg ut* på den sida, og logg inn som `inspection_manager`; opplastinga held så fram i same vindauge |
 
 ## Start på nytt
 

@@ -2,7 +2,7 @@
 {% from "components.html" import alert, user_nav %}
 {% block title %}{{ title }} · {{ product }}{% endblock %}
 {% block body_class %}page--narrow{% endblock %}
-{% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
+{% block nav %}{{ user_nav(web_user, signout_token, signout_next) }}{% endblock %}
 {% block content %}
 <section class="card card--auth">
   <h1 class="card__title">{{ title }}</h1>
