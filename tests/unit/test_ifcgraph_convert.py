@@ -56,6 +56,8 @@ def test_convert_produces_labelled_nodes_and_attribute_edges() -> None:
     assert all(e["a"] in by_step and e["b"] in by_step for e in edges), "edges only between exported nodes"
     owner_histories = [n for n in nodes if n["props"]["ifc_class"] == "IfcOwnerHistory"]
     assert len(owner_histories) == 1, "only the project's owner history is kept"
+    linked_from = [by_step[e["a"]]["props"]["ifc_class"] for e in edges if e["b"] == owner_histories[0]["step"]]
+    assert linked_from == ["IfcProject"], "and every other entity that shares it has no edge to it"
 
 
 def test_geometry_can_be_included_and_limits_are_enforced(tmp_path: Path) -> None:
