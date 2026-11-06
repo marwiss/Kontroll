@@ -32,6 +32,8 @@ modulen held fram med å vere av.
 5. Ei konvertering som ein stoppa server har late etter seg, byrjar på nytt: ei køa så snart serveren er tilbake,
    ei pågåande når dobbel tidsgrense er passert, fordi ho kan køyre i ein annan serverprosess.
 
+`opencde seed` konverterer eksempelmodellen på same måte når modulen er på.
+
 ## Grafen
 
 Kvar entitet blir ein `IfcEntity`-node som ber klassen sin og alle

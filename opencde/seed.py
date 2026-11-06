@@ -42,6 +42,8 @@ from opencde.documents.assembly import store_stream
 from opencde.documents.repository import DocumentRepository, default_metadata
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
+from opencde.ifcgraph.service import IfcGraphService
+from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
 from opencde.timeutil import now_iso
 
@@ -93,6 +95,7 @@ class SeedResult:
     topic_guid: str = SEED_TOPIC_GUID
     viewpoint_guid: str = SEED_VIEWPOINT_GUID
     comment_guid: str = SEED_COMMENT_GUID
+    sample_model_key: str = ""
 
 
 class SeedError(RuntimeError):
@@ -185,16 +188,34 @@ async def seed(
     result.confidential_client_id = confidential_client.client_id
     result.confidential_client_secret = secret or ""
 
-    await _seed_content(
+    result.sample_model_key = await _seed_content(
         graph, storage, building_permit.project_id, id_prefix=id_prefix, max_image_bytes=max_image_bytes
     )
     return result
 
 
+async def build_sample_graph(graph: Graph, storage: LocalStorage, settings: Settings, result: SeedResult) -> dict:
+    """The sample model as a graph, as if it had been uploaded. Returns its ``IfcModel`` node's properties."""
+    service = IfcGraphService(graph, storage, settings)
+    project_id = result.projects["Building permit"]
+    await service.schedule(
+        project_id=project_id,
+        storage_key=result.sample_model_key,
+        file_name=SAMPLE_MODEL_FILE_NAME,
+        document_id=SEED_DOCUMENT_ID,
+        version_index=1,
+    )
+    await service.wait_idle()
+    return (await service.status(project_id))[0]
+
+
 async def _seed_content(
     graph: Graph, storage: LocalStorage, project_id: str, *, id_prefix: str, max_image_bytes: int
-) -> None:
-    """The sample model as a document, and a topic with a viewpoint on its first wall and a comment."""
+) -> str:
+    """The sample model as a document, and a topic with a viewpoint on its first wall and a comment.
+
+    Returns where the model is stored.
+    """
     documents = DocumentRepository(graph)
     key = make_key("documents", new_id())
     with SAMPLE_MODEL.open("rb") as source:
@@ -267,3 +288,4 @@ async def _seed_content(
             viewpoint_guid=SEED_VIEWPOINT_GUID,
         ),
     )
+    return key

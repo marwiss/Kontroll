@@ -143,11 +143,17 @@ Signed in as `admin`, open <http://127.0.0.1:8000/admin>:
   as the card *Log* at the bottom of the source's view in *Import*, so a failing
   call can be found on both sides.
 
-Then press *Sign out* at the top of the server's page, since the upload below is
-done as another user.
+The sample model is a graph already, since `OPENCDE_IFCGRAPH_ENABLED=true` was in
+`.env` when you ran `opencde seed`. Neo4j Browser at <http://127.0.0.1:7484> (connect
+to `bolt://127.0.0.1:7697` as `neo4j` with the password from `.env`) answers this
+query with the wall linked to the viewpoint's component:
 
-The graph is built from uploaded models, not from the one from `opencde seed`. To
-see it, send the model to the server:
+```cypher
+MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+```
+
+A model you send from Dataspatium becomes a graph the same way. To try it, press
+*Sign out* at the top of the server's page, since the upload is done as another user:
 
 1. In Dataspatium, choose the mode *Share* and the tab *To the CDE*. Under *What*,
    choose *The original file*, and press *Send*.
@@ -155,13 +161,7 @@ see it, send the model to the server:
 3. The server's upload page opens in a pop-up. Sign in as `inspection_manager` and
    press *Save and continue*. The pop-up closes by itself.
 
-Within seconds, Neo4j Browser at <http://127.0.0.1:7484> (connect to
-`bolt://127.0.0.1:7697` as `neo4j` with the password from `.env`) answers this
-query with the wall linked to the viewpoint's component:
-
-```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
-```
+Within seconds the same query finds the wall in the new model too.
 
 ## Troubleshooting
 

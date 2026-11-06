@@ -32,6 +32,8 @@ modulet forbliver slået fra.
 5. En konvertering, som en stoppet server har efterladt, begynder forfra: en sat i kø, så snart serveren er
    tilbage, en igangværende, når den dobbelte tidsgrænse er passeret, fordi den kan køre i en anden serverproces.
 
+`opencde seed` konverterer eksempelmodellen på samme måde, når modulet er slået til.
+
 ## Grafen
 
 Hver entitet bliver en `IfcEntity`-node, der bærer sin klasse og alle sine

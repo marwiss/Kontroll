@@ -140,11 +140,18 @@ Innlogga som `admin` opnar du <http://127.0.0.1:8000/admin>:
   `X-Request-ID`-verdiane som kortet *Logg* nedst i visinga av kjelda i *Hent*, slik at
   eit mislukka kall kan finnast på begge sider.
 
-Trykk deretter *Logg ut* øvst på sida til serveren, fordi opplastinga nedanfor blir
-gjord som ein annan brukar.
+Eksempelmodellen er allereie ein graf, fordi `OPENCDE_IFCGRAPH_ENABLED=true` stod i
+`.env` då du køyrde `opencde seed`. Neo4j Browser på <http://127.0.0.1:7484> (kople til
+`bolt://127.0.0.1:7697` som `neo4j` med passordet frå `.env`) svarar på denne
+spørjinga med veggen kopla til komponenten i viewpointen:
 
-Grafen blir bygd av opplasta modellar, ikkje av den frå `opencde seed`. For å sjå han
-sender du modellen til serveren:
+```cypher
+MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+```
+
+Ein modell du sender frå Dataspatium, blir ein graf på same måte. For å prøve det,
+trykk *Logg ut* øvst på sida til serveren, fordi opplastinga blir gjord som ein annan
+brukar:
 
 1. I Dataspatium vel du modusen *Del* og fana *Til CDE*. Under *Kva* vel du
    *Originalfila* og trykkjer *Send*.
@@ -152,13 +159,7 @@ sender du modellen til serveren:
 3. Opplastingssida til serveren blir opna i eit popup-vindauge. Logg inn som
    `inspection_manager`, og trykk *Lagre og hald fram*. Vindauget lukkar seg sjølv.
 
-I løpet av nokre sekund svarar Neo4j Browser på <http://127.0.0.1:7484> (kople til
-`bolt://127.0.0.1:7697` som `neo4j` med passordet frå `.env`) på denne spørjinga med
-veggen kopla til komponenten i viewpointen:
-
-```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
-```
+I løpet av nokre sekund finn same spørjinga òg veggen i den nye modellen.
 
 ## Feilsøking
 

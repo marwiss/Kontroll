@@ -29,6 +29,8 @@ for a slimmer image without IfcOpenShell when the module stays off.
 5. A conversion a stopped server left behind starts over: a queued one as soon as the server is back, a
    running one once twice the time limit has passed, since it could be running in another server process.
 
+`opencde seed` converts the sample model the same way when the module is on.
+
 ## The graph
 
 Every entity becomes an `IfcEntity` node carrying its class and all its

@@ -28,6 +28,8 @@ fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
 5. Umbreyting sem stöðvaður þjónn skildi eftir byrjar upp á nýtt: sú sem bíður í röð um leið og þjónninn er
    kominn aftur, sú sem var í gangi þegar tvöföld tímamörk eru liðin, því að hún gæti verið í gangi í öðru þjónsferli.
 
+`opencde seed` umbreytir sýnilíkaninu á sama hátt þegar einingin er virk.
+
 ## Grafið
 
 Hver eining verður `IfcEntity`-hnútur sem ber flokk sinn og allar yfirgerðir

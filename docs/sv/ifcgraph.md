@@ -32,6 +32,8 @@ när modulen förblir avstängd.
 5. En konvertering som en stoppad server lämnat efter sig börjar om: en köad så snart servern är tillbaka, en
    pågående när dubbla tidsgränsen har passerat, eftersom den kan pågå i en annan serverprocess.
 
+`opencde seed` konverterar exempelmodellen på samma sätt när modulen är på.
+
 ## Grafen
 
 Varje entitet blir en `IfcEntity`-nod som bär sin klass och alla sina

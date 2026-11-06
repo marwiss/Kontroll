@@ -32,6 +32,8 @@ IfcOpenShelliä, kun moduuli pysyy pois päältä.
 5. Muunnos, jonka pysäytetty palvelin jätti kesken, alkaa alusta: jonossa oleva heti, kun palvelin on taas
    käynnissä, ja käynnissä ollut, kun kaksinkertainen aikaraja on kulunut, koska se voi olla käynnissä toisessa palvelinprosessissa.
 
+`opencde seed` muuntaa esimerkkimallin samalla tavalla, kun moduuli on käytössä.
+
 ## Graafi
 
 Jokaisesta entiteetistä tulee `IfcEntity`-solmu, joka kantaa luokkaansa ja
