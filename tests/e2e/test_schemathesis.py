@@ -48,7 +48,11 @@ def bearer(live_server: LiveServer) -> dict[str, str]:
 @pytest.fixture
 def api_schema(live_server: LiveServer):
     schema = schemathesis.openapi.from_url(f"{live_server.url}/openapi.json")
-    schema.config.generation.update(modes=[GenerationMode.POSITIVE, GenerationMode.NEGATIVE], max_examples=EXAMPLES)
+    # The test brings its own token, so a generated case must not count on leaving it out: the check below would
+    # take the answer to a request with the token for an answer to one without. ``ignored_auth`` asks without one.
+    schema.config.generation.update(
+        modes=[GenerationMode.POSITIVE, GenerationMode.NEGATIVE], max_examples=EXAMPLES, with_security_parameters=False
+    )
     return schema
 
 
