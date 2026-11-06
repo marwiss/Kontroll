@@ -286,10 +286,11 @@ def seed(
             if not yes and not typer.confirm("This deletes ALL data in the database. Continue?"):
                 raise typer.Exit(code=1)
             await seeding.wipe(graph)
+        storage = LocalStorage(settings.data_dir)
         try:
-            return await seeding.seed(
+            loaded = await seeding.seed(
                 graph,
-                storage=LocalStorage(settings.data_dir),
+                storage=storage,
                 shared_password=password,
                 public_redirects=["http://127.0.0.1/callback", "http://127.0.0.1:8080/callback"]
                 if settings.allow_localhost_redirects
@@ -300,8 +301,12 @@ def seed(
             )
         except seeding.SeedError as exc:
             raise _fail(str(exc)) from None
+        model = (
+            await seeding.build_sample_graph(graph, storage, settings, loaded) if settings.ifcgraph_enabled else None
+        )
+        return loaded, model
 
-    result = _run(work)
+    result, model = _run(work)
     typer.secho("Demonstration data loaded. Passwords are shown once; store them now.", fg=typer.colors.GREEN)
     for username, pw in result.passwords.items():
         print(f"  user      {username:20} password {pw}")
@@ -314,6 +319,9 @@ def seed(
     print(f"  document  {seeding.SAMPLE_MODEL_FILE_NAME:20} {result.document_id}  (Building permit, version 1)")
     print(f"  topic     {'ISSUE-0001':20} {result.topic_guid}  viewpoint {result.viewpoint_guid}")
     print(f"  comment   {'':20} {result.comment_guid}")
+    if model is not None:
+        ending = f"{model.get('entities')} entities" if model["state"] == "done" else f"not built: {model.get('error')}"
+        print(f"  graph     {seeding.SAMPLE_MODEL_FILE_NAME:20} {ending}")
 
 
 # --------------------------------------------------------------------------- users

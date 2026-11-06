@@ -137,11 +137,18 @@ Innskráð(ur) sem `admin` opnar þú <http://127.0.0.1:8000/admin>:
   spjaldið *Skrá* neðst í sýn uppsprettunnar í *Sækja*, svo að misheppnað kall finnist á
   báðum hliðum.
 
-Ýttu síðan á *Skrá út* efst á síðu þjónsins, þar sem upphleðslan hér á eftir er gerð sem
-annar notandi.
+Sýnilíkanið er þegar orðið graf, því að `OPENCDE_IFCGRAPH_ENABLED=true` var í `.env`
+þegar þú keyrðir `opencde seed`. Neo4j Browser á <http://127.0.0.1:7484> (tengdu við
+`bolt://127.0.0.1:7697` sem `neo4j` með lykilorðinu úr `.env`) svarar þessari fyrirspurn
+með veggnum tengdum við íhlut viewpointsins:
 
-Grafið er byggt úr upphlöðnum líkönum, ekki úr því frá `opencde seed`. Til að sjá það sendir
-þú líkanið til þjónsins:
+```cypher
+MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+```
+
+Líkan sem þú sendir úr Dataspatium verður að grafi á sama hátt. Til að prófa það
+skaltu ýta á *Skrá út* efst á síðu þjónsins, þar sem upphleðslan er gerð sem annar
+notandi:
 
 1. Í Dataspatium velur þú haminn *Deila* og flipann *Til CDE*. Undir *Hvað* velur þú
    *Upprunalega skráin* og ýtir á *Senda*.
@@ -149,13 +156,7 @@ Grafið er byggt úr upphlöðnum líkönum, ekki úr því frá `opencde seed`.
 3. Upphleðslusíða þjónsins opnast í sprettiglugga. Skráðu þig inn sem `inspection_manager`
    og ýttu á *Vista og halda áfram*. Glugginn lokast sjálfur.
 
-Innan fárra sekúndna svarar Neo4j Browser á <http://127.0.0.1:7484> (tengdu við
-`bolt://127.0.0.1:7697` sem `neo4j` með lykilorðinu úr `.env`) þessari fyrirspurn með
-veggnum tengdum við íhlut viewpointsins:
-
-```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
-```
+Innan fárra sekúndna finnur sama fyrirspurn einnig vegginn í nýja líkaninu.
 
 ## Bilanaleit
 

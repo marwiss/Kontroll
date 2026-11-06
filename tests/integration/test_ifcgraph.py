@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Iterator
 
@@ -10,8 +11,10 @@ import pytest
 from fastapi.testclient import TestClient
 from neo4j import GraphDatabase
 
-from opencde.bootstrap import make_storage
+from opencde import seed as seeding
+from opencde.bootstrap import make_graph, make_storage
 from opencde.documents.assembly import store_stream
+from opencde.graph.schema import apply_schema
 from opencde.ids import new_id
 from opencde.main import create_app
 from opencde.storage import make_key
@@ -57,6 +60,38 @@ def wait_for_model(graph_target: GraphTarget, database: str | None, timeout: flo
                 return records[0]["m"]
             time.sleep(1.0)
     raise AssertionError("the IFC import did not finish in time")
+
+
+def test_seeding_builds_the_graph_of_the_sample_model(
+    graph_target: GraphTarget, clean_database: None, tmp_path
+) -> None:
+    settings = test_settings(
+        tmp_path,
+        graph_dialect=graph_target.dialect,
+        graph_uri=graph_target.uri,
+        graph_user=graph_target.user,
+        graph_password=graph_target.password,
+        graph_connect_timeout_seconds=10.0,
+        ifcgraph_enabled=True,
+        ifcgraph_timeout_seconds=300,
+    )
+
+    async def work() -> tuple[dict, list[dict]]:
+        graph = make_graph(settings)
+        storage = make_storage(settings)
+        try:
+            await apply_schema(graph)
+            loaded = await seeding.seed(graph, storage=storage)
+            model = await seeding.build_sample_graph(graph, storage, settings, loaded)
+            links = await graph.run("MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN w.GlobalId AS guid")
+            return model, links
+        finally:
+            await graph.close()
+
+    model, links = asyncio.run(work())
+    assert model["state"] == "done", model.get("error")
+    assert model["entities"] > 0
+    assert [link["guid"] for link in links] == [next(iter(seeding.SAMPLE_MODEL_WALLS))], "the viewpoint's wall"
 
 
 def test_a_conversion_a_stopped_server_left_behind_starts_over(

@@ -143,11 +143,19 @@ Käyttäjänä `admin` kirjautuneena avaa <http://127.0.0.1:8000/admin>:
   `X-Request-ID`-arvoilla kuin kortti *Loki* lähteen näkymän alareunassa tilassa *Nouda*,
   joten epäonnistunut kutsu löytyy molemmilta puolilta.
 
-Paina sitten *Kirjaudu ulos* palvelimen sivun yläreunassa, koska alla oleva lataus tehdään
-toisena käyttäjänä.
+Esimerkkimalli on jo graafi, koska `OPENCDE_IFCGRAPH_ENABLED=true` oli tiedostossa
+`.env`, kun ajoit komennon `opencde seed`. Neo4j Browser osoitteessa
+<http://127.0.0.1:7484> (yhdistä osoitteeseen `bolt://127.0.0.1:7697` käyttäjänä `neo4j`
+ja tiedoston `.env` salasanalla) vastaa tähän kyselyyn seinällä, joka on linkitetty
+viewpointin komponenttiin:
 
-Graafi rakennetaan ladatuista malleista, ei `opencde seed` -komennon luomasta. Nähdäksesi
-sen lähetä malli palvelimelle:
+```cypher
+MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+```
+
+Dataspatiumista lähettämästäsi mallista tulee graafi samalla tavalla. Kokeillaksesi
+paina *Kirjaudu ulos* palvelimen sivun yläreunassa, koska lataus tehdään toisena
+käyttäjänä:
 
 1. Valitse Dataspatiumissa tila *Jaa* ja välilehti *CDE:hen*. Valitse kohdassa *Mitä*
    *Alkuperäinen tiedosto* ja paina *Lähetä*.
@@ -155,13 +163,7 @@ sen lähetä malli palvelimelle:
 3. Palvelimen lataussivu avautuu ponnahdusikkunassa. Kirjaudu käyttäjänä
    `inspection_manager` ja paina *Tallenna ja jatka*. Ikkuna sulkeutuu itsestään.
 
-Muutaman sekunnin kuluttua Neo4j Browser osoitteessa <http://127.0.0.1:7484> (yhdistä
-osoitteeseen `bolt://127.0.0.1:7697` käyttäjänä `neo4j` ja tiedoston `.env` salasanalla)
-vastaa tähän kyselyyn seinällä, joka on linkitetty viewpointin komponenttiin:
-
-```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
-```
+Muutaman sekunnin kuluttua sama kysely löytää seinän myös uudesta mallista.
 
 ## Vianmääritys
 

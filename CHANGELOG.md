@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- `opencde seed` builds the graph of the sample model when the IFC graph is on, so the quick
+  start's query answers without an upload first.
 - The start page says where to start: trying the server, seeing how it is built, running it for
   others and building a client. The API document has examples of the main request bodies.
 - `compose.external-db.yaml` runs the stack against a database elsewhere, with its address in
