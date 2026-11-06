@@ -56,8 +56,8 @@ jobs:
         run: |
           chmod a+w .zap
           docker run --rm --network host -v "$PWD/.zap:/zap/wrk:rw" \
-            -e TARGET=http://127.0.0.1:8000 -e SESSION -e TOKEN -e ADMIN_TOKEN \
-            ghcr.io/zaproxy/zaproxy:2.17.0 zap.sh -cmd -autorun /zap/wrk/authenticated.yaml
+            -e TARGET=http://127.0.0.1:8000 \
+            ghcr.io/zaproxy/zaproxy:2.17.0 zap.sh -cmd -autorun /zap/wrk/authenticated-filled.yaml
       - name: What it reached
         run: docker compose -f compose.yaml -f compose.dev.yaml logs api | uv run python .zap/reached.py
       - name: What it found

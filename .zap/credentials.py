@@ -1,20 +1,24 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Sign in for the authenticated scan and hand over what it needs, against a throwaway server with the demo data.
+"""Sign in for the authenticated scan, against a throwaway server with the demo data, and write the plan it runs.
 
-Prints the values as environment lines, and in GitHub Actions masks them in the log and adds them to the job:
+ZAP does not fill in variables in a replacer rule, so the values go into a copy of the plan, which git ignores:
 
     uv run python .zap/credentials.py <server> <public client id> <demo password>
+
+In GitHub Actions they are also masked in the log.
 """
 
 from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
 
 from opencde_client import OpenCdeClient
 from opencde_client.testing import HeadlessBrowser, headless_authorize
 
 REDIRECT = "http://127.0.0.1/callback"
+HERE = Path(__file__).parent
 
 
 def main(server: str, client_id: str, password: str) -> None:
@@ -32,15 +36,12 @@ def main(server: str, client_id: str, password: str) -> None:
             scopes=("profile", "bcf", "documents", "admin"),
         )
     values = {"SESSION": session, "TOKEN": manager.access_token, "ADMIN_TOKEN": admin.access_token}
-    github_env = os.environ.get("GITHUB_ENV")
-    if github_env:
-        with open(github_env, "a", encoding="utf-8") as env:
-            for name, value in values.items():
-                print(f"::add-mask::{value}")
-                env.write(f"{name}={value}\n")
-    else:
-        for name, value in values.items():
-            print(f"{name}={value}")
+    plan = (HERE / "authenticated.yaml").read_text(encoding="utf-8")
+    for name, value in values.items():
+        if os.environ.get("GITHUB_ACTIONS"):
+            print(f"::add-mask::{value}")
+        plan = plan.replace("${" + name + "}", value)
+    (HERE / "authenticated-filled.yaml").write_text(plan, encoding="utf-8")
 
 
 if __name__ == "__main__":

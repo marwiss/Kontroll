@@ -24,6 +24,7 @@ import os
 import shutil
 import subprocess
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 import schemathesis
@@ -107,11 +108,20 @@ def test_operations_never_fail_and_reject_bad_input(
 
 
 @pytest.mark.skipif("OPENCDE_SCHEMATHESIS_EXAMPLES" not in os.environ, reason="the long run belongs to the nightly job")
-def test_the_coverage_and_stateful_phases(live_server: LiveServer, bearer: dict[str, str]) -> None:
+def test_the_coverage_and_stateful_phases(
+    live_server: LiveServer, bearer: dict[str, str], cde: OpenCdeClient, tmp_path: Path
+) -> None:
     """The phases only the command line runs: methods the document leaves out, and calls chained by their answers."""
+    project_id = live_server.world.project_id
+    real = {"project_id": project_id, **_things(cde, project_id)}
+    config = tmp_path / "schemathesis.toml"
+    lines = "".join(f'"path.{name}" = "{value}"\n' for name, value in real.items())
+    config.write_text(f"[parameters]\n{lines}", encoding="utf-8")
     result = subprocess.run(  # noqa: S603  # the program is ours, the arguments are this test's
         [
             shutil.which("schemathesis") or "schemathesis",
+            "--config-file",
+            str(config),
             "run",
             f"{live_server.url}/openapi.json",
             "--header",
@@ -132,4 +142,5 @@ def test_the_coverage_and_stateful_phases(live_server: LiveServer, bearer: dict[
         timeout=1800,
         env={**os.environ, "PYTHONUTF8": "1"},
     )
+    print(result.stdout[-4000:].encode("ascii", "replace").decode())  # what the phases covered, shown with -s
     assert result.returncode == 0, result.stdout[-8000:]
