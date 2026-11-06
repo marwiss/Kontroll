@@ -183,7 +183,7 @@ who build a client.
 Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
 (a data app that runs entirely in the browser) are developed to work together
 as server and client, and the same release number on both means they work
-together: Dataspatium 2.5.0 works with Kontroll 2.5.0 ([quick start](../quickstart.md)).
+together: Dataspatium 2.6.0 works with Kontroll 2.6.0 ([quick start](../quickstart.md)).
 Dataspatium adds a
 Kontroll server as a source: it discovers the APIs through
 `/foundation/versions`, signs in with OAuth2 authorization code and PKCE and
