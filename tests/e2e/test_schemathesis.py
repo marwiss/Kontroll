@@ -117,6 +117,8 @@ def test_the_coverage_and_stateful_phases(
     config = tmp_path / "schemathesis.toml"
     lines = "".join(f'"path.{name}" = "{value}"\n' for name, value in real.items())
     config.write_text(f"[parameters]\n{lines}", encoding="utf-8")
+    # ``ensure_resource_availability`` is left out. It takes a 404 after a POST for a resource that got lost, but the
+    # ids in the addresses are the ones above and not what the POST answered, and a DELETE of the phase may have gone first.
     result = subprocess.run(  # noqa: S603  # the program is ours, the arguments are this test's
         [
             shutil.which("schemathesis") or "schemathesis",
@@ -129,7 +131,7 @@ def test_the_coverage_and_stateful_phases(
             "--phases",
             "coverage,stateful",
             "--checks",
-            "not_a_server_error,unsupported_method,ignored_auth,use_after_free,ensure_resource_availability",
+            "not_a_server_error,unsupported_method,ignored_auth,use_after_free",
             "--max-examples",
             str(EXAMPLES),
             "--no-color",
