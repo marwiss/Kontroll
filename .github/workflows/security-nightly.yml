@@ -69,14 +69,14 @@ jobs:
           uv run opencde init --dev
           docker compose -f compose.yaml -f compose.dev.yaml up -d --build
           for i in $(seq 1 60); do
-            curl -fsS http://localhost:8000/readyz && break
+            curl -fsS http://127.0.0.1:8000/readyz && break
             sleep 2
           done
           docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde seed --password demo-password-for-zap-only
       - name: ZAP baseline (pages and public API surface)
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
-          target: http://localhost:8000
+          target: http://127.0.0.1:8000
           rules_file_name: .zap/rules.tsv
           cmd_options: "-a -j"
           fail_action: true

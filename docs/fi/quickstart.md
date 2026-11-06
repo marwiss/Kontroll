@@ -33,14 +33,13 @@ cp .env.example .env
 
 Windowsin komentokehotteessa `cp`:n sijaan käytetään `copy`-komentoa.
 
-Avaa `.env` tekstieditorissa. Alla olevat viisi riviä ovat jo tiedostossa: muuta ne
+Avaa `.env` tekstieditorissa. Alla olevat neljä riviä ovat jo tiedostossa: muuta ne
 tällaisiksi ja tallenna. Valitse oma salasana, vähintään 16 merkkiä, vain kirjaimia ja
 numeroita.
 
 ```ini
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
-OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true
 OPENCDE_REQUEST_LOG_ENABLED=true
 OPENCDE_IFCGRAPH_ENABLED=true
 ```
@@ -49,7 +48,6 @@ OPENCDE_IFCGRAPH_ENABLED=true
 |---|---|---|
 | `OPENCDE_GRAPH_PASSWORD` | Graafitietokannan salasana | Alle 16 merkkiä: tietokanta ei käynnisty |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Antaa Dataspatiumin rekisteröityä itse palvelimelle | Vaihe 3 pysähtyy, ja sovellus pyytää asiakastunnusta |
-| `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` | Antaa osoitteessa `http://localhost` avatun sovelluksen kirjautua | Vaihe 3 pysähtyy epäonnistuneeseen rekisteröintiin |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Tallentaa sovelluksen kutsut | Vaiheen 5 pyyntöloki pysyy tyhjänä |
 | `OPENCDE_IFCGRAPH_ENABLED` | Tekee ladatuista malleista graafin | Vaiheessa 5 ei ole graafia |
 
@@ -68,9 +66,9 @@ on käynnissä. Toinen luo esittelykäyttäjät ja -projektit ja tulostaa niiden
 **kerran**: tallenna käyttäjien `admin` ja `inspection_manager` salasanat nyt. Älä
 välitä riveistä, jotka alkavat sanalla `client`; Dataspatium rekisteröi oman asiakkaansa.
 
-Tarkista, että se toimii: <http://localhost:8000/readyz> vastaa `"status":"ready"`.
-Kirjaudu osoitteessa <http://localhost:8000/signin> käyttäjänä `admin` ja avaa
-<http://localhost:8000/admin/projects>, jossa näkyvät *Building permit* ja
+Tarkista, että se toimii: <http://127.0.0.1:8000/readyz> vastaa `"status":"ready"`.
+Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja avaa
+<http://127.0.0.1:8000/admin/projects>, jossa näkyvät *Building permit* ja
 *Demolition permit*.
 
 Kun muutat `.env`-tiedostoa myöhemmin, suorita `up`-komento uudelleen. `docker compose
@@ -91,10 +89,8 @@ restart` ei lue tiedostoa.
    ```
 
    Komento voi olla `python3` macOS:ssä ja Linuxissa ja `py` Windowsissa. Pidä pääte auki,
-   kun käytät sovellusta. Anna aina portti: ilman sitä Python ottaa portin 8000, joka on
-   Kontrollin portti, ja sovellus jättää silloin selaimeesi service workerin, joka rikkoo
-   Kontrollin sivut (katso [Vianmääritys](#vianmääritys)).
-4. Avaa <http://localhost:8080/>. Älä kaksoisnapsauta tiedostoa `index.html`: kansiosta
+   kun käytät sovellusta. Anna aina portti: ilman sitä Python ottaa portin 8000, joka on Kontrollin portti.
+4. Avaa <http://127.0.0.1:8080/> juuri näin kirjoitettuna: palvelin palauttaa selaimen kirjautumisen jälkeen osoitteeseen `127.0.0.1`, ei osoitteeseen `localhost`. Älä kaksoisnapsauta tiedostoa `index.html`: kansiosta
    avattuna sovellus ei voi rekisteröidä itseään. Sovellus latautuu kerran uudelleen
    ensimmäisellä käynnistyskerralla.
 5. Ensimmäinen käynnistys kysyy kieltä: valitse kieli ja paina *Jatka kielellä …*. Tämä
@@ -105,7 +101,7 @@ restart` ei lue tiedostoa.
 
 1. Valitse tila *Nouda*. Valitse vasemmasta sarakkeesta kohdasta *Lisää lähteitä*
    *OpenCDE*.
-2. Kirjoita kohtaan *Osoite* `http://localhost:8000`. **Jätä *Asiakastunnus (client id)*
+2. Kirjoita kohtaan *Osoite* `http://127.0.0.1:8000`. **Jätä *Asiakastunnus (client id)*
    ja salaisuus tyhjiksi**: sovellus rekisteröi itsensä, vaikka valintaikkunan teksti
    puhuu ylläpitäjältä saatavasta asiakastunnuksesta. Paina *Lisää lähde*.
 3. Sovellus kysyy *Sallitaanko internetyhteys?* enintään kolme kertaa, kerran kutakin
@@ -115,7 +111,7 @@ restart` ei lue tiedostoa.
    mitkä lisäykset ovat päällä. Merkistä *Vaatii avaimen* ei tarvitse välittää: se, mitä
    tarvitaan, on kirjautuminen.
 5. Paina *Kirjaudu*. Ponnahdusikkuna avautuu palvelimen kirjautumissivulle. Jos selain
-   estää sen, salli ponnahdusikkunat osoitteelle `http://localhost:8080` ja paina
+   estää sen, salli ponnahdusikkunat osoitteelle `http://127.0.0.1:8080` ja paina
    uudelleen.
 6. Kirjaudu käyttäjänä `inspection_manager` vaiheen 1 salasanalla ja paina *Salli ja
    kirjaudu*. Älä käytä käyttäjää `admin`, joka ei kuulu mihinkään projektiin. Ikkuna
@@ -138,7 +134,7 @@ Lähde säilyy.
 
 ## 5. Katso se palvelimella
 
-Käyttäjänä `admin` kirjautuneena avaa <http://localhost:8000/admin>:
+Käyttäjänä `admin` kirjautuneena avaa <http://127.0.0.1:8000/admin>:
 
 - *Projektit* näyttää projektin *Building permit*, jossa on kaksi asiaa (`opencde seed`
   -komennon luoma ja sinun) ja yksi asiakirja.
@@ -159,8 +155,8 @@ sen lähetä malli palvelimelle:
 3. Palvelimen lataussivu avautuu ponnahdusikkunassa. Kirjaudu käyttäjänä
    `inspection_manager` ja paina *Tallenna ja jatka*. Ikkuna sulkeutuu itsestään.
 
-Muutaman sekunnin kuluttua Neo4j Browser osoitteessa <http://localhost:7484> (yhdistä
-osoitteeseen `bolt://localhost:7697` käyttäjänä `neo4j` ja tiedoston `.env` salasanalla)
+Muutaman sekunnin kuluttua Neo4j Browser osoitteessa <http://127.0.0.1:7484> (yhdistä
+osoitteeseen `bolt://127.0.0.1:7697` käyttäjänä `neo4j` ja tiedoston `.env` salasanalla)
 vastaa tähän kyselyyn seinällä, joka on linkitetty viewpointin komponenttiin:
 
 ```cypher
@@ -180,18 +176,18 @@ Jokainen rivi lainaa näyttöä sellaisena kuin se on suomenkielisillä nimillä
 | `the database is not empty` | `opencde seed` on jo suoritettu, ja se tulosti salasanat silloin | Hanki uusi salasana komennolla `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde user set-password inspection_manager` tai [aloita alusta](#aloita-alusta) |
 | `python`-komentoa ei löydy, tai Microsoft Store avautuu | Komennolla on tällä koneella toinen nimi | Käytä komentoa `py` tai `python3` |
 | Tiedostoluettelo sovelluksen sijaan | Web-palvelin toimii ulommassa kansiossa | Pysäytä se näppäimillä Ctrl+C ja käynnistä se kansiossa, jossa `index.html` on |
-| Sovelluksen vanha versio tai jotain aivan muuta | Jokin muu vastaa portissa 8080; Windowsissa toinen web-palvelin voi käynnistyä samaan porttiin ilman virhettä | Käytä toista porttia, `python -m http.server 8090 --bind 127.0.0.1`, ja avaa `http://localhost:8090/` |
-| *Sovellus voi rekisteröityä palvelimelle itse vain, kun se toimii web-palvelimelta …* | Sovellus avattiin kansiosta | Avaa `http://localhost:8080/` |
-| *Palveluun localhost:8000 ei saatu yhteyttä …* | Kontroll ei ole käynnissä, tai osoite on kirjoitettu väärin | Osoitteen <http://localhost:8000/readyz> on vastattava. Osoite on `http://localhost:8000` ilman mitään perässä |
+| Sovelluksen vanha versio tai jotain aivan muuta | Jokin muu vastaa portissa 8080; Windowsissa toinen web-palvelin voi käynnistyä samaan porttiin ilman virhettä | Käytä toista porttia, `python -m http.server 8090 --bind 127.0.0.1`, ja avaa `http://127.0.0.1:8090/` |
+| *Sovellus voi rekisteröityä palvelimelle itse vain, kun se toimii web-palvelimelta …* | Sovellus avattiin kansiosta | Avaa `http://127.0.0.1:8080/` |
+| *Palveluun 127.0.0.1:8000 ei saatu yhteyttä …* | Kontroll ei ole käynnissä, tai osoite on kirjoitettu väärin | Osoitteen <http://127.0.0.1:8000/readyz> on vastattava. Osoite on `http://127.0.0.1:8000` ilman mitään perässä |
 | *Palvelin ei salli sovelluksen rekisteröidä itseään …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` ei ole `true` | Muuta tiedostoa `.env`, suorita `up`-komento uudelleen ja paina *Lisää lähde* uudelleen |
-| *Rekisteröinti epäonnistui:* … `http redirect URIs are only allowed for the loopback address` | `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` ei ole `true` | Muuta tiedostoa `.env`, suorita `up`-komento uudelleen ja paina *Lisää lähde* uudelleen |
+| *Rekisteröinti epäonnistui:* … `http redirect URIs are only allowed for the loopback address` | Sovellus avattiin osoitteessa `localhost`, jota palvelin ei hyväksy paluureitiksi | Avaa `http://127.0.0.1:8080/` ja lisää lähde siellä |
 | *Rekisteröinti epäonnistui:* … `rate_limited` | Yli viisi rekisteröintiä tunnin sisällä; jokainen *Lisää lähde* tyhjällä kentällä *Asiakastunnus (client id)* on yksi | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nollaa laskurin |
 | *Internetyhteyttä tarkoitukseen … ei ole sallittu.* | Painettiin *Kiellä* | Salli se kohdassa *Hallitse*, *Työtila*, *Internetyhteys* ja yritä uudelleen |
-| *Selain esti kirjautumisikkunan …* | Selaimen ponnahdusikkunoiden esto | Salli ponnahdusikkunat osoitteelle `http://localhost:8080` ja paina *Kirjaudu* uudelleen |
+| *Selain esti kirjautumisikkunan …* | Selaimen ponnahdusikkunoiden esto | Salli ponnahdusikkunat osoitteelle `http://127.0.0.1:8080` ja paina *Kirjaudu* uudelleen |
 | Ponnahdusikkunassa: *Ei voi jatkaa* ja *Tuntematon asiakas.* | Palvelin on unohtanut sovelluksen rekisteröinnin, yleensä komennon `down -v` jälkeen | Sulje ikkuna ja lataa sovellus uudelleen, koska *Kirjaudu* muuten pyörii viisi minuuttia. Poista lähde sen vieressä olevalla ristillä kohdassa *Lisätyt lähteet* ja lisää se uudelleen |
 | Ponnahdusikkunassa: *Ei voi jatkaa* ja *Redirect-URI:a ei ole rekisteröity tälle asiakkaalle.* | Kenttä *Asiakastunnus (client id)* täytettiin, esimerkiksi komennon `opencde seed` tulosteesta | Sulje ikkuna ja lataa sovellus uudelleen. Poista lähde sen vieressä olevalla ristillä kohdassa *Lisätyt lähteet* ja lisää se uudelleen kenttä tyhjänä |
 | Ponnahdusikkunassa: *Käyttäjätunnus tai salasana ei ole oikein.* | Jokaisella käyttäjällä on oma salasanansa komennosta `opencde seed` | Käytä oikeaa tai hanki uusi kuten edellä |
-| *Lomake on vanhentunut. Yritä uudelleen.* sivulla `/signin`, tai ponnahdusikkunassa *Ei voi jatkaa* ja *Kirjautumislomake on vanhentunut tai sitä on muokattu. Aloita alusta.*, vaikka avasit sivun juuri. `docker compose -f compose.yaml -f compose.dev.yaml logs api` näyttää `GET /sw.js` ja 404 | Selaimessasi on service worker toisesta web-sovelluksesta, joka on joskus toiminut osoitteessa `http://localhost:8000`, esimerkiksi käynnistetty komennolla `python -m http.server` ilman porttia. Se vastaa Kontrollin sivujen vanhoilla kopioilla | Poista se: `about:debugging#/runtime/this-firefox` Firefoxissa, `edge://serviceworker-internals` Edgessä, `chrome://serviceworker-internals` Chromessa; etsi `localhost:8000` ja valitse *Unregister*. Jokaisella selaimella on omansa, myös editoriin sisäänrakennetulla. Yksityisessä ikkunassa sitä ei ole, mikä näyttää nopeasti, onko tämä syy. Pidä muut sovellukset poissa portista 8000 |
+| *Lomake on vanhentunut. Yritä uudelleen.* sivulla `/signin`, tai ponnahdusikkunassa *Ei voi jatkaa* ja *Kirjautumislomake on vanhentunut tai sitä on muokattu. Aloita alusta.*, vaikka avasit sivun juuri. `docker compose -f compose.yaml -f compose.dev.yaml logs api` näyttää `GET /sw.js` ja 404 | Selaimessasi on service worker toisesta web-sovelluksesta, joka on joskus toiminut osoitteessa `http://127.0.0.1:8000`, esimerkiksi käynnistetty komennolla `python -m http.server` ilman porttia. Se vastaa Kontrollin sivujen vanhoilla kopioilla | Lataa sivu uudelleen, koska Kontrollin sivut poistavat tällaisen workerin itse. Jos viesti ei katoa, poista se käsin: `about:debugging#/runtime/this-firefox` Firefoxissa, `edge://serviceworker-internals` Edgessä, `chrome://serviceworker-internals` Chromessa; etsi `127.0.0.1:8000` ja valitse *Unregister*. Jokaisella selaimella on omansa, myös editoriin sisäänrakennetulla. Yksityisessä ikkunassa sitä ei ole, mikä näyttää nopeasti, onko tämä syy. Pidä muut sovellukset poissa portista 8000 |
 | *Et ole jäsenenä missään projektissa palvelimella.* | Kirjauduit käyttäjänä `admin`, joka ei kuulu mihinkään projektiin | Paina *Kirjaudu ulos* ja sitten *Kirjaudu* käyttäjänä `inspection_manager` |
 | *Kirjaudu* pyörii pyörimistään | Ikkuna suljettiin ennen kuin kirjautuminen oli valmis | Lataa sivu uudelleen |
 | Ikkunassa lukee *Kopiera adressen … / Copy the address …* | Se ei saanut yhteyttä sovelluksen ikkunaan, joka ehkä suljettiin tai ladattiin uudelleen sillä välin | Sulje ikkuna ja paina *Kirjaudu* uudelleen |

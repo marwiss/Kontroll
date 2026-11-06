@@ -23,10 +23,10 @@ opinberan OAuth2-biðlara, og prentar lykilorðin einu sinni.
 
 | Hvað | Hvar |
 |---|---|
-| API-skjölun | <http://localhost:8000/docs> |
-| Stjórnun | <http://localhost:8000/admin> (skráðu þig inn sem stjórnandinn) |
-| Viðbúnaður | <http://localhost:8000/readyz> |
-| Neo4j Browser | <http://localhost:7484> (Bolt `localhost:7697`) |
+| API-skjölun | <http://127.0.0.1:8000/docs> |
+| Stjórnun | <http://127.0.0.1:8000/admin> (skráðu þig inn sem stjórnandinn) |
+| Viðbúnaður | <http://127.0.0.1:8000/readyz> |
+| Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
 | Atvikaskrá þjónsins | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
 
 Þróunaryfirlagið birtir Neo4j á 7484/7697 frekar en sjálfgefnu gáttunum
@@ -57,7 +57,7 @@ docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -
 
 Settu `OPENCDE_GRAPH_DIALECT=memgraph` og `OPENCDE_GRAPH_USER=memgraph` í
 `.env` þegar þjónninn keyrir utan Docker. Memgraph Lab (`memgraph/lab`) má
-beina á `localhost:7697`.
+beina á `127.0.0.1:7697`.
 
 ## Prófun með Dataspatium
 
@@ -65,7 +65,7 @@ beina á `localhost:7697`.
 er þróaður samhliða þessum þjóni. Þjónaðu afriti af honum yfir http
 (`python -m http.server 8080` í möppu hans), opnaðu `http://127.0.0.1:8080/`,
 skráðu forritið sem opinberan biðlara og bættu þjóninum við sem
-OpenCDE-uppsprettu í Dataspatium (*Inhämta*) með `http://localhost:8000` og
+OpenCDE-uppsprettu í Dataspatium (*Inhämta*) með `http://127.0.0.1:8000` og
 því biðlaraauðkenni:
 
 ```sh

@@ -55,7 +55,7 @@ jobs:
           printf 'OPENCDE_IFCGRAPH_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\nOPENCDE_GRAPH_QUERY_ENABLED=true\n' >> .env
           docker compose -f compose.yaml -f compose.dev.yaml up -d --build
           for i in $(seq 1 60); do
-            curl -fsS -o /dev/null http://localhost:8000/readyz && break  # no output: add-mask must start a line
+            curl -fsS -o /dev/null http://127.0.0.1:8000/readyz && break  # no output: add-mask must start a line
             sleep 2
           done
           server="docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde"
@@ -85,7 +85,7 @@ jobs:
           wait_for http://127.0.0.1:8094/health
           wait_for http://127.0.0.1:8095/health
         env:
-          CDE_BASE: http://localhost:8000
+          CDE_BASE: http://127.0.0.1:8000
           CDE_PASSWORD: ${{ env.SEED_PASSWORD }}
       - name: Run the live suite in Chromium
         run: |
@@ -95,12 +95,12 @@ jobs:
           # Only the summary counts: a suite that never ran, or ran nothing, must not pass as green.
           grep -E 'DATASPATIUM-TESTS: pass=[1-9][0-9]* fail=0$' suite.log
         env:
-          DATASPATIUM_CDE_URL: http://localhost:8000
+          DATASPATIUM_CDE_URL: http://127.0.0.1:8000
           DATASPATIUM_CDE_HELPER: http://127.0.0.1:8094
           DATASPATIUM_CDE_CLIENT: ${{ env.CLIENT_ID }}
           DATASPATIUM_CDE_USER: officer
           DATASPATIUM_CDE_PROJECT: Building permit
-          DATASPATIUM_CDE_GRAPH: bolt://localhost:7697
+          DATASPATIUM_CDE_GRAPH: bolt://127.0.0.1:7697
           DATASPATIUM_CDE_GRAPH_DB: neo4j
           DATASPATIUM_CDE_GRAPH_USER: neo4j
           DATASPATIUM_CDE_GRAPH_PASS: ${{ env.GRAPH_PASSWORD }}

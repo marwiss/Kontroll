@@ -324,7 +324,7 @@ utviklingsstakken (se [acceptance.md](../acceptance.md)).
   `3eT96F_cnDsOufCEsotwtp` (GTIN 2) og `3k3LbXmTfDWODxdSuyCGYE` (GTIN 1),
   i egenskapssettet `Reuse`; den samme filen er `tests/fixtures/three_walls_gtin.ifc`.
 - `docker compose -f compose.yaml -f compose.dev.yaml up -d` gir deg en
-  server på `http://localhost:8000` med Neo4j Browser på `:7484`.
+  server på `http://127.0.0.1:8000` med Neo4j Browser på `:7484`.
 - Registrer en klient for appen din i admin-grensesnittet (`/admin` →
   Klienter) eller med
   `uv run opencde client create "My app" --redirect-uri http://127.0.0.1/callback --public`.

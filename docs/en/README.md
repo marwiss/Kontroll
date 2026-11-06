@@ -42,20 +42,20 @@ from scratch with security as the first requirement.
    (16 characters or more). Every setting is explained in
    [.env.example](../../.env.example).
 3. **Start.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
-   starts the server on <http://localhost:8000> and a Neo4j database.
+   starts the server on <http://127.0.0.1:8000> and a Neo4j database.
    `docker compose logs -f api` shows the server log.
-4. **Look around.** <http://localhost:8000/docs> is the interactive API
-   documentation, <http://localhost:8000/readyz> the readiness check and
-   <http://localhost:7484> Neo4j Browser (Bolt on `localhost:7697`; the
+4. **Look around.** <http://127.0.0.1:8000/docs> is the interactive API
+   documentation, <http://127.0.0.1:8000/readyz> the readiness check and
+   <http://127.0.0.1:7484> Neo4j Browser (Bolt on `127.0.0.1:7697`; the
    development overlay avoids Neo4j's default ports, which another Neo4j on
    the same machine often occupies).
 5. **Add demo data and sign in.**
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
    creates demonstration users and projects and prints their passwords once.
-   Sign in at <http://localhost:8000/signin> as `admin` and open `/admin`.
+   Sign in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
 6. **Connect a client.** Register your application under *Clients* (or let it
    register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
-   it at `http://localhost:8000`; [Dataspatium](#kontroll-and-dataspatium) and
+   it at `http://127.0.0.1:8000`; [Dataspatium](#kontroll-and-dataspatium) and
    the Python library in [client/](../../client/) are ready-made clients.
    To sign in from Dataspatium, follow the [quick start](../quickstart.md): it
    covers every setting needed and what to do if something goes wrong.
@@ -102,8 +102,7 @@ password, and nothing is open until it is configured.
 - Locally: port 8000 for the server and 7484/7697 for the database, all bound
   to `127.0.0.1`. In production: ports 80 and 443 reachable from the internet
   and a DNS name for the server.
-- Clients need an `https` address in production; locally `http://localhost`
-  redirect URIs are accepted with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+- Clients need an `https` address in production; locally `http://127.0.0.1` redirect URIs are accepted, and `http://localhost` ones with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## What you can do
 

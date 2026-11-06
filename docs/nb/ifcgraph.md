@@ -124,7 +124,7 @@ sakens hode.
 [Dataspatium](https://github.com/marwiss/Dataspatium), nettleserklienten som
 utvikles sammen med denne serveren, kjører Cypher mot denne grafen gjennom
 Neo4j-kilden sin over Bolt (WebSocket på Bolt-porten) når operatøren
-eksponerer databasen, slik utviklingsoverlegget gjør på `localhost:7697`.
+eksponerer databasen, slik utviklingsoverlegget gjør på `127.0.0.1:7697`.
 Kontroll-arbeidsområdet dets bruker mønstrene ovenfor (modeller, klasser,
 komponenter via `SAME_AS`, den siste ferdige modellen per dokument);
 spørringene ligger i Dataspatiums dokumentasjon (`docs/cad-bim.md`), og

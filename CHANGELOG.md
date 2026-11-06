@@ -9,6 +9,10 @@ the commit history.
 
 ## Unreleased
 
+- Local development uses `http://127.0.0.1:8000` throughout, in the development
+  overlay, `opencde init --dev` and the documentation. A redirect to `127.0.0.1` needs
+  no setting, so the quick start has one line less to change in `.env`. `localhost`
+  keeps working as an address, and `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` still exists.
 - The server's pages remove a service worker that another app left on the same
   address, and fetch the page again once. Such a worker answers with old copies of
   the pages, so that the sign-in fails with an expired form.

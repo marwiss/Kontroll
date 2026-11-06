@@ -119,7 +119,7 @@ málsins.
 þróaður samhliða þessum þjóni, keyrir Cypher gegn þessu grafi um
 Neo4j-uppsprettu sína yfir Bolt (WebSocket á Bolt-gáttinni) þegar
 rekstraraðilinn opnar gagnagrunninn, eins og þróunaryfirlagið gerir á
-`localhost:7697`. Kontroll-vinnusvæði þess notar mynstrin að ofan (líkön,
+`127.0.0.1:7697`. Kontroll-vinnusvæði þess notar mynstrin að ofan (líkön,
 flokka, einingar um `SAME_AS`, nýjasta lokna líkanið á hvert skjal);
 fyrirspurnirnar eru í skjölun Dataspatium (`docs/cad-bim.md`), og lifandi
 keyrslurnar eru taldar upp í [acceptance.md](../acceptance.md).

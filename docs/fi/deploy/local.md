@@ -23,10 +23,10 @@ ja julkisen OAuth2-asiakkaan ja tulostaa salasanat kerran.
 
 | Mikä | Missä |
 |---|---|
-| API-dokumentaatio | <http://localhost:8000/docs> |
-| Hallinta | <http://localhost:8000/admin> (kirjaudu järjestelmänvalvojana) |
-| Valmius | <http://localhost:8000/readyz> |
-| Neo4j Browser | <http://localhost:7484> (Bolt `localhost:7697`) |
+| API-dokumentaatio | <http://127.0.0.1:8000/docs> |
+| Hallinta | <http://127.0.0.1:8000/admin> (kirjaudu järjestelmänvalvojana) |
+| Valmius | <http://127.0.0.1:8000/readyz> |
+| Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
 | Palvelimen loki | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
 
 Kehityskerros (`compose.dev.yaml`) julkaisee Neo4j:n porteissa 7484/7697
@@ -58,7 +58,7 @@ docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -
 
 Aseta `.env`-tiedostoon `OPENCDE_GRAPH_DIALECT=memgraph` ja
 `OPENCDE_GRAPH_USER=memgraph`, kun palvelin ajetaan Dockerin ulkopuolella.
-Memgraph Labin (`memgraph/lab`) voi osoittaa osoitteeseen `localhost:7697`.
+Memgraph Labin (`memgraph/lab`) voi osoittaa osoitteeseen `127.0.0.1:7697`.
 
 ## Testaus Dataspatiumin kanssa
 
@@ -66,7 +66,7 @@ Memgraph Labin (`memgraph/lab`) voi osoittaa osoitteeseen `localhost:7697`.
 kehitetään yhdessä tämän palvelimen kanssa. Tarjoile sen lähdekoodi http:n yli
 (`python -m http.server 8080` sen kansiossa), avaa `http://127.0.0.1:8080/`,
 rekisteröi sovellus julkiseksi asiakkaaksi ja lisää palvelin OpenCDE-lähteeksi
-Dataspatiumiin (*Inhämta*) osoitteella `http://localhost:8000` ja tällä
+Dataspatiumiin (*Inhämta*) osoitteella `http://127.0.0.1:8000` ja tällä
 asiakastunnuksella:
 
 ```sh

@@ -125,7 +125,7 @@ otsakkeen tiedostot.
 [Dataspatium](https://github.com/marwiss/Dataspatium), tämän palvelimen
 kanssa kehitettävä selainasiakas, ajaa Cypheriä tätä graafia vasten
 Neo4j-lähteensä kautta Boltilla (WebSocket Bolt-portissa), kun ylläpitäjä
-avaa tietokannan, kuten kehityspäällyste tekee osoitteessa `localhost:7697`.
+avaa tietokannan, kuten kehityspäällyste tekee osoitteessa `127.0.0.1:7697`.
 Sen Kontroll-työtila käyttää yllä olevia malleja (mallit, luokat,
 komponentit `SAME_AS`-suhteen kautta, uusin valmis malli asiakirjaa kohti);
 kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/cad-bim.md`), ja live-ajot

@@ -43,22 +43,22 @@ uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
    `OPENCDE_GRAPH_PASSWORD` (vähintään 16 merkkiä). Jokainen asetus selitetään
    tiedostossa [.env.example](../../.env.example).
 3. **Käynnistä.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
-   käynnistää palvelimen osoitteessa <http://localhost:8000> ja
+   käynnistää palvelimen osoitteessa <http://127.0.0.1:8000> ja
    Neo4j-tietokannan. `docker compose logs -f api` näyttää palvelimen lokin.
-4. **Katsele ympärillesi.** <http://localhost:8000/docs> on vuorovaikutteinen
-   API-dokumentaatio, <http://localhost:8000/readyz> valmiustarkistus ja
-   <http://localhost:7484> Neo4j Browser (Bolt osoitteessa `localhost:7697`;
+4. **Katsele ympärillesi.** <http://127.0.0.1:8000/docs> on vuorovaikutteinen
+   API-dokumentaatio, <http://127.0.0.1:8000/readyz> valmiustarkistus ja
+   <http://127.0.0.1:7484> Neo4j Browser (Bolt osoitteessa `127.0.0.1:7697`;
    kehitysylikerros välttää Neo4j:n oletusportit, jotka toinen Neo4j samalla
    koneella usein varaa).
 5. **Lisää demodata ja kirjaudu.**
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
    luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran.
-   Kirjaudu osoitteessa <http://localhost:8000/signin> käyttäjänä `admin` ja
+   Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja
    avaa `/admin`.
 6. **Yhdistä asiakasohjelma.** Rekisteröi sovelluksesi kohdassa *Clients*
    (tai anna sen rekisteröityä itse, kun
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se osoitteeseen
-   `http://localhost:8000`; [Dataspatium](#kontroll-ja-dataspatium) ja
+   `http://127.0.0.1:8000`; [Dataspatium](#kontroll-ja-dataspatium) ja
    Python-kirjasto kansiossa [client/](../../client/) ovat valmiita
    asiakasohjelmia.
    Jos kirjaudut Dataspatiumista, seuraa [pika-aloitusta](quickstart.md): siinä on
@@ -109,8 +109,7 @@ mikään ole auki ennen kuin se on määritetty.
   sidottuina osoitteeseen `127.0.0.1`. Tuotannossa: portit 80 ja 443
   tavoitettavissa internetistä ja DNS-nimi palvelimelle.
 - Asiakasohjelmat tarvitsevat tuotannossa `https`-osoitteen; paikallisesti
-  `http://localhost` hyväksytään redirect-URI:ksi asetuksella
-  `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  `http://127.0.0.1` hyväksytään redirect-URI:ksi, ja `http://localhost` asetuksella `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## Mitä voit tehdä
 

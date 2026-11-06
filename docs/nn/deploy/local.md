@@ -23,10 +23,10 @@ prosjekt og ein offentleg OAuth2-klient, og skriv ut passorda éin gong.
 
 | Kva | Kvar |
 |---|---|
-| API-dokumentasjon | <http://localhost:8000/docs> |
-| Administrasjon | <http://localhost:8000/admin> (logg inn som administratoren) |
-| Beredskap | <http://localhost:8000/readyz> |
-| Neo4j Browser | <http://localhost:7484> (Bolt `localhost:7697`) |
+| API-dokumentasjon | <http://127.0.0.1:8000/docs> |
+| Administrasjon | <http://127.0.0.1:8000/admin> (logg inn som administratoren) |
+| Beredskap | <http://127.0.0.1:8000/readyz> |
+| Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
 | Serverlogg | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
 
 Utviklingsoverlegget publiserer Neo4j på 7484/7697 i staden for
@@ -57,7 +57,7 @@ docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -
 
 Set `OPENCDE_GRAPH_DIALECT=memgraph` og `OPENCDE_GRAPH_USER=memgraph` i `.env`
 når serveren køyrer utanfor Docker. Memgraph Lab (`memgraph/lab`) kan peikast
-mot `localhost:7697`.
+mot `127.0.0.1:7697`.
 
 ## Testing med Dataspatium
 
@@ -66,7 +66,7 @@ som blir utvikla saman med denne serveren. Server ei utsjekking av han over
 http (`python -m http.server 8080` i mappa hans), opne
 `http://127.0.0.1:8080/`, registrer appen som ein offentleg klient, og legg til
 serveren som OpenCDE-kjelde i Dataspatium (*Inhämta*) med
-`http://localhost:8000` og den klient-id-en:
+`http://127.0.0.1:8000` og den klient-id-en:
 
 ```sh
 uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.0.1:8080/oauth-callback.html

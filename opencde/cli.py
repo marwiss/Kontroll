@@ -104,7 +104,7 @@ def serve(
 
 @app.command()
 def init(
-    dev: Annotated[bool, typer.Option("--dev", help="Local development on http://localhost:8000.")] = False,
+    dev: Annotated[bool, typer.Option("--dev", help="Local development on http://127.0.0.1:8000.")] = False,
     public_url: Annotated[str | None, typer.Option(help="Public https URL of the server (production).")] = None,
     force: Annotated[bool, typer.Option(help="Overwrite an existing .env.")] = False,
     path: Annotated[Path, typer.Option(help="Where to write the file.")] = Path(".env"),
@@ -114,7 +114,7 @@ def init(
         raise _fail(f"{path} exists; use --force to overwrite")
     if not dev and not public_url:
         raise _fail("give --public-url https://... for production, or --dev for local development")
-    url = "http://localhost:8000" if dev else (public_url or "").rstrip("/")
+    url = "http://127.0.0.1:8000" if dev else (public_url or "").rstrip("/")
     if not dev and not url.startswith("https://"):
         raise _fail("the public URL must start with https:// in production")
     lines = [
@@ -295,7 +295,7 @@ def seed(
                 graph,
                 storage=LocalStorage(settings.data_dir),
                 shared_password=password,
-                public_redirects=["http://127.0.0.1/callback", "http://localhost:8080/callback"]
+                public_redirects=["http://127.0.0.1/callback", "http://127.0.0.1:8080/callback"]
                 if settings.allow_localhost_redirects
                 else None,
                 allow_localhost_redirects=settings.allow_localhost_redirects,
