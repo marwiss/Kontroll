@@ -51,15 +51,21 @@ jobs:
       - name: Start the server with demo data and a client for the app
         run: |
           uv run opencde init --dev
-          printf 'OPENCDE_IFCGRAPH_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\n' >> .env
+          printf 'OPENCDE_IFCGRAPH_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\nOPENCDE_GRAPH_QUERY_ENABLED=true\n' >> .env
           docker compose -f compose.yaml -f compose.dev.yaml up -d --build
           for i in $(seq 1 60); do
             curl -fsS -o /dev/null http://localhost:8000/readyz && break  # no output: add-mask must start a line
             sleep 2
           done
-          docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde seed --password "$SEED_PASSWORD" > /dev/null
-          client_id=$(docker compose -f compose.yaml -f compose.dev.yaml exec -T api \
-            opencde client create "Dataspatium (nightly)" --public --redirect-uri http://127.0.0.1:8080/oauth-callback.html \
+          server="docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde"
+          $server seed --password "$SEED_PASSWORD" > /dev/null
+          # The live suite expects to be signed in as dm_manager, a manager of the project; the seed has no such user.
+          $server user create dm_manager --password "$SEED_PASSWORD" --full-name "Dataspatium test manager" > /dev/null
+          project_id=$($server project list | sed -n 's/^\([^ ]*\)  Building permit$/\1/p')
+          test -n "$project_id"
+          $server user grant dm_manager "$project_id" manager > /dev/null
+          client_id=$($server client create "Dataspatium (nightly)" --public \
+            --redirect-uri http://127.0.0.1:8080/oauth-callback.html \
             | sed -n 's/.*client_id \([^ ]*\).*/\1/p')
           test -n "$client_id"
           echo "CLIENT_ID=$client_id" >> "$GITHUB_ENV"
@@ -69,7 +75,7 @@ jobs:
       - name: Serve the app and start the helpers that play the user and the administrator
         run: |
           (cd dataspatium && nohup python3 -m http.server 8080 --bind 127.0.0.1 > ../http-server.log 2>&1 &)
-          CDE_USER=officer CDE_HELPER_PORT=8094 nohup uv run --with httpx python dataspatium/tools/cde-helper.py > helper-user.log 2>&1 &
+          CDE_USER=dm_manager CDE_HELPER_PORT=8094 nohup uv run --with httpx python dataspatium/tools/cde-helper.py > helper-user.log 2>&1 &
           CDE_USER=admin CDE_HELPER_PORT=8095 nohup uv run --with httpx python dataspatium/tools/cde-helper.py > helper-admin.log 2>&1 &
           wait_for() {
             for i in $(seq 1 60); do
