@@ -16,7 +16,7 @@ flowchart LR
         worker["Muunnosprosessi"]
         api -- "käynnistää" --> worker
     end
-    api -- "Bolt" --> graph[("Graafitietokanta")]
+    api -- "Bolt" --> database[("Graafitietokanta")]
     api -- "tiedostot" --> files[("Tiedostotallennus")]
     worker -- "lukee mallin" --> files
 ```

@@ -211,14 +211,14 @@ flowchart LR
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
-        graph[("IFC graph")]
+        ifcgraph[("IFC graph")]
         requests["Request log"]
         adminapi["Administration API"]
     end
     source <--> foundation
     issues <--> bcf
     files <--> documents
-    queries --> graph
+    queries --> ifcgraph
     log <-- "X-Request-ID" --> requests
     admin --> adminapi
 ```

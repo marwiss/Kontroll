@@ -16,7 +16,7 @@ flowchart LR
         worker["Umbreytingarferli"]
         api -- "ræsir" --> worker
     end
-    api -- "Bolt" --> graph[("Grafgagnagrunnur")]
+    api -- "Bolt" --> database[("Grafgagnagrunnur")]
     api -- "skrár" --> files[("Skráageymsla")]
     worker -- "les líkan" --> files
 ```

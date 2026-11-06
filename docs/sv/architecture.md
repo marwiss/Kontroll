@@ -16,7 +16,7 @@ flowchart LR
         worker["Konverteringsprocess"]
         api -- "startar" --> worker
     end
-    api -- "Bolt" --> graph[("Grafdatabas")]
+    api -- "Bolt" --> database[("Grafdatabas")]
     api -- "filer" --> files[("Fillagring")]
     worker -- "läser en modell" --> files
 ```

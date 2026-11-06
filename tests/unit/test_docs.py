@@ -101,3 +101,24 @@ def test_a_translated_page_links_to_the_translation(lang: str) -> None:
             assert (path.parent / target).resolve() not in translated, (
                 f"{path.relative_to(ROOT)} links to the English {target}; link to docs/{lang}/ instead"
             )
+
+
+MERMAID = re.compile(r"^[ \t]*```mermaid\n(.*?)^[ \t]*```", re.DOTALL | re.MULTILINE)
+# Words a Mermaid flowchart keeps for itself. A node with such a name stops GitHub from drawing the diagram at all.
+FLOWCHART_WORDS = re.compile(
+    r"\b(graph|flowchart|subgraph|end|style|linkStyle|classDef|class|click|call|href|default)\b"
+)
+
+
+@pytest.mark.parametrize("path", markdown_files(), ids=lambda path: path.relative_to(ROOT).as_posix())
+def test_no_node_of_a_flowchart_has_a_name_mermaid_keeps(path: Path) -> None:
+    for diagram in MERMAID.findall(read(path)):
+        lines = [line.strip() for line in diagram.splitlines()]
+        if not lines[0].startswith(("flowchart", "graph")):
+            continue
+        for line in lines[1:]:
+            if line == "end" or line.startswith("subgraph "):
+                continue
+            without_labels = re.sub(r'"[^"]*"', "", line)
+            found = FLOWCHART_WORDS.search(without_labels)
+            assert found is None, f"{path.relative_to(ROOT)}: a node is called {found.group(1)!r}: {line}"
