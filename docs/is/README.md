@@ -58,6 +58,9 @@ endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
    skrá sig sjálft þegar `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
    beindu því á `http://localhost:8000`; [Dataspatium](#kontroll-og-dataspatium)
    og Python-safnið í [client/](../../client/) eru tilbúnir biðlarar.
+   Ef þú ætlar að skrá þig inn úr Dataspatium skaltu fylgja [fljótlegu
+   byrjuninni](quickstart.md): hún fjallar um allar stillingar sem þarf og hvað þú
+   gerir ef eitthvað fer úrskeiðis.
 
 Án Docker fyrir þjóninn sjálfan (gagnagrunn þarf samt):
 

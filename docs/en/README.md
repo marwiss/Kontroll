@@ -57,6 +57,8 @@ from scratch with security as the first requirement.
    register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
    it at `http://localhost:8000`; [Dataspatium](#kontroll-and-dataspatium) and
    the Python library in [client/](../../client/) are ready-made clients.
+   To sign in from Dataspatium, follow the [quick start](../quickstart.md): it
+   covers every setting needed and what to do if something goes wrong.
 
 Without Docker for the server itself (a database is still needed):
 

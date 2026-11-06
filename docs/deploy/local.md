@@ -76,6 +76,7 @@ itself instead. CORS allows every origin by default, so no further setting is
 needed; `OPENCDE_REQUEST_LOG_ENABLED=true` lets `/admin/requests` show the
 server side of the app's calls. The full checklist is
 [docs/acceptance.md](../acceptance.md), section C.
+The [quick start](../quickstart.md) has the complete steps and a troubleshooting table.
 
 ## Clean slate
 

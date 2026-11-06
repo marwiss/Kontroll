@@ -58,6 +58,8 @@ fra grunnen av med sikkerhet som første krav.
    den registrere seg selv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
    pek den mot `http://localhost:8000`; [Dataspatium](#kontroll-og-dataspatium)
    og Python-biblioteket i [client/](../../client/) er ferdige klienter.
+   Skal du logge inn fra Dataspatium, følg [hurtigstarten](quickstart.md): den tar for
+   seg alle innstillingene som trengs, og hva du gjør hvis noe går galt.
 
 Uten Docker for selve serveren (en database trengs fortsatt):
 
