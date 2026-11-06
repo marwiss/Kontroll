@@ -174,7 +174,7 @@ Hver lína vitnar í skjáinn eins og hann lítur út með íslensku heitunum.
 | *Forritið getur aðeins skráð sig sjálft hjá þjóninum þegar það keyrir frá vefþjóni …* | Forritið var opnað úr möppunni | Opnaðu `http://127.0.0.1:8080/` |
 | *Náðist ekki í 127.0.0.1:8000 …* | Kontroll er ekki í gangi, eða vistfangið er rangt skrifað | <http://127.0.0.1:8000/readyz> verður að svara. Vistfangið er `http://127.0.0.1:8000` án nokkurs á eftir |
 | *Þjónninn leyfir ekki að forritið skrái sig sjálft …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` er ekki `true` | Breyttu `.env`, keyrðu `up`-skipunina aftur og ýttu aftur á *Bæta við uppsprettu* |
-| *Skráning mistókst:* … `http redirect URIs are only allowed for the loopback address` | Forritið var opnað á `localhost`, sem þjónninn samþykkir ekki sem leið til baka | Opnaðu `http://127.0.0.1:8080/` og bættu uppsprettunni við þar |
+| *Skráning mistókst:* … `Redirect URIs to http://localhost are not allowed here` | Forritið var opnað á `localhost`, sem þjónninn samþykkir ekki sem leið til baka | Opnaðu `http://127.0.0.1:8080/` og bættu uppsprettunni við þar |
 | *Skráning mistókst:* … `rate_limited` | Fleiri en 60 skráningar innan klukkustundar; hvert *Bæta við uppsprettu* með tómt *Biðlaraauðkenni (client id)* er ein | `docker compose -f compose.yaml -f compose.dev.yaml restart api` núllstillir teljarann |
 | *Netaðgangur fyrir … er ekki leyfður.* | Ýtt var á *Hafna* | Leyfðu það undir *Umsjón*, *Vinnusvæði*, *Netaðgangur* og reyndu aftur |
 | *Vafrinn lokaði á innskráningargluggann …* | Sprettigluggavörn vafrans | Leyfðu sprettiglugga fyrir `http://127.0.0.1:8080` og ýttu aftur á *Skrá inn* |

@@ -187,6 +187,7 @@ act on or translate, while `message` stays an English sentence for people:
 | `code` | Status | When | What a client does |
 |---|---|---|---|
 | `validation_error` | 400 | The body or query failed validation, an OData expression could not be compiled, a value is not in the project's extensions, a `Content-Range` or upload instruction is wrong, a snapshot or bitmap is not PNG or JPEG; `message` names the field | Fix the request |
+| `localhost_redirect` | 400 | A registration named `http://localhost` as a redirect URI, which this server does not allow | Register `http://127.0.0.1` instead, or tell the operator about `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | No bearer token | Sign in |
 | `invalid_token` | 401 | The token is unknown, expired or revoked (`WWW-Authenticate: Bearer error="invalid_token"`) | Refresh, then sign in again |
 | `insufficient_scope` | 403 | The token lacks the scope the route needs, such as `admin` | Authorize again with that scope |

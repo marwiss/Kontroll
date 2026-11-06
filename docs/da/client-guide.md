@@ -192,6 +192,7 @@ eller oversætte, mens `message` forbliver en engelsk sætning til mennesker:
 | `code` | Status | Hvornår | Hvad en klient gør |
 |---|---|---|---|
 | `validation_error` | 400 | Kroppen eller forespørgslen bestod ikke valideringen, et OData-udtryk kunne ikke kompileres, en værdi findes ikke i projektets extensions, et `Content-Range` eller en uploadinstruktion er forkert, et snapshot eller en bitmap er ikke PNG eller JPEG; `message` nævner feltet | Ret forespørgslen |
+| `localhost_redirect` | 400 | En registrering angav `http://localhost` som redirect-URI, hvilket denne server ikke tillader | Registrér `http://127.0.0.1` i stedet, eller fortæl operatøren om `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Ingen bearer-token | Log ind |
 | `invalid_token` | 401 | Tokenen er ukendt, udløbet eller tilbagekaldt (`WWW-Authenticate: Bearer error="invalid_token"`) | Forny, og log derefter ind igen |
 | `insufficient_scope` | 403 | Tokenen mangler det scope, ruten kræver, såsom `admin` | Autorisér igen med det scope |

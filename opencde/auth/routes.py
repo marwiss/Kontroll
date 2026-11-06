@@ -31,13 +31,13 @@ from pydantic import BaseModel, Field
 
 from opencde import audit
 from opencde.auth import pkce, throttle
-from opencde.auth.clients import Client, ClientError, redirect_uri_matches, validate_redirect_uri
+from opencde.auth.clients import LOCALHOST_REFUSED, Client, ClientError, redirect_uri_matches, validate_redirect_uri
 from opencde.auth.dependencies import BEARER_CHALLENGE, TokensDep, bearer_token
 from opencde.auth.forms import FormTokenError, FormTokens
 from opencde.auth.scopes import SCOPES, ScopeError, parse_scope, scope_string
 from opencde.auth.tokens import GrantError
 from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
-from opencde.errors import CODE_UNAUTHENTICATED, ApiError
+from opencde.errors import CODE_LOCALHOST_REDIRECT, CODE_UNAUTHENTICATED, CODE_VALIDATION, ApiError
 from opencde.ids import secrets_equal
 from opencde.logging import get_logger
 from opencde.ratelimit import RATE_EXCHANGE, RATE_SIGN_IN, limiter, registration_limit
@@ -440,7 +440,8 @@ async def register_client(
             pending=settings.dynamic_client_approval,
         )
     except ClientError as exc:
-        raise HTTPException(400, str(exc)) from None
+        code = CODE_LOCALHOST_REDIRECT if exc.key == LOCALHOST_REFUSED else CODE_VALIDATION
+        raise ApiError(400, str(exc), code=code) from None
     await audit.record(
         graph,
         "auth.client.registered",

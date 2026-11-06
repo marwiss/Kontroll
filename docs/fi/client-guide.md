@@ -201,6 +201,7 @@ kääntää, kun `message` pysyy englanninkielisenä lauseena ihmisille:
 | `code` | Tila | Milloin | Mitä asiakas tekee |
 |---|---|---|---|
 | `validation_error` | 400 | Runko tai kysely ei läpäissyt validointia, OData-lauseketta ei voitu kääntää, arvo ei ole projektin extensions-listoissa, `Content-Range` tai lähetysohje on väärä, tilannekuva tai bittikartta ei ole PNG tai JPEG; `message` nimeää kentän | Korjaa pyyntö |
+| `localhost_redirect` | 400 | Rekisteröinnissä oli redirect-URIna `http://localhost`, jota tämä palvelin ei salli | Rekisteröi sen sijaan `http://127.0.0.1` tai kerro ylläpitäjälle asetuksesta `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Ei bearer-tokenia | Kirjaudu |
 | `invalid_token` | 401 | Token on tuntematon, vanhentunut tai peruttu (`WWW-Authenticate: Bearer error="invalid_token"`) | Uusi, kirjaudu sitten uudelleen |
 | `insufficient_scope` | 403 | Tokenilta puuttuu reitin vaatima scope, kuten `admin` | Valtuuta uudelleen tuolla scopella |

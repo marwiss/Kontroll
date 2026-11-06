@@ -195,6 +195,7 @@ mening för människor:
 | `code` | Status | När | Vad en klient gör |
 |---|---|---|---|
 | `validation_error` | 400 | Kroppen eller frågan klarade inte valideringen, ett OData-uttryck kunde inte kompileras, ett värde finns inte i projektets extensions, ett `Content-Range` eller en uppladdningsinstruktion är fel, en snapshot eller bitmap är inte PNG eller JPEG; `message` namnger fältet | Rätta begäran |
+| `localhost_redirect` | 400 | En registrering angav `http://localhost` som redirect-URI, vilket den här servern inte tillåter | Registrera `http://127.0.0.1` i stället, eller berätta för operatören om `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Ingen bearer-token | Logga in |
 | `invalid_token` | 401 | Tokenen är okänd, utgången eller återkallad (`WWW-Authenticate: Bearer error="invalid_token"`) | Förnya, logga sedan in igen |
 | `insufficient_scope` | 403 | Tokenen saknar det scope som rutten kräver, till exempel `admin` | Auktorisera igen med det scopet |

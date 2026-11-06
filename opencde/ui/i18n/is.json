@@ -335,6 +335,7 @@
   "error.redirect_uri.fragment": "Redirect-URI má ekki innihalda brot (fragment).",
   "error.redirect_uri.absolute": "Redirect-URI verður að vera algilt.",
   "error.redirect_uri.host": "Redirect-URI þarf hýsil.",
+  "error.redirect_uri.localhost": "Redirect-URI á http://localhost eru ekki leyfð hér. Notaðu http://127.0.0.1 í staðinn eða stilltu OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true á þjóninum.",
   "error.redirect_uri.http_loopback": "http-redirect-URI eru aðeins leyfð fyrir loopback-vistfangið (127.0.0.1 eða [::1]).",
   "error.redirect_uri.scheme": "Redirect-URI notar óöruggt skema.",
   "error.redirect_uri.required": "Minnst eitt redirect-URI er áskilið.",
