@@ -198,6 +198,34 @@ visar samma samtal. Appen läser serverns kapabilitetsdokument för att se
 vilka tillägg som är påslagna och reagerar på de felkoder servern lägger i
 sina felkroppar.
 
+Så här hänger de ihop:
+
+```mermaid
+flowchart LR
+    subgraph app ["Dataspatium, i webbläsaren"]
+        source["Källa och inloggning"]
+        issues["Ärenden i 3D-vyn"]
+        files["Modeller och dokument"]
+        queries["Frågor mot IFC-grafen"]
+        log["Loggen i appen"]
+        admin["Kortet Administration"]
+    end
+    subgraph server ["Kontroll, servern"]
+        foundation["Foundation API, OAuth2"]
+        bcf["BCF API"]
+        documents["Documents API"]
+        graph[("IFC-graf")]
+        requests["Begärandelogg"]
+        adminapi["Administrations-API"]
+    end
+    source <--> foundation
+    issues <--> bcf
+    files <--> documents
+    queries --> graph
+    log <-- "X-Request-ID" --> requests
+    admin --> adminapi
+```
+
 Bortsett från de markerade tilläggen går allt Dataspatium gör mot servern
 genom de tre OpenCDE-API:erna, så appen använder inget som en annan klient
 inte kan använda, se [OpenCDE-API:erna och deras klienter](#opencde-apierna-och-deras-klienter). De två produkterna

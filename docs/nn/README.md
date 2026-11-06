@@ -197,6 +197,34 @@ slik at førespurnadsloggen her og loggen i appen viser same samtale. Appen
 les kapabilitetsdokumentet til serveren for å sjå kva tillegg som er slått
 på, og reagerer på feilkodane serveren legg i feilkroppane sine.
 
+Slik heng dei saman:
+
+```mermaid
+flowchart LR
+    subgraph app ["Dataspatium, i nettlesaren"]
+        source["Kjelde og innlogging"]
+        issues["Saker i 3D-visinga"]
+        files["Modellar og dokument"]
+        queries["Spørjingar mot IFC-grafen"]
+        log["Loggen i appen"]
+        admin["Kortet Administrasjon"]
+    end
+    subgraph server ["Kontroll, serveren"]
+        foundation["Foundation API, OAuth2"]
+        bcf["BCF API"]
+        documents["Documents API"]
+        graph[("IFC-graf")]
+        requests["Førespurnadslogg"]
+        adminapi["Administrasjons-API"]
+    end
+    source <--> foundation
+    issues <--> bcf
+    files <--> documents
+    queries --> graph
+    log <-- "X-Request-ID" --> requests
+    admin --> adminapi
+```
+
 Bortsett frå dei merkte tillegga går alt Dataspatium gjer mot serveren
 gjennom dei tre OpenCDE-API-ane, så appen brukar ingenting ein annan klient
 ikkje kan bruke, sjå [OpenCDE-API-a og klientane deira](#opencde-api-a-og-klientane-deira). Dei to produkta blir installerte kvar for
