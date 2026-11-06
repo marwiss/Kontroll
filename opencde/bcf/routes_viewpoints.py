@@ -136,7 +136,7 @@ async def visibility_get(topic: TopicCtx, viewpoint_id: ViewpointId, viewpoints:
     return dump(VisibilityGET(visibility=await viewpoints.visibility(node, **_scope(topic, guid))))
 
 
-@router.delete("/{viewpoint_id}", summary="3.5.9 DELETE Viewpoint", status_code=200)
+@router.delete("/{viewpoint_id}", summary="3.5.9 DELETE Viewpoint", status_code=200, response_class=Response)
 async def viewpoint_delete(
     topic: TopicCtx, viewpoint_id: ViewpointId, viewpoints: ViewpointsDep, storage: StorageDep
 ) -> Response:

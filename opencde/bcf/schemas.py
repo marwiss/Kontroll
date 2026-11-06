@@ -13,8 +13,9 @@ from __future__ import annotations
 import re
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
+from opencde.schemas import ApiModel
 from opencde.timeutil import canonical_iso
 
 TITLE_MAX = 512
@@ -37,8 +38,8 @@ _COLOR = re.compile(r"^[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$")
 _HTTP_URL = re.compile(r"^https?://[^\s]+$", re.IGNORECASE)
 
 
-class BcfModel(BaseModel):
-    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
+class BcfModel(ApiModel):
+    pass
 
 
 def _optional_datetime(value: str | None) -> str | None:
@@ -568,6 +569,6 @@ class DocumentGET(BcfModel):
     filename: str
 
 
-def dump(model: BaseModel) -> dict[str, Any]:
+def dump(model: ApiModel) -> dict[str, Any]:
     """Response body without ``None`` fields (lists stay, even when empty)."""
     return model.model_dump(exclude_none=True)
