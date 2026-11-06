@@ -10,6 +10,8 @@ administration and an optional IFC-graph module that joins BCF components to
 the building elements they point at. It grew out of a 2023 research prototype
 for the digital inspection plans of Swedish building permits and was rewritten
 from scratch with security as the first requirement.
+Clients that follow the specifications should be able to connect, so the server
+is not tied to any one application.
 
 ![The administration overview of a Kontroll server: counts of users, projects, clients, topics and documents, the database status and the latest audit events](../images/admin-overview.png)
 
@@ -18,6 +20,7 @@ from scratch with security as the first requirement.
 - [Download and get started](#download-and-get-started)
 - [Requirements](#requirements)
 - [What you can do](#what-you-can-do)
+- [The OpenCDE APIs and their clients](#the-opencde-apis-and-their-clients)
 - [Kontroll and Dataspatium](#kontroll-and-dataspatium)
 - [Learn more](#learn-more)
 - [Limitations in brief](#limitations-in-brief)
@@ -138,6 +141,37 @@ password, and nothing is open until it is configured.
   [docs/inventory.md](../inventory.md) records what the 2023 prototype did
   and where each function stands in the new code.
 
+## The OpenCDE APIs and their clients
+
+OpenCDE is buildingSMART International's family of open web APIs for a common data
+environment, the place where a project shares its models, documents and issues. A
+client and a server that follow the same specifications can work together, whoever
+built them. Kontroll implements all three:
+
+| API | What it is for | Specification |
+|---|---|---|
+| Foundation API 1.0 | Says which APIs a server offers, how to sign in and who the user is | [foundation-API](https://github.com/buildingSMART/foundation-API) |
+| BCF API 3.0 | Issues about a model, with comments and viewpoints with camera, components and images | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| Documents API 1.0 | Selecting, downloading and uploading documents and their versions, through pages on the server | [documents-API](https://github.com/buildingSMART/documents-API) |
+
+**Dataspatium is one client, not the only one.** Any client that follows these
+specifications should be able to connect: nothing on the server depends on Dataspatium,
+and the extensions outside the specifications are optional, so a client that does not
+know them does not notice them. A client needs three things:
+
+- a registration on the server, made by an administrator under *Clients* or by the client
+  itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
+- OAuth2 authorization code with PKCE `S256`, which the server requires of every client;
+- BCF API 3.0: requests to the older version under `/bcf/2.1/` get 404.
+
+How far this has been shown: the server's answers are tested against buildingSMART's
+schemas on every push, and Dataspatium and the Python library in [client/](../../client/) run
+against the server. Independent clients such as Bonsai and ifc-lite have a prepared
+checklist in [docs/acceptance.md](../acceptance.md) that has not been run yet. If you try a
+client, tell us how it went under [Bugs and suggestions](#bugs-and-suggestions). When a client and a
+specification disagree, the specification decides. [docs/client-guide.md](../client-guide.md) is for those
+who build a client.
+
 ## Kontroll and Dataspatium
 
 Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
@@ -157,8 +191,8 @@ It reads the server's capabilities document to see which extensions are on
 and acts on the error codes the server adds to its error bodies.
 
 Apart from the marked extensions, everything Dataspatium does against the
-server goes through the three OpenCDE APIs, so any other OpenCDE client works
-too, and Kontroll serves any OpenCDE client. The two products are installed
+server goes through the three OpenCDE APIs, so the app uses nothing another client
+cannot use, see [The OpenCDE APIs and their clients](#the-opencde-apis-and-their-clients). The two products are installed
 separately: this repository does not bundle Dataspatium (the licences differ,
 AGPL here and PolyForm Strict there), and Dataspatium's README says how to
 download it. The client side is described in Dataspatium's README and its
