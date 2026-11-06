@@ -14,6 +14,7 @@ Varje kontroll har minst ett automatiskt test. "Svit" namnger testmodulen.
 | Koden bunden till klient, redirect-URI och verifier | RFC 6749 §4.1.3 | `test_security_oauth2::test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |
 | Opaka tokens lagrade bara som SHA-256-hashar | ADR 0002 | `test_graph_core` (schema), kodgranskning |
 | Rotation av refresh-tokens med upptäckt av återanvändning som återkallar familjen | RFC 9700 §4.14 | `test_oauth2::test_refresh_rotates_and_reuse_revokes_the_family` |
+| En refresh-token som inte använts på två veckor (`refresh_token_idle_seconds`) slutar fungera och tar sin familj med sig, inom den absoluta livslängden på 30 dagar | RFC 9700 §4.14 | `test_oauth2::test_a_refresh_token_left_unused_stops_working` |
 | Klientautentisering: Basic eller formulär; publika klienter visar aldrig någon hemlighet; 401 med `WWW-Authenticate` | RFC 6749 §2.3 | `test_security_oauth2::test_client_authentication_failures` |
 | Tokensvar `Cache-Control: no-store`, `Pragma: no-cache`, status 201 | RFC 6749 §5.1, Foundation API | `test_oauth2::test_token_response_is_never_cached_and_has_spec_fields` |
 | Återkallning av access-tokens och hela refresh-familjer | RFC 7009 | `test_oauth2::test_revocation` |

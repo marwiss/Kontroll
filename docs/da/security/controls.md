@@ -14,6 +14,7 @@ Hver kontrol har mindst én automatiseret test. "Suite" navngiver testmodulet.
 | Koden bundet til klient, redirect-URI og verifier | RFC 6749 §4.1.3 | `test_security_oauth2::test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |
 | Opake tokens gemt kun som SHA-256-hashes | ADR 0002 | `test_graph_core` (skema), kodegennemgang |
 | Rotation af refresh-tokens med registrering af genbrug, der tilbagekalder familien | RFC 9700 §4.14 | `test_oauth2::test_refresh_rotates_and_reuse_revokes_the_family` |
+| Et refresh-token, der ikke er brugt i to uger (`refresh_token_idle_seconds`), holder op med at virke og tager sin familie med sig, inden for den absolutte levetid på 30 dage | RFC 9700 §4.14 | `test_oauth2::test_a_refresh_token_left_unused_stops_working` |
 | Klientautentificering: Basic eller formular; offentlige klienter fremviser aldrig en hemmelighed; 401 med `WWW-Authenticate` | RFC 6749 §2.3 | `test_security_oauth2::test_client_authentication_failures` |
 | Tokensvar `Cache-Control: no-store`, `Pragma: no-cache`, status 201 | RFC 6749 §5.1, Foundation API | `test_oauth2::test_token_response_is_never_cached_and_has_spec_fields` |
 | Tilbagekaldelse af access-tokens og hele refresh-familier | RFC 7009 | `test_oauth2::test_revocation` |

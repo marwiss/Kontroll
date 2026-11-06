@@ -14,6 +14,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Code bound to client, redirect URI and verifier | RFC 6749 §4.1.3 | `test_security_oauth2::test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |
 | Opaque tokens stored only as SHA-256 hashes | ADR 0002 | `test_graph_core` (schema), code review |
 | Refresh token rotation with reuse detection revoking the family | RFC 9700 §4.14 | `test_oauth2::test_refresh_rotates_and_reuse_revokes_the_family` |
+| A refresh token left unused for two weeks (`refresh_token_idle_seconds`) stops working and takes its family with it, inside the absolute lifetime of 30 days | RFC 9700 §4.14 | `test_oauth2::test_a_refresh_token_left_unused_stops_working` |
 | Client authentication: Basic or form; public clients never present a secret; 401 with `WWW-Authenticate` | RFC 6749 §2.3 | `test_security_oauth2::test_client_authentication_failures` |
 | Token responses `Cache-Control: no-store`, `Pragma: no-cache`, status 201 | RFC 6749 §5.1, Foundation API | `test_oauth2::test_token_response_is_never_cached_and_has_spec_fields` |
 | Revocation of access tokens and whole refresh families | RFC 7009 | `test_oauth2::test_revocation` |

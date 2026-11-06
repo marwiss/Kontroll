@@ -15,6 +15,7 @@ testimoduulin.
 | Koodi sidottu asiakkaaseen, redirect-URIin ja verifieriin | RFC 6749 §4.1.3 | `test_security_oauth2::test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |
 | Opaakit tokenit tallennettu vain SHA-256-tiivisteinä | ADR 0002 | `test_graph_core` (skeema), koodikatselmointi |
 | Refresh-tokenien kierto ja uudelleenkäytön tunnistus, joka peruu perheen | RFC 9700 §4.14 | `test_oauth2::test_refresh_rotates_and_reuse_revokes_the_family` |
+| Refresh-token, jota ei ole käytetty kahteen viikkoon (`refresh_token_idle_seconds`), lakkaa toimimasta ja vie perheensä mukanaan, 30 päivän ehdottoman eliniän sisällä | RFC 9700 §4.14 | `test_oauth2::test_a_refresh_token_left_unused_stops_working` |
 | Asiakkaan todennus: Basic tai lomake; julkiset asiakkaat eivät koskaan esitä salaisuutta; 401 ja `WWW-Authenticate` | RFC 6749 §2.3 | `test_security_oauth2::test_client_authentication_failures` |
 | Tokenvastaukset `Cache-Control: no-store`, `Pragma: no-cache`, tila 201 | RFC 6749 §5.1, Foundation API | `test_oauth2::test_token_response_is_never_cached_and_has_spec_fields` |
 | Access-tokenien ja kokonaisten refresh-perheiden peruutus | RFC 7009 | `test_oauth2::test_revocation` |

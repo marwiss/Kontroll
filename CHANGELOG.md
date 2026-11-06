@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- A refresh token left unused for two weeks stops working, inside the absolute lifetime
+  of 30 days (`OPENCDE_REFRESH_TOKEN_IDLE_SECONDS`).
 - Failed sign-ins make a user name wait, on both sign-in forms: after five in a row a
   wait that doubles from 30 seconds up to 15 minutes, on top of the limit per address.
 - `opencde doctor` runs the checks of the settings page, and both now also look at the

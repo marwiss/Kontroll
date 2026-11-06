@@ -189,6 +189,27 @@ def test_wrong_password_shows_the_form_again_without_redirect(client: TestClient
     assert code is None and query == {}
 
 
+def test_a_refresh_token_left_unused_stops_working(client: TestClient, world: World, settings: Settings) -> None:
+    session = sign_in(
+        client,
+        client_id=world.public_client_id,
+        redirect_uri=world.redirect,
+        username="viewer",
+        password=world.password,
+    )
+    data = {"grant_type": "refresh_token", "refresh_token": session.refresh_token, "client_id": world.public_client_id}
+    password = settings.graph_password.get_secret_value()
+    with GraphDatabase.driver(settings.graph_uri, auth=(settings.graph_user, password)) as driver:
+        driver.execute_query(
+            "MATCH (t:RefreshToken) SET t.created_at = $long_ago",
+            long_ago=later_iso(-settings.refresh_token_idle_seconds - 60),
+            database_=settings.database_name,
+        )
+    refused = client.post("/foundation/oauth2/token", data=data)
+    assert refused.status_code == 400 and refused.json()["error"] == "invalid_grant"
+    assert client.get("/foundation/1.0/current-user", headers=session.headers).status_code == 401, "the family is gone"
+
+
 def test_dynamic_registration_when_enabled(graph_target, tmp_path, clean_database: None) -> None:
     from opencde.main import create_app
     from tests.conftest import test_settings
