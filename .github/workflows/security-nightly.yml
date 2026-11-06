@@ -58,6 +58,8 @@ jobs:
           docker run --rm --network host -v "$PWD/.zap:/zap/wrk:rw" \
             -e TARGET=http://127.0.0.1:8000 -e SESSION -e TOKEN -e ADMIN_TOKEN \
             ghcr.io/zaproxy/zaproxy:2.17.0 zap.sh -cmd -autorun /zap/wrk/authenticated.yaml
+      - name: What it reached
+        run: docker compose -f compose.yaml -f compose.dev.yaml logs api | uv run python .zap/reached.py
       - name: What it found
         run: uv run python .zap/findings.py .zap/zap-authenticated.json
       - name: Keep the report
@@ -66,6 +68,7 @@ jobs:
         with:
           name: zap-signed-in
           path: .zap/zap-authenticated.*
+          include-hidden-files: true
           if-no-files-found: ignore
       - name: Server log
         if: always()
