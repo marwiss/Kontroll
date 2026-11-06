@@ -8,7 +8,8 @@ import os
 import socket
 import struct
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 import httpx
 from neo4j.exceptions import Neo4jError
@@ -20,6 +21,7 @@ from opencde.graph.schema import UNIQUE
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
 from opencde.timeutil import now_iso
+from opencde.ui.i18n import translate
 
 NTP_EPOCH_OFFSET = 2_208_988_800  # seconds from 1900-01-01 (NTP epoch) to 1970-01-01 (Unix epoch)
 NTP_PORT = 123
@@ -28,9 +30,29 @@ MAX_CLOCK_OFFSET_SECONDS = 5.0  # codes live 60 s and tokens carry expiry times:
 
 @dataclass(frozen=True)
 class Check:
-    name: str
+    """One check's result. Its words live in the language catalogues: ``check.<key>`` names it and
+    ``check.detail.<detail_key>`` says how it went; a value that needs no words goes in ``value``."""
+
+    key: str
     ok: bool
-    detail: str
+    detail_key: str = ""
+    params: dict[str, Any] = field(default_factory=dict)
+    value: str = ""
+
+    def name_in(self, lang: str) -> str:
+        return translate(lang, f"check.{self.key}")
+
+    def detail_in(self, lang: str) -> str:
+        return translate(lang, f"check.detail.{self.detail_key}", **self.params) if self.detail_key else self.value
+
+    @property
+    def name(self) -> str:
+        """In English, for the command line and the administration API."""
+        return self.name_in("en")
+
+    @property
+    def detail(self) -> str:
+        return self.detail_in("en")
 
 
 def ntp_offset_from_response(data: bytes, sent: float, received: float) -> float | None:
@@ -60,16 +82,15 @@ def ntp_offset_seconds(server: str, timeout: float = 1.5) -> float | None:
 async def clock_check(server: str) -> Check:
     """Compare the server clock with NTP; expiry times are only as good as the clock."""
     if not server:
-        return Check("Clock against NTP", True, f"not checked (no NTP server configured); now {now_iso()}")
+        return Check("clock", True, "not_checked_no_ntp", {"now": now_iso()})
     offset = await asyncio.to_thread(ntp_offset_seconds, server)
     if offset is None:
-        return Check(
-            "Clock against NTP", True, f"not checked ({server} did not answer on UDP {NTP_PORT}); now {now_iso()}"
-        )
+        return Check("clock", True, "not_checked_ntp", {"server": server, "port": NTP_PORT, "now": now_iso()})
     return Check(
-        "Clock against NTP",
+        "clock",
         abs(offset) <= MAX_CLOCK_OFFSET_SECONDS,
-        f"offset {offset:+.2f} s against {server}; now {now_iso()}",
+        "clock_offset",
+        {"offset": f"{offset:+.2f}", "server": server, "now": now_iso()},
     )
 
 
@@ -78,10 +99,10 @@ async def schema_check(graph: Graph) -> Check:
     try:
         rows = await graph.schema_rows(graph.dialect.list_constraints)
     except Neo4jError as exc:
-        return Check("Schema", False, f"cannot list the constraints: {exc.code}")
-    expected = len(UNIQUE)
-    detail = f"{len(rows)} unique constraints, {expected} expected"
-    return Check("Schema", len(rows) >= expected, detail + ("" if len(rows) >= expected else "; start the server once"))
+        return Check("schema", False, "schema_unlisted", {"code": exc.code})
+    counts = {"found": len(rows), "expected": len(UNIQUE)}
+    complete = len(rows) >= len(UNIQUE)
+    return Check("schema", complete, "schema_count" if complete else "schema_short", counts)
 
 
 async def headers_check(settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> Check:
@@ -92,59 +113,51 @@ async def headers_check(settings: Settings, transport: httpx.AsyncBaseTransport 
             response = await client.get(url)
     except httpx.HTTPError as exc:
         if "CERTIFICATE" in str(exc).upper():
-            return Check("Security headers", False, f"{url}: the TLS certificate is not valid")
-        return Check("Security headers", True, f"not checked (no server answers at {url})")
+            return Check("headers", False, "headers_certificate", {"url": url})
+        return Check("headers", True, "headers_no_answer", {"url": url})
     wanted = ["x-content-type-options", "content-security-policy", "referrer-policy"]
     if settings.is_production:
         wanted.append("strict-transport-security")  # the proxy in front adds this one
     missing = [name for name in wanted if name not in response.headers]
-    return Check("Security headers", not missing, f"missing: {', '.join(missing)}" if missing else f"present at {url}")
+    if missing:
+        return Check("headers", False, "headers_missing", {"names": ", ".join(missing)})
+    return Check("headers", True, "headers_present", {"url": url})
 
 
 async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) -> list[Check]:
-    checks = [Check("Version", True, __version__), Check("Environment", True, settings.environment)]
+    checks = [Check("version", True, value=__version__), Check("environment", True, value=settings.environment)]
     https = settings.public_url.startswith("https://")
+    fine = https or settings.environment != "production"
     checks.append(
-        Check(
-            "Public URL",
-            https or settings.environment != "production",
-            settings.public_url + ("" if https else " (http: fine for development only)"),
-        )
+        Check("public_url", fine, value=settings.public_url)
+        if https
+        else Check("public_url", fine, "public_url_http", {"url": settings.public_url})
     )
     reachable = await ping_within(graph.driver, graph.database, settings.graph_connect_timeout_seconds)
-    checks.append(
-        Check(
-            "Graph database",
-            reachable,
-            f"{graph.dialect.name.value} at {settings.graph_uri}, database {settings.database_name}"
-            + ("" if reachable else ": does not answer"),
-        )
-    )
-    checks.append(await schema_check(graph) if reachable else Check("Schema", False, "not checked (no database)"))
+    where = {"dialect": graph.dialect.name.value, "uri": settings.graph_uri, "database": settings.database_name}
+    checks.append(Check("graph", reachable, "graph_ok" if reachable else "graph_silent", where))
+    checks.append(await schema_check(graph) if reachable else Check("schema", False, "schema_no_database"))
     probe = storage.root / ".write-probe"
     try:
         probe.write_bytes(b"ok")
         probe.unlink()
-        checks.append(Check("Storage", True, f"{storage.root} is writable"))
+        checks.append(Check("storage", True, "storage_ok", {"path": str(storage.root)}))
     except OSError as exc:
-        checks.append(Check("Storage", False, f"{storage.root}: {exc.__class__.__name__}"))
-    checks.append(Check("Secret key", len(settings.secret_key.get_secret_value()) >= 32, "at least 32 characters"))
+        checks.append(
+            Check("storage", False, "storage_failed", {"path": str(storage.root), "error": type(exc).__name__})
+        )
+    checks.append(Check("secret_key", len(settings.secret_key.get_secret_value()) >= 32, "secret_key"))
     checks.append(
         Check(
-            "Rate limits",
+            "rate_limits",
             settings.rate_limits_enabled or settings.environment != "production",
-            "enabled" if settings.rate_limits_enabled else "disabled (acceptable outside production)",
+            "rate_limits_on" if settings.rate_limits_enabled else "rate_limits_off",
         )
     )
-    checks.append(
-        Check(
-            "Dynamic client registration",
-            True,
-            "enabled (POST /foundation/oauth2/reg)" if settings.dynamic_client_registration else "disabled",
-        )
-    )
-    checks.append(Check("CORS", True, ", ".join(settings.cors_origins) + " (bearer tokens only, never cookies)"))
+    registration = "registration_on" if settings.dynamic_client_registration else "registration_off"
+    checks.append(Check("dynamic_registration", True, registration))
+    checks.append(Check("cors", True, "cors_origins", {"origins": ", ".join(settings.cors_origins)}))
     checks.append(await headers_check(settings))
     checks.append(await clock_check(settings.ntp_server))
-    checks.append(Check("Process", True, f"pid {os.getpid()}"))
+    checks.append(Check("process", True, "process_pid", {"pid": os.getpid()}))
     return checks

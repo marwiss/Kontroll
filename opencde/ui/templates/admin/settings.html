@@ -10,9 +10,9 @@
       <tbody>
         {% for check in checks %}
         <tr>
-          <td>{{ check.name }}</td>
+          <td>{{ check.name_in(lang) }}</td>
           <td>{% if check.ok %}<span class="badge badge--success">{{ t("admin.settings.ok") }}</span>{% else %}<span class="badge badge--danger">{{ t("admin.settings.problem") }}</span>{% endif %}</td>
-          <td>{{ check.detail }}</td>
+          <td>{{ check.detail_in(lang) }}</td>
         </tr>
         {% endfor %}
       </tbody>

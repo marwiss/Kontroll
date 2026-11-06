@@ -62,7 +62,10 @@ async def _page(
             apps=await tokens.sessions_for_user(web_user.user.id),
             web_sessions=await queries.web_sessions(graph, web_user.user.id),
             form_token=form_tokens(request).sign(PURPOSE, {"session": web_user.session_hash}),
-            notice=NOTICES.get(notice or ""),
+            # The page says it itself to someone who has to change the password.
+            notice=None
+            if notice == "change_password" and web_user.user.must_change_password
+            else NOTICES.get(notice or ""),
             notice_kind="error" if notice in ("wrong_password", "form_expired", "invalid") else "success",
             must_change=web_user.user.must_change_password,
             error=error,
