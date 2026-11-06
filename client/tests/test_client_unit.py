@@ -24,6 +24,8 @@ from opencde_client import (
 )
 from opencde_client.auth import generate_verifier
 from opencde_client.bcf import content_disposition, image_payload
+from opencde_client.client import OpenCdeClient
+from opencde_client.errors import NotInThisVersion
 from opencde_client.foundation import discover
 
 
@@ -246,3 +248,98 @@ def test_discover_without_authentication() -> None:
 
     versions = discover("https://cde.test/", transport=httpx.MockTransport(handler))
     assert versions[0].api_id == "bcf" and versions[0].version_id == "3.0"
+
+
+def _server_of_bcf_2_1(request: httpx.Request) -> httpx.Response:
+    """A server that has BCF API 2.1 and nothing of the Foundation API."""
+    if request.url.path == "/bcf/versions":
+        return httpx.Response(200, json={"versions": [{"version_id": "2.1", "detailed_version": "https://example"}]})
+    if request.url.path == "/bcf/2.1/auth":
+        return httpx.Response(
+            200,
+            json={
+                "oauth2_auth_url": "https://cde.test/oauth2/auth",
+                "oauth2_token_url": "https://cde.test/oauth2/token",
+                "supported_oauth2_flows": ["authorization_code_grant"],
+            },
+        )
+    if request.url.path == "/bcf/2.1/current-user":
+        return httpx.Response(200, json={"id": "someone@example.com", "name": "Someone"})
+    if request.url.path == "/bcf/2.1/projects":
+        return httpx.Response(200, json=[{"project_id": "p", "name": "A project"}])
+    return httpx.Response(404, json={"message": "Not found"})
+
+
+def _tokens() -> TokenSet:
+    return TokenSet("a-bearer", "a-refresh", time.time() + 3600, "bcf")
+
+
+def test_discover_finds_a_server_without_the_foundation_api() -> None:
+    versions = discover("https://cde.test", transport=httpx.MockTransport(_server_of_bcf_2_1))
+    assert [(item.api_id, item.version_id) for item in versions] == [("bcf", "2.1")]
+
+
+def test_auto_takes_what_the_server_has_and_finds_its_way_to_sign_in() -> None:
+    transport = httpx.MockTransport(_server_of_bcf_2_1)
+    with OpenCdeClient(
+        "https://cde.test", client_id="c", bcf_version="auto", tokens=_tokens(), transport=transport
+    ) as cde:
+        assert cde.bcf.version == "2.1" and cde.bcf.projects()[0]["name"] == "A project"
+        assert cde.current_user()["id"] == "someone@example.com"
+        assert cde.auth_info.oauth2_token_url == "https://cde.test/oauth2/token"
+        assert cde.oauth is not None
+
+
+def test_auto_takes_the_newest_the_server_offers() -> None:
+    def both(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/foundation/versions"
+        entries = [("foundation", "1.0"), ("bcf", "2.1"), ("bcf", "3.0"), ("documents", "1.0")]
+        return httpx.Response(200, json={"versions": [{"api_id": a, "version_id": v} for a, v in entries]})
+
+    with OpenCdeClient(
+        "https://cde.test", client_id="c", bcf_version="auto", transport=httpx.MockTransport(both)
+    ) as cde:
+        assert cde.bcf.version == "3.0"
+
+
+def test_auto_says_so_when_it_has_no_version_in_common() -> None:
+    def older(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"versions": [{"api_id": "bcf", "version_id": "1.0"}]})
+
+    with (
+        OpenCdeClient(
+            "https://cde.test", client_id="c", bcf_version="auto", transport=httpx.MockTransport(older)
+        ) as cde,
+        pytest.raises(NotInThisVersion, match=r"1.0"),
+    ):
+        _ = cde.bcf
+
+
+def test_a_client_asks_nobody_until_it_has_to() -> None:
+    def nobody(request: httpx.Request) -> httpx.Response:
+        raise AssertionError(f"asked {request.url}")
+
+    with OpenCdeClient("https://cde.test", client_id="c", transport=httpx.MockTransport(nobody)) as cde:
+        assert cde.bcf.version == "3.0", "the default needs no discovery"
+    with pytest.raises(ValueError, match="bcf_version"):
+        OpenCdeClient("https://cde.test", client_id="c", bcf_version="1.0")
+
+
+def test_what_came_with_3_0_is_not_asked_of_2_1() -> None:
+    asked: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        asked.append(request.url.path)
+        return httpx.Response(200, json=[])
+
+    session = ApiSession("https://cde.test", tokens=_tokens(), transport=httpx.MockTransport(handler))
+    older = BcfClient(session, "2.1")
+    with pytest.raises(NotInThisVersion, match="files information"):
+        older.files_information("p")
+    with pytest.raises(NotInThisVersion, match="viewpoints"):
+        older.delete_viewpoint("p", "t", "v")
+    assert asked == []
+    older.topics("p")
+    assert asked == ["/bcf/2.1/projects/p/topics"]
+    with pytest.raises(NotInThisVersion, match="Foundation"):
+        BcfClient(session).current_user()

@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Python client for buildingSMART OpenCDE servers (Foundation API 1.0, BCF API 3.0, Documents API 1.0).
+"""Python client for buildingSMART OpenCDE servers (Foundation API 1.0, BCF API 3.0 and 2.1, Documents API 1.0).
 
 Typical use::
 
@@ -18,7 +18,7 @@ from opencde_client.auth import OAuth2Client, TokenSet, generate_state, generate
 from opencde_client.bcf import BcfClient
 from opencde_client.client import OpenCdeClient
 from opencde_client.documents import DocumentsClient
-from opencde_client.errors import ApiError, AuthError, OpenCdeError
+from opencde_client.errors import ApiError, AuthError, NotInThisVersion, OpenCdeError
 from opencde_client.foundation import ApiVersion, AuthInfo, FoundationClient, auth_info, discover
 from opencde_client.http import ApiSession
 
@@ -33,6 +33,7 @@ __all__ = [
     "BcfClient",
     "DocumentsClient",
     "FoundationClient",
+    "NotInThisVersion",
     "OAuth2Client",
     "OpenCdeClient",
     "OpenCdeError",

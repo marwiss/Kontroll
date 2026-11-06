@@ -9,10 +9,10 @@ from typing import Any
 import httpx
 
 from opencde_client.auth import DEFAULT_SCOPES, OAuth2Client, TokenSet
-from opencde_client.bcf import BcfClient
+from opencde_client.bcf import SUPPORTED_VERSIONS, BcfClient, choose_version
 from opencde_client.documents import DocumentsClient
 from opencde_client.errors import AuthError
-from opencde_client.foundation import AuthInfo, FoundationClient, auth_info
+from opencde_client.foundation import AuthInfo, FoundationClient, auth_info, discover
 from opencde_client.http import ApiSession
 
 
@@ -21,6 +21,8 @@ class OpenCdeClient:
 
     ``client_id`` is the id the server's administrator registered for your
     application (public client with PKCE, or confidential with ``client_secret``).
+    ``bcf_version`` is the version of the BCF API to speak: ``"3.0"``, ``"2.1"``, or
+    ``"auto"`` for the newest the server offers, which asks the server on first use.
     """
 
     def __init__(
@@ -32,7 +34,10 @@ class OpenCdeClient:
         tokens: TokenSet | None = None,
         transport: httpx.BaseTransport | None = None,
         timeout: float = 60.0,
+        bcf_version: str = "3.0",
     ) -> None:
+        if bcf_version != "auto" and bcf_version not in SUPPORTED_VERSIONS:
+            raise ValueError(f"bcf_version must be 'auto' or one of {SUPPORTED_VERSIONS}")
         self.base_url = base_url.rstrip("/")
         self.client_id = client_id
         self.client_secret = client_secret
@@ -43,15 +48,33 @@ class OpenCdeClient:
             self.base_url, tokens=tokens, refresher=self._refresh, transport=transport, timeout=timeout
         )
         self.foundation = FoundationClient(self.session)
-        self.bcf = BcfClient(self.session)
         self.documents = DocumentsClient(self.session)
+        self._bcf_version = bcf_version
+        self._bcf: BcfClient | None = None
+
+    @property
+    def bcf(self) -> BcfClient:
+        if self._bcf is None:
+            version = self._bcf_version
+            if version == "auto":
+                version = choose_version(discover(self.base_url, transport=self._transport))
+            self._bcf = BcfClient(self.session, version)
+        return self._bcf
+
+    def current_user(self) -> dict[str, Any]:
+        """Who is signed in, wherever the version in use has that service."""
+        return self.bcf.current_user() if self.bcf.version == "2.1" else self.foundation.current_user()
 
     # -- sign-in ----------------------------------------------------------------------------------
 
     @property
     def auth_info(self) -> AuthInfo:
         if self._auth_info is None:
-            self._auth_info = auth_info(self.base_url, transport=self._transport)
+            # BCF API 2.1 knows nothing of the Foundation API, and may be all that the server has.
+            if self.bcf.version == "2.1":
+                self._auth_info = auth_info(self.base_url, transport=self._transport, path="/bcf/2.1/auth")
+            else:
+                self._auth_info = auth_info(self.base_url, transport=self._transport)
         return self._auth_info
 
     @property

@@ -7,7 +7,7 @@ import hashlib
 
 import pytest
 
-from opencde_client import ApiError, AuthError, OpenCdeClient
+from opencde_client import ApiError, AuthError, NotInThisVersion, OpenCdeClient
 from opencde_client.bcf import image_payload
 from opencde_client.testing import HeadlessBrowser, headless_authorize
 from tests.conftest import FIXTURES_DIR
@@ -39,8 +39,8 @@ def test_end_to_end_scenario(live_server: LiveServer) -> None:
     world = live.world
 
     # 1. Discovery and sign-in.
-    versions = {v.api_id: v.version_id for v in OpenCdeClient(live.url, client_id="x").foundation.versions()}
-    assert versions == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
+    offered = {(v.api_id, v.version_id) for v in OpenCdeClient(live.url, client_id="x").foundation.versions()}
+    assert offered == {("foundation", "1.0"), ("bcf", "3.0"), ("bcf", "2.1"), ("documents", "1.0")}
     with signed_in(live, "editor") as editor:
         assert editor.auth_info.pkce_required
         assert "authorization_code_grant" in editor.auth_info.supported_oauth2_flows, "Foundation API 2.2 enum"
@@ -228,3 +228,91 @@ def test_end_to_end_scenario(live_server: LiveServer) -> None:
         with pytest.raises(AuthError):
             headless_authorize(editor.oauth, username="editor", password="wrong-password", redirect_uri=world.redirect)
         browser.close()
+
+
+def test_the_story_through_bcf_2_1(live_server: LiveServer) -> None:
+    """A client that speaks 2.1 and an editor on 3.0 work on the same project, over HTTP with the client library."""
+    live = live_server
+    world = live.world
+    project_id = world.project_id
+    assert OpenCdeClient(live.url, client_id="x", bcf_version="auto").bcf.version == "3.0"
+
+    older = OpenCdeClient(live.url, client_id=world.public_client_id, bcf_version="2.1")
+    assert older.auth_info.oauth2_token_url and "authorization_code_grant" in older.auth_info.supported_oauth2_flows
+    older.use_tokens(
+        headless_authorize(older.oauth, username="editor", password=world.password, redirect_uri=world.redirect)
+    )
+    with older, signed_in(live, "editor") as newer:
+        assert older.current_user()["id"] == "editor"
+        assert [p["project_id"] for p in older.bcf.projects()] == [project_id]
+        assert "editor" in older.bcf.extensions(project_id)["user_id_type"]
+
+        topic = older.bcf.create_topic(project_id, {"title": "Door D-204 lacks a closer", "labels": ["Safety"]})
+        assert "server_assigned_id" not in topic
+        guid = topic["guid"]
+        assert newer.bcf.topic(project_id, guid)["server_assigned_id"].startswith("ISSUE-")
+        assert [t["guid"] for t in older.bcf.topics(project_id, filter="contains(labels, 'Safety')")] == [guid]
+
+        question = older.bcf.create_comment(project_id, guid, {"comment": "Which closer?"})
+        answer = older.bcf.create_comment(
+            project_id, guid, {"comment": "The one on the drawing", "reply_to_comment_guid": question["guid"]}
+        )
+        assert answer["reply_to_comment_guid"] == question["guid"]
+        assert "reply_to_comment_guid" not in newer.bcf.comment(project_id, guid, answer["guid"])
+
+        camera = {
+            "camera_view_point": {"x": 1.0, "y": 2.0, "z": 3.0},
+            "camera_direction": {"x": 0.0, "y": 1.0, "z": 0.0},
+            "camera_up_vector": {"x": 0.0, "y": 0.0, "z": 1.0},
+            "field_of_view": 60.0,
+        }
+        kind, data = image_payload(PNG)
+        viewpoint = older.bcf.create_viewpoint(
+            project_id,
+            guid,
+            {
+                "perspective_camera": camera,
+                "snapshot": {"snapshot_type": kind, "snapshot_data": data},
+                "components": {
+                    "selection": [{"ifc_guid": WALLS[0]}],
+                    "coloring": [{"color": "#ff0000", "components": [{"ifc_guid": WALLS[1]}]}],
+                    "visibility": {"default_visibility": True},
+                },
+            },
+        )
+        assert viewpoint["perspective_camera"] == camera
+        assert older.bcf.snapshot(project_id, guid, viewpoint["guid"])[0] == PNG
+        assert older.bcf.selection(project_id, guid, viewpoint["guid"])["selection"] == [{"ifc_guid": WALLS[0]}]
+        assert older.bcf.coloring(project_id, guid, viewpoint["guid"])["coloring"][0]["color"] == "FF0000"
+        assert newer.bcf.viewpoint(project_id, guid, viewpoint["guid"])["perspective_camera"]["aspect_ratio"] == 1.0
+        with pytest.raises(NotInThisVersion):
+            older.bcf.delete_viewpoint(project_id, guid, viewpoint["guid"])
+
+        file = {"file_name": "walls.ifc", "ifc_project": "0J$yPqHBD12v72y4qF6XcD"}
+        assert older.bcf.set_files(project_id, guid, [file]) == [file]
+        assert newer.bcf.files(project_id, guid)[0]["filename"] == "walls.ifc"
+        with pytest.raises(NotInThisVersion):
+            older.bcf.files_information(project_id)
+
+        document = older.bcf.upload_document(project_id, "Plan.pdf", b"the plan")
+        reference = older.bcf.add_document_reference(project_id, guid, {"document_guid": document["guid"]})
+        assert older.bcf.document_references(project_id, guid)[0]["guid"] == reference["guid"]
+        assert older.bcf.download_document(project_id, document["guid"])[0] == b"the plan"
+        other = older.bcf.create_topic(project_id, {"title": "Another door"})["guid"]
+        older.bcf.set_related_topics(project_id, guid, [other])
+        assert older.bcf.related_topics(project_id, guid) == [{"related_topic_guid": other}]
+
+        changed = older.bcf.update_topic(project_id, guid, {"title": "Door D-204 has a closer", "labels": ["Safety"]})
+        assert changed["title"] == "Door D-204 has a closer"
+        types = {a["type"] for e in older.bcf.topic_events(project_id, guid) for a in e["actions"]}
+        assert {"topic_created", "title_updated", "label_added"} <= types
+        replies = older.bcf.comment_events(project_id, guid, answer["guid"])
+        assert "reply_to_comment_updated" in {a["type"] for e in replies for a in e["actions"]}
+
+        with pytest.raises(ApiError) as refused:
+            older.bcf.topic(project_id, "00000000-0000-4000-8000-000000000000")
+        assert refused.value.status_code == 404
+        older.bcf.delete_comment(project_id, guid, question["guid"])
+        assert "reply_to_comment_guid" not in older.bcf.comment(project_id, guid, answer["guid"])
+        older.bcf.delete_topic(project_id, other)
+        older.bcf.delete_topic(project_id, guid)

@@ -1,9 +1,15 @@
 # This file was generated with the assistance of an AI coding tool.
-"""BCF API 3.0 (https://github.com/buildingSMART/BCF-API/tree/release_3_0).
+"""BCF API 3.0 and 2.1 (https://github.com/buildingSMART/BCF-API, branches release_3_0 and release_2_1).
 
 Methods return the JSON objects of the specification as dictionaries, so that
 new fields never need a library update. Section numbers refer to the README of
-the specification.
+the specification of 3.0; in 2.1 each is one higher (3.1 is 4.1).
+
+The two versions have the same methods, and what goes in and out is what the
+version in use says. In 2.1, a file says ``file_name`` and not ``filename``, the
+extensions ``user_id_type`` and not ``users``, a comment can have a
+``reply_to_comment_guid``, and a camera has no ``aspect_ratio``. It has neither
+:meth:`BcfClient.files_information` nor :meth:`BcfClient.delete_viewpoint`.
 """
 
 from __future__ import annotations
@@ -12,9 +18,22 @@ import base64
 from typing import Any, BinaryIO
 from urllib.parse import quote
 
+from opencde_client.errors import NotInThisVersion
+from opencde_client.foundation import ApiVersion
 from opencde_client.http import ApiSession
 
 JSON = dict[str, Any]
+# The newest first: what a client takes when a server offers several.
+SUPPORTED_VERSIONS = ("3.0", "2.1")
+
+
+def choose_version(offered: list[ApiVersion]) -> str:
+    """The newest version of the BCF API that both this library and the server speak."""
+    versions = {item.version_id for item in offered if item.api_id == "bcf"}
+    for version in SUPPORTED_VERSIONS:
+        if version in versions:
+            return version
+    raise NotInThisVersion(f"the server offers BCF API {sorted(versions) or 'in no version'}, not {SUPPORTED_VERSIONS}")
 
 
 def _odata(
@@ -57,10 +76,21 @@ def content_disposition(filename: str) -> str:
 class BcfClient:
     def __init__(self, session: ApiSession, version: str = "3.0") -> None:
         self.session = session
+        self.version = version
         self.base = f"/bcf/{version}"
 
     def _p(self, project_id: str, *rest: str) -> str:
         return "/".join([f"{self.base}/projects/{project_id}", *rest])
+
+    def _from_3_0(self, service: str) -> None:
+        if self.version == "2.1":
+            raise NotInThisVersion(f"BCF API 2.1 has no {service}; it came with 3.0")
+
+    def current_user(self) -> JSON:
+        """``{"id": ..., "name": ...}`` of the signed-in user: a service of 2.1's own, in the Foundation API from 3.0."""
+        if self.version != "2.1":
+            raise NotInThisVersion(f"BCF API {self.version} leaves the current user to the Foundation API")
+        return self.session.json("GET", f"{self.base}/current-user")
 
     # -- 3.1 projects ------------------------------------------------------------------------------
 
@@ -110,6 +140,7 @@ class BcfClient:
     # -- 3.3 files ----------------------------------------------------------------------------------
 
     def files_information(self, project_id: str) -> list[JSON]:
+        self._from_3_0("files information")
         return self.session.json("GET", self._p(project_id, "files_information"))
 
     def files(self, project_id: str, topic_guid: str) -> list[JSON]:
@@ -178,6 +209,7 @@ class BcfClient:
         )
 
     def delete_viewpoint(self, project_id: str, topic_guid: str, viewpoint_guid: str) -> None:
+        self._from_3_0("deleting of viewpoints")
         self.session.delete(self._p(project_id, "topics", topic_guid, "viewpoints", viewpoint_guid))
 
     # -- 3.6 related topics, 3.7 document references -----------------------------------------------

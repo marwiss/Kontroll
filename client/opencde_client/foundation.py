@@ -1,5 +1,9 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Foundation API 1.0: discovery (``/foundation/versions``), authentication info and the current user."""
+"""Foundation API 1.0: discovery (``/foundation/versions``), authentication info and the current user.
+
+A server that has only BCF API 2.1 has no Foundation API. It tells the same things in its own services, so
+:func:`discover` and :func:`auth_info` can ask those too.
+"""
 
 from __future__ import annotations
 
@@ -59,21 +63,30 @@ def _auth_info(body: dict[str, Any]) -> AuthInfo:
 
 
 def discover(base_url: str, *, transport: httpx.BaseTransport | None = None, timeout: float = 30.0) -> list[ApiVersion]:
-    """The APIs a server offers (``GET /foundation/versions``), no authentication needed."""
+    """The APIs a server offers, no authentication needed: ``GET /foundation/versions``, and on a server without the
+    Foundation API what BCF API 2.1 has in its place, ``GET /bcf/versions``, whose items do not name the API."""
     with httpx.Client(base_url=base_url.rstrip("/"), transport=transport, timeout=timeout) as client:
         response = client.get("/foundation/versions")
+        if response.status_code == 404:
+            response = client.get("/bcf/versions")
         if response.is_error:
             raise ApiError(response)
         return [
-            ApiVersion(item["api_id"], item["version_id"], item.get("detailed_version"))
+            ApiVersion(item.get("api_id", "bcf"), item["version_id"], item.get("detailed_version"))
             for item in response.json().get("versions", [])
         ]
 
 
-def auth_info(base_url: str, *, transport: httpx.BaseTransport | None = None, timeout: float = 30.0) -> AuthInfo:
-    """``GET /foundation/1.0/auth``, no authentication needed."""
+def auth_info(
+    base_url: str,
+    *,
+    transport: httpx.BaseTransport | None = None,
+    timeout: float = 30.0,
+    path: str = "/foundation/1.0/auth",
+) -> AuthInfo:
+    """Where to sign in, no authentication needed. BCF API 2.1 has it under ``/bcf/2.1/auth``."""
     with httpx.Client(base_url=base_url.rstrip("/"), transport=transport, timeout=timeout) as client:
-        response = client.get("/foundation/1.0/auth")
+        response = client.get(path)
         if response.is_error:
             raise ApiError(response)
         return _auth_info(response.json())
