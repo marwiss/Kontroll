@@ -7,14 +7,16 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.4.0 — 2026-11-06
+## 2.5.0 — 2026-11-06
 
-The release kept for 2.x. Works with Dataspatium 2.4.0. It contains 2.0.0,
-2.1.0, 2.2.0 and 2.3.0 of the last two days, withdrawn under the rule above
-together with their Dataspatium counterparts.
+The release kept for 2.x. Works with Dataspatium 2.5.0. It contains 2.0.0,
+2.1.0, 2.2.0, 2.3.0 and 2.4.0 of the last two days, withdrawn under the rule
+above together with their Dataspatium counterparts.
 
 - No API changed: Dataspatium 2.4.0 brings IfcOpenShell into the browser and
-  needs nothing new from the server.
+  2.5.0 adds IDS checking, and neither needs anything new from the server.
+- `docs/dataspatium-coordination.md` now records what the two projects share and
+  the owner's decisions, without planning.
 - The language cookie `opencde_lang` is `HttpOnly`, since the pages' scripts
   never read it, and the security suite proves that only a known language code
   can reach it.
