@@ -107,6 +107,7 @@ testimoduulin.
 | Turvaotsakkeet jokaisessa vastauksessa, virheet mukaan lukien | `test_headers_and_errors` |
 | Valtuutus-, valinta- ja lähetyssivut lisäävät asiakkaan originin `form-action`-käytäntöön, koska Chromium tarkistaa sen lomakkeeseen vastaavaa uudelleenohjausta vasten; jokainen muu sivu säilyttää `form-action 'self'` | `test_security_oauth2::test_the_authorization_page_lets_the_browser_follow_the_redirect_to_the_client`, `tests/ui/test_popup_opener.py::test_the_sign_in_popup_comes_back_to_the_client` |
 | `Cross-Origin-Opener-Policy: same-origin` vain hallinta- ja tilisivuilla; sivut, jotka asiakas avaa ponnahdusikkunaan, säilyttävät selaimen oletuksen, jotta asiakkaan callback-sivu tavoittaa openerinsa (todennettu oikealla selaimella) | `test_headers_and_errors::test_opener_policy_isolates_only_the_administration`, `tests/ui/test_popup_opener.py` |
+| Kielieväste sisältää vain koodin seitsemän kielen kiinteästä luettelosta ja on `HttpOnly` ja `SameSite=Lax`; mikään skripti ei lue sitä | `test_headers_and_errors::test_the_language_cookie_holds_only_a_known_language` |
 | Vain spesifikaation virherunko; ei pinojälkiä tai toistettua syötettä | `test_headers_and_errors`, `errors.py` |
 | Pyynnön rungon kokoraja ennen jäsentämistä | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request-id puhdistetaan | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |

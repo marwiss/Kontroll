@@ -107,6 +107,7 @@ prófunareininguna.
 | Öryggishausar á hverju svari, villur meðtaldar | `test_headers_and_errors` |
 | Heimildar-, val- og upphalssíðurnar bæta uppruna biðlarans við `form-action`, því Chromium athugar hann gegn áframsendingunni sem svarar eyðublaðinu; hver önnur síða heldur `form-action 'self'` | `test_security_oauth2::test_the_authorization_page_lets_the_browser_follow_the_redirect_to_the_client`, `tests/ui/test_popup_opener.py::test_the_sign_in_popup_comes_back_to_the_client` |
 | `Cross-Origin-Opener-Policy: same-origin` aðeins á stjórnunar- og reikningssíðunum; síðurnar sem biðlari opnar í sprettiglugga halda sjálfgefnu vafrans svo callback-síða biðlarans nái opener sínum (sannreynt í raunverulegum vafra) | `test_headers_and_errors::test_opener_policy_isolates_only_the_administration`, `tests/ui/test_popup_opener.py` |
+| Tungumálavefkakan geymir aðeins kóða úr föstum lista sjö tungumála og er `HttpOnly` og `SameSite=Lax`; engin skrifta les hana | `test_headers_and_errors::test_the_language_cookie_holds_only_a_known_language` |
 | Aðeins villumeginmál forskriftarinnar; engar staflarakningar eða endurómað inntak | `test_headers_and_errors`, `errors.py` |
 | Stærðarmörk meginmáls beiðni fyrir þáttun | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request-id hreinsað | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |
