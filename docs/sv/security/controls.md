@@ -106,6 +106,7 @@ Varje kontroll har minst ett automatiskt test. "Svit" namnger testmodulen.
 | Säkerhetshuvuden på varje svar, även fel | `test_headers_and_errors` |
 | Auktoriserings-, urvals- och uppladdningssidorna lägger till klientens origin i `form-action`, eftersom Chromium kontrollerar den mot omdirigeringen som svarar på formuläret; varje annan sida behåller `form-action 'self'` | `test_security_oauth2::test_the_authorization_page_lets_the_browser_follow_the_redirect_to_the_client`, `tests/ui/test_popup_opener.py::test_the_sign_in_popup_comes_back_to_the_client` |
 | `Cross-Origin-Opener-Policy: same-origin` bara på administrations- och kontosidorna; sidorna en klient öppnar i ett popup-fönster behåller webbläsarens standard så att klientens callback-sida kan nå sin opener (verifierat i en riktig webbläsare) | `test_headers_and_errors::test_opener_policy_isolates_only_the_administration`, `tests/ui/test_popup_opener.py` |
+| Språkkakan håller bara en kod ur den fasta listan på sju och är `HttpOnly` och `SameSite=Lax`; inget skript läser den | `test_headers_and_errors::test_the_language_cookie_holds_only_a_known_language` |
 | Bara specens felkropp; inga stackspår eller ekad indata | `test_headers_and_errors`, `errors.py` |
 | Storleksgräns för begärans kropp före tolkning | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request-id saneras | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |

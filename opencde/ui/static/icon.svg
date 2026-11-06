@@ -1,8 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Kontroll OpenCDE server">
-  <!-- Kontroll mark: three connected nodes (a graph), the sibling of the Dataspatium mark. Same plate, colours and
-       stroke width (2.2), and the same margins: the white ink spans x 7.4-24.6 and y 5.08-26.92 of the 32-unit box,
-       exactly as Dataspatium's stacked sheets do. The rings have radius 2.6, so their outer edge lies 3.7 from
-       the centres; the lines run from the left node to the two on the right and end inside the rings' stroke. -->
   <rect width="32" height="32" rx="7" fill="#2b6cb0"/>
   <g fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
     <line x1="14.26" y1="13.67" x2="17.74" y2="11.11"/>

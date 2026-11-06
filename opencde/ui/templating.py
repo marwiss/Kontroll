@@ -101,7 +101,7 @@ def render(
             max_age=i18n.COOKIE_MAX_AGE,
             path="/",
             secure=settings.public_url.startswith("https://"),
-            httponly=False,
+            httponly=True,  # only the server reads it; the scripts get their texts from data-t-* attributes
             samesite="lax",
         )
     return response

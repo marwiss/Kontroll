@@ -106,6 +106,7 @@ Hver kontrol har mindst én automatiseret test. "Suite" navngiver testmodulet.
 | Sikkerhedsheadere på hvert svar, også fejl | `test_headers_and_errors` |
 | Autorisations-, udvælgelses- og uploadsiderne tilføjer klientens origin til `form-action`, da Chromium tjekker den mod den omdirigering, der svarer på formularen; alle andre sider beholder `form-action 'self'` | `test_security_oauth2::test_the_authorization_page_lets_the_browser_follow_the_redirect_to_the_client`, `tests/ui/test_popup_opener.py::test_the_sign_in_popup_comes_back_to_the_client` |
 | `Cross-Origin-Opener-Policy: same-origin` kun på administrations- og kontosiderne; de sider, en klient åbner i et pop op-vindue, beholder browserens standard, så klientens callback-side kan nå sin opener (verificeret i en rigtig browser) | `test_headers_and_errors::test_opener_policy_isolates_only_the_administration`, `tests/ui/test_popup_opener.py` |
+| Sprogcookien indeholder kun en kode fra den faste liste på syv og er `HttpOnly` og `SameSite=Lax`; intet script læser den | `test_headers_and_errors::test_the_language_cookie_holds_only_a_known_language` |
 | Kun specifikationens fejlkrop; ingen stakspor eller gentaget input | `test_headers_and_errors`, `errors.py` |
 | Størrelsesgrænse for forespørgselskroppen før parsing | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request-id saneres | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |

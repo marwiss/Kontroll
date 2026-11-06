@@ -106,6 +106,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Security headers on every response, including errors | `test_headers_and_errors` |
 | The authorization, selection and upload pages add the client's origin to `form-action`, since Chromium checks it against the redirect that answers the form; every other page keeps `form-action 'self'` | `test_security_oauth2::test_the_authorization_page_lets_the_browser_follow_the_redirect_to_the_client`, `tests/ui/test_popup_opener.py::test_the_sign_in_popup_comes_back_to_the_client` |
 | `Cross-Origin-Opener-Policy: same-origin` only on the administration and account pages; the pages a client opens in a pop-up keep the browser default so the client's callback page can reach its opener (verified in a real browser) | `test_headers_and_errors::test_opener_policy_isolates_only_the_administration`, `tests/ui/test_popup_opener.py` |
+| The language cookie holds only a code from the fixed list of seven and is `HttpOnly` and `SameSite=Lax`; no script reads it | `test_headers_and_errors::test_the_language_cookie_holds_only_a_known_language` |
 | Spec error body only; no stack traces or echoed input | `test_headers_and_errors`, `errors.py` |
 | Request body size limit before parsing | `test_headers_and_errors::test_oversized_body_is_rejected_before_parsing` |
 | Request id sanitised | `test_headers_and_errors::test_request_id_is_echoed_or_minted` |

@@ -9,3 +9,4 @@
 90004	IGNORE	(Cross-Origin-Embedder-Policy: the pages load same-origin resources only and need no cross-origin isolation; Opener and Resource policies are set)
 90005	IGNORE	(Sec-Fetch-Dest missing on the scanner's own requests; browsers send it and the server checks Sec-Fetch-Site on form posts)
 10055	IGNORE	(CSP script-src 'unsafe-inline' only on the interactive API docs page, where FastAPI's Swagger UI starts with an inline script; the page is served only outside production, and the server's own pages allow no inline code, which the security suite checks)
+10029	IGNORE	(Cookie poisoning: ?lang= sets the language cookie, but only a code from the fixed list of seven ever reaches it; test_headers_and_errors::test_the_language_cookie_holds_only_a_known_language covers it)

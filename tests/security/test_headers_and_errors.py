@@ -41,6 +41,19 @@ def test_opener_policy_isolates_only_the_administration(client: TestClient) -> N
         assert response.headers["cross-origin-opener-policy"] == "same-origin", path
 
 
+def test_the_language_cookie_holds_only_a_known_language(client: TestClient) -> None:
+    """``?lang=`` reaches a cookie (ZAP's cookie poisoning rule), but only a code from the fixed list can."""
+    cookie = client.get("/signin?lang=sv").headers["set-cookie"].lower()
+    assert cookie.startswith("opencde_lang=sv;")
+    assert "httponly" in cookie and "samesite=lax" in cookie
+    client.cookies.clear()
+    for hostile in ("xx", "sv;domain=evil.example", "sv%0d%0aSet-Cookie:%20a=b", "%3Cscript%3E"):
+        assert "set-cookie" not in client.get(f"/signin?lang={hostile}").headers, hostile
+    # A regional tag is understood, and what is stored is still only the code.
+    regional = client.get("/signin?lang=sv-x%3Bdomain%3Devil.example").headers["set-cookie"].lower()
+    assert regional.startswith("opencde_lang=sv;") and "domain" not in regional
+
+
 def test_not_found_uses_spec_error_body_with_a_code(client: TestClient) -> None:
     response = client.get("/nope")
     assert response.status_code == 404
