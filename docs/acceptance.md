@@ -19,8 +19,8 @@ maintainers, and the project owner decides whether and how to send it.
 
 | Client | Server URL that works |
 |---|---|
-| Browser clients on the same machine (Dataspatium, ifc-lite) | the development stack on `http://localhost:8000` |
-| Desktop clients on the same machine (Bonsai) | `http://localhost:8000` when the client accepts http; otherwise a tunnel |
+| Browser clients on the same machine (Dataspatium, ifc-lite) | the development stack on `http://127.0.0.1:8000` |
+| Desktop clients on the same machine (Bonsai) | `http://127.0.0.1:8000` when the client accepts http; otherwise a tunnel |
 | Anything on another machine | a public https URL through a tunnel ([docs/deploy/tunnel.md](deploy/tunnel.md)) or a deployed server |
 
 Start the development stack and load the demonstration data:
@@ -80,11 +80,11 @@ The Python client ships a small command line that doubles as the second party
 in every two-way check:
 
 ```sh
-uv run python -m opencde_client --server http://localhost:8000 --client-id <public client id> login
-uv run python -m opencde_client --server http://localhost:8000 --client-id <public client id> projects
-uv run python -m opencde_client --server http://localhost:8000 --client-id <public client id> topics <project id>
-uv run python docs/examples/create_topic.py http://localhost:8000 <public client id> <project id> snapshot.png
-uv run python docs/examples/upload_document.py http://localhost:8000 <public client id> tests/fixtures/three_walls_gtin.ifc
+uv run python -m opencde_client --server http://127.0.0.1:8000 --client-id <public client id> login
+uv run python -m opencde_client --server http://127.0.0.1:8000 --client-id <public client id> projects
+uv run python -m opencde_client --server http://127.0.0.1:8000 --client-id <public client id> topics <project id>
+uv run python docs/examples/create_topic.py http://127.0.0.1:8000 <public client id> <project id> snapshot.png
+uv run python docs/examples/upload_document.py http://127.0.0.1:8000 <public client id> tests/fixtures/three_walls_gtin.ifc
 ```
 
 `create_topic.py` creates a topic with a viewpoint that selects the three walls,
@@ -120,7 +120,7 @@ the browser for sign-in.
 ifc-lite is a web client with BCF and Documents API libraries. Run it locally
 as its README describes (pnpm), note the origin it is served from (for example
 `http://localhost:5173`) and register that origin's callback path as redirect
-URI (`http://localhost` needs the development overlay; serving on `127.0.0.1`
+URI (`http://localhost` needs `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`; serving on `127.0.0.1`
 works everywhere). Parts of ifc-lite were written against BCF API 2.1: requests
 to `/bcf/2.1/…` are 404 on this server by design (BCF 3.0 only), and such a
 finding belongs under *Client deviations*, not in the server.

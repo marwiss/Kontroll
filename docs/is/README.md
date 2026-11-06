@@ -42,21 +42,21 @@ endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
    `OPENCDE_GRAPH_PASSWORD` (minnst 16 stafir). Hver stilling er útskýrð í
    [.env.example](../../.env.example).
 3. **Ræsa.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
-   ræsir þjóninn á <http://localhost:8000> og Neo4j-gagnagrunn.
+   ræsir þjóninn á <http://127.0.0.1:8000> og Neo4j-gagnagrunn.
    `docker compose logs -f api` sýnir atvikaskrá þjónsins.
-4. **Litast um.** <http://localhost:8000/docs> er gagnvirka API-skjölunin,
-   <http://localhost:8000/readyz> viðbúnaðarathugunin og
-   <http://localhost:7484> Neo4j Browser (Bolt á `localhost:7697`;
+4. **Litast um.** <http://127.0.0.1:8000/docs> er gagnvirka API-skjölunin,
+   <http://127.0.0.1:8000/readyz> viðbúnaðarathugunin og
+   <http://127.0.0.1:7484> Neo4j Browser (Bolt á `127.0.0.1:7697`;
    þróunaryfirlagið sneiðir hjá sjálfgefnum gáttum Neo4j, sem annar Neo4j á
    sömu tölvu tekur oft).
 5. **Bæta við sýnigögnum og skrá sig inn.**
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
    býr til sýninotendur og -verkefni og prentar lykilorð þeirra einu sinni.
-   Skráðu þig inn á <http://localhost:8000/signin> sem `admin` og opnaðu
+   Skráðu þig inn á <http://127.0.0.1:8000/signin> sem `admin` og opnaðu
    `/admin`.
 6. **Tengja biðlara.** Skráðu forritið þitt undir *Clients* (eða láttu það
    skrá sig sjálft þegar `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
-   beindu því á `http://localhost:8000`; [Dataspatium](#kontroll-og-dataspatium)
+   beindu því á `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
    og Python-safnið í [client/](../../client/) eru tilbúnir biðlarar.
    Ef þú ætlar að skrá þig inn úr Dataspatium skaltu fylgja [fljótlegu
    byrjuninni](quickstart.md): hún fjallar um allar stillingar sem þarf og hvað þú
@@ -105,8 +105,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
 - Staðbundið: gátt 8000 fyrir þjóninn og 7484/7697 fyrir gagnagrunninn, allar
   bundnar við `127.0.0.1`. Í rekstri: gáttir 80 og 443 aðgengilegar af
   internetinu og DNS-nafn fyrir þjóninn.
-- Biðlarar þurfa `https`-vistfang í rekstri; staðbundið er `http://localhost`
-  samþykkt sem redirect-URI með `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+- Biðlarar þurfa `https`-vistfang í rekstri; staðbundið er `http://127.0.0.1` samþykkt sem redirect-URI, og `http://localhost` með `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## Hvað þú getur gert
 

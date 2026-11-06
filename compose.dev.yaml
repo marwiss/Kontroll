@@ -1,6 +1,6 @@
-# Local development overlay: the API on http://localhost:8000 and the database
-# reachable from the host (Neo4j Browser on http://localhost:7484, Bolt on
-# localhost:7697) so you can inspect the graph with Neo4j Browser or
+# Local development overlay: the API on http://127.0.0.1:8000 and the database
+# reachable from the host (Neo4j Browser on http://127.0.0.1:7484, Bolt on
+# 127.0.0.1:7697) so you can inspect the graph with Neo4j Browser or
 # Dataspatium. The host ports avoid Neo4j's defaults (7474/7687) because another
 # Neo4j on the same machine often holds them; override with OPENCDE_DEV_* in .env.
 # Everything binds to 127.0.0.1 only. A second checkout on the same machine
@@ -20,6 +20,6 @@ services:
       - "127.0.0.1:${OPENCDE_DEV_PORT:-8000}:8000"
     environment:
       OPENCDE_ENVIRONMENT: development
-      OPENCDE_PUBLIC_URL: "http://localhost:${OPENCDE_DEV_PORT:-8000}"
+      OPENCDE_PUBLIC_URL: "http://127.0.0.1:${OPENCDE_DEV_PORT:-8000}"
       OPENCDE_LOG_JSON: "false"
       OPENCDE_LOG_LEVEL: DEBUG

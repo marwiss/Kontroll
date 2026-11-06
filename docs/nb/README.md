@@ -42,21 +42,21 @@ fra grunnen av med sikkerhet som første krav.
    `OPENCDE_GRAPH_PASSWORD` (minst 16 tegn). Hver innstilling forklares i
    [.env.example](../../.env.example).
 3. **Start.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
-   starter serveren på <http://localhost:8000> og en Neo4j-database.
+   starter serveren på <http://127.0.0.1:8000> og en Neo4j-database.
    `docker compose logs -f api` viser serverloggen.
-4. **Se deg rundt.** <http://localhost:8000/docs> er den interaktive
-   API-dokumentasjonen, <http://localhost:8000/readyz> beredskapskontrollen
-   og <http://localhost:7484> Neo4j Browser (Bolt på `localhost:7697`;
+4. **Se deg rundt.** <http://127.0.0.1:8000/docs> er den interaktive
+   API-dokumentasjonen, <http://127.0.0.1:8000/readyz> beredskapskontrollen
+   og <http://127.0.0.1:7484> Neo4j Browser (Bolt på `127.0.0.1:7697`;
    utviklingsoverlegget unngår Neo4js standardporter, som ofte er opptatt av
    en annen Neo4j på samme maskin).
 5. **Legg inn demodata og logg inn.**
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
    oppretter demobrukere og prosjekter og skriver ut passordene deres én
-   gang. Logg inn på <http://localhost:8000/signin> som `admin` og åpne
+   gang. Logg inn på <http://127.0.0.1:8000/signin> som `admin` og åpne
    `/admin`.
 6. **Koble til en klient.** Registrer appen din under *Clients* (eller la
    den registrere seg selv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
-   pek den mot `http://localhost:8000`; [Dataspatium](#kontroll-og-dataspatium)
+   pek den mot `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
    og Python-biblioteket i [client/](../../client/) er ferdige klienter.
    Skal du logge inn fra Dataspatium, følg [hurtigstarten](quickstart.md): den tar for
    seg alle innstillingene som trengs, og hva du gjør hvis noe går galt.
@@ -105,7 +105,7 @@ databasepassord, og ingenting er åpent før det er konfigurert.
   `127.0.0.1`. I produksjon: portene 80 og 443 nåbare fra internett og et
   DNS-navn for serveren.
 - Klienter trenger en `https`-adresse i produksjon; lokalt godtas
-  `http://localhost` som redirect-URI med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  `http://127.0.0.1` som redirect-URI, og `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## Hva du kan gjøre
 

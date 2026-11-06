@@ -42,20 +42,20 @@ med säkerhet som första krav.
    `OPENCDE_GRAPH_PASSWORD` (minst 16 tecken). Varje inställning förklaras i
    [.env.example](.env.example).
 3. **Starta.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
-   startar servern på <http://localhost:8000> och en Neo4j-databas.
+   startar servern på <http://127.0.0.1:8000> och en Neo4j-databas.
    `docker compose logs -f api` visar serverloggen.
-4. **Se dig omkring.** <http://localhost:8000/docs> är den interaktiva
-   API-dokumentationen, <http://localhost:8000/readyz> beredskapskontrollen
-   och <http://localhost:7484> Neo4j Browser (Bolt på `localhost:7697`;
+4. **Se dig omkring.** <http://127.0.0.1:8000/docs> är den interaktiva
+   API-dokumentationen, <http://127.0.0.1:8000/readyz> beredskapskontrollen
+   och <http://127.0.0.1:7484> Neo4j Browser (Bolt på `127.0.0.1:7697`;
    utvecklingsöverlagringen undviker Neo4j:s standardportar, som ofta upptas
    av en annan Neo4j på samma dator).
 5. **Lägg in demodata och logga in.**
    `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
    skapar demoanvändare och projekt och skriver ut deras lösenord en gång.
-   Logga in på <http://localhost:8000/signin> som `admin` och öppna `/admin`.
+   Logga in på <http://127.0.0.1:8000/signin> som `admin` och öppna `/admin`.
 6. **Anslut en klient.** Registrera din app under *Clients* (eller låt den
    registrera sig själv när `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) och
-   peka den mot `http://localhost:8000`; [Dataspatium](#kontroll-och-dataspatium)
+   peka den mot `http://127.0.0.1:8000`; [Dataspatium](#kontroll-och-dataspatium)
    och Python-biblioteket i [client/](client/) är färdiga klienter.
    Ska du logga in från Dataspatium, följ [snabbstarten](docs/sv/quickstart.md): den
    tar upp alla inställningar som krävs och vad du gör om något går fel.
@@ -104,7 +104,7 @@ databaslösenord, och inget är öppet förrän det har konfigurerats.
   `127.0.0.1`. I produktion: portarna 80 och 443 nåbara från internet och ett
   DNS-namn för servern.
 - Klienter behöver en `https`-adress i produktion; lokalt accepteras
-  `http://localhost` som redirect-URI med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  `http://127.0.0.1` som redirect-URI, och `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## Vad du kan göra
 

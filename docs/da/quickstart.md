@@ -31,14 +31,13 @@ cp .env.example .env
 
 I Windows' kommandoprompt bruges `copy` i stedet for `cp`.
 
-Åbn `.env` i en teksteditor. De fem linjer nedenfor findes allerede i filen: ret dem,
+Åbn `.env` i en teksteditor. De fire linjer nedenfor findes allerede i filen: ret dem,
 så de ser sådan ud, og gem. Vælg dit eget kodeord, mindst 16 tegn, kun bogstaver og
 tal.
 
 ```ini
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
-OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true
 OPENCDE_REQUEST_LOG_ENABLED=true
 OPENCDE_IFCGRAPH_ENABLED=true
 ```
@@ -47,7 +46,6 @@ OPENCDE_IFCGRAPH_ENABLED=true
 |---|---|---|
 | `OPENCDE_GRAPH_PASSWORD` | Kodeordet til grafdatabasen | Kortere end 16 tegn: databasen starter ikke |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Lader Dataspatium registrere sig selv hos serveren | Trin 3 stopper, og appen beder om et klient-id |
-| `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` | Lader en app, der er åbnet på `http://localhost`, logge ind | Trin 3 stopper med en mislykket registrering |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Gemmer appens kald | Forespørgselsloggen i trin 5 forbliver tom |
 | `OPENCDE_IFCGRAPH_ENABLED` | Gør uploadede modeller til en graf | Ingen graf i trin 5 |
 
@@ -66,9 +64,9 @@ kører. Den anden opretter demobrugere og projekter og udskriver deres kodeord *
 gang**: gem kodeordene til `admin` og `inspection_manager` nu. Lad linjerne, der
 begynder med `client`, være; Dataspatium registrerer sin egen klient.
 
-Kontrollér, at det virker: <http://localhost:8000/readyz> svarer
-`"status":"ready"`. Log ind på <http://localhost:8000/signin> som `admin`, og åbn
-<http://localhost:8000/admin/projects>, som viser *Building permit* og
+Kontrollér, at det virker: <http://127.0.0.1:8000/readyz> svarer
+`"status":"ready"`. Log ind på <http://127.0.0.1:8000/signin> som `admin`, og åbn
+<http://127.0.0.1:8000/admin/projects>, som viser *Building permit* og
 *Demolition permit*.
 
 Når du senere ændrer `.env`, kører du `up`-kommandoen igen. `docker compose restart`
@@ -89,10 +87,8 @@ læser ikke filen.
    ```
 
    Kommandoen kan hedde `python3` på macOS og Linux og `py` på Windows. Lad terminalen
-   være åben, mens du bruger appen. Angiv altid porten: uden den tager Python 8000,
-   som er Kontrolls port, og appen efterlader så en service worker i din browser, der
-   ødelægger Kontrolls sider (se [Fejlfinding](#fejlfinding)).
-4. Åbn <http://localhost:8080/>. Dobbeltklik ikke på `index.html`: åbnet fra mappen
+   være åben, mens du bruger appen. Angiv altid porten: uden den tager Python 8000, som er Kontrolls port.
+4. Åbn <http://127.0.0.1:8080/>, skrevet præcis sådan: serveren sender browseren tilbage efter login til `127.0.0.1`, ikke til `localhost`. Dobbeltklik ikke på `index.html`: åbnet fra mappen
    kan appen ikke registrere sig selv. Appen genindlæser sig selv én gang ved første
    start.
 5. Første start spørger om sprog: vælg et, og tryk *Fortsæt på …*. Denne side bruger
@@ -103,7 +99,7 @@ læser ikke filen.
 
 1. Vælg tilstanden *Hent*. I venstre kolonne, under *Tilføj kilder*, vælger du
    *OpenCDE*.
-2. Under *Adresse* skriver du `http://localhost:8000`. **Lad *Klient-id* og
+2. Under *Adresse* skriver du `http://127.0.0.1:8000`. **Lad *Klient-id* og
    hemmeligheden være tomme**: appen registrerer sig selv, selv om teksten i dialogen
    taler om et klient-id fra administratoren. Tryk *Tilføj kilde*.
 3. Appen spørger *Tillad internetadgang?* op til tre gange, én gang per formål. Her
@@ -113,7 +109,7 @@ læser ikke filen.
    siger, hvilke tilføjelser der er slået til. Mærket *Kræver nøgle* kan du se bort
    fra: det, der kræves, er login.
 5. Tryk *Log ind*. Et pop op-vindue åbnes med serverens login-side. Hvis browseren
-   blokerer det, så tillad pop op-vinduer for `http://localhost:8080`, og tryk igen.
+   blokerer det, så tillad pop op-vinduer for `http://127.0.0.1:8080`, og tryk igen.
 6. Log ind som `inspection_manager` med kodeordet fra trin 1, og tryk *Tillad og log
    ind*. Brug ikke `admin`, som ikke er med i noget projekt. Vinduet lukker sig selv,
    og kilden siger *Logget ind som Certified inspection manager*.
@@ -134,7 +130,7 @@ Du er logget ind, indtil siden genindlæses; tryk da *Log ind* igen. Kilden bliv
 
 ## 5. Se det på serveren
 
-Logget ind som `admin` åbner du <http://localhost:8000/admin>:
+Logget ind som `admin` åbner du <http://127.0.0.1:8000/admin>:
 
 - *Projekter* viser *Building permit* med to sager (den fra `opencde seed` og din) og
   ét dokument.
@@ -155,8 +151,8 @@ sender du modellen til serveren:
 3. Serverens upload-side åbnes i et pop op-vindue. Log ind som `inspection_manager`,
    og tryk *Gem og fortsæt*. Vinduet lukker sig selv.
 
-Inden for få sekunder svarer Neo4j Browser på <http://localhost:7484> (forbind til
-`bolt://localhost:7697` som `neo4j` med kodeordet fra `.env`) på denne forespørgsel
+Inden for få sekunder svarer Neo4j Browser på <http://127.0.0.1:7484> (forbind til
+`bolt://127.0.0.1:7697` som `neo4j` med kodeordet fra `.env`) på denne forespørgsel
 med væggen koblet til viewpointets komponent:
 
 ```cypher
@@ -176,18 +172,18 @@ Hver række citerer skærmen, som den ser ud med de danske navne.
 | `the database is not empty` | `opencde seed` har allerede kørt og udskrev kodeordene dengang | Få et nyt kodeord med `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde user set-password inspection_manager`, eller [start forfra](#start-forfra) |
 | `python` findes ikke, eller Microsoft Store åbnes | Kommandoen hedder noget andet på denne computer | Brug `py` eller `python3` |
 | En filliste i stedet for appen | Webserveren kører i den ydre mappe | Stop den med Ctrl+C, og start den i den mappe, hvor `index.html` ligger |
-| En gammel version af appen, eller noget helt andet | Noget andet svarer på port 8080; på Windows kan en anden webserver starte på samme port uden fejl | Brug en anden port, `python -m http.server 8090 --bind 127.0.0.1`, og åbn `http://localhost:8090/` |
-| *Appen kan kun registrere sig selv hos serveren, når den kører fra en webserver …* | Appen blev åbnet fra mappen | Åbn `http://localhost:8080/` |
-| *Kunne ikke nå localhost:8000 …* | Kontroll kører ikke, eller adressen er skrevet forkert | <http://localhost:8000/readyz> skal svare. Adressen er `http://localhost:8000` uden noget efter |
+| En gammel version af appen, eller noget helt andet | Noget andet svarer på port 8080; på Windows kan en anden webserver starte på samme port uden fejl | Brug en anden port, `python -m http.server 8090 --bind 127.0.0.1`, og åbn `http://127.0.0.1:8090/` |
+| *Appen kan kun registrere sig selv hos serveren, når den kører fra en webserver …* | Appen blev åbnet fra mappen | Åbn `http://127.0.0.1:8080/` |
+| *Kunne ikke nå 127.0.0.1:8000 …* | Kontroll kører ikke, eller adressen er skrevet forkert | <http://127.0.0.1:8000/readyz> skal svare. Adressen er `http://127.0.0.1:8000` uden noget efter |
 | *Serveren tillader ikke, at appen registrerer sig selv …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` er ikke `true` | Ret `.env`, kør `up`-kommandoen igen, og tryk *Tilføj kilde* igen |
-| *Registreringen mislykkedes:* … `http redirect URIs are only allowed for the loopback address` | `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` er ikke `true` | Ret `.env`, kør `up`-kommandoen igen, og tryk *Tilføj kilde* igen |
+| *Registreringen mislykkedes:* … `http redirect URIs are only allowed for the loopback address` | Appen blev åbnet på `localhost`, som serveren ikke godtager som vej tilbage | Åbn `http://127.0.0.1:8080/`, og tilføj kilden der |
 | *Registreringen mislykkedes:* … `rate_limited` | Flere end fem registreringer inden for en time; hver *Tilføj kilde* med tomt *Klient-id* er én | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nulstiller tælleren |
 | *Internetadgang til … er ikke tilladt.* | Der blev trykket *Afvis* | Tillad det under *Håndter*, *Arbejdsområde*, *Internetadgang*, og prøv igen |
-| *Browseren blokerede loginvinduet …* | Browserens blokering af pop op-vinduer | Tillad pop op-vinduer for `http://localhost:8080`, og tryk *Log ind* igen |
+| *Browseren blokerede loginvinduet …* | Browserens blokering af pop op-vinduer | Tillad pop op-vinduer for `http://127.0.0.1:8080`, og tryk *Log ind* igen |
 | I pop op-vinduet: *Kan ikke fortsætte* og *Ukendt klient.* | Serveren har glemt appens registrering, som regel efter `down -v` | Luk vinduet, og genindlæs appen, fordi *Log ind* ellers snurrer i fem minutter. Slet kilden med krydset ved siden af den under *Tilføjede kilder*, og tilføj den igen |
 | I pop op-vinduet: *Kan ikke fortsætte* og *Redirect-URI'en er ikke registreret for denne klient.* | *Klient-id* blev udfyldt, for eksempel fra udskriften af `opencde seed` | Luk vinduet, og genindlæs appen. Slet kilden med krydset ved siden af den under *Tilføjede kilder*, og tilføj den igen med tomt *Klient-id* |
 | I pop op-vinduet: *Brugernavnet eller kodeordet er ikke korrekt.* | Hver bruger har sit eget kodeord fra `opencde seed` | Brug det rigtige, eller få et nyt som ovenfor |
-| *Formularen er udløbet. Prøv igen.* på `/signin`, eller i pop op-vinduet *Kan ikke fortsætte* og *Login-formularen er udløbet eller er blevet manipuleret. Start forfra.*, selv om du lige har åbnet siden. `docker compose -f compose.yaml -f compose.dev.yaml logs api` viser `GET /sw.js` med 404 | En service worker i din browser fra en anden webapp, der engang har kørt på `http://localhost:8000`, for eksempel startet med `python -m http.server` uden port. Den svarer med gamle kopier af Kontrolls sider | Fjern den: `about:debugging#/runtime/this-firefox` i Firefox, `edge://serviceworker-internals` i Edge, `chrome://serviceworker-internals` i Chrome; find `localhost:8000`, og vælg *Unregister*. Hver browser har sin egen, også en, der er indbygget i en editor. Et privat vindue har ingen, hvilket hurtigt viser, om dette er årsagen. Hold andre apps væk fra port 8000 |
+| *Formularen er udløbet. Prøv igen.* på `/signin`, eller i pop op-vinduet *Kan ikke fortsætte* og *Login-formularen er udløbet eller er blevet manipuleret. Start forfra.*, selv om du lige har åbnet siden. `docker compose -f compose.yaml -f compose.dev.yaml logs api` viser `GET /sw.js` med 404 | En service worker i din browser fra en anden webapp, der engang har kørt på `http://127.0.0.1:8000`, for eksempel startet med `python -m http.server` uden port. Den svarer med gamle kopier af Kontrolls sider | Genindlæs siden, fordi Kontrolls sider selv fjerner en sådan worker. Hvis meddelelsen bliver, så fjern den i hånden: `about:debugging#/runtime/this-firefox` i Firefox, `edge://serviceworker-internals` i Edge, `chrome://serviceworker-internals` i Chrome; find `127.0.0.1:8000`, og vælg *Unregister*. Hver browser har sin egen, også en, der er indbygget i en editor. Et privat vindue har ingen, hvilket hurtigt viser, om dette er årsagen. Hold andre apps væk fra port 8000 |
 | *Du er ikke medlem af noget projekt på serveren.* | Du loggede ind som `admin`, som ikke er med i noget projekt | Tryk *Log ud* og derefter *Log ind* som `inspection_manager` |
 | *Log ind* bliver ved med at snurre | Vinduet blev lukket, før login var færdigt | Genindlæs siden |
 | Vinduet siger *Kopiera adressen … / Copy the address …* | Det kunne ikke nå appens vindue, som måske blev lukket eller genindlæst imens | Luk vinduet, og tryk *Log ind* igen |

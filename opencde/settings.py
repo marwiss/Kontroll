@@ -87,7 +87,7 @@ class Settings(BaseSettings):
         description="'development' relaxes the https requirement and prints readable logs.",
     )
     public_url: str = Field(
-        "http://localhost:8000",
+        "http://127.0.0.1:8000",
         description="Base URL clients use to reach the server. Used in links and OAuth2 metadata. https in production.",
     )
     secret_key: SecretStr = Field(
@@ -172,7 +172,7 @@ class Settings(BaseSettings):
         None,
         description="Bolt address of the graph database as clients may reach it, announced in the capabilities "
         "document. Leave empty unless the database is deliberately published (the development overlay does on "
-        "bolt://localhost:7697).",
+        "bolt://127.0.0.1:7697).",
     )
     graph_query_enabled: bool = Field(
         False,

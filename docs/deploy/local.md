@@ -23,10 +23,10 @@ and prints the passwords once.
 
 | What | Where |
 |---|---|
-| API documentation | <http://localhost:8000/docs> |
-| Administration | <http://localhost:8000/admin> (sign in as the administrator) |
-| Readiness | <http://localhost:8000/readyz> |
-| Neo4j Browser | <http://localhost:7484> (Bolt `localhost:7697`) |
+| API documentation | <http://127.0.0.1:8000/docs> |
+| Administration | <http://127.0.0.1:8000/admin> (sign in as the administrator) |
+| Readiness | <http://127.0.0.1:8000/readyz> |
+| Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
 | Server log | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
 
 The development overlay publishes Neo4j on 7484/7697 rather than the default
@@ -57,7 +57,7 @@ docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -
 
 Set `OPENCDE_GRAPH_DIALECT=memgraph` and `OPENCDE_GRAPH_USER=memgraph` in `.env`
 when running the server outside Docker. Memgraph Lab (`memgraph/lab`) can be
-pointed at `localhost:7697`.
+pointed at `127.0.0.1:7697`.
 
 ## Testing with Dataspatium
 
@@ -65,7 +65,7 @@ pointed at `localhost:7697`.
 developed together with this server. Serve a checkout of it over http
 (`python -m http.server 8080` in its folder), open `http://127.0.0.1:8080/`,
 register the app as a public client, and add the server as an OpenCDE source
-in Dataspatium (*Inhämta*) with `http://localhost:8000` and that client id:
+in Dataspatium (*Inhämta*) with `http://127.0.0.1:8000` and that client id:
 
 ```sh
 uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.0.1:8080/oauth-callback.html
