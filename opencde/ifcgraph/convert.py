@@ -117,13 +117,14 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
     if owner_history_id is not None:
         kept.add(owner_history_id)
     summary.ifc_project_guid = project.GlobalId if project is not None else None
+    project_id = project.id() if project is not None else None
 
     def linked(source: int, target: Any) -> bool:
         """Whether an edge goes in the graph. Every ``IfcRoot`` usually shares the project's owner history, and an
         edge from each of them would make that one node the centre of the graph."""
         if not hasattr(target, "id") or target.id() not in kept:
             return False
-        return target.id() != owner_history_id or source == project.id()
+        return target.id() != owner_history_id or source == project_id
 
     for entity in model:
         step = entity.id()
