@@ -7,7 +7,8 @@ prófunareininguna.
 
 | Vörn | Staðall | Svíta |
 |---|---|---|
-| PKCE `S256` krafist fyrir hvern biðlara; `plain` og vantandi challenge hafnað | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| PKCE `S256` krafist fyrir hvern biðlara nema merktan (næsta lína); `plain` og vantandi challenge hafnað | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| Trúnaðarbiðlari sem stjórnandi hefur merkt má sleppa PKCE, eins og BCF API 2.1 gerir: challenge sem hann sendir samt er framfylgt, verifier án challenge er hafnað, opinberan biðlara er ekki hægt að merkja, og redirect-URI sem er nefnt í beiðninni verður að nefna aftur | RFC 9700 §2.1.1, RFC 6749 §4.1.3 | `test_oauth2_without_pkce` |
 | Nákvæm samsvörun redirect-URI; loopback-gátt má vera breytileg; óskráð URI sýnd, aldrei fylgt | RFC 9700 §4.1, RFC 8252 §7.3 | `test_security_oauth2::test_unregistered_redirect_uri_is_shown_not_followed`, `::test_loopback_port_may_vary_but_host_may_not` |
 | `state` krafist; óþekktri heimild og óstuddri svargerð áframsent sem villum með `state` | RFC 6749 §4.1.2.1 | `test_security_oauth2::test_state_is_required_and_unknown_scope_is_refused` |
 | `iss` í heimildarsvarinu | RFC 9207 | `test_oauth2::test_public_client_flow_with_pkce` |

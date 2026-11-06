@@ -10,7 +10,7 @@ näkymä ja projekti ovat samat sanat kuin Dataspatiumissa.
 | OpenCDE | buildingSMARTin API-rajapinnat yhteiselle tietoympäristölle: Foundation, BCF ja Documents |
 | CDE | Common data environment, yhteinen tietoympäristö: projektin tietojen jaettu paikka |
 | Foundation API | OpenCDE:n osa, joka kertoo, mitä API-rajapintoja palvelin tarjoaa, miten kirjaudutaan ja kuka olet |
-| BCF | BIM Collaboration Format, rakennusmallia koskeville asioille. BCF API 3.0 on sen verkkorajapinta |
+| BCF | BIM Collaboration Format, rakennusmallia koskeville asioille. BCF API 3.0 ja 2.1 ovat sen verkkorajapinnat |
 | Documents API | OpenCDE:n osa, joka lataa ja valitsee asiakirjoja selaimen sivuilla |
 | IFC | Industry Foundation Classes, rakennusmallien avoin tiedostomuoto |
 

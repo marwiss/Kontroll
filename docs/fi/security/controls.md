@@ -7,7 +7,8 @@ testimoduulin.
 
 | Kontrolli | Standardi | Sarja |
 |---|---|---|
-| PKCE `S256` vaaditaan jokaiselta asiakkaalta; `plain` ja puuttuva challenge hylätään | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| PKCE `S256` vaaditaan jokaiselta asiakkaalta paitsi merkityltä (seuraava rivi); `plain` ja puuttuva challenge hylätään | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| Luottamuksellinen asiakas, jonka ylläpitäjä on merkinnyt, saa jättää PKCE:n pois, kuten BCF API 2.1 tekee: sen silti lähettämä challenge pannaan täytäntöön, verifier ilman challengea hylätään, julkista asiakasta ei voi merkitä, ja pyynnössä nimetty redirect-URI on nimettävä uudelleen | RFC 9700 §2.1.1, RFC 6749 §4.1.3 | `test_oauth2_without_pkce` |
 | Redirect-URIn tarkka vastaavuus; loopback-portti saa vaihdella; rekisteröimätön URI näytetään, sitä ei koskaan seurata | RFC 9700 §4.1, RFC 8252 §7.3 | `test_security_oauth2::test_unregistered_redirect_uri_is_shown_not_followed`, `::test_loopback_port_may_vary_but_host_may_not` |
 | `state` vaaditaan; tuntematon scope ja tukematon vastaustyyppi ohjataan virheinä `state`-parametrin kanssa | RFC 6749 §4.1.2.1 | `test_security_oauth2::test_state_is_required_and_unknown_scope_is_refused` |
 | `iss` valtuutusvastauksessa | RFC 9207 | `test_oauth2::test_public_client_flow_with_pkce` |

@@ -10,7 +10,7 @@ verkefni eru sömu orð og í Dataspatium.
 | OpenCDE | API buildingSMART fyrir sameiginlegt gagnaumhverfi: Foundation, BCF og Documents |
 | CDE | Common data environment, sameiginlegt gagnaumhverfi: sameiginlegi staðurinn fyrir upplýsingar verkefnis |
 | Foundation API | Sá hluti OpenCDE sem segir hvaða API þjónn býður, hvernig á að skrá sig inn og hver þú ert |
-| BCF | BIM Collaboration Format, fyrir mál um byggingarlíkan. BCF API 3.0 er vefviðmót þess |
+| BCF | BIM Collaboration Format, fyrir mál um byggingarlíkan. BCF API 3.0 og 2.1 eru vefviðmót þess |
 | Documents API | Sá hluti OpenCDE sem hleður upp og velur skjöl á síðum í vafranum |
 | IFC | Industry Foundation Classes, opna skráarsniðið fyrir byggingarlíkön |
 

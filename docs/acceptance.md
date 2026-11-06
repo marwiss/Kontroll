@@ -121,9 +121,8 @@ ifc-lite is a web client with BCF and Documents API libraries. Run it locally
 as its README describes (pnpm), note the origin it is served from (for example
 `http://localhost:5173`) and register that origin's callback path as redirect
 URI (`http://localhost` needs `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`; serving on `127.0.0.1`
-works everywhere). Parts of ifc-lite were written against BCF API 2.1: requests
-to `/bcf/2.1/…` are 404 on this server by design (BCF 3.0 only), and such a
-finding belongs under *Client deviations*, not in the server.
+works everywhere). Parts of ifc-lite were written against BCF API 2.1, which the
+server now answers under `/bcf/2.1/…`, so those parts can stay as they are.
 
 | # | Step | Expected |
 |---|---|---|

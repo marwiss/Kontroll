@@ -104,7 +104,7 @@ ingen JWT'er at validere.
 
 | Krav | Status | Bevis |
 |---|---|---|
-| Kun authorization code med PKCE `S256`; ingen implicit- eller password-grants | opfyldt | `test_pkce_is_mandatory_and_plain_is_refused` |
+| Kun authorization code med PKCE `S256`, undtagen for en fortrolig klient, som en administrator har markeret; ingen implicit- eller password-grants | opfyldt | `test_pkce_is_mandatory_and_plain_is_refused` |
 | Nøjagtig matchning af redirect-URI; loopback-undtagelse jf. RFC 8252 | opfyldt | `test_unregistered_redirect_uri_is_shown_not_followed`, `test_loopback_port_may_vary_but_host_may_not` |
 | `state` kræves; `iss` i svaret | opfyldt | `test_state_is_required_and_unknown_scope_is_refused`, `test_public_client_flow_with_pkce` |
 | Engangskoder bundet til klient, redirect-URI og verifier | opfyldt | `test_code_is_single_use_and_replay_revokes_tokens`, `test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |

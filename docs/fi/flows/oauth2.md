@@ -4,7 +4,9 @@ Miten asiakas (BCF-lisäosa, katselin, skripti) saa access-tokenin käyttäjän
 puolesta. Tämä on Foundation API 2.2 RFC 9700:n ja OAuth 2.1:n kovennuksin:
 PKCE `S256` jokaiselle asiakkaalle, redirect-URIn tarkka vastaavuus
 (loopback-portteja lukuun ottamatta, RFC 8252), kertakäyttöiset koodit,
-kiertävät refresh-tokenit.
+kiertävät refresh-tokenit. Poikkeus on luottamuksellinen asiakas, jonka ylläpitäjä on
+merkinnyt, koska se ei voi käyttää PKCE:tä, kuten asiakas, joka toteuttaa vain BCF API
+2.1:n; katso [asiakasopas](../client-guide.md).
 
 ```mermaid
 sequenceDiagram

@@ -7,7 +7,7 @@ OpenCDE-palvelimen) kanssa. Python-kirjasto hakemistossa
 
 ## 1. Löytäminen
 
-`GET /foundation/versions` luettelee rajapinnat (`foundation 1.0`, `bcf 3.0`,
+`GET /foundation/versions` luettelee rajapinnat (`foundation 1.0`, `bcf 3.0`, `bcf 2.1`,
 `documents 1.0`). `GET /foundation/1.0/auth` kertoo, missä kirjaudutaan:
 
 ```json
@@ -153,6 +153,40 @@ omaa osoitetta.
 - Virheet ovat `{"message": "…"}` tavallisin tilakoodein (`400`, `401`,
   `403`, `404`, `409` päällekkäisille guideille, `413` liian suurille
   rungoille).
+
+### BCF API 2.1
+
+Palvelin osaa myös BCF API 2.1:n asiakkaille, jotka eivät tunne mitään uudempaa.
+`GET /foundation/versions` luettelee molemmat versiot uusimman ensin, kummallakin oma
+`api_base_url`, ja 2.1:n asiakas löytää saman luettelon osoitteesta `GET /bcf/versions`.
+Molemmat versiot käsittelevät samaa dataa, joten toisen kautta luotua asiaa voi lukea ja
+muuttaa toisen kautta.
+
+| | 2.1, polussa `/bcf/2.1` | 3.0, polussa `/bcf/3.0` |
+|---|---|---|
+| Versiot, kirjautuminen, käyttäjä | `/bcf/versions`, `/bcf/2.1/auth`, `/bcf/2.1/current-user` | Foundation API |
+| Tiedosto asian otsakkeessa | `file_name` | `filename` |
+| Käyttäjät extensions-arvoissa | `user_id_type` | `users` |
+| Asian lyhyt tunniste | Ei ole | `server_assigned_id` |
+| Toiseen kommenttiin vastaava kommentti | `reply_to_comment_guid` | Ei ole |
+| Kameran `aspect_ratio` | Ei ole; 3.0 lukee sen arvona 1.0 | Pakollinen |
+| Mitä näkymässä on oltava | Mitä tahansa paitsi kaksi kameraa | Kamera tai kuva, ja kamera kaiken muun kanssa |
+| Asiakkaan valitsema `guid` | Jätetään huomiotta | Hyväksytään, `409` jos se on olemassa |
+| `files_information`, näkymän poistaminen | Ei ole | On |
+| Omat tapahtumatyypit | `reply_to_comment_updated`, `reply_to_comment_removed` | `stage_added`, `stage_updated`, `stage_removed` |
+| Nimiön kysyminen `$filter`-ehdossa | `contains(labels, 'x')` | `labels/any(l: l eq 'x')`; toinenkin muoto toimii |
+
+2.1:n OAuth2-esimerkki ei tunne PKCE:tä, joten sen mukaan kirjoitettu asiakas ei voi
+lähettää `code_challenge`-arvoa. Ylläpitäjä voi merkitä luottamuksellisen asiakkaan,
+joka saa jättää sen pois: *Saa kirjautua ilman PKCE:tä* asiakkaan sivulla, `pkce_optional`
+hallinnan rajapinnassa tai `opencde client create --without-pkce`. Silloin sen salaisuus
+suojaa kirjautumiset, ja se annetaan HTTP Basicilla token-osoitteessa. Asiakas, joka
+rekisteröityy itse osoitteessa `oauth2_dynamic_client_reg_url`, joka on kohteessa
+`GET /bcf/2.1/auth`, kun `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, merkitään samalla
+tavalla, kun taas Foundation API:n rekisteröinti ei merkitse ketään. Julkinen asiakas ei
+voi koskaan jättää PKCE:tä pois, ja merkitty asiakas, joka lähettää `code_challenge`-arvon,
+sidotaan siihen. Käytä PKCE:tä, jos voit. Redirect-URI osoitteessa `http://localhost` vaatii
+asetuksen `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## 4. Documents API
 

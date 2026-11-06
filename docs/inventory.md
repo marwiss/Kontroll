@@ -63,6 +63,26 @@ progress table below. This file is updated whenever a route changes.
 | Per-entity `authorization` objects | no | implemented for projects, topics, comments and viewpoints | 3, 4 |
 | ETag / If-None-Match on GET | no | new | 1, 3 |
 
+## 2a. BCF API 2.1 (41 services in the specification, branch `release_2_1`)
+
+The prototype had no 2.1. Everything below is new, under `/bcf/2.1`, on the same data as 3.0. The routes are in
+`opencde/bcf/routes_v21.py`; the bodies that differ are in `opencde/bcf/schemas_v21.py`, and the conformance tests in
+`tests/integration/test_bcf21.py` validate against `spec/bcf-api-2.1`.
+
+| Function | Status |
+|---|---|
+| `GET /bcf/versions` (3.1), `GET /bcf/2.1/auth` (3.2.1), `POST` registration (3.2.3), `GET /bcf/2.1/current-user` (3.3.1) | done. `/bcf/versions` lists 3.0 and 2.1, like `/foundation/versions`. Registration is at `/bcf/2.1/oauth2/reg`, off by default, and a confidential client registered there may leave PKCE out |
+| Sign-in as in `OAuth2Examples.md`: no PKCE, redirect URI or scope, HTTP Basic and query parameters at the token endpoint | done for a confidential client marked `pkce_optional` (administration page and API, `opencde client create --without-pkce`) or registered as above. See ADR 0008 |
+| Projects (4.1.1 to 4.1.3), topic deletion (4.2.5), snippet (4.2.6, 4.2.7), comment deletion (4.4.5), snapshot, bitmap, components (4.5.4 to 4.5.8), related topics (4.6), document references (4.7.1, 4.7.3), documents (4.8) | done: the routes of 3.0 mounted a second time. `POST documents?guid=` works here too, though 2.1 does not define it |
+| Extensions (4.1.4) | done: `user_id_type` for `users` |
+| Topics (4.2.1 to 4.2.4) | done: no `server_assigned_id`, a client's `guid` ignored, `contains(labels, 'x')` in `$filter` |
+| Header files (4.3) | done: `file_name` for `filename` |
+| Comments (4.4.1 to 4.4.4) | done: `reply_to_comment_guid`, which must be a comment of the topic. 3.0 neither shows it nor changes it. Deleting a comment ends the replies to it, with an event |
+| Viewpoints (4.5.1 to 4.5.3) | done: no `aspect_ratio` (1.0 when stored, so that 3.0 has one), no `authorization`, a client's `guid` ignored, `#` allowed before a colour. The rules of 3.0's 3.5.2 are not applied, except that a viewpoint keeps one camera. No `DELETE` |
+| Document references (4.7.2) | done: a client's `guid` ignored |
+| Events (4.9, 4.10) | done: 2.1 has `reply_to_comment_updated` and `reply_to_comment_removed` and not the `stage_*` types, 3.0 the other way round. An event with no action left in a version is not listed there |
+| `files_information` | not in 2.1 |
+
 ## 3. Documents API 1.0 (13 operations in the specification)
 
 | Function | Prototype | Status | Stage |
@@ -197,6 +217,10 @@ the "client" column says what that application does:
 | Observation | Server | Client |
 |---|---|---|
 | Foundation API 1.0 defines no revocation URL | `oauth2_revocation_url` in `GET /foundation/1.0/auth` (extension, RFC 7009) | Revokes through it when present, otherwise skips revocation |
+| The BCF API 2.1 schema `Viewpoint/components.json` has `"type": ["object", null]`, not valid draft-03; 3.0 corrected it | Pinned as released, and the conformance test knows about it | - |
+| BCF API 2.1's text says six or eight hexadecimal digits for a colour, while its examples write `#ff0000` | Both accepted under `/bcf/2.1`; stored and answered without `#` | Sends digits only |
+| BCF API 2.1 asks after a label with `contains(labels, 'x')`, 3.0 with `labels/any(l: l eq 'x')` | Both work in both versions | Uses the form of its version |
+| 3.0 requires `aspect_ratio` on a camera, and 2.1 has none | A viewpoint made through 2.1 gets 1.0 | Shows the view as it can |
 | Foundation API 1.6 fixes `{"message"}` but no machine-readable code | A stable `code` next to `message` (extension, client-guide §6) | Translates `code`, shows `message` for unknown codes |
 | BCF 3.0 does not say which fields a client may send in `PUT` topic | Server-set fields in a `PUT` body are ignored (Foundation 1.8) | Omits `guid`, `creation_author`, `creation_date`, `modified_author`, `modified_date` |
 | BCF 3.0 gives no guidance for `aspect_ratio` and `field_of_view` of a camera taken from a 3D view | Stored as sent; validated as numbers only | Sends `perspective_camera` with `field_of_view` 60 and the view's `aspect_ratio` |

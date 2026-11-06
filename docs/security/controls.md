@@ -6,7 +6,8 @@ Every control has at least one automated test. "Suite" names the test module.
 
 | Control | Standard | Suite |
 |---|---|---|
-| PKCE `S256` required for every client; `plain` and missing challenge refused | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| PKCE `S256` required for every client but a marked one (next row); `plain` and missing challenge refused | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| A confidential client an administrator has marked may leave PKCE out, as BCF API 2.1 does: a challenge it does send is enforced, a verifier without a challenge is refused, a public client cannot be marked, and a redirect URI named in the request must be named again | RFC 9700 §2.1.1, RFC 6749 §4.1.3 | `test_oauth2_without_pkce` |
 | Redirect URI exact match; loopback port may vary; unregistered URI shown, never followed | RFC 9700 §4.1, RFC 8252 §7.3 | `test_security_oauth2::test_unregistered_redirect_uri_is_shown_not_followed`, `::test_loopback_port_may_vary_but_host_may_not` |
 | `state` required; unknown scope and unsupported response type redirected as errors with `state` | RFC 6749 §4.1.2.1 | `test_security_oauth2::test_state_is_required_and_unknown_scope_is_refused` |
 | `iss` in the authorization response | RFC 9207 | `test_oauth2::test_public_client_flow_with_pkce` |

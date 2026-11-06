@@ -6,7 +6,8 @@ Varje kontroll har minst ett automatiskt test. "Svit" namnger testmodulen.
 
 | Kontroll | Standard | Svit |
 |---|---|---|
-| PKCE `S256` krävs för varje klient; `plain` och saknad challenge avvisas | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| PKCE `S256` krävs för varje klient utom en märkt (nästa rad); `plain` och saknad challenge avvisas | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| En konfidentiell klient som en administratör har märkt får utelämna PKCE, som BCF API 2.1 gör: en challenge som den ändå skickar upprätthålls, en verifier utan challenge avvisas, en publik klient kan inte märkas, och en redirect-URI som anges i begäran måste anges igen | RFC 9700 §2.1.1, RFC 6749 §4.1.3 | `test_oauth2_without_pkce` |
 | Exakt matchning av redirect-URI; loopback-porten får variera; oregistrerad URI visas, följs aldrig | RFC 9700 §4.1, RFC 8252 §7.3 | `test_security_oauth2::test_unregistered_redirect_uri_is_shown_not_followed`, `::test_loopback_port_may_vary_but_host_may_not` |
 | `state` krävs; okänt scope och ostödd svarstyp omdirigeras som fel med `state` | RFC 6749 §4.1.2.1 | `test_security_oauth2::test_state_is_required_and_unknown_scope_is_refused` |
 | `iss` i auktoriseringssvaret | RFC 9207 | `test_oauth2::test_public_client_flow_with_pkce` |

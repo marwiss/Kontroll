@@ -6,7 +6,8 @@ Kvar kontroll har minst éin automatisert test. "Suite" namngjev testmodulen.
 
 | Kontroll | Standard | Suite |
 |---|---|---|
-| PKCE `S256` krevst for kvar klient; `plain` og manglande challenge blir avviste | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| PKCE `S256` krevst for kvar klient unnateke ein merkt (neste rad); `plain` og manglande challenge blir avviste | RFC 7636, OAuth 2.1 | `test_security_oauth2::test_pkce_is_mandatory_and_plain_is_refused` |
+| Ein konfidensiell klient som ein administrator har merkt, kan utelate PKCE, slik BCF API 2.1 gjer: ein challenge han likevel sender, blir handheva, ein verifier utan challenge blir avvist, ein offentleg klient kan ikkje merkjast, og ein redirect-URI som blir oppgitt i førespurnaden, må oppgjevast igjen | RFC 9700 §2.1.1, RFC 6749 §4.1.3 | `test_oauth2_without_pkce` |
 | Nøyaktig matching av redirect-URI; loopback-porten kan variere; uregistrert URI blir vist, aldri følgd | RFC 9700 §4.1, RFC 8252 §7.3 | `test_security_oauth2::test_unregistered_redirect_uri_is_shown_not_followed`, `::test_loopback_port_may_vary_but_host_may_not` |
 | `state` krevst; ukjent scope og ustøtta svartype blir omdirigerte som feil med `state` | RFC 6749 §4.1.2.1 | `test_security_oauth2::test_state_is_required_and_unknown_scope_is_refused` |
 | `iss` i autorisasjonssvaret | RFC 9207 | `test_oauth2::test_public_client_flow_with_pkce` |

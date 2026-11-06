@@ -4,7 +4,9 @@ Korleis ein klient (eit BCF-tillegg, ein visar, eit skript) får eit
 access-token på vegner av ein brukar. Dette er Foundation API 2.2 med
 herdinga frå RFC 9700 og OAuth 2.1: PKCE `S256` for kvar klient, nøyaktig
 matching av redirect-URI (loopback-portar unnatekne, RFC 8252),
-eingongskodar, roterande refresh-tokens.
+eingongskodar, roterande refresh-tokens. Unntaket er ein konfidensiell klient som ein administrator har
+merkt fordi han ikkje kan bruke PKCE, som ein klient som berre implementerer BCF API 2.1;
+sjå [klientguiden](../client-guide.md).
 
 ```mermaid
 sequenceDiagram

@@ -3,7 +3,9 @@
 Hvordan en klient (et BCF-plugin, en viewer, et script) får en access-token på
 en brugers vegne. Dette er Foundation API 2.2 med hærdningen fra RFC 9700 og
 OAuth 2.1: PKCE `S256` for hver klient, nøjagtig matchning af redirect-URI
-(loopback-porte undtaget, RFC 8252), engangskoder, roterende refresh-tokens.
+(loopback-porte undtaget, RFC 8252), engangskoder, roterende refresh-tokens. Undtagelsen er en fortrolig klient, som en administrator har
+markeret, fordi den ikke kan bruge PKCE, som en klient, der kun implementerer BCF API
+2.1; se [klientguiden](../client-guide.md).
 
 ```mermaid
 sequenceDiagram

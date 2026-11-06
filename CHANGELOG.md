@@ -9,6 +9,17 @@ the commit history.
 
 ## Unreleased
 
+- BCF API 2.1 is served next to 3.0, under `/bcf/2.1`, on the same data, so that a client that implements only
+  2.1 can connect. `GET /foundation/versions` and `GET /bcf/versions` list both versions, the newest first.
+  A topic made through one version can be read and changed through the other; the client guide says what differs.
+- An administrator can mark a confidential client that may sign in without PKCE, since BCF API 2.1 knows nothing of
+  it: on the client's page, with `pkce_optional` in the administration API, or with
+  `opencde client create --without-pkce`. A client that registers at the address in `GET /bcf/2.1/auth` is marked the
+  same way. Every other client must use PKCE as before.
+- `opencde_client` speaks BCF API 2.1 with `bcf_version="2.1"`, and takes the newest version a server offers with
+  `bcf_version="auto"`, also on a server that has 2.1 alone.
+- A client's description may hold 4000 characters, as the specifications say.
+- `GET /.well-known/kontroll` has `bcf_versions`.
 - In the IFC graph, a model's `IfcOwnerHistory` is linked from its `IfcProject` only, as the documentation
   said. Until now every entity that shared it got an `OWNER_HISTORY` relationship, which made one node the
   centre of the graph. A model imported earlier keeps them until it is uploaded again.

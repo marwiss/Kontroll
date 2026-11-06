@@ -104,7 +104,7 @@ finns inga JWT:er att validera.
 
 | Krav | Status | Bevis |
 |---|---|---|
-| Bara authorization code med PKCE `S256`; inga implicit- eller password-grants | uppfyllt | `test_pkce_is_mandatory_and_plain_is_refused` |
+| Bara authorization code med PKCE `S256`, utom för en konfidentiell klient som en administratör har märkt; inga implicit- eller password-grants | uppfyllt | `test_pkce_is_mandatory_and_plain_is_refused` |
 | Exakt matchning av redirect-URI; loopback-undantag enligt RFC 8252 | uppfyllt | `test_unregistered_redirect_uri_is_shown_not_followed`, `test_loopback_port_may_vary_but_host_may_not` |
 | `state` krävs; `iss` i svaret | uppfyllt | `test_state_is_required_and_unknown_scope_is_refused`, `test_public_client_flow_with_pkce` |
 | Engångskoder bundna till klient, redirect-URI och verifier | uppfyllt | `test_code_is_single_use_and_replay_revokes_tokens`, `test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |

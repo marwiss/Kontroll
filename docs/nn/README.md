@@ -5,7 +5,7 @@
 # Kontroll OpenCDE-server
 
 Kontroll er ein server for **OpenCDE-API-ane** frå buildingSMART (Foundation
-API 1.0, BCF API 3.0 og Documents API 1.0), bygd på ein grafdatabase, med
+API 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), bygd på ein grafdatabase, med
 webadministrasjon og ein valfri IFC-grafmodul som knyter BCF-komponentar til
 bygningsdelane dei peikar på. Han voks fram av ein forskingsprototyp frå 2023
 for digitale kontrollplanar i svenske byggjeløyve og vart skriven om frå
@@ -112,9 +112,9 @@ databasepassord, og ingenting er ope før det er konfigurert.
 ## Kva du kan gjere
 
 - **Foundation API 1.0**: oppdaging av tenester, OAuth2 authorization code med
-  PKCE for kvar klient, noverande brukar, tilbakekalling av tokens og dynamisk
+  PKCE, noverande brukar, tilbakekalling av tokens og dynamisk
   klientregistrering med offentlege klientar (av som standard).
-- **BCF API 3.0**: prosjekt, extensions, saker med OData-spørjingar,
+- **BCF API 3.0 og 2.1**: prosjekt, extensions, saker med OData-spørjingar,
   kommentarar, viewpoints med snapshots, bitmaps og komponentar, filer,
   dokumentreferansar, dokument og hendingsloggane, alt validert mot skjemaa
   frå buildingSMART.
@@ -158,7 +158,7 @@ dei. Kontroll implementerer alle tre:
 | API | Kva det er til | Spesifikasjon |
 |---|---|---|
 | Foundation API 1.0 | Seier kva API-ar ein server tilbyr, korleis ein loggar inn, og kven brukaren er | [foundation-API](https://github.com/buildingSMART/foundation-API) |
-| BCF API 3.0 | Saker om ein modell, med kommentarar og viewpointar med kamera, komponentar og bilete | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| BCF API 3.0 og 2.1 | Saker om ein modell, med kommentarar og viewpointar med kamera, komponentar og bilete | [BCF-API](https://github.com/buildingSMART/BCF-API) |
 | Documents API 1.0 | Å velje, hente og laste opp dokument og versjonane deira, via sider på serveren | [documents-API](https://github.com/buildingSMART/documents-API) |
 
 **Dataspatium er éin klient, ikkje den einaste.** Kvar klient som følgjer desse
@@ -168,8 +168,9 @@ kjenner dei, merkar dei ikkje. Ein klient treng tre ting:
 
 - ei registrering på serveren, gjord av ein administrator under *Klientar* eller av klienten
   sjølv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
-- OAuth2 authorization code med PKCE `S256`, som serveren krev av kvar klient;
-- BCF API 3.0: førespurnader til den eldre versjonen under `/bcf/2.1/` får 404.
+- OAuth2 authorization code med PKCE `S256`, som serveren krev av kvar klient unnateke ein konfidensiell som ein administrator har merkt;
+- BCF API 3.0, eller 2.1 for ein klient som berre kan den versjonen. `GET /foundation/versions` listar begge, og
+  [klientguiden](client-guide.md) fortel kva som skil dei.
 
 Så langt er det vist: svara frå serveren blir testa mot skjemaa til buildingSMART ved kvar
 push, og Dataspatium og Python-biblioteket i [client/](../../client/) køyrer mot serveren.
@@ -282,8 +283,7 @@ haldne på engelsk.
 
 ## Avgrensingar i korte trekk
 
-- Serveren implementerer BCF API 3.0, ikkje 2.1; berre dei tre eldre
-  oppdagingsaliasa under `/bcf/` finst for eldre klientar.
+- Serveren implementerer BCF API 3.0 og 2.1, ikkje 1.0, der ressursane ser annleis ut.
 - Eksport av eit prosjekt som BCFzip blir overlaten til klientane; serveren
   lagrar saker, kommentarar og viewpoints slik API-et definerer dei.
 - Community-utgåvene av Neo4j og Memgraph har ingen skriveverna
