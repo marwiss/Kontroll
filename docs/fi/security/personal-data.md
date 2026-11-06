@@ -65,5 +65,4 @@ tai ei ylläpitäjän valinnan mukaan ([deploy/backup.md](../deploy/backup.md)).
 Sovellus säilyttää selaimessa palvelimen osoitteen, rekisteröimänsä
 asiakastunnuksen, käyttäjän istunnon tokenit ja lokin kutsuistaan
 (request-id:ineen); salasanaa se ei koskaan tallenna. Mikä näistä lähtee
-selaimesta ja miten ne tyhjennetään, kerrotaan Dataspatiumin omalla
-henkilötietosivulla.
+selaimesta ja miten ne tyhjennetään, kerrotaan [Dataspatiumin omalla henkilötietosivulla](https://github.com/marwiss/Dataspatium/blob/main/docs/fi/sakerhet.md).

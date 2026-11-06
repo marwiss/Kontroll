@@ -66,5 +66,4 @@ sitt val ([deploy/backup.md](../deploy/backup.md)).
 Appen lagrar adressa til serveren, klient-id-en han har registrert,
 brukaren sine tokens for sesjonen og ein logg over kalla sine (med
 request-id-ar) i nettlesaren; han lagrar aldri passordet. Kva av dette som
-forlèt nettlesaren, og korleis det blir tømt, står på Dataspatium si eiga
-side om personopplysningar.
+forlèt nettlesaren, og korleis det blir tømt, står på [Dataspatium si eiga side om personopplysningar](https://github.com/marwiss/Dataspatium/blob/main/docs/nn/sakerhet.md).
