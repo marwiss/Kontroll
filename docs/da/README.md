@@ -180,7 +180,7 @@ hvad de to projekter samordner, står i
 - [docs/acceptance.md](../acceptance.md): tjekliste til visuel accept med
   uafhængige klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvad
-  Kontroll og Dataspatium deler, hvad mere der samordnes, og ejerens beslutninger.
+  Kontroll og Dataspatium deler, og ejerens beslutninger.
 - [docs/inventory.md](../inventory.md): funktionsoversigt over prototypen fra
   2023 og status i omskrivningen, med noter om specifikationernes særheder.
 - [docs/adr/](../adr/): arkitekturbeslutninger (grafdatabase, opake tokens,

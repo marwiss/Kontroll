@@ -181,7 +181,7 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 - [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans med
   oberoende klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): vad
-  Kontroll och Dataspatium delar, vad mer som samordnas och ägarens beslut.
+  Kontroll och Dataspatium delar och ägarens beslut.
 - [docs/inventory.md](docs/inventory.md): funktionsinventering av prototypen
   från 2023 och status i omskrivningen, med noteringar om specifikationernas
   egenheter.

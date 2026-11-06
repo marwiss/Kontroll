@@ -180,7 +180,7 @@ coordinate is in
 - [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
   independent clients (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): what
-  Kontroll and Dataspatium share, what more is coordinated, and the owner's decisions.
+  Kontroll and Dataspatium share, and the owner's decisions.
 - [docs/inventory.md](../inventory.md): functional inventory of the 2023
   prototype and status in the rewrite, plus notes on specification quirks.
 - [docs/adr/](../adr/): architecture decision records (graph backend,
