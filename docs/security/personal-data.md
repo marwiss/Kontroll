@@ -64,4 +64,4 @@ above except the server logs, encrypted or not as the operator chooses
 The app keeps the server's address, the client id it registered, the user's
 tokens for the session and a log of its calls (with request ids) in the
 browser; it never stores the password. Which of that leaves the browser, and
-how to clear it, is in Dataspatium's own page on personal data.
+how to clear it, is in [Dataspatium's own page on personal data](https://github.com/marwiss/Dataspatium/blob/main/docs/en/sakerhet.md).

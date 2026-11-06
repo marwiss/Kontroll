@@ -64,4 +64,4 @@ rekstraraðilans ([deploy/backup.md](../deploy/backup.md)).
 Forritið geymir vistfang þjónsins, biðlaraauðkennið sem það skráði, tóka
 notandans fyrir setuna og skrá yfir köll sín (með request-id) í vafranum; það
 geymir aldrei lykilorðið. Hvað af þessu fer úr vafranum, og hvernig það er
-hreinsað, er á eigin síðu Dataspatium um persónuupplýsingar.
+hreinsað, er á [eigin síðu Dataspatium um persónuupplýsingar](https://github.com/marwiss/Dataspatium/blob/main/docs/is/sakerhet.md).

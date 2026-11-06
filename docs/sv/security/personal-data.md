@@ -66,4 +66,4 @@ allt ovan utom serverloggarna, krypterade eller inte efter operatörens val
 Appen sparar serverns adress, klient-id:t den registrerat, användarens tokens
 för sessionen och en logg över sina anrop (med request-id:n) i webbläsaren;
 den sparar aldrig lösenordet. Vad av detta som lämnar webbläsaren, och hur
-det rensas, står på Dataspatiums egen sida om personuppgifter.
+det rensas, står på [Dataspatiums egen sida om personuppgifter](https://github.com/marwiss/Dataspatium/blob/main/docs/sakerhet.md).

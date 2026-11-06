@@ -65,5 +65,4 @@ operatørens valg ([deploy/backup.md](../deploy/backup.md)).
 Appen lagrer serverens adresse, klient-id-en den har registrert, brukerens
 tokens for sesjonen og en logg over kallene sine (med request-id-er) i
 nettleseren; den lagrer aldri passordet. Hva av dette som forlater
-nettleseren, og hvordan det tømmes, står på Dataspatiums egen side om
-personopplysninger.
+nettleseren, og hvordan det tømmes, står på [Dataspatiums egen side om personopplysninger](https://github.com/marwiss/Dataspatium/blob/main/docs/nb/sakerhet.md).
