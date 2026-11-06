@@ -1,0 +1,4 @@
+# A made-up password in two tests of the forced password change, from before the variables got names
+# gitleaks does not take for secrets. Nothing but those tests ever used it.
+e093f434b3d840d0235a955252341d1d447de33e:tests/ui/test_admin_browser.py:generic-api-key:193
+e093f434b3d840d0235a955252341d1d447de33e:tests/integration/test_forced_password_change.py:generic-api-key:22

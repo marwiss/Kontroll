@@ -191,13 +191,13 @@ def test_the_whole_way_from_the_administration_to_an_issue_and_back(
         person.get_by_role("button", name="Allow and sign in").click()
         # A password someone else knows is good for one thing: changing it. The flow then goes on by itself.
         expect(person.get_by_role("heading", name="Change password")).to_be_visible()
-        new_password = "correct-horse-battery-staple-2026"
+        chosen = "correct-horse-battery-staple-2026"
         person.get_by_label("Current password").fill(password)
-        person.get_by_label("New password", exact=True).fill(new_password)
-        person.get_by_label("Repeat new password").fill(new_password)
+        person.get_by_label("New password", exact=True).fill(chosen)
+        person.get_by_label("Repeat new password").fill(chosen)
         person.get_by_role("button", name="Change password").click()
         person.get_by_label("User name").fill("whole.way")
-        person.get_by_label("Password").fill(new_password)
+        person.get_by_label("Password").fill(chosen)
         person.get_by_role("button", name="Allow and sign in").click()
         person.wait_for_url(lambda url: url.startswith(redirect))
         code = OAuth2Client.parse_callback(person.url, expected_state=state)

@@ -406,7 +406,7 @@ class RegistrationRequest(BaseModel):
                 {
                     "client_name": "A viewer",
                     "redirect_uris": ["http://127.0.0.1:8093/callback"],
-                    "token_endpoint_auth_method": "none",
+                    "token_endpoint_auth_method": AUTH_METHOD_NONE,
                 }
             ]
         }
