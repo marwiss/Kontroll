@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Read the server's access log after the signed-in scan: a scan that never got past the sign-in proves nothing.
+"""Read the server's access log after the signed-in scan: a scan that lost its sign-in proves little.
 
-Prints how the requests were answered, per area, and fails unless the scan's own session and tokens worked:
+Prints how the requests were answered, per area, and fails unless the session and tokens worked and went on working:
 
     docker compose -f compose.yaml -f compose.dev.yaml logs api | uv run python .zap/reached.py
 """
@@ -19,6 +19,9 @@ MUST_ANSWER = (
     ("GET", "/bcf/3.0/projects", "200"),
     ("GET", "/admin/api/users", "200"),
 )
+# Attacks are refused in many ways, but never with "who are you?" as long as the token holds.
+TOKEN_AREAS = ("/bcf/3.0", "/documents/1.0", "/admin/api")
+MOST_REFUSED = 0.1
 
 
 def main() -> int:
@@ -34,10 +37,16 @@ def main() -> int:
         areas[(area, status)] += 1
     for (area, status), count in sorted(areas.items()):
         print(f"{count:7} {status} {area}")
-    missing = [" ".join(answer) for answer in MUST_ANSWER if answer not in seen]
-    if missing:
-        print(f"The scan never got: {', '.join(missing)}")
-    return 1 if missing else 0
+
+    problems = [f"never got {' '.join(answer)}" for answer in MUST_ANSWER if answer not in seen]
+    for area in TOKEN_AREAS:
+        total = sum(count for (name, _), count in areas.items() if name == area)
+        refused = areas[(area, "401")]
+        if refused > MOST_REFUSED * total:
+            problems.append(f"{area} answered 401 to {refused} of {total}, so the token stopped working")
+    for problem in problems:
+        print(f"The scan {problem}")
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
