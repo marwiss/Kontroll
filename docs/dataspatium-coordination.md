@@ -150,7 +150,9 @@ command-line token has no package scope. Kontroll 2.2.0 followed
 Dataspatium 2.2.0 the same evening (the pop-up sign-in fixes), and 2.1.0
 was withdrawn on both sides in the same way. Kontroll 2.3.0 followed
 Dataspatium 2.3.0 (the sources column of *Inhämta* in the quick start, the
-documentation in seven languages), and 2.2.0 went the same way.
+documentation in seven languages), and 2.2.0 went the same way. Kontroll 2.4.0
+followed Dataspatium 2.4.0 (IfcOpenShell in the browser, no server change), and
+2.3.0 went the same way.
 
 ### 7. Cross-repository tests in CI (D, medium; K, small)
 

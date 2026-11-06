@@ -41,7 +41,7 @@ käyttäjät ja OAuth2-asiakkaat, joita sovelluksesi tarvitsevat.
 | Tehtävä | Komento |
 |---|---|
 | Päivitä uusimpaan imageen | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
-| Kiinnitä versio | `OPENCDE_IMAGE_TAG=2.3.0` `.env`-tiedostossa (tagit seuraavat GitHub-julkaisuja) |
+| Kiinnitä versio | `OPENCDE_IMAGE_TAG=2.4.0` `.env`-tiedostossa (tagit seuraavat GitHub-julkaisuja) |
 | Lokit | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-rivejä) |
 | Kuntotarkistus | `https://cde.example.org/readyz`; hallinnan Asetukset-sivu |
 | Varmuuskopiot | joka yö `backups`-taltioon `backup`-palvelun toimesta; katso [backup.md](backup.md) |

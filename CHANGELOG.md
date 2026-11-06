@@ -7,12 +7,24 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.3.0 — 2026-11-06
+## 2.4.0 — 2026-11-06
 
-The release kept for 2.x. Works with Dataspatium 2.3.0. It contains 2.0.0,
-2.1.0 and 2.2.0 of the day before, withdrawn under the rule above together
-with their Dataspatium counterparts.
+The release kept for 2.x. Works with Dataspatium 2.4.0. It contains 2.0.0,
+2.1.0, 2.2.0 and 2.3.0 of the last two days, withdrawn under the rule above
+together with their Dataspatium counterparts.
 
+- No API changed: Dataspatium 2.4.0 brings IfcOpenShell into the browser and
+  needs nothing new from the server.
+- The language cookie `opencde_lang` is `HttpOnly`, since the pages' scripts
+  never read it, and the security suite proves that only a known language code
+  can reach it.
+- The personal data page links to Dataspatium's half in each language, and the
+  READMEs no longer say that the contribution to IfcOpenShell waits for an
+  answer: nothing has been sent.
+- The nightly job that tests the pair now runs Dataspatium's live suite and
+  requires passed tests. Before 2.4.0 it reported success without running one,
+  because the browser aborted on the runner; the live runs recorded in
+  `docs/acceptance.md` from the owner's machine are not affected.
 - The documentation exists in the seven languages of the README: the client
   guide, the OAuth2 and Documents API flows, the graph schema, the IFC-graph
   page, the style guide and the security pages are under `docs/<language>/`
