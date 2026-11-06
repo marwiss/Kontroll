@@ -1,6 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """Schema, cleanup and the account repositories against a real graph database."""
 
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,7 @@ from opencde.accounts.roles import Role
 from opencde.accounts.users import AccountError, UserRepository
 from opencde.auth.clients import ClientError, ClientRepository
 from opencde.graph.cleanup import delete_expired
+from opencde.graph.dialect import NEO4J
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
 from opencde.seed import (
@@ -35,6 +37,18 @@ async def test_schema_is_idempotent_and_enforces_uniqueness(graph: Graph) -> Non
     await graph.run("CREATE (:Project {project_id: 'p1', name: 'A', created_at: 'x'})")
     with pytest.raises(GraphClientError):  # Neo4j raises ConstraintError, Memgraph a generic ClientError
         await graph.run("CREATE (:Project {project_id: 'p1', name: 'B', created_at: 'x'})")
+
+
+async def test_the_schema_can_be_applied_twice_at_once_on_an_empty_database(graph: Graph) -> None:
+    """The server and `opencde seed` start together right after `docker compose up`: neither may fail."""
+    if graph.dialect is not NEO4J:
+        pytest.skip("dropping the whole schema by name is written for Neo4j")
+    for row in await graph.run("SHOW CONSTRAINTS YIELD name"):
+        await graph.run("DROP CONSTRAINT $name", name=row["name"])
+    for row in await graph.run("SHOW INDEXES YIELD name, type WHERE type <> 'LOOKUP' RETURN name"):
+        await graph.run("DROP INDEX $name", name=row["name"])
+    await asyncio.gather(apply_schema(graph), apply_schema(graph), apply_schema(graph))
+    assert await apply_schema(graph) == 0, "the schema is complete afterwards"
 
 
 def test_readyz_reports_dialect(client: TestClient, graph_target: GraphTarget) -> None:

@@ -3,13 +3,17 @@ import asyncio
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from neo4j.exceptions import TransientError
 
 from opencde.accounts.roles import Role, comment_actions, project_actions, topic_actions, viewpoint_actions
 from opencde.auth.clients import ClientError, redirect_uri_matches, validate_redirect_uri
 from opencde.auth.passwords import hash_password, password_problems, verify_password
+from opencde.graph import graph as graph_module
 from opencde.graph.dialect import FORBIDDEN_CYPHER, MEMGRAPH, NEO4J
+from opencde.graph.graph import Graph
 from opencde.ids import hash_secret, is_uuid, new_id, new_secret, normalize_guid, secrets_equal
 from opencde.storage import LocalStorage, TooLargeError, make_key
 from opencde.timeutil import canonical_iso, is_expired, later_iso, now_iso, parse_iso, to_iso
@@ -165,3 +169,49 @@ def test_dialect_ddl_and_cypher_lint() -> None:
                 line = text.count("\n", 0, match.start()) + 1
                 offenders.append(f"{path.relative_to(REPO_ROOT)}:{line}: {reason}")
     assert offenders == []
+
+
+# --- schema statements ----------------------------------------------------------
+
+
+class _DdlDriver:
+    """Answers each schema statement with the next outcome: an exception to raise, or nothing for a change."""
+
+    def __init__(self, *outcomes: Exception | None) -> None:
+        self.outcomes = list(outcomes)
+        self.calls = 0
+
+    def session(self, database: str) -> "_DdlDriver":
+        return self
+
+    async def __aenter__(self) -> "_DdlDriver":
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        return None
+
+    async def run(self, statement: str) -> "_DdlDriver":
+        self.calls += 1
+        outcome = self.outcomes.pop(0)
+        if outcome is not None:
+            raise outcome
+        return self
+
+    async def consume(self) -> SimpleNamespace:
+        return SimpleNamespace(counters=SimpleNamespace(contains_updates=True, constraints_added=1, indexes_added=0))
+
+
+async def test_a_schema_statement_survives_a_transient_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The server and `opencde seed` can apply the schema together; Neo4j answers one with a deadlock."""
+    monkeypatch.setattr(graph_module, "DDL_RETRY_SECONDS", 0)
+    driver = _DdlDriver(TransientError("deadlock"), TransientError("deadlock"), None)
+    assert await Graph(driver, "neo4j", NEO4J).ddl("CREATE CONSTRAINT") is True  # type: ignore[arg-type]
+    assert driver.calls == 3
+
+
+async def test_a_schema_statement_gives_up_when_the_error_stays(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(graph_module, "DDL_RETRY_SECONDS", 0)
+    driver = _DdlDriver(*[TransientError("deadlock")] * graph_module.DDL_ATTEMPTS)
+    with pytest.raises(TransientError):
+        await Graph(driver, "neo4j", NEO4J).ddl("CREATE CONSTRAINT")  # type: ignore[arg-type]
+    assert driver.calls == graph_module.DDL_ATTEMPTS
