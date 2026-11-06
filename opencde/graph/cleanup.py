@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from collections.abc import Awaitable, Callable
 
 from opencde.graph.graph import Graph
 from opencde.graph.schema import EXPIRING_LABELS
@@ -56,12 +57,19 @@ async def delete_expired(graph: Graph, at: str | None = None, storage: LocalStor
 
 
 class ExpiryCleaner:
-    """Background task that calls :func:`delete_expired` every ``interval`` seconds."""
+    """Background task that calls :func:`delete_expired` every ``interval`` seconds, and ``each_round`` after it."""
 
-    def __init__(self, graph: Graph, interval: float, storage: LocalStorage | None = None) -> None:
+    def __init__(
+        self,
+        graph: Graph,
+        interval: float,
+        storage: LocalStorage | None = None,
+        each_round: Callable[[], Awaitable[None]] | None = None,
+    ) -> None:
         self._graph = graph
         self._interval = interval
         self._storage = storage
+        self._each_round = each_round
         self._task: asyncio.Task[None] | None = None
 
     def start(self) -> None:
@@ -79,6 +87,8 @@ class ExpiryCleaner:
         while True:
             try:
                 await delete_expired(self._graph, storage=self._storage)
+                if self._each_round is not None:
+                    await self._each_round()
             except asyncio.CancelledError:
                 raise
             except Exception:

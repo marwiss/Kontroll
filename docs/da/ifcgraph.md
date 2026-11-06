@@ -29,6 +29,8 @@ modulet forbliver slået fra.
 4. Posterne importeres i batches af `UNWIND … CREATE` (portabel Cypher, ingen
    APOC). `IfcModel` ender i tilstanden `done` med tal og `IfcProject`-guid,
    eller `failed` med en fejl.
+5. En konvertering, som en stoppet server har efterladt, begynder forfra: en sat i kø, så snart serveren er
+   tilbage, en igangværende, når den dobbelte tidsgrænse er passeret, fordi den kan køre i en anden serverproces.
 
 ## Grafen
 

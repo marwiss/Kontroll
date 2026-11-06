@@ -27,7 +27,7 @@ from opencde.ifcgraph.importer import delete_model, import_records
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
-from opencde.timeutil import now_iso
+from opencde.timeutil import later_iso, now_iso
 
 log = get_logger(__name__)
 
@@ -85,10 +85,39 @@ class IfcGraphService:
             state=STATE_QUEUED,
             now=now_iso(),
         )
+        self._start(model_id, storage_key, file_name)
+        return model_id
+
+    def _start(self, model_id: str, storage_key: str, file_name: str) -> None:
         task = asyncio.create_task(self._run(model_id, storage_key, file_name), name=f"ifcgraph-{model_id}")
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
-        return model_id
+
+    async def resume_interrupted(self) -> None:
+        """Start over the conversions a stopped server left behind.
+
+        A queued model belongs to whichever server process takes it first (``_claim``). A running one may be
+        running in another process, so it is given up only when twice the time limit has passed since it started.
+        """
+        rows = await self.graph.run(
+            """
+            MATCH (m:IfcModel)
+            WHERE m.state = $queued OR (m.state = $running AND m.running_at < $given_up)
+            RETURN m.id AS id, m.storage_key AS storage_key, m.file_name AS file_name, m.state AS state
+            """,
+            queued=STATE_QUEUED,
+            running=STATE_RUNNING,
+            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
+        )
+        waiting_here = {task.get_name() for task in self._tasks}
+        for row in rows:
+            if f"ifcgraph-{row['id']}" in waiting_here:
+                continue
+            if row["state"] == STATE_RUNNING:
+                await delete_model_entities(self.graph, row["id"])
+                await self._set_state(row["id"], STATE_QUEUED)
+            log.info("ifcgraph_resumed", model_id=row["id"])
+            self._start(row["id"], row["storage_key"], row["file_name"])
 
     async def shutdown(self) -> None:
         for task in list(self._tasks):
@@ -112,9 +141,24 @@ class IfcGraphService:
             fields={**fields, f"{state}_at": now_iso()},
         )
 
+    async def _claim(self, model_id: str) -> bool:
+        rows = await self.graph.run(
+            """
+            MATCH (m:IfcModel {id: $id, state: $queued})
+            SET m.state = $running, m.running_at = $now
+            RETURN m.id AS id
+            """,
+            id=model_id,
+            queued=STATE_QUEUED,
+            running=STATE_RUNNING,
+            now=now_iso(),
+        )
+        return bool(rows)
+
     async def _run(self, model_id: str, storage_key: str, file_name: str) -> None:
         async with self._lock:
-            await self._set_state(model_id, STATE_RUNNING)
+            if not await self._claim(model_id):
+                return
             with tempfile.TemporaryDirectory(prefix="ifcgraph-") as tmp:
                 workdir = Path(tmp)
                 try:

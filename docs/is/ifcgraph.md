@@ -25,6 +25,8 @@ fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
 4. Færslurnar eru fluttar inn í lotum með `UNWIND … CREATE` (flytjanlegt
    Cypher, ekkert APOC). `IfcModel` endar í stöðunni `done` með talningum og
    `IfcProject`-guid, eða `failed` með villu.
+5. Umbreyting sem stöðvaður þjónn skildi eftir byrjar upp á nýtt: sú sem bíður í röð um leið og þjónninn er
+   kominn aftur, sú sem var í gangi þegar tvöföld tímamörk eru liðin, því að hún gæti verið í gangi í öðru þjónsferli.
 
 ## Grafið
 
