@@ -14,11 +14,12 @@ def test_versions_service_matches_schema_and_lists_all_apis(client: TestClient) 
     assert response.status_code == 200
     body = response.json()
     validate(body, "foundation-api/schemas/versions_GET.json", allow_documents_api_id=True)
-    by_id = {v["api_id"]: v for v in body["versions"]}
-    assert set(by_id) == {"foundation", "bcf", "documents"}
-    assert by_id["bcf"]["version_id"] == "3.0"
-    assert by_id["bcf"]["api_base_url"] == "http://testserver/bcf/3.0"
-    assert by_id["documents"]["api_base_url"] == "http://testserver/documents/1.0"
+    assert [(v["api_id"], v["version_id"], v["api_base_url"]) for v in body["versions"]] == [
+        ("foundation", "1.0", "http://testserver/foundation/1.0"),
+        ("bcf", "3.0", "http://testserver/bcf/3.0"),
+        ("bcf", "2.1", "http://testserver/bcf/2.1"),
+        ("documents", "1.0", "http://testserver/documents/1.0"),
+    ]
     assert response.headers["etag"].startswith('"')
     cached = client.get("/foundation/versions", headers={"If-None-Match": response.headers["etag"]})
     assert cached.status_code == 304 and cached.content == b""
@@ -35,10 +36,28 @@ def test_auth_information_matches_schema(client: TestClient) -> None:
     assert body["oauth2_pkce_required"] is True
 
 
-def test_bcf_2_1_style_aliases(client: TestClient) -> None:
-    versions = client.get("/bcf/versions").json()["versions"]
-    assert [v["version_id"] for v in versions] == ["3.0"] and versions[0]["api_id"] == "bcf"
+def test_the_versions_of_the_bcf_api_are_told_the_way_each_of_them_asks(client: TestClient) -> None:
+    """A client of 3.0 asks the Foundation API, and a client of 2.1 knows only its own service."""
+    body = client.get("/bcf/versions").json()
+    validate(body, "bcf-api-2.1/Schemas_draft-03/Public/versions_GET.json")
+    assert [v["version_id"] for v in body["versions"]] == ["3.0", "2.1"], (
+        "a client that takes the first gets the newest"
+    )
+    assert all(v["api_id"] == "bcf" for v in body["versions"])
+    foundation = client.get("/foundation/versions").json()["versions"]
+    assert [v for v in foundation if v["api_id"] == "bcf"] == body["versions"]
+
+
+def test_the_authentication_information_of_each_version(client: TestClient) -> None:
     assert client.get("/bcf/3.0/auth").json()["oauth2_token_url"].endswith("/foundation/oauth2/token")
+    body = client.get("/bcf/2.1/auth").json()
+    validate(body, "bcf-api-2.1/Schemas_draft-03/Authentication/auth_GET.json")
+    assert body["oauth2_auth_url"].endswith("/foundation/oauth2/auth")
+    assert body["oauth2_token_url"].endswith("/foundation/oauth2/token")
+    assert body["supported_oauth2_flows"] == ["authorization_code_grant"]
+    assert "oauth2_dynamic_client_reg_url" not in body, "registration is off by default"
+    assert "oauth2_pkce_required" not in body, "a client may be registered that need not use it"
+    assert body["oauth2_pkce_methods"] == ["S256"]
 
 
 def test_current_user_requires_a_bearer_token(client: TestClient) -> None:

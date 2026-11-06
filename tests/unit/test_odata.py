@@ -121,3 +121,12 @@ def test_compile_odata_bundles_everything() -> None:
         ).where_clause()
         == ""
     )
+
+
+def test_contains_on_a_list_field_asks_whether_it_is_in_the_list() -> None:
+    """How BCF API 2.1 writes it (its section 4.2.1); 3.0 writes ``labels/any(l: l eq 'x')``."""
+    clause, params = compile_filter("contains(labels, 'Architecture')", {"labels": Field("t.labels", "string_list")})
+    assert clause is not None and "IN coalesce(t.labels, [])" in clause and "CONTAINS" not in clause
+    assert list(params.values()) == ["Architecture"]
+    with pytest.raises(ODataError):
+        compile_filter("startswith(labels, 'A')", {"labels": Field("t.labels", "string_list")})

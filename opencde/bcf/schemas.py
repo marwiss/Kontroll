@@ -261,6 +261,7 @@ class CommentGET(BcfModel):
     comment: str
     topic_guid: str
     viewpoint_guid: str | None = None
+    reply_to_comment_guid: str | None = None  # 2.1 only: the route of 3.0 leaves it out
     modified_date: str | None = None
     modified_author: str | None = None
     authorization: CommentAuthorization | None = None

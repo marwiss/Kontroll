@@ -25,6 +25,9 @@ PUBLIC = {
     ("POST", "/foundation/oauth2/token"),  # the client authenticates in the request
     ("POST", "/foundation/oauth2/revoke"),  # the same
     ("POST", "/foundation/oauth2/reg"),  # off unless the operator allows it
+    ("GET", "/bcf/versions"),  # BCF API 2.1's versions service
+    ("GET", "/bcf/2.1/auth"),  # and its authentication information
+    ("POST", "/bcf/2.1/oauth2/reg"),  # off unless the operator allows it
     ("GET", "/.well-known/kontroll"),
 }
 
@@ -32,6 +35,8 @@ PUBLIC = {
 OTHER_ROUTES = {
     ("PUT", "/bcf/3.0/projects/{project_id}/topics/events"),  # "events" is then a topic id
     ("DELETE", "/bcf/3.0/projects/{project_id}/topics/events"),
+    ("PUT", "/bcf/2.1/projects/{project_id}/topics/events"),
+    ("DELETE", "/bcf/2.1/projects/{project_id}/topics/events"),
 }
 
 

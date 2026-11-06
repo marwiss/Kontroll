@@ -18,7 +18,7 @@ from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import make_key
 
-router = APIRouter(prefix="/bcf/3.0/projects/{project_id}", tags=["BCF API"])
+router = APIRouter(prefix="/projects/{project_id}", tags=["BCF API"])
 
 DocumentId = Annotated[str, Path(alias="document_id", max_length=64)]
 DEFAULT_FILENAME = "document"

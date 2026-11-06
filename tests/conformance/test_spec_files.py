@@ -14,20 +14,28 @@ from tests.conftest import SPEC_DIR
 pytestmark = pytest.mark.conformance
 
 BCF_SCHEMAS = sorted((SPEC_DIR / "bcf-api" / "Schemas").rglob("*.json"))
+BCF_21_SCHEMAS = sorted((SPEC_DIR / "bcf-api-2.1" / "Schemas_draft-03").rglob("*.json"))
 FOUNDATION_SCHEMAS = sorted((SPEC_DIR / "foundation-api" / "schemas").glob("*.json"))
+# The one slip in the released files, corrected in 3.0, kept here as released (spec/SOURCES.md). Nothing validates a
+# response against it, since a response of 2.1 has its components in a service of their own.
+MISTYPED = "bcf-api-2.1/Schemas_draft-03/Collaboration/Viewpoint/components.json"
 
 
 def test_expected_number_of_schemas_is_pinned() -> None:
     assert len(BCF_SCHEMAS) == 52, "BCF-API release_3_0 ships 52 schema files"
+    assert len(BCF_21_SCHEMAS) == 52, "BCF-API release_2_1 ships 52 schema files too"
     assert len(FOUNDATION_SCHEMAS) == 6, "foundation-API v1.0 ships 6 schema files"
 
 
 @pytest.mark.parametrize(
-    "schema_path", BCF_SCHEMAS + FOUNDATION_SCHEMAS, ids=lambda p: p.relative_to(SPEC_DIR).as_posix()
+    "schema_path", BCF_SCHEMAS + BCF_21_SCHEMAS + FOUNDATION_SCHEMAS, ids=lambda p: p.relative_to(SPEC_DIR).as_posix()
 )
 def test_schema_is_valid_json_schema_draft3(schema_path: Path) -> None:
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    Draft3Validator.check_schema(schema)
+    text = schema_path.read_text(encoding="utf-8")
+    if schema_path.relative_to(SPEC_DIR).as_posix() == MISTYPED:
+        assert '"type": ["object", null]' in text, "the known slip is gone: the pin moved, so remove this exception"
+        text = text.replace('["object", null]', '["object", "null"]')
+    Draft3Validator.check_schema(json.loads(text))
 
 
 def _string_keys(value: object) -> object:

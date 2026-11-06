@@ -38,7 +38,17 @@ TOPIC_EVENT_TYPES = (
     "stage_updated",
     "stage_removed",
 )
-COMMENT_EVENT_TYPES = ("comment_created", "comment_text_updated", "viewpoint_updated", "viewpoint_removed")
+COMMENT_EVENT_TYPES = (
+    "comment_created",
+    "comment_text_updated",
+    "viewpoint_updated",
+    "viewpoint_removed",
+    "reply_to_comment_updated",
+    "reply_to_comment_removed",
+)
+# Each version answers with the types it knows: stages came with 3.0, which took replies between comments away.
+NOT_IN_30 = frozenset({"reply_to_comment_updated", "reply_to_comment_removed"})
+NOT_IN_21 = frozenset({"stage_added", "stage_updated", "stage_removed"})
 
 TITLE_VALUE_LIMIT = 128
 TEXT_VALUE_LIMIT = 1024
@@ -131,11 +141,12 @@ async def record(
     )
 
 
-def _row_to_event(row: dict[str, Any]) -> dict[str, Any]:
+def _row_to_event(row: dict[str, Any], left_out: frozenset[str]) -> dict[str, Any]:
     event = row["event"]
     actions = [
         {"type": kind, "value": value or None}
         for kind, value in zip(event.get("action_types") or [], event.get("action_values") or [], strict=False)
+        if kind not in left_out
     ]
     body: dict[str, Any] = {
         "topic_guid": event["topic_guid"],
@@ -157,14 +168,17 @@ async def query(
     compiled: Compiled,
     topic_guid: str | None = None,
     comment_guid: str | None = None,
+    left_out: frozenset[str] = frozenset(),
 ) -> list[dict[str, Any]]:
-    """Events of a project (optionally one topic or comment), filtered and ordered by OData options."""
+    """Events of a project (optionally one topic or comment), filtered and ordered by OData options, without the
+    actions of ``left_out`` and without the events that then have none left."""
     rows = await graph.run(
         f"""
         MATCH (:User {{id: $user_id}})-[:MEMBER_OF]->(p:Project {{project_id: $project_id}})-[:HAS_EVENT]->(e:Event)
         WHERE e.kind = $kind
           AND ($topic_guid IS NULL OR e.topic_guid = $topic_guid)
           AND ($comment_guid IS NULL OR e.comment_guid = $comment_guid)
+          AND any(action IN e.action_types WHERE NOT action IN $left_out)
           {compiled.where_clause()}
         RETURN properties(e) AS event
         ORDER BY {compiled.order_by}
@@ -175,8 +189,9 @@ async def query(
         kind=kind,
         topic_guid=topic_guid,
         comment_guid=comment_guid,
+        left_out=sorted(left_out),
         skip=compiled.skip,
         limit=compiled.limit,
         **compiled.params,
     )
-    return [_row_to_event(row) for row in rows]
+    return [_row_to_event(row, left_out) for row in rows]
