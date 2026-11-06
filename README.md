@@ -134,7 +134,7 @@ databaslösenord, och inget är öppet förrän det har konfigurerats.
 - **Status**: alla elva etapper i planen är genomförda (de tre API:erna,
   administrationen, klientbiblioteket, driftsättning, IFC-graf,
   acceptanschecklistan och säkerhetshärdningen); bidraget till IfcOpenShell
-  väntar på underhållarnas svar (utkast i [docs/upstream/](docs/upstream/)).
+  är ännu inte föreslaget (utkast i [docs/upstream/](docs/upstream/)).
   [docs/inventory.md](docs/inventory.md) visar vad prototypen från 2023 gjorde
   och var varje funktion står i den nya koden.
 

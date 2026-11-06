@@ -141,8 +141,8 @@ mikään ole auki ennen kuin se on määritetty.
   jokaista käyttöönottoskenaariota varten.
 - **Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
   rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-graafi,
-  hyväksymistarkistuslista ja tietoturvan kovennus); osallistuminen
-  IfcOpenShelliin odottaa ylläpitäjien vastausta (luonnokset kansiossa
+  hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
+  IfcOpenShelliin ei ole vielä ehdotettu (luonnokset kansiossa
   [docs/upstream/](../upstream/)). [docs/inventory.md](../inventory.md)
   kertoo, mitä vuoden 2023 prototyyppi teki ja missä kukin toiminto on
   uudessa koodissa.

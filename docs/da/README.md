@@ -133,8 +133,8 @@ databasekodeord, og intet er åbent, før det er konfigureret.
   image til hvert udrulningsscenarie.
 - **Status**: alle elleve etaper i planen er gennemført (de tre API'er,
   administrationen, klientbiblioteket, udrulning, IFC-graf, accepttjeklisten
-  og sikkerhedshærdningen); bidraget til IfcOpenShell afventer
-  vedligeholdernes svar (udkast i [docs/upstream/](../upstream/)).
+  og sikkerhedshærdningen); bidraget til IfcOpenShell er
+  endnu ikke foreslået (udkast i [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) viser, hvad prototypen fra 2023
   gjorde, og hvor hver funktion står i den nye kode.
 

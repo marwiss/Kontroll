@@ -132,8 +132,8 @@ password, and nothing is open until it is configured.
   deployment scenario.
 - **Status**: all eleven stages of the plan are implemented (the three APIs,
   the administration, the client library, deployment, IFC-graph, the acceptance
-  checklist and the security hardening); the contribution to IfcOpenShell waits
-  for its maintainers' answer (drafts in [docs/upstream/](../upstream/)).
+  checklist and the security hardening); the contribution to IfcOpenShell has
+  not been proposed yet (drafts in [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) records what the 2023 prototype did
   and where each function stands in the new code.
 
