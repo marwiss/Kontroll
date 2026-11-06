@@ -243,6 +243,39 @@ returned once). `docs/client-guide.md` §7 documents it and
 - Resource names and field names follow the existing pages and the inventory; the
   OpenAPI document lists the API under the tag "Administration (extension)".
 
+## BCF API 2.1
+
+The owner decided on 2026-11-06 that a client that implements only 2.1 must be able to connect, and that Dataspatium
+and the Python client speak 2.1 too, so that it is tried from both ends. It belongs to the joint release 2.7.0. The
+reasoning is in [ADR 0008](adr/0008-bcf-api-2-1-next-to-3-0.md). This is what the server promises, everything under
+`/bcf/2.1` unless it says otherwise, and on the same data as 3.0.
+
+| What | What a client of 2.1 gets |
+|---|---|
+| Which versions | `GET /foundation/versions` has two `bcf` entries, 3.0 first, each with its own `api_base_url`. `GET /bcf/versions` has the same two. A server of 2.1 alone has no Foundation API: `/foundation/versions` is a 404, and its entries may have only `version_id` and `detailed_version` |
+| Where to sign in | `GET /bcf/2.1/auth`: the same `oauth2_auth_url`, `oauth2_token_url` and `oauth2_revocation_url` as the Foundation API, and `oauth2_pkce_methods`, but no `oauth2_pkce_required`. `oauth2_dynamic_client_reg_url` is `/bcf/2.1/oauth2/reg` when registration is on |
+| Clients and tokens | The same for both versions. A public client with PKCE works on 2.1 as on 3.0, and a token from one works on the other |
+| The user | `GET /bcf/2.1/current-user`: `{id, name}` |
+| Projects | As in 3.0 |
+| Extensions | `user_id_type` for `users` |
+| Topics | No `server_assigned_id` in any answer. `guid` in a request is ignored. `$filter` also takes `contains(labels, 'x')`. Otherwise as in 3.0, `includeAuthorization` and OData included |
+| A topic's header files | `GET` and `PUT .../files` with `file_name` for `filename` |
+| The project's files | No `files_information`: it is a 404. `GET .../documents` lists `[{guid, filename}]`, the BCF documents only. What came through the Documents API is not listed in 2.1, but the Documents API itself works as ever, whichever version of BCF is in use |
+| Documents | `POST .../documents` and `GET .../documents/{guid}` as in 3.0 |
+| Document references | `GET`, `POST` and `PUT .../document_references`, with exactly one of `document_guid` and `url`. `document_guid` is a BCF document of the project or a Documents API `document_id`, as in 3.0. `guid` in a request is ignored |
+| Comments | `reply_to_comment_guid` in `POST`, `PUT` and every answer. It must be a comment of the same topic, or the answer is 400. A `PUT` without it clears it. 3.0 neither shows nor changes it. Deleting the comment answered clears it |
+| Creating a viewpoint | `guid` is ignored. A camera needs no `aspect_ratio`, and it is kept if sent. A colour may start with `#`. Anything may be left out, but two cameras are a 400 |
+| Reading a viewpoint | No `aspect_ratio` and no `authorization`, and `includeAuthorization` does nothing. 3.0 reads `aspect_ratio` as 1.0 when 2.1 left it out |
+| Snapshots and bitmaps | As in 3.0: base64 in the viewpoint's `POST`, `{snapshot_type}` and `bitmaps[]` without data in its answers, and the files at `GET .../snapshot` and `GET .../bitmaps/{guid}` with `Content-Type` `image/png` or `image/jpeg` |
+| Components | `GET .../selection`, `.../coloring` and `.../visibility` as in 3.0. Colours come without `#`, in upper case |
+| Deleting a viewpoint | Not in 2.1: a 405 |
+| Related topics | As in 3.0 |
+| Events | The same addresses, without the `stage_*` types and with `reply_to_comment_updated` and `reply_to_comment_removed`. An event with no action left in a version is not listed in it, so the counts can differ between the versions |
+| Errors | The same body and codes as 3.0 |
+
+Outside 2.1 itself, `GET /.well-known/kontroll` has `bcf_versions: ["3.0", "2.1"]`, and `apis.bcf` goes on saying `3.0`.
+The administration API's clients have `pkce_optional`, in its answers and in `POST` and `PATCH /admin/api/clients`.
+
 ## Decisions by the owner
 
 All four were taken on 2026-11-05.
