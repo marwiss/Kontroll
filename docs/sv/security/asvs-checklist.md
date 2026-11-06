@@ -113,7 +113,7 @@ finns inga JWT:er att validera.
 | Klientautentisering; publika klienter utan hemligheter | uppfyllt | `test_client_authentication_failures` |
 | Tokensvar inte cachebara | uppfyllt | `test_token_response_is_never_cached_and_has_spec_fields` |
 | Samtyckesskärmen namnger klienten och omdirigeringsmålet; användaren kan neka | uppfyllt | `test_deny_redirects_with_access_denied`, `auth/templates` |
-| Dynamisk registrering begränsad | uppfyllt | Avstängd som standard; bara https- eller loopback-omdirigeringar när påslagen; publika registreringar (RFC 7591 `none`) förlitar sig på PKCE och på att samtyckessidan namnger klienten och dess omdirigeringsvärd; hastighetsbegränsad |
+| Dynamisk registrering begränsad | uppfyllt | Avstängd som standard; bara https- eller loopback-omdirigeringar när påslagen; publika registreringar (RFC 7591 `none`) förlitar sig på PKCE och på att samtyckessidan namnger klienten och dess omdirigeringsvärd; hastighetsbegränsad; en initial åtkomsttoken och en administratörs godkännande är valbara |
 | Avsändarbundna tokens (DPoP, mTLS) | ej uppfyllt | Nivå 3-punkt; listad under *Senare* i planen |
 | Efterlevnad testad med ett externt verktyg | ej uppfyllt | OAuch-körning beskriven i [pentest-howto.md](pentest-howto.md) §4, att göra före den första produktionsdriftsättningen |
 

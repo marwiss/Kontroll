@@ -47,7 +47,7 @@ erDiagram
 | `MEMBER_OF` (vensl User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Hlutverk varpast á `*_actions` BCF, sjá `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter` | `topic_counter` númerar `server_assigned_id` |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` er reiknað úr meðlimum |
-| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `created_at`, `created_by`, `dynamic`, `expires_at` (aðeins sjálfskráðir) | OAuth2-biðlari; sjálfskráðum er eytt þegar `expires_at` er liðið án þess að tóki hafi verið gefinn út |
+| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (aðeins sjálfskráðir) | OAuth2-biðlari; sjálfskráðum er eytt þegar `expires_at` er liðið án þess að tóki hafi verið gefinn út |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-strengur) | Atburðir sem skipta máli fyrir öryggi |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Samhengi úr notkunartilviki eftirlitsáætlunarinnar (sýnigögn): yfirfarandi stofnunin (sveitarfélag í upprunalegu sögunni) og byggingin |
 

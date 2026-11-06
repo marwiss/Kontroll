@@ -28,6 +28,7 @@ prófunareininguna.
 | Argon2id-tæting lykilorða; stefna (lengd, zxcvbn, ekki notandanafn) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |
 | Kvik skráning óvirk sjálfgefið; aðeins https- eða loopback-áframsendingar; opinberir biðlarar (RFC 7591 `token_endpoint_auth_method: "none"`) fá ekkert leyndarmál og þurfa PKCE eins og hver biðlari; aðeins kóða- og endurnýjunarveitingar má skrá | Foundation API 2.2.3, RFC 7591 | `test_oauth2::test_dynamic_registration_when_enabled`, `::test_registration_is_404_when_disabled` |
 | Sjálfskráðum biðlurum sem gefa út engan tóka í `dynamic_client_unused_days` er eytt með tókum sínum (hreinsunin og `opencde client prune`); handvirkir biðlarar renna aldrei út | Lágmörkun gagna | `test_maintenance::test_unused_self_registered_clients_expire_and_can_be_pruned`, `test_oauth2::test_dynamic_registration_when_enabled` |
+| Skráningu má takmarka frekar: `dynamic_client_registration_token` krefst upphafsaðgangstóka (RFC 7591 §3), og `dynamic_client_approval` heldur sjálfskráðum biðlara óvirkum þar til stjórnandi samþykkir hann | RFC 7591 §3 | `test_registration_controls` |
 | Aðeins Bearer á forritaskilunum; HTTP Basic hafnað | Foundation API 2.2.1 | `test_foundation::test_current_user_requires_a_bearer_token` |
 | Síður: strangt CSP, enginn innfelldur kóði, engin römmun, ekkert skyndiminni | OWASP ASVS 14.4 | `test_foundation::test_authorize_without_client_shows_an_error_page_and_never_redirects` |
 

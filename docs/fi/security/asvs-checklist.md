@@ -115,7 +115,7 @@ tiivisteinä (ADR 0002); ei ole JWT:itä validoitavaksi.
 | Asiakkaan todennus; julkiset asiakkaat ilman salaisuuksia | täyttyy | `test_client_authentication_failures` |
 | Tokenvastaukset eivät välimuistitettavia | täyttyy | `test_token_response_is_never_cached_and_has_spec_fields` |
 | Suostumusnäyttö nimeää asiakkaan ja uudelleenohjauksen kohteen; käyttäjä voi kieltäytyä | täyttyy | `test_deny_redirects_with_access_denied`, `auth/templates` |
-| Dynaaminen rekisteröinti rajoitettu | täyttyy | Oletuksena pois päältä; vain https- tai loopback-uudelleenohjaukset, kun päällä; julkiset rekisteröinnit (RFC 7591 `none`) nojaavat PKCE:hen ja siihen, että suostumussivu nimeää asiakkaan ja sen uudelleenohjausisännän; nopeusrajoitettu |
+| Dynaaminen rekisteröinti rajoitettu | täyttyy | Oletuksena pois päältä; vain https- tai loopback-uudelleenohjaukset, kun päällä; julkiset rekisteröinnit (RFC 7591 `none`) nojaavat PKCE:hen ja siihen, että suostumussivu nimeää asiakkaan ja sen uudelleenohjausisännän; nopeusrajoitettu; alustava pääsytunniste ja järjestelmänvalvojan hyväksyntä ovat valinnaisia |
 | Lähettäjään sidotut tokenit (DPoP, mTLS) | ei täyty | Tason 3 kohta; listattu suunnitelman kohdassa *Myöhemmin* |
 | Yhdenmukaisuus testattu ulkoisella työkalulla | ei täyty | OAuch-ajo kuvattu tiedostossa [pentest-howto.md](pentest-howto.md) §4, tehtävä ennen ensimmäistä tuotantoasennusta |
 

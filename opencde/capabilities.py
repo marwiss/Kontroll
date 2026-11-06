@@ -38,6 +38,8 @@ def capabilities(settings: Settings) -> dict[str, Any]:
             "dynamic_client_registration": {
                 "enabled": settings.dynamic_client_registration,
                 "public_clients": True,
+                "initial_access_token": bool(settings.dynamic_client_registration_token.get_secret_value()),
+                "approval": settings.dynamic_client_approval,
                 "unused_days": settings.dynamic_client_unused_days,
                 "url": "/foundation/oauth2/reg",
             },

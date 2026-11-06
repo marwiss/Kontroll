@@ -148,6 +148,11 @@ async def client_action(
             await form.record(graph, "client.update", client_id=client.client_id, disabled=disabled)
             return redirect_with_notice(page, "saved")
 
+        if action == "approve":
+            await clients.update(client.client_id, disabled=False)
+            await form.record(graph, "client.approve", client_id=client.client_id)
+            return redirect_with_notice(page, "approved")
+
         if action == "rotate":
             if not await password_confirmed(users, admin, data.get("confirm_password")):
                 return redirect_with_notice(page, "wrong_password")

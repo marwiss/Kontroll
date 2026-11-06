@@ -32,11 +32,13 @@ from pydantic import BaseModel, Field
 from opencde import audit
 from opencde.auth import pkce, throttle
 from opencde.auth.clients import Client, ClientError, redirect_uri_matches, validate_redirect_uri
-from opencde.auth.dependencies import TokensDep
+from opencde.auth.dependencies import BEARER_CHALLENGE, TokensDep, bearer_token
 from opencde.auth.forms import FormTokenError, FormTokens
 from opencde.auth.scopes import SCOPES, ScopeError, parse_scope, scope_string
 from opencde.auth.tokens import GrantError
 from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
+from opencde.errors import CODE_UNAUTHENTICATED, ApiError
+from opencde.ids import secrets_equal
 from opencde.logging import get_logger
 from opencde.ratelimit import RATE_EXCHANGE, RATE_REGISTRATION, RATE_SIGN_IN, limiter
 from opencde.timeutil import later_iso
@@ -90,6 +92,8 @@ async def _resolve_client_and_redirect(
     if not client_id:
         raise HTTPException(400, "auth.error.no_client")
     client = await clients.get(client_id)
+    if client is not None and client.pending:
+        raise HTTPException(400, "auth.error.pending_client")
     if client is None or client.disabled:
         raise HTTPException(400, "auth.error.unknown_client")
     if not redirect_uri:
@@ -406,6 +410,11 @@ async def register_client(
     without a secret. Available only when ``OPENCDE_DYNAMIC_CLIENT_REGISTRATION`` is true."""
     if not settings.dynamic_client_registration:
         raise HTTPException(404, "Dynamic client registration is not enabled on this server")
+    required = settings.dynamic_client_registration_token.get_secret_value()
+    if required and not secrets_equal(bearer_token(request) or "", required):
+        raise ApiError(
+            401, "Registering needs an initial access token", code=CODE_UNAUTHENTICATED, headers=BEARER_CHALLENGE
+        )
     uris = list(body.redirect_uris or [])
     if body.redirect_url:
         uris.insert(0, body.redirect_url)
@@ -428,6 +437,7 @@ async def register_client(
             expires_at=later_iso(settings.dynamic_client_unused_days * 86400),  # deleted if never used
             software_id=body.software_id,
             software_version=body.software_version,
+            pending=settings.dynamic_client_approval,
         )
     except ClientError as exc:
         raise HTTPException(400, str(exc)) from None
@@ -436,7 +446,7 @@ async def register_client(
         "auth.client.registered",
         client_id=client.client_id,
         ip=client_ip(request),
-        details={"name": client.name, "public": public},
+        details={"name": client.name, "public": public, "pending": client.pending},
     )
     payload: dict[str, Any] = {
         "client_id": client.client_id,

@@ -525,6 +525,22 @@ def client_rotate_secret(client_id: str) -> None:
     print(f"OK      new client_secret {_run(work)}  (shown once)")
 
 
+@client_app.command("approve")
+def client_approve(client_id: str) -> None:
+    """Approve a self-registered client that waits for an administrator."""
+    from opencde.auth.clients import ClientError, ClientRepository
+
+    async def work(graph, settings):
+        repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
+        try:
+            await repo.update(client_id, disabled=False)
+        except ClientError as exc:
+            raise _fail(str(exc)) from None
+
+    _run(work)
+    print(f"OK      approved {client_id}")
+
+
 @client_app.command("prune")
 def client_prune(
     all_dynamic: Annotated[

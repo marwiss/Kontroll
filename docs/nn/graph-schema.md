@@ -47,7 +47,7 @@ erDiagram
 | `MEMBER_OF` (relasjon User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Rollene blir avbilda på `*_actions` i BCF, sjå `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter` | `topic_counter` nummererer `server_assigned_id` |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` blir rekna ut frå medlemene |
-| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `created_at`, `created_by`, `dynamic`, `expires_at` (berre sjølvregistrerte) | OAuth2-klient; ein sjølvregistrert blir sletta når `expires_at` er passert utan at eit token er utferda |
+| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (berre sjølvregistrerte) | OAuth2-klient; ein sjølvregistrert blir sletta når `expires_at` er passert utan at eit token er utferda |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-streng) | Tryggingsrelevante hendingar |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Kontekst frå kontrollplan-bruksområdet (seed-data): den granskande organisasjonen (ein kommune i den opphavlege historia) og bygningen |
 

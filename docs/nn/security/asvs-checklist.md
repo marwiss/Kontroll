@@ -113,7 +113,7 @@ finst ingen JWT-ar å validere.
 | Klientautentisering; offentlege klientar utan løyndomar | oppfylt | `test_client_authentication_failures` |
 | Tokensvar kan ikkje cachast | oppfylt | `test_token_response_is_never_cached_and_has_spec_fields` |
 | Samtykkeskjermen namngjev klienten og omdirigeringsmålet; brukaren kan nekte | oppfylt | `test_deny_redirects_with_access_denied`, `auth/templates` |
-| Dynamisk registrering avgrensa | oppfylt | Av som standard; berre https- eller loopback-omdirigeringar når på; offentlege registreringar (RFC 7591 `none`) kviler på PKCE og på at samtykkesida namngjev klienten og omdirigeringsverten hans; takstavgrensa |
+| Dynamisk registrering avgrensa | oppfylt | Av som standard; berre https- eller loopback-omdirigeringar når på; offentlege registreringar (RFC 7591 `none`) kviler på PKCE og på at samtykkesida namngjev klienten og omdirigeringsverten hans; takstavgrensa; eit innleiande tilgangstoken og godkjenning frå ein administrator er valfrie |
 | Avsendarbundne tokens (DPoP, mTLS) | ikkje oppfylt | Nivå 3-punkt; lista under *Seinare* i planen |
 | Etterleving testa med eit eksternt verktøy | ikkje oppfylt | OAuch-køyring skildra i [pentest-howto.md](pentest-howto.md) §4, skal gjerast før den første produksjonsutrullinga |
 

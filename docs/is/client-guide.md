@@ -35,7 +35,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
-    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
@@ -110,6 +110,8 @@ aðeins authorization code- og refresh token-veitingarnar eru til. Sendu
 `software_id` og `software_version` (RFC 7591 §2): þjónninn geymir þau á
 biðlaranum og sýnir stjórnendum þau við hlið skráningarinnar, og þannig
 greinir rekstraraðili uppsetningar og útgáfur forritsins þíns í sundur.
+
+Þjónn getur takmarkað þetta frekar. Með `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN` stillt tekur kallið það gildi sem `Authorization: Bearer …` (RFC 7591 §3) og svarar 401 án þess. Með `OPENCDE_DYNAMIC_CLIENT_APPROVAL=true` getur nýi biðlarinn ekki skráð neinn inn fyrr en stjórnandi samþykkir hann, og innskráningarsíðan segir það. Getuskjalið segir hvað gildir.
 
 Skráðu einu sinni fyrir hverja uppsetningu og geymdu `client_id`: sjálfskráður
 biðlari sem gefur út engan tóka í `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` daga

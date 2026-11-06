@@ -47,7 +47,7 @@ erDiagram
 | `MEMBER_OF` (relation User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Rollerne afbildes på BCF's `*_actions`, se `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter` | `topic_counter` nummererer `server_assigned_id` |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` beregnes ud fra medlemmerne |
-| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `created_at`, `created_by`, `dynamic`, `expires_at` (kun selvregistrerede) | OAuth2-klient; en selvregistreret slettes, når `expires_at` er passeret, uden at en token er udstedt |
+| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (kun selvregistrerede) | OAuth2-klient; en selvregistreret slettes, når `expires_at` er passeret, uden at en token er udstedt |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-streng) | Sikkerhedsrelevante hændelser |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Kontekst fra kontrolplan-anvendelsen (seed-data): den gennemgående organisation (en kommune i den oprindelige historie) og bygningen |
 

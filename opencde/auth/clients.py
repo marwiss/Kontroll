@@ -44,6 +44,7 @@ class Client:
     software_id: str | None = None  # RFC 7591: which software registered, and its version
     software_version: str | None = None
     last_used_at: str | None = None  # the latest token issuance
+    pending: bool = False  # self-registered and waiting for an administrator, disabled until then
 
     @property
     def is_confidential(self) -> bool:
@@ -66,12 +67,13 @@ def _client(row: dict[str, Any]) -> Client:
         software_id=row.get("software_id"),
         software_version=row.get("software_version"),
         last_used_at=row.get("last_used_at"),
+        pending=bool(row.get("pending_approval", False)),
     )
 
 
 FIELDS = (
     "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, "
-    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at}"
+    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at, .pending_approval}"
 )
 
 
@@ -150,6 +152,7 @@ class ClientRepository:
         expires_at: str | None = None,
         software_id: str | None = None,
         software_version: str | None = None,
+        pending: bool = False,
     ) -> tuple[Client, str | None]:
         """Create a client. Returns the client and, for confidential clients, the secret (shown once).
 
@@ -169,7 +172,8 @@ class ClientRepository:
             CREATE (c:Client {{
                 client_id: $client_id, name: $name, description: $description, url: $url,
                 redirect_uris: $redirect_uris, is_public: $public, secret_hash: $secret_hash,
-                disabled: false, created_at: $now, created_by: $created_by, dynamic: $dynamic,
+                disabled: $pending, pending_approval: $pending, created_at: $now, created_by: $created_by,
+                dynamic: $dynamic,
                 expires_at: $expires_at, software_id: $software_id, software_version: $software_version
             }})
             RETURN {FIELDS} AS client
@@ -187,6 +191,7 @@ class ClientRepository:
             expires_at=expires_at if dynamic else None,
             software_id=(software_id or "").strip()[:100] or None,
             software_version=(software_version or "").strip()[:50] or None,
+            pending=pending,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
             raise ClientError("client was not created", key="error.client.not_created")
@@ -246,7 +251,8 @@ class ClientRepository:
                 c.description = coalesce($description, c.description),
                 c.url = coalesce($url, c.url),
                 c.redirect_uris = coalesce($redirect_uris, c.redirect_uris),
-                c.disabled = coalesce($disabled, c.disabled)
+                c.disabled = coalesce($disabled, c.disabled),
+                c.pending_approval = CASE WHEN $disabled = false THEN false ELSE c.pending_approval END
             RETURN {FIELDS} AS client
             """,
             id=client_id,

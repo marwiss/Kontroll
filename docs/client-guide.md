@@ -34,7 +34,7 @@ of probing:
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
-    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
@@ -106,6 +106,8 @@ the authorization code and refresh token grants exist. Send `software_id` and
 `software_version` (RFC 7591 §2): the server stores them on the client and
 shows them to administrators next to the registration, which is how an
 operator tells installations and versions of your application apart.
+
+A server can limit this further. With `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN` set, the request takes that value as `Authorization: Bearer …` (RFC 7591 §3) and answers 401 without it. With `OPENCDE_DYNAMIC_CLIENT_APPROVAL=true`, the new client can sign nobody in until an administrator approves it, and the sign-in page says so. The capabilities document tells which applies.
 
 Register once per installation and store the `client_id`: a self-registered
 client that issues no token for `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS` (30 by

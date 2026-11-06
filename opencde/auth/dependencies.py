@@ -50,7 +50,7 @@ def get_tokens(graph: GraphDep, settings: SettingsDep) -> TokenRepository:
 TokensDep = Annotated[TokenRepository, Depends(get_tokens)]
 
 
-def _bearer(request: Request) -> str | None:
+def bearer_token(request: Request) -> str | None:
     header = request.headers.get("authorization", "")
     scheme, _, value = header.partition(" ")
     if scheme.lower() != "bearer" or not value.strip():
@@ -63,7 +63,7 @@ async def current_principal(
     tokens: TokensDep,
     _declared: Annotated[HTTPAuthorizationCredentials | None, Depends(BEARER_SCHEME)],
 ) -> Principal:
-    token = _bearer(request)
+    token = bearer_token(request)
     if token is None:
         raise ApiError(401, "Authentication required", code=CODE_UNAUTHENTICATED, headers=BEARER_CHALLENGE)
     principal = await tokens.principal(token)
