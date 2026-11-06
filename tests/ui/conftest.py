@@ -13,6 +13,7 @@ from pathlib import Path
 import httpx
 import pytest
 import uvicorn
+from fastapi import FastAPI
 
 from opencde.main import create_app
 from tests.conftest import test_settings
@@ -32,6 +33,7 @@ clean_database = integration.clean_database
 class LiveServer:
     url: str
     world: World
+    app: FastAPI
 
 
 def _free_port() -> int:
@@ -55,11 +57,8 @@ def live_server(graph_target: GraphTarget, clean_database: None, tmp_path: Path)
         upload_part_bytes=4096,  # several parts even for the small fixture model
     )
     world = build_world(live_settings)
-    server = uvicorn.Server(
-        uvicorn.Config(
-            create_app(live_settings, startup_wait_seconds=30), host="127.0.0.1", port=port, log_level="warning"
-        )
-    )
+    app = create_app(live_settings, startup_wait_seconds=30)
+    server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning"))
     thread = threading.Thread(target=server.run, name="live-server", daemon=True)
     thread.start()
     deadline = time.monotonic() + 60
@@ -74,7 +73,7 @@ def live_server(graph_target: GraphTarget, clean_database: None, tmp_path: Path)
         server.should_exit = True
         raise RuntimeError("the test server did not become ready")
     try:
-        yield LiveServer(url=f"http://127.0.0.1:{port}", world=world)
+        yield LiveServer(url=f"http://127.0.0.1:{port}", world=world, app=app)
     finally:
         server.should_exit = True
         thread.join(timeout=15)

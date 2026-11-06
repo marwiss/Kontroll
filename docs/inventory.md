@@ -154,6 +154,7 @@ progress table below. This file is updated whenever a route changes.
 | none: a sign-in page for the server's own pages | new: `web/signin.html`, `web/message.html` | 5 |
 | English only | new: every page exists in seven languages (`opencde/ui/i18n/<lang>.json`, Dataspatium's key style with the shared key names), chosen by `?lang=`, the `opencde_lang` cookie or `Accept-Language`, with a switcher in the footer; the validation messages of the account and client code carry keys (`error.*`) and follow the same language | 11 |
 | none: links into a client | new: with `OPENCDE_DATASPATIUM_URL` set, the project page and the document details page offer "Open in Dataspatium" (`#/inhamta/opencde?server=…&project=…&document=…&version=…`, extension agreed with Dataspatium) | 11 |
+| none: a service worker left on the address by another app | new: every page removes a worker whose scope covers it and fetches the page again, once (`foreign-workers.js`); it repairs an accident and protects nothing | 11 |
 
 ## 9. Test data
 
