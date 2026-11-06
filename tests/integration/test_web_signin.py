@@ -108,4 +108,5 @@ def test_cross_site_posts_are_refused_and_next_cannot_leave_the_site(client: Tes
 def test_sign_in_page_has_strict_csp_and_no_inline_code(client: TestClient) -> None:
     page = client.get("/signin")
     assert page.headers["content-security-policy"].startswith("default-src 'none'")
-    assert "<script" not in page.text and "style=" not in page.text and "onclick" not in page.text
+    assert not re.search(r"<script(?![^>]*\bsrc=)", page.text), "scripts come from files, never inline"
+    assert "style=" not in page.text and "onclick" not in page.text
