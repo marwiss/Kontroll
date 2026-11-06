@@ -10,6 +10,11 @@ queries such as the GTIN lookup readable. Geometry (representation items,
 profiles, placements, styles) is left out unless asked for; it is most of a
 model and rarely what a CDE query needs. ``IfcOwnerHistory`` is kept only for
 the ``IfcProject``.
+
+The mapping follows Zhu, Wu and Lei, "IFC-graph for facilitating building
+information access and query", Automation in Construction 148 (2023), 104778,
+https://doi.org/10.1016/j.autcon.2023.104778; ``docs/ifcgraph.md`` says where
+this code differs from the article.
 """
 
 from __future__ import annotations
@@ -113,6 +118,13 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
         kept.add(owner_history_id)
     summary.ifc_project_guid = project.GlobalId if project is not None else None
 
+    def linked(source: int, target: Any) -> bool:
+        """Whether an edge goes in the graph. Every ``IfcRoot`` usually shares the project's owner history, and an
+        edge from each of them would make that one node the centre of the graph."""
+        if not hasattr(target, "id") or target.id() not in kept:
+            return False
+        return target.id() != owner_history_id or source == project.id()
+
     for entity in model:
         step = entity.id()
         if step not in kept:
@@ -134,7 +146,7 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
                 props[name] = literal
                 continue
             for target in value if isinstance(value, tuple | list) else (value,):
-                if hasattr(target, "id") and target.id() in kept:
+                if linked(step, target):
                     edges.append({"t": "e", "a": step, "b": target.id(), "type": name})
         try:
             inverse_names = entity.get_inverse_attribute_names()
@@ -149,7 +161,7 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
                 unreadable += 1
                 continue
             for target in targets:
-                if hasattr(target, "id") and target.id() in kept:
+                if linked(step, target):
                     edges.append({"t": "e", "a": step, "b": target.id(), "type": name})
         summary.entities += 1
         summary.classes[class_name] = summary.classes.get(class_name, 0) + 1
