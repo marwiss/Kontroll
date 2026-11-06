@@ -140,6 +140,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         settings.rate_limits_enabled,
         production=settings.is_production,
         storage_uri=settings.rate_limit_storage.get_secret_value(),
+        sign_in=settings.rate_limit_sign_in,
     )
 
     # Middleware runs outermost-last: request id first, then size limit, CORS, ETag, headers on the way out.

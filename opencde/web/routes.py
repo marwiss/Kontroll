@@ -19,7 +19,7 @@ from opencde import audit
 from opencde.auth import throttle
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, SettingsDep, UsersDep, client_ip
-from opencde.ratelimit import RATE_SIGN_IN, limiter
+from opencde.ratelimit import limiter, sign_in_limit
 from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
@@ -53,7 +53,7 @@ async def signin_page(request: Request, web_user: WebUserDep, next: str | None =
 
 
 @router.post("/signin", summary="Sign in")
-@limiter.limit(RATE_SIGN_IN)
+@limiter.limit(sign_in_limit)
 async def signin_submit(
     request: Request,
     users: UsersDep,

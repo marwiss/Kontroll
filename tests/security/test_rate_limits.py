@@ -77,6 +77,13 @@ def test_a_failing_store_stops_nothing(limited: TestClient, monkeypatch: pytest.
     assert expired.status_code == 400 and "x-ratelimit-limit" in expired.headers
 
 
+def test_the_limit_on_signing_in_is_a_setting(tmp_path: Path) -> None:
+    settings = settings_for_tests(tmp_path, rate_limits_enabled=True, rate_limit_sign_in="2/minute")
+    form = {"form_token": "old", "username": "a", "password": "b"}
+    with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+        assert [client.post("/signin", data=form).status_code for _ in range(3)] == [400, 400, 429]
+
+
 def test_a_server_people_try_out_lets_them_register_more_often(tmp_path: Path) -> None:
     create_app(settings_for_tests(tmp_path, environment="development"))
     assert registration_limit() == ratelimit.RATE_REGISTRATION_DEVELOPMENT
@@ -114,3 +121,5 @@ def test_the_store_address_is_not_shown_with_the_settings(tmp_path: Path) -> Non
 def test_a_limit_that_cannot_be_read_stops_the_start(tmp_path: Path, value: str) -> None:
     with pytest.raises(ValidationError, match="OPENCDE_RATE_LIMIT_API"):
         settings_for_tests(tmp_path, rate_limit_api=value)
+    with pytest.raises(ValidationError, match="OPENCDE_RATE_LIMIT_SIGN_IN"):
+        settings_for_tests(tmp_path, rate_limit_sign_in=value)

@@ -13,6 +13,8 @@ cd /opt/kontroll
 uv run opencde init --public-url https://cde.example.org
 ```
 
+Uten `--public-url` spør `opencde init` etter verdiene og skriver deretter ut kommandoene som kommer etterpå, også for administratoren og den første klienten.
+
 `init` skriver `.env` med `OPENCDE_ENVIRONMENT=production`, en hemmelig nøkkel,
 et databasepassord og `OPENCDE_DOMAIN`. Legg til
 `OPENCDE_ACME_EMAIL=deg@example.org` slik at Let's Encrypt kan nå deg om
@@ -67,7 +69,7 @@ brukerne og OAuth2-klientene programmene dine trenger.
   respond @admin_outside 404
   ```
 
-- API-et tillater 600 forespørsler i minuttet per adresse. Alle bak samme adresse deler dem, så hev grensen for et stort kontor, for eksempel `OPENCDE_RATE_LIMIT_API=3000/minute`.
+- API-et tillater 600 forespørsler i minuttet per adresse. Alle bak samme adresse deler dem, så hev grensen for et stort kontor, for eksempel `OPENCDE_RATE_LIMIT_API=3000/minute`. Det samme gjelder de 10 innloggingsforsøkene i minuttet, `OPENCDE_RATE_LIMIT_SIGN_IN=60/minute`; ventetiden per brukernavn stopper gjetting uansett.
 - Behold `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` med mindre du trenger
   selvbetjent klientregistrering (Foundation API 2.2.3); registrer klienter i
   `/admin`.

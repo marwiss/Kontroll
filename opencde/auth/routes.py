@@ -40,7 +40,7 @@ from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.errors import CODE_LOCALHOST_REDIRECT, CODE_UNAUTHENTICATED, CODE_VALIDATION, ApiError
 from opencde.ids import secrets_equal
 from opencde.logging import get_logger
-from opencde.ratelimit import RATE_EXCHANGE, RATE_SIGN_IN, limiter, registration_limit
+from opencde.ratelimit import RATE_EXCHANGE, limiter, registration_limit, sign_in_limit
 from opencde.timeutil import later_iso
 from opencde.ui.i18n import tr
 from opencde.ui.templating import origin_of, render
@@ -178,7 +178,7 @@ async def authorize_page(
 
 
 @router.post("/auth", summary="Authorization endpoint: process the sign-in form")
-@limiter.limit(RATE_SIGN_IN)
+@limiter.limit(sign_in_limit)
 async def authorize_submit(
     request: Request,
     clients: ClientsDep,

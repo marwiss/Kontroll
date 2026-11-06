@@ -35,7 +35,6 @@ from opencde.logging import get_logger
 log = get_logger(__name__)
 
 # Requests per client address. Names describe the endpoint group they protect.
-RATE_SIGN_IN = "10/minute"
 RATE_EXCHANGE = "60/minute"  # the OAuth2 code and refresh exchanges
 RATE_UPLOAD = "120/minute"
 RATE_ADMIN = "240/minute"
@@ -46,11 +45,17 @@ STORE_TIMEOUT_SECONDS = 1.0  # a shared store that stops answering must not hold
 
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
+# The decorators hold the one limiter and read these two per request; they vary per application.
 _registration_limit = RATE_REGISTRATION
+_sign_in_limit = "10/minute"
 
 
 def registration_limit() -> str:
     return _registration_limit
+
+
+def sign_in_limit() -> str:
+    return _sign_in_limit
 
 
 class _FailOpen(FixedWindowRateLimiter):
@@ -98,9 +103,10 @@ class PathRateLimitMiddleware:
         return None if allowed else rule
 
 
-def install_rate_limiting(app: FastAPI, enabled: bool, *, production: bool, storage_uri: str) -> None:
-    global _registration_limit  # the decorators hold the one limiter, so what varies per application lives beside it
+def install_rate_limiting(app: FastAPI, enabled: bool, *, production: bool, storage_uri: str, sign_in: str) -> None:
+    global _registration_limit, _sign_in_limit
     _registration_limit = RATE_REGISTRATION if production else RATE_REGISTRATION_DEVELOPMENT
+    _sign_in_limit = sign_in
     limiter.enabled = enabled
     try:
         limiter._storage = storage_from_string(
