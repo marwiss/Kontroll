@@ -218,3 +218,50 @@ def test_the_whole_way_from_the_administration_to_an_issue_and_back(
         with pytest.raises((ApiError, AuthError)):
             cde.foundation.current_user()
     assert problems == []
+
+
+def test_a_form_on_a_page_saves_in_place_and_again(page: tuple[Page, list[str]], live_server: LiveServer) -> None:
+    admin, problems = page
+    sign_in(admin, live_server, "admin")
+    admin.goto("/admin/users")
+    admin.get_by_role("link", name="viewer", exact=True).click()
+    admin.evaluate("window.stillHere = true")
+
+    admin.get_by_label("Full name").fill("A first name")
+    admin.get_by_role("button", name="Save").click()
+    expect(admin.locator(".alert")).to_contain_text("Saved")
+    assert admin.evaluate("window.stillHere === true"), "the page was not loaded again"
+    assert "notice=saved" in admin.url, "the address says what a reload would show"
+    assert admin.evaluate("document.activeElement.classList.contains('alert')"), "the keyboard follows the message"
+
+    # The new page's form has its own token, so it saves again.
+    admin.get_by_label("Full name").fill("A second name")
+    admin.get_by_role("button", name="Save").click()
+    expect(admin.get_by_label("Full name")).to_have_value("A second name")
+    assert admin.evaluate("window.stillHere === true")
+
+    # What the scripts add comes back: the confirmation stands before a removal.
+    remove = admin.get_by_role("button", name="Remove").first
+    remove.click()
+    dialog = admin.locator("dialog.confirm")
+    expect(dialog).to_be_visible()
+    dialog.get_by_role("button", name="Confirm").click()
+    expect(admin.locator(".alert")).to_contain_text("Membership removed.")
+    assert admin.evaluate("window.stillHere === true")
+    admin.reload()
+    expect(admin.get_by_label("Full name")).to_have_value("A second name")
+    assert problems == []
+
+
+def test_the_same_form_works_without_javascript(page: tuple[Page, list[str]], live_server: LiveServer) -> None:
+    browser = page[0].context.browser
+    context = browser.new_context(base_url=live_server.url, java_script_enabled=False)  # type: ignore[union-attr]
+    plain = context.new_page()
+    sign_in(plain, live_server, "admin")
+    plain.goto("/admin/users")
+    plain.get_by_role("link", name="viewer", exact=True).click()
+    plain.get_by_label("Full name").fill("Without scripts")
+    plain.get_by_role("button", name="Save").click()
+    expect(plain.locator(".alert")).to_contain_text("Saved")
+    expect(plain.get_by_label("Full name")).to_have_value("Without scripts")
+    context.close()

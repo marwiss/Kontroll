@@ -6,7 +6,7 @@
 
 <section class="card">
   <h2>{{ t("opencde.project") }}</h2>
-  <form method="post" action="/admin/projects/{{ project.project_id }}" class="stack">
+  <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="rename">
     <dl class="facts">
@@ -29,7 +29,7 @@
         <tr>
           <td><a href="/admin/users/{{ user.id }}">{{ user.username }}</a>{% if user.full_name %} <span class="muted">{{ user.full_name }}</span>{% endif %}</td>
           <td>
-            <form method="post" action="/admin/projects/{{ project.project_id }}" class="cluster">
+            <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" class="cluster">
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="member">
               <input type="hidden" name="user_id" value="{{ user.id }}">
@@ -41,7 +41,7 @@
             </form>
           </td>
           <td>
-            <form method="post" action="/admin/projects/{{ project.project_id }}" data-confirm="{{ t('admin.project.remove_confirm', user=user.username, name=project.name) }}">
+            <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" data-confirm="{{ t('admin.project.remove_confirm', user=user.username, name=project.name) }}">
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="remove_member">
               <input type="hidden" name="user_id" value="{{ user.id }}">
@@ -57,7 +57,7 @@
   <p class="muted">{{ t("admin.project.no_members") }}</p>
   {% endif %}
   {% if other_users %}
-  <form method="post" action="/admin/projects/{{ project.project_id }}" class="form-grid form-grid--end">
+  <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" class="form-grid form-grid--end">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="member">
     {{ select_field("user_id", t("admin.project.add_member"), other_users|map(attribute="id")|zip(other_users|map(attribute="username"))|list) }}
@@ -70,7 +70,7 @@
 <section class="card">
   <h2>{{ t("admin.project.extensions") }}</h2>
   <p class="muted">{{ t("admin.project.extensions_lead") }}</p>
-  <form method="post" action="/admin/projects/{{ project.project_id }}" class="stack">
+  <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="extensions">
     <div class="form-grid">

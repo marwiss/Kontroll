@@ -169,5 +169,6 @@ hitt (`nav.*`, `account.*`, `docs.*`, `admin.*`, `notice.*`, `js.*`).
   `createElement` og `textContent`.
 - Bættu aðeins það sem er til: lestu `data-*`-eigindi, aldrei stillingar úr
   innfelldum skriftum.
+- Eyðublað sem helst á sinni síðu getur haft `data-inline` (`inline.js`): það vistar með `fetch`, og `main`-stak síðunnar sem þjónninn svarar með kemur í stað hins gamla. Síðan er þáttuð heil með `DOMParser`, svo að útskipting þjónsins gildir, og eyðublaðið er sent á venjulegan hátt ef eitthvað fer úrskeiðis.
 - Haltu hegðuninni afturkræfri: síða þarf að gera rétt ef einingin hleðst
   ekki.

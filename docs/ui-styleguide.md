@@ -166,5 +166,6 @@ and our own areas for the rest (`nav.*`, `account.*`, `docs.*`, `admin.*`,
   `textContent`.
 - Enhance only what exists: read `data-*` attributes, never configuration
   from inline scripts.
+- A form that stays on its page can carry `data-inline` (`inline.js`): it saves with `fetch`, and the `main` element of the page the server answers with replaces the old one. The page is parsed whole with `DOMParser`, so the server's escaping holds, and the form is sent the ordinary way if anything goes wrong.
 - Keep behaviour reversible: a page must do the right thing if the module
   fails to load.

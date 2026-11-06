@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- The forms on the administration's pages for a user, a project and a client save without the
+  page reloading. Without JavaScript they work as before.
 - `opencde init` without options asks for what it needs, in a terminal, and then says what comes
   next, including the administrator and the first client.
 - The health checks on the settings page speak the language of the page. The command line and

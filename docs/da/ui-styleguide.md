@@ -165,5 +165,6 @@ resten (`nav.*`, `account.*`, `docs.*`, `admin.*`, `notice.*`, `js.*`).
   `textContent`.
 - Forbedr kun det, der findes: læs `data-*`-attributter, aldrig konfiguration
   fra inline-scripts.
+- En formular, der bliver på sin side, kan have `data-inline` (`inline.js`): den gemmer med `fetch`, og `main`-elementet på den side, serveren svarer med, erstatter det gamle. Siden tolkes hel med `DOMParser`, så serverens escaping gælder, og formularen sendes på almindelig vis, hvis noget går galt.
 - Hold adfærden reversibel: en side skal gøre det rigtige, hvis modulet ikke
   kan indlæses.
