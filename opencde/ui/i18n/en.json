@@ -75,6 +75,7 @@
   "signin.lead": "Use your account on this server.",
   "signin.error.credentials": "The user name or password is not correct.",
   "signin.error.expired": "The form has expired. Please try again.",
+  "signin.error.throttled": "Too many failed attempts for this user name. Try again in {seconds} seconds.",
   "signout.error.title": "Cannot sign out",
   "signout.error.expired": "The form has expired. Reload the page.",
   "consent.asks": "asks to act on your behalf on this server.",

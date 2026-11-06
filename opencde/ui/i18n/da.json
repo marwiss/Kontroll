@@ -75,6 +75,7 @@
   "signin.lead": "Brug din konto på denne server.",
   "signin.error.credentials": "Brugernavnet eller kodeordet er ikke korrekt.",
   "signin.error.expired": "Formularen er udløbet. Prøv igen.",
+  "signin.error.throttled": "For mange mislykkede forsøg for dette brugernavn. Prøv igen om {seconds} sekunder.",
   "signout.error.title": "Kan ikke logge ud",
   "signout.error.expired": "Formularen er udløbet. Genindlæs siden.",
   "consent.asks": "beder om at handle på dine vegne på denne server.",

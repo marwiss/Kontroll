@@ -21,6 +21,7 @@ PUBLIC = {
     ("GET", "/foundation/versions"),
     ("GET", "/foundation/1.0/auth"),
     ("GET", "/foundation/oauth2/auth"),  # the sign-in page
+    ("POST", "/foundation/oauth2/auth"),  # its form, protected by a signed form token
     ("POST", "/foundation/oauth2/token"),  # the client authenticates in the request
     ("POST", "/foundation/oauth2/revoke"),  # the same
     ("POST", "/foundation/oauth2/reg"),  # off unless the operator allows it
@@ -29,7 +30,6 @@ PUBLIC = {
 
 # A method the document leaves out on an address where another route takes it.
 OTHER_ROUTES = {
-    ("POST", "/foundation/oauth2/auth"),  # the sign-in form, kept out of the document on purpose
     ("PUT", "/bcf/3.0/projects/{project_id}/topics/events"),  # "events" is then a topic id
     ("DELETE", "/bcf/3.0/projects/{project_id}/topics/events"),
 }

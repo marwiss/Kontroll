@@ -29,7 +29,7 @@ komponenttia).
 |---|---|---|
 | Positiivinen validointi rajoin jokaiselle syötteelle | täyttyy | Pydantic v2 -mallit pituus-, lista- ja syvyysrajoin, äärelliset luvut; tuntemattomat kentät ohitetaan Foundation API 1.8:n mukaan |
 | Liiketoimintasäännöt pakotetaan palvelinpuolella | täyttyy | Asioiden arvot extensions-listoja vasten, tasan yksi kamera, 409 viitatun viewpointin poistossa, päällekkäiset guidit, yksi transaktio kirjoitusta kohti |
-| Automaation esto todennuksessa ja kalliissa operaatioissa | osittain | Kirjautumis- ja token-päätepisteet nopeusrajoitettu osoitetta kohti (`test_sign_in_is_rate_limited`); lähetykset rajattu tiedostoa kohti (`max_upload_bytes`); ei vielä käyttäjäkohtaista tallennuskiintiötä |
+| Automaation esto todennuksessa ja kalliissa operaatioissa | osittain | Kirjautumis- ja token-päätepisteet nopeusrajoitettu osoitetta kohti (`test_sign_in_is_rate_limited`), ja epäonnistuneet kirjautumiset saavat käyttäjätunnuksen odottamaan (`test_sign_in_throttle`); lähetykset rajattu tiedostoa kohti (`max_upload_bytes`); ei vielä käyttäjäkohtaista tallennuskiintiötä |
 
 ## V3 Web-käyttöliittymän turvallisuus
 
@@ -71,7 +71,7 @@ komponenttia).
 | Salasanan pituus- ja vahvuuskäytäntö, ei koostumussääntöjä | täyttyy | `auth/passwords.py`: vähintään 12 merkkiä ja zxcvbn-pisteet ≥ 3 käyttäjätunnus tunnettuna syötteenä, `test_password_policy_and_hashing` |
 | Tarkistus vuotaneiden salasanojen listoja vasten | osittain | zxcvbn:n yleisten salasanojen sanastot; ei live-hakua vuotolistoista |
 | Argon2id-tiivistys | täyttyy | `pwdlib` ja Argon2id, `test_password_policy_and_hashing` |
-| Brute force -suojaus yleisin viestein | täyttyy | Nopeusraja osoitetta kohti, vakioviesti väärästä käyttäjästä tai salasanasta, käytöstä poistetut tilit hylätään (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
+| Brute force -suojaus yleisin viestein | täyttyy | Nopeusraja osoitetta kohti, kasvava odotus käyttäjätunnusta kohti, vakioviesti väärästä käyttäjästä tai salasanasta, käytöstä poistetut tilit hylätään (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
 | Monivaiheinen todennus | ei täyty | Vain salasanat; TOTP kirjautumissivulle on suunniteltu (*Myöhemmin* suunnitelmassa). Rajapinta-asiakkaat eivät koskaan näe salasanoja: ne todentautuvat OAuth2:n kautta tätä kirjautumissivua vasten, joten yksi MFA kattaa kaiken |
 | Turvallinen tunnistetietojen palautus | täyttyy | Ei itsepalvelunollausta; järjestelmänvalvoja myöntää kertakäyttöisen salasanan uudelleentodennuksen jälkeen, ja käyttäjän on vaihdettava se seuraavassa kirjautumisessa |
 | Uudelleentodennus arkaluonteisissa operaatioissa | täyttyy | Oma salasana vaaditaan salasanan vaihtoihin, nollauksiin, hallintamerkinnän muutoksiin, salaisuuden kierrätykseen ja poistoon (`test_user_management`, `test_client_management_and_secret_rotation`) |

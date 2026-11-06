@@ -88,5 +88,6 @@ def test_the_coverage_and_stateful_phases(live_server: LiveServer, bearer: dict[
         errors="replace",
         check=False,
         timeout=1800,
+        env={**os.environ, "PYTHONUTF8": "1"},
     )
-    assert result.returncode == 0, result.stdout[-6000:]
+    assert result.returncode == 0, result.stdout[-8000:]

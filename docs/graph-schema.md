@@ -140,6 +140,7 @@ erDiagram
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` until the file is assembled; the cleanup job deletes expired parts and their files |
 | `SelectionSession` | `id`, indexed `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` holds `document_id:version_index` pairs chosen in the browser |
 | `WebSession` | `id` (hash of the cookie) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Browser sign-in; `expires_at` is the absolute lifetime |
+| `SignInThrottle` | `key` (hash of the user name) | `failures`, `blocked_until`, `expires_at` | Failed sign-ins per user name; expires a day after the last failure, and a success removes it |
 
 ## IFC graph (stage 9)
 

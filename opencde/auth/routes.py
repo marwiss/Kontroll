@@ -30,7 +30,7 @@ from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 
 from opencde import audit
-from opencde.auth import pkce
+from opencde.auth import pkce, throttle
 from opencde.auth.clients import Client, ClientError, redirect_uri_matches, validate_redirect_uri
 from opencde.auth.dependencies import TokensDep
 from opencde.auth.forms import FormTokenError, FormTokens
@@ -171,7 +171,7 @@ async def authorize_page(
     )
 
 
-@router.post("/auth", summary="Authorization endpoint: process the sign-in form", include_in_schema=False)
+@router.post("/auth", summary="Authorization endpoint: process the sign-in form")
 @limiter.limit(RATE_SIGN_IN)
 async def authorize_submit(
     request: Request,
@@ -204,25 +204,32 @@ async def authorize_submit(
         await audit.record(graph, "auth.consent.denied", client_id=client.client_id, ip=ip)
         return _error_redirect(redirect_to, "access_denied", "the user denied the request", state, issuer)
 
-    user = await users.authenticate(username, password)
-    if user is None:
-        await audit.record(
-            graph, "auth.sign_in.failed", client_id=client.client_id, ip=ip, details={"username": username[:128]}
-        )
-        token = form_tokens(request).sign(FORM_PURPOSE, data)
-        scopes = parse_scope(data["scope"])
+    def ask_again(error: str, status_code: int = 200) -> Response:
         return render(
             request,
             "auth/authorize.html",
             {
                 "client": client,
-                "scopes": _scope_descriptions(scopes),
+                "scopes": _scope_descriptions(parse_scope(data["scope"])),
                 "redirect_host": urlsplit(redirect_to).netloc or redirect_to,
-                "form_token": token,
-                "error": tr(request, "signin.error.credentials"),
+                "form_token": form_tokens(request).sign(FORM_PURPOSE, data),
+                "error": error,
             },
+            status_code=status_code,
             form_action=origin_of(redirect_to),
         )
+
+    try:
+        user = await throttle.authenticate(users, graph, settings, username, password)
+    except throttle.SignInThrottled as exc:
+        details = {"username": username[:128]}
+        await audit.record(graph, "auth.sign_in.throttled", client_id=client.client_id, ip=ip, details=details)
+        return ask_again(tr(request, "signin.error.throttled", seconds=exc.seconds), status_code=429)
+    if user is None:
+        await audit.record(
+            graph, "auth.sign_in.failed", client_id=client.client_id, ip=ip, details={"username": username[:128]}
+        )
+        return ask_again(tr(request, "signin.error.credentials"))
 
     code = await tokens.issue_code(
         user_id=user.id,

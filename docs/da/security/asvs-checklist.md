@@ -27,7 +27,7 @@ operatøren), **ikke relevant** (serveren har ingen sådan komponent).
 |---|---|---|
 | Positiv validering med grænser på alt input | opfyldt | Pydantic v2-modeller med længde-, liste- og dybdegrænser, endelige tal; ukendte felter ignoreres jf. Foundation API 1.8 |
 | Forretningsregler håndhæves på serversiden | opfyldt | Sagsværdier mod extensions, præcis ét kamera, 409 ved sletning af et refereret viewpoint, dublerede guid'er, én transaktion per skrivning |
-| Anti-automatisering på autentificering og dyre operationer | delvist | Login- og token-endepunkter hastighedsbegrænset per adresse (`test_sign_in_is_rate_limited`); uploads begrænset per fil (`max_upload_bytes`); ingen lagerkvote per bruger endnu |
+| Anti-automatisering på autentificering og dyre operationer | delvist | Login- og token-endepunkter hastighedsbegrænset per adresse (`test_sign_in_is_rate_limited`), og mislykkede logins får brugernavnet til at vente (`test_sign_in_throttle`); uploads begrænset per fil (`max_upload_bytes`); ingen lagerkvote per bruger endnu |
 
 ## V3 Webfrontend-sikkerhed
 
@@ -69,7 +69,7 @@ operatøren), **ikke relevant** (serveren har ingen sådan komponent).
 | Politik for kodeordslængde og -styrke, ingen sammensætningsregler | opfyldt | `auth/passwords.py`: mindst 12 tegn og zxcvbn-score ≥ 3 med brugernavnet som kendt input, `test_password_policy_and_hashing` |
 | Kontrol mod lister over lækkede kodeord | delvist | zxcvbn's ordbøger over almindelige kodeord; intet live-opslag mod læklister |
 | Argon2id-hashing | opfyldt | `pwdlib` med Argon2id, `test_password_policy_and_hashing` |
-| Brute-force-beskyttelse med generiske beskeder | opfyldt | Hastighedsgrænse per adresse, konstant besked ved forkert bruger eller kodeord, deaktiverede konti afvises (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
+| Brute-force-beskyttelse med generiske beskeder | opfyldt | Hastighedsgrænse per adresse, en voksende ventetid per brugernavn, konstant besked ved forkert bruger eller kodeord, deaktiverede konti afvises (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
 | Multifaktorautentificering | ikke opfyldt | Kun kodeord; TOTP til loginsiden er planlagt (*Senere* i planen). API-klienter ser aldrig kodeord: de autentificerer sig gennem OAuth2 mod denne loginside, så én MFA dækker alt |
 | Sikker gendannelse af legitimationsoplysninger | opfyldt | Ingen selvbetjeningsnulstilling; en administrator udsteder et engangskodeord efter genautentificering, og brugeren skal skifte det ved næste login |
 | Genautentificering ved følsomme operationer | opfyldt | Eget kodeord kræves ved kodeordsskift, nulstillinger, ændring af adminflaget, hemmelighedsrotation og sletning (`test_user_management`, `test_client_management_and_secret_rotation`) |

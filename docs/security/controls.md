@@ -20,6 +20,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Consent can be denied (`access_denied`) | RFC 6749 §4.1.2.1 | `test_oauth2::test_deny_redirects_with_access_denied` |
 | Signed, expiring, purpose-bound form tokens; tampering refused | CSRF | `test_security_oauth2::test_tampered_or_replayed_form_token_is_refused`, `test_auth_primitives` |
 | Sign-in rate limited per address | OWASP ASVS 2.2.1 | `test_security_oauth2::test_sign_in_is_rate_limited` |
+| Failed sign-ins make a user name wait: after five in a row a wait that doubles from 30 seconds up to 15 minutes, on top of the limit per address. Unknown names count the same, so the answer says nothing about which accounts exist, and names are stored as hashes | OWASP ASVS 6.3 | `test_sign_in_throttle` |
 | Generic failure message; disabled accounts cannot sign in and lose tokens | OWASP ASVS 2.2 | `test_security_oauth2::test_disabled_user_cannot_sign_in_and_loses_tokens` |
 | Passwords, codes and tokens never appear in logs | OWASP ASVS 7.1 | `test_security_oauth2::test_passwords_and_codes_never_reach_the_logs`, `test_logging` |
 | Argon2id password hashing; policy (length, zxcvbn, no user name) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |

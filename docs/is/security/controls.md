@@ -21,6 +21,7 @@ prófunareininguna.
 | Samþykki má neita (`access_denied`) | RFC 6749 §4.1.2.1 | `test_oauth2::test_deny_redirects_with_access_denied` |
 | Undirritaðir, útrennandi, tilgangsbundnir eyðublaðstókar; átt við hafnað | CSRF | `test_security_oauth2::test_tampered_or_replayed_form_token_is_refused`, `test_auth_primitives` |
 | Innskráning tíðnitakmörkuð á hvert vistfang | OWASP ASVS 2.2.1 | `test_security_oauth2::test_sign_in_is_rate_limited` |
+| Misheppnaðar innskráningar láta notandanafn bíða: eftir fimm í röð bið sem tvöfaldast frá 30 sekúndum upp í 15 mínútur, til viðbótar við mörkin á hvert vistfang. Óþekkt nöfn teljast eins, svo að svarið segir ekkert um hvaða reikningar eru til, og nöfn eru geymd sem tætigildi | OWASP ASVS 6.3 | `test_sign_in_throttle` |
 | Almenn villuboð; óvirkir reikningar geta ekki skráð sig inn og tapa tókum sínum | OWASP ASVS 2.2 | `test_security_oauth2::test_disabled_user_cannot_sign_in_and_loses_tokens` |
 | Lykilorð, kóðar og tókar koma aldrei fram í atvikaskrám | OWASP ASVS 7.1 | `test_security_oauth2::test_passwords_and_codes_never_reach_the_logs`, `test_logging` |
 | Argon2id-tæting lykilorða; stefna (lengd, zxcvbn, ekki notandanafn) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |

@@ -143,6 +143,7 @@ erDiagram
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` til fila blir sett saman; oppryddingsjobben slettar utgåtte delar og filene deira |
 | `SelectionSession` | `id`, indeksert `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` held `document_id:version_index`-par valde i nettlesaren |
 | `WebSession` | `id` (hash av cookien) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Nettlesarinnlogging; `expires_at` er den absolutte levetida |
+| `SignInThrottle` | `key` (hash av brukarnamnet) | `failures`, `blocked_until`, `expires_at` | Mislukka innloggingar per brukarnamn; går ut eit døgn etter siste feil, og ei vellykka innlogging fjernar han |
 
 ## IFC-graf (etappe 9)
 

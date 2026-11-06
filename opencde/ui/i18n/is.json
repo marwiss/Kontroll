@@ -75,6 +75,7 @@
   "signin.lead": "Notaðu reikninginn þinn á þessum þjóni.",
   "signin.error.credentials": "Notandanafnið eða lykilorðið er ekki rétt.",
   "signin.error.expired": "Eyðublaðið er útrunnið. Reyndu aftur.",
+  "signin.error.throttled": "Of margar misheppnaðar tilraunir fyrir þetta notandanafn. Reyndu aftur eftir {seconds} sekúndur.",
   "signout.error.title": "Ekki er hægt að skrá út",
   "signout.error.expired": "Eyðublaðið er útrunnið. Endurhladdu síðuna.",
   "consent.asks": "biður um að fá að starfa fyrir þína hönd á þessum þjóni.",

@@ -15,6 +15,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import RedirectResponse, Response
 
 from opencde import audit
+from opencde.auth import throttle
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.ratelimit import RATE_SIGN_IN, limiter
@@ -69,7 +70,12 @@ async def signin_submit(
     target = safe_next(data.get("next"))
     ip = client_ip(request)
 
-    user = await users.authenticate(username, password)
+    try:
+        user = await throttle.authenticate(users, graph, settings, username, password)
+    except throttle.SignInThrottled as exc:
+        await audit.record(graph, "web.sign_in.throttled", ip=ip, details={"username": username[:128]})
+        error = tr(request, "signin.error.throttled", seconds=exc.seconds)
+        return _signin_page(request, target, error, status_code=429)
     if user is None:
         await audit.record(graph, "web.sign_in.failed", ip=ip, details={"username": username[:128]})
         return _signin_page(request, target, tr(request, "signin.error.credentials"))
