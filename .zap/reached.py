@@ -44,6 +44,14 @@ def main() -> int:
         refused = areas[(area, "401")]
         if refused > MOST_REFUSED * total:
             problems.append(f"{area} answered 401 to {refused} of {total}, so the token stopped working")
+    pages = {
+        status: count for (name, status), count in areas.items() if name.startswith("/admin/") and name != "/admin/api"
+    }
+    sent_to_sign_in = pages.get("302", 0)
+    if sent_to_sign_in > MOST_REFUSED * sum(pages.values()):
+        problems.append(
+            f"was sent to the sign-in {sent_to_sign_in} times of {sum(pages.values())}, so the session ended"
+        )
     for problem in problems:
         print(f"The scan {problem}")
     return 1 if problems else 0

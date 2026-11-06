@@ -14,6 +14,8 @@ import os
 import sys
 from pathlib import Path
 
+import httpx
+
 from opencde_client import OpenCdeClient
 from opencde_client.testing import HeadlessBrowser, headless_authorize
 
@@ -41,6 +43,11 @@ def main(server: str, client_id: str, password: str) -> None:
         if os.environ.get("GITHUB_ACTIONS"):
             print(f"::add-mask::{value}")
         plan = plan.replace("${" + name + "}", value)
+    users = httpx.get(
+        f"{server}/admin/api/users", params={"q": "admin"}, headers={"Authorization": f"Bearer {admin.access_token}"}
+    )
+    admin_id = next(user["id"] for user in users.raise_for_status().json()["items"] if user["username"] == "admin")
+    plan = plan.replace("${ADMIN_ID}", admin_id)
     (HERE / "authenticated-filled.yaml").write_text(plan, encoding="utf-8")
 
 
