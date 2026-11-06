@@ -115,5 +115,11 @@ class Graph:
             added = getattr(counters, "constraints_added", 0) + getattr(counters, "indexes_added", 0)
             return added > 0 if counters.contains_updates or added else False
 
+    async def schema_rows(self, statement: str) -> list[dict[str, Any]]:
+        """The rows of a schema listing, which Memgraph too only answers outside explicit transactions."""
+        async with self.driver.session(database=self.database) as session:
+            result = await session.run(cast("LiteralString", statement))
+            return [record.data() async for record in result]
+
     async def close(self) -> None:
         await self.driver.close()

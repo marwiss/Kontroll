@@ -64,6 +64,11 @@ class Dialect:
         return f"CREATE INDEX ON :{label}({prop})"
 
     @property
+    def list_constraints(self) -> str:
+        """A statement answering one row per constraint."""
+        return "SHOW CONSTRAINTS" if self.name is GraphDialect.NEO4J else "SHOW CONSTRAINT INFO"
+
+    @property
     def already_exists_markers(self) -> tuple[str, ...]:
         """Substrings of the error a product raises when DDL is repeated. Treated as success."""
         return ("already exists", "AlreadyExists", "EquivalentSchemaRuleAlreadyExists", "ConstraintAlreadyExists")

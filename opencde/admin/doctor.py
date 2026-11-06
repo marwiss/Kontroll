@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Health checks shown on the settings page (and usable by ``opencde doctor``)."""
+"""Health checks shown on the settings page and printed by ``opencde doctor``."""
 
 from __future__ import annotations
 
@@ -10,9 +10,13 @@ import struct
 import time
 from dataclasses import dataclass
 
+import httpx
+from neo4j.exceptions import Neo4jError
+
 from opencde import __version__
 from opencde.graph.driver import ping_within
 from opencde.graph.graph import Graph
+from opencde.graph.schema import UNIQUE
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
 from opencde.timeutil import now_iso
@@ -69,6 +73,34 @@ async def clock_check(server: str) -> Check:
     )
 
 
+async def schema_check(graph: Graph) -> Check:
+    """The unique constraints the server relies on; it creates them when it starts."""
+    try:
+        rows = await graph.schema_rows(graph.dialect.list_constraints)
+    except Neo4jError as exc:
+        return Check("Schema", False, f"cannot list the constraints: {exc.code}")
+    expected = len(UNIQUE)
+    detail = f"{len(rows)} unique constraints, {expected} expected"
+    return Check("Schema", len(rows) >= expected, detail + ("" if len(rows) >= expected else "; start the server once"))
+
+
+async def headers_check(settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> Check:
+    """Ask the server at its public address, which also tries the TLS certificate when the address is https."""
+    url = settings.url("/healthz")
+    try:
+        async with httpx.AsyncClient(timeout=3.0, transport=transport) as client:
+            response = await client.get(url)
+    except httpx.HTTPError as exc:
+        if "CERTIFICATE" in str(exc).upper():
+            return Check("Security headers", False, f"{url}: the TLS certificate is not valid")
+        return Check("Security headers", True, f"not checked (no server answers at {url})")
+    wanted = ["x-content-type-options", "content-security-policy", "referrer-policy"]
+    if settings.is_production:
+        wanted.append("strict-transport-security")  # the proxy in front adds this one
+    missing = [name for name in wanted if name not in response.headers]
+    return Check("Security headers", not missing, f"missing: {', '.join(missing)}" if missing else f"present at {url}")
+
+
 async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) -> list[Check]:
     checks = [Check("Version", True, __version__), Check("Environment", True, settings.environment)]
     https = settings.public_url.startswith("https://")
@@ -88,6 +120,7 @@ async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) ->
             + ("" if reachable else ": does not answer"),
         )
     )
+    checks.append(await schema_check(graph) if reachable else Check("Schema", False, "not checked (no database)"))
     probe = storage.root / ".write-probe"
     try:
         probe.write_bytes(b"ok")
@@ -110,6 +143,8 @@ async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) ->
             "enabled (POST /foundation/oauth2/reg)" if settings.dynamic_client_registration else "disabled",
         )
     )
+    checks.append(Check("CORS", True, ", ".join(settings.cors_origins) + " (bearer tokens only, never cookies)"))
+    checks.append(await headers_check(settings))
     checks.append(await clock_check(settings.ntp_server))
     checks.append(Check("Process", True, f"pid {os.getpid()}"))
     return checks
