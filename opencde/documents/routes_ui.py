@@ -47,6 +47,7 @@ from opencde.web.dependencies import (
     WebUserDep,
     form_tokens,
     page_context,
+    password_change_redirect,
     require_same_origin,
     signin_redirect,
 )
@@ -194,6 +195,8 @@ async def upload_ui(
 ) -> Response:
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     session = await sessions.by_token(token)
     if session is None or session.state not in (STATE_NEW, STATE_METADATA):
         return _expired(request, web_user)
@@ -216,6 +219,8 @@ async def upload_ui_submit(
     require_same_origin(request)
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     session = await sessions.by_token(token)
     if session is None or session.state not in (STATE_NEW, STATE_METADATA):
         return _expired(request, web_user)
@@ -330,6 +335,8 @@ async def select_ui(
 ) -> Response:
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     session = await sessions.by_token(token)
     if session is None or session.state != STATE_NEW:
         return _expired(request, web_user)
@@ -353,6 +360,8 @@ async def select_ui_submit(
     require_same_origin(request)
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     session = await sessions.by_token(token)
     if session is None or session.state != STATE_NEW:
         return _expired(request, web_user)
@@ -416,6 +425,8 @@ async def select_ui_upload(
     require_same_origin(request)
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     session = await sessions.by_token(token)
     if session is None or session.state != STATE_NEW:
         return _expired(request, web_user)
@@ -494,6 +505,8 @@ async def document_details(
 ) -> Response:
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     record = (
         await documents.version(
             user_id=web_user.user.id, document_id=normalize_guid(document_id), version_index=version_index
@@ -540,6 +553,8 @@ async def document_details_download(
 ) -> Response:
     if web_user is None:
         return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
     record = (
         await documents.version(
             user_id=web_user.user.id, document_id=normalize_guid(document_id), version_index=version_index

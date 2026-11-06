@@ -21,7 +21,7 @@
 
 <section class="card">
   <h2>{{ t("account.change_password") }}</h2>
-  <form method="post" action="/account" class="stack">
+  <form method="post" action="{{ change_password_action }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="change_password">
     {{ field("current_password", t("account.current_password"), type="password", autocomplete="current-password", required=true, maxlength=256) }}

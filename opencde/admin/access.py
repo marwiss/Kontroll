@@ -29,6 +29,7 @@ from opencde.web.dependencies import (
     WebUserDep,
     form_tokens,
     page_context,
+    password_change_redirect,
     require_same_origin,
     signin_redirect,
 )
@@ -64,11 +65,17 @@ class PageNotFound(Exception):
     """Raised for pages that must not reveal their existence (non-admins under /admin)."""
 
 
+class PasswordChangeRequired(Exception):
+    """Raised by page dependencies when the user has a password someone else knows."""
+
+
 async def current_admin(web_user: WebUserDep) -> WebUser:
     if web_user is None:
         raise SignInRequired
     if not web_user.user.is_admin:
         raise PageNotFound
+    if web_user.user.must_change_password:
+        raise PasswordChangeRequired
     return web_user
 
 
@@ -90,6 +97,9 @@ def install_page_handlers(app: Any) -> None:
     async def _sign_in(request: Request, _exc: SignInRequired) -> Response:
         return signin_redirect(request)
 
+    async def _change_password(request: Request, _exc: PasswordChangeRequired) -> Response:
+        return password_change_redirect(request)
+
     async def _not_found(request: Request, _exc: PageNotFound) -> Response:
         return render(
             request,
@@ -104,6 +114,7 @@ def install_page_handlers(app: Any) -> None:
         )
 
     app.add_exception_handler(SignInRequired, _sign_in)
+    app.add_exception_handler(PasswordChangeRequired, _change_password)
     app.add_exception_handler(PageNotFound, _not_found)
 
 

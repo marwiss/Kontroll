@@ -9,6 +9,9 @@ the commit history.
 
 ## Unreleased
 
+- A generated or reset password has to be changed before anything else works, as the
+  documentation said. It only led to the account page once, and a client could get tokens with it
+  for as long as it liked. A sign-in through OAuth2 now goes through the change and on to the client.
 - A user's page in the administration could not be saved without one's own password, since a
   browser silently refuses a form over a required field in a collapsed section. The password
   is only needed when the administrator flag changes, as the page says.

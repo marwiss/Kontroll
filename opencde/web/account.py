@@ -7,8 +7,10 @@ hold a refresh token and revoke them, see and end browser sessions.
 
 from __future__ import annotations
 
+from urllib.parse import urlencode
+
 from fastapi import APIRouter, Request
-from fastapi.responses import Response
+from fastapi.responses import RedirectResponse, Response
 
 from opencde import audit
 from opencde.accounts.users import AccountError
@@ -19,12 +21,25 @@ from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, UsersDep, client_ip
 from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
-from opencde.web.dependencies import form_tokens, page_context, require_same_origin
+from opencde.web.dependencies import NO_STORE, form_tokens, page_context, require_same_origin, safe_next
 from opencde.web.sessions import WebSessionsDep
 
 router = APIRouter(include_in_schema=False)
 
 PURPOSE = "web-account"
+
+
+def _going_on(request: Request) -> str:
+    """Where the browser was on its way to when it had to change the password first."""
+    return safe_next(request.query_params.get("next"))
+
+
+def _back_to_account(request: Request, notice: str) -> RedirectResponse:
+    query = {"notice": notice}
+    going_on = _going_on(request)
+    if going_on != "/":
+        query["next"] = going_on
+    return RedirectResponse("/account?" + urlencode(query), status_code=303, headers=NO_STORE)
 
 
 async def _page(
@@ -36,12 +51,14 @@ async def _page(
     status_code: int = 200,
 ) -> Response:
     notice = request.query_params.get("notice")
+    going_on = _going_on(request)
     return render(
         request,
         "web/account.html",
         page_context(
             request,
             web_user,
+            change_password_action="/account" + (f"?{urlencode({'next': going_on})}" if going_on != "/" else ""),
             apps=await tokens.sessions_for_user(web_user.user.id),
             web_sessions=await queries.web_sessions(graph, web_user.user.id),
             form_token=form_tokens(request).sign(PURPOSE, {"session": web_user.session_hash}),
@@ -74,9 +91,9 @@ async def account_action(
     try:
         payload = form_tokens(request).load(token if isinstance(token, str) else None, PURPOSE)
     except FormTokenError:
-        return redirect_with_notice("/account", "form_expired")
+        return _back_to_account(request, "form_expired")
     if payload.get("session") != web_user.session_hash:
-        return redirect_with_notice("/account", "form_expired")
+        return _back_to_account(request, "form_expired")
     action = text(data, "action", max_length=32)
     ip = client_ip(request)
 
@@ -85,7 +102,7 @@ async def account_action(
         new, repeat = text(data, "new_password", max_length=256), text(data, "repeat_password", max_length=256)
         if await users.authenticate(web_user.user.username, current) is None:
             await audit.record(graph, "account.password.failed", actor=web_user.user.id, ip=ip)
-            return redirect_with_notice("/account", "wrong_password")
+            return _back_to_account(request, "wrong_password")
         if new != repeat:
             return await _page(
                 request, web_user, tokens, graph, error=tr(request, "account.error.mismatch"), status_code=400
@@ -95,6 +112,9 @@ async def account_action(
         except AccountError as exc:
             return await _page(request, web_user, tokens, graph, error=tr_error(request, exc), status_code=400)
         await audit.record(graph, "account.password.changed", actor=web_user.user.id, ip=ip)
+        going_on = _going_on(request)
+        if going_on != "/":
+            return RedirectResponse(going_on, status_code=303, headers=NO_STORE)
         return redirect_with_notice("/account", "password_changed")
 
     if action == "revoke_app":

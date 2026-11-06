@@ -41,6 +41,8 @@ source of [Dataspatium](https://github.com/marwiss/Dataspatium)
 authorization page, the callback page that reports the code back, the token
 exchange as a public client, refresh with rotation and revocation at sign-out.
 
+A user with a password someone else knows (a new account, or a reset) gets no code. The server takes the browser to the account page to change it, and then back to the authorization page with what the client asked for. The client notices nothing but a longer wait.
+
 ## What each party must do
 
 | Step | Client | Server |

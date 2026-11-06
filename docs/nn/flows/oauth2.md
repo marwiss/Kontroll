@@ -43,6 +43,8 @@ popup-vindauget til autorisasjonssida, callback-sida som rapporterer koden
 tilbake, tokenutvekslinga som offentleg klient, refresh med rotasjon og
 tilbaketrekking ved utlogging.
 
+Ein brukar med eit passord nokon andre kjenner (ein ny konto eller ei tilbakestilling), får ingen kode. Tenaren tek nettlesaren til kontosida for å byte det, og deretter tilbake til autorisasjonssida med det klienten bad om. Klienten merkar ikkje anna enn ei lengre ventetid.
+
 ## Kva kvar part må gjere
 
 | Steg | Klient | Server |

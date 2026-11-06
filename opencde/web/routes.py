@@ -26,6 +26,7 @@ from opencde.web.dependencies import (
     NO_STORE,
     SIGNOUT_PURPOSE,
     WebUserDep,
+    change_password_url,
     form_tokens,
     page_context,
     require_same_origin,
@@ -85,7 +86,7 @@ async def signin_submit(
     await users.touch_sign_in(user.id)
     await audit.record(graph, "web.sign_in", actor=user.id, ip=ip)
     if user.must_change_password:
-        target = "/account?notice=change_password"
+        target = change_password_url(target)
     response = RedirectResponse(target, status_code=302, headers=NO_STORE)
     set_session_cookie(response, token, settings)
     return response

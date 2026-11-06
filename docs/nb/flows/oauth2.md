@@ -42,6 +42,8 @@ til autorisasjonssiden, callback-siden som rapporterer koden tilbake,
 tokenutvekslingen som offentlig klient, refresh med rotasjon og
 tilbaketrekking ved utlogging.
 
+En bruker med et passord noen andre kjenner (en ny konto eller en tilbakestilling), får ingen kode. Serveren tar nettleseren til kontosiden for å bytte det, og deretter tilbake til autorisasjonssiden med det klienten ba om. Klienten merker ikke annet enn en lengre ventetid.
+
 ## Hva hver part må gjøre
 
 | Steg | Klient | Server |

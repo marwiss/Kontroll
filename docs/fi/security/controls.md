@@ -81,7 +81,7 @@ testimoduulin.
 | Jokainen hallinnan POST vaatii allekirjoitetun tokenin, joka on sidottu järjestelmänvalvojan istuntoon ja kohteeseen, sekä saman originin selainpyynnön | CSRF, OWASP ASVS 4.2.2 | `test_admin_ui::test_csrf_protections_on_admin_forms` |
 | Salasanojen nollaus, hallintamerkinnän muuttaminen, asiakassalaisuuksien kierrätys ja poistaminen vaativat järjestelmänvalvojan oman salasanan uudelleen | OWASP ASVS 2.2.5 | `test_user_management`, `test_project_management_reaches_the_bcf_api`, `test_client_management_and_secret_rotation` |
 | Järjestelmänvalvojat eivät voi poistaa käytöstä, alentaa tai poistaa omaa tiliään | Lukituksen esto | `test_user_management` |
-| Luodut salasanat ja asiakassalaisuudet näytetään kerran; nollatut salasanat on vaihdettava seuraavassa kirjautumisessa; käytöstä poisto peruu tokenit | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation` |
+| Luodut salasanat ja asiakassalaisuudet näytetään kerran; nollatut salasanat on vaihdettava seuraavassa kirjautumisessa; käytöstä poisto peruu tokenit | OWASP ASVS 2.1, 2.5 | `test_user_management`, `test_client_management_and_secret_rotation`, `test_forced_password_change` |
 | Jokainen hallintatoiminto kirjataan tapahtumalokiin ilman salaisuuksia | OWASP ASVS 7.1 | `test_sessions_audit_and_settings_pages` |
 | Asetussivu ei koskaan näytä salaisuuksia | OWASP ASVS 14.3 | `test_sessions_audit_and_settings_pages` |
 | Sivut kantavat tiukan CSP:n, ei inline-koodia; parannusskriptit rakentavat DOMin vain `textContent`-kutsuilla | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (ei konsolivirheitä) |

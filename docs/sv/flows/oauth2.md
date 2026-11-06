@@ -43,6 +43,8 @@ till auktoriseringssidan, callback-sidan som rapporterar koden tillbaka,
 tokenutbytet som publik klient, refresh med rotation och återkallning vid
 utloggning.
 
+En användare med ett lösenord som någon annan känner till (ett nytt konto eller en återställning) får ingen kod. Servern tar webbläsaren till kontosidan för att byta det, och sedan tillbaka till auktoriseringssidan med det klienten bad om. Klienten märker inget annat än en längre väntan.
+
 ## Vad varje part måste göra
 
 | Steg | Klient | Server |
