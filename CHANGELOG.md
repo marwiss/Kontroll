@@ -9,6 +9,9 @@ the commit history.
 
 ## Unreleased
 
+- A user's page in the administration could not be saved without one's own password, since a
+  browser silently refuses a form over a required field in a collapsed section. The password
+  is only needed when the administrator flag changes, as the page says.
 - A conversion to the IFC graph that a stopped server left behind starts over; it used to stay
   queued or running for good.
 - A registration that asks to come back to `http://localhost` is refused with its own code,

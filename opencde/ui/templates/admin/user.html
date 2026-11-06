@@ -28,7 +28,7 @@
     {{ checkbox("is_admin", t("admin.user.administrator"), checked=user.is_admin, hint=t("admin.user.admin_hint")) }}
     <details class="details">
       <summary>{{ t("admin.user.confirm_summary") }}</summary>
-      {{ confirm_password("update") }}
+      {{ confirm_password("update", required=false) }}
     </details>
     <div class="cluster">{{ button(t("common.save")) }}</div>
     {% if is_self %}<p class="muted">{{ t("admin.user.self_note") }}</p>{% endif %}
