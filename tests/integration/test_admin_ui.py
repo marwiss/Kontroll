@@ -444,6 +444,8 @@ def test_sessions_audit_and_settings_pages(client: TestClient, world: World) -> 
     assert "OPENCDE_PUBLIC_URL" in settings_page and "http://testserver" in settings_page
     assert "Graph database" in settings_page and 'class="badge badge--danger"' not in settings_page
     assert "test-secret-key" not in settings_page and "test-password" not in settings_page
+    swedish = client.get("/admin/settings", headers={"Accept-Language": "sv"}).text
+    assert "Grafdatabas" in swedish and "check." not in swedish, "the checks speak the language of the page"
 
     overview = client.get("/admin").text
     assert "Recent audit events" in overview and "admin.session.revoke_family" in overview

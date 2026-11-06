@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- The health checks on the settings page speak the language of the page. The command line and
+  the administration API go on in English.
 - `opencde seed` builds the graph of the sample model when the IFC graph is on, so the quick
   start's query answers without an upload first.
 - The start page says where to start: trying the server, seeing how it is built, running it for

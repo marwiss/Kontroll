@@ -10,6 +10,7 @@ from typer.testing import CliRunner
 
 from opencde.admin.doctor import (
     NTP_EPOCH_OFFSET,
+    Check,
     clock_check,
     headers_check,
     ntp_offset_from_response,
@@ -104,3 +105,12 @@ def test_the_command_reports_every_check_and_fails_without_a_database(
         "OK      Clock against NTP: not checked",
     ):
         assert line in result.output, result.output
+
+
+def test_a_check_speaks_the_language_it_is_asked_for_and_english_elsewhere() -> None:
+    check = Check("rate_limits", True, "rate_limits_on")
+    assert check.name == "Rate limits" and check.detail == "enabled", "the command line and the administration API"
+    assert check.name_in("sv") == "Gränser för antal anrop" and check.detail_in("sv") == "påslagna"
+    filled = Check("headers", True, "headers_present", {"url": "https://cde.example.org/healthz"})
+    assert filled.detail_in("is") == "til staðar á https://cde.example.org/healthz"
+    assert Check("version", True, value="2.5.0").detail_in("fi") == "2.5.0"
