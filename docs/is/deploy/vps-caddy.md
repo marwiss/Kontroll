@@ -57,6 +57,17 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
   geymslan er nefnd gagnageymsla.
 - `OPENCDE_TRUSTED_PROXIES` nær yfir compose-netið svo að vistfang biðlarans í
   endurskoðunarskránni sé hið rétta; láttu það vera nema þú breytir netinu.
+- Stjórnunina má takmarka við innri vistföng. Bættu þessu við vefsvæðisblokkina í `Caddyfile` og aðlagaðu vistföngin; `/admin/api` fylgir með, svo að stjórnun Dataspatium virkar aðeins frá þeim vistföngum:
+
+  ```caddyfile
+  @admin_outside {
+  	path /admin /admin/*
+  	not remote_ip 10.0.0.0/8 192.168.0.0/16
+  }
+  respond @admin_outside 404
+  ```
+
+- API-ið leyfir 600 beiðnir á mínútu á hvert vistfang. Allir á bak við sama vistfang deila þeim, svo að hækkaðu mörkin fyrir stóra skrifstofu, til dæmis `OPENCDE_RATE_LIMIT_API=3000/minute`.
 - Haltu `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` nema þú þurfir
   sjálfsafgreidda biðlaraskráningu (Foundation API 2.2.3); skráðu biðlara í
   `/admin`.

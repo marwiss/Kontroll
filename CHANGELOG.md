@@ -9,6 +9,12 @@ the commit history.
 
 ## Unreleased
 
+- The limit per address on the API, which the documentation described but no code applied,
+  now holds at 600 requests a minute, with 240 on the administration. `OPENCDE_RATE_LIMIT_API`
+  raises it for an office behind one address, and several server processes can share the counts
+  through `OPENCDE_RATE_LIMIT_STORAGE`.
+- Outside production a client can register 60 times an hour rather than five, since someone
+  trying a server out registers again and again.
 - Dynamic registration can be limited further: `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN`
   asks for an initial access token, and `OPENCDE_DYNAMIC_CLIENT_APPROVAL` keeps a new client
   disabled until an administrator approves it under `/admin/clients` or with

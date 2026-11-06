@@ -22,6 +22,7 @@ Varje kontroll har minst ett automatiskt test. "Svit" namnger testmodulen.
 | Signerade, utgående, ändamålsbundna formulärtokens; manipulation avvisas | CSRF | `test_security_oauth2::test_tampered_or_replayed_form_token_is_refused`, `test_auth_primitives` |
 | Inloggning hastighetsbegränsad per adress | OWASP ASVS 2.2.1 | `test_security_oauth2::test_sign_in_is_rate_limited` |
 | Misslyckade inloggningar får ett användarnamn att vänta: efter fem i rad en väntan som fördubblas från 30 sekunder upp till 15 minuter, utöver gränsen per adress. Okända namn räknas likadant, så svaret säger inget om vilka konton som finns, och namnen lagras som hashvärden | OWASP ASVS 6.3 | `test_sign_in_throttle` |
+| En gräns per adress på varje anrop (600 i minuten, `OPENCDE_RATE_LIMIT_API`), snävare på administrationen (240 i minuten); hälsokontroller och statiska filer är undantagna; en delad lagring som fallerar stoppar ingenting | OWASP API4 | `test_rate_limits` |
 | Generiskt felmeddelande; inaktiverade konton kan inte logga in och förlorar sina tokens | OWASP ASVS 2.2 | `test_security_oauth2::test_disabled_user_cannot_sign_in_and_loses_tokens` |
 | Lösenord, koder och tokens förekommer aldrig i loggar | OWASP ASVS 7.1 | `test_security_oauth2::test_passwords_and_codes_never_reach_the_logs`, `test_logging` |
 | Argon2id-lösenordshashning; policy (längd, zxcvbn, inte användarnamnet) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |

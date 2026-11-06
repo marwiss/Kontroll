@@ -40,7 +40,7 @@ from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.errors import CODE_UNAUTHENTICATED, ApiError
 from opencde.ids import secrets_equal
 from opencde.logging import get_logger
-from opencde.ratelimit import RATE_EXCHANGE, RATE_REGISTRATION, RATE_SIGN_IN, limiter
+from opencde.ratelimit import RATE_EXCHANGE, RATE_SIGN_IN, limiter, registration_limit
 from opencde.timeutil import later_iso
 from opencde.ui.i18n import tr
 from opencde.ui.templating import origin_of, render
@@ -401,7 +401,7 @@ class RegistrationRequest(BaseModel):
 
 
 @router.post("/reg", summary="Dynamic client registration (Foundation API 2.2.3)", status_code=201)
-@limiter.limit(RATE_REGISTRATION)
+@limiter.limit(registration_limit)
 async def register_client(
     request: Request, body: RegistrationRequest, clients: ClientsDep, settings: SettingsDep, graph: GraphDep
 ) -> Response:

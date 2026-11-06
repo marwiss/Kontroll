@@ -57,6 +57,17 @@ käyttäjät ja OAuth2-asiakkaat, joita sovelluksesi tarvitsevat.
   capability-oikeuksilla; tallennustila on nimetty taltio.
 - `OPENCDE_TRUSTED_PROXIES` kattaa compose-verkon, jotta tapahtumalokin
   asiakasosoite on oikea; jätä se ennalleen, ellet muuta verkkoa.
+- Hallinnan voi rajata sisäisiin osoitteisiin. Lisää tämä `Caddyfile`-tiedoston sivustolohkoon ja mukauta osoitteet; `/admin/api` kuuluu mukaan, joten Dataspatiumin hallinta toimii vain niistä osoitteista:
+
+  ```caddyfile
+  @admin_outside {
+  	path /admin /admin/*
+  	not remote_ip 10.0.0.0/8 192.168.0.0/16
+  }
+  respond @admin_outside 404
+  ```
+
+- API sallii 600 pyyntöä minuutissa osoitetta kohden. Kaikki saman osoitteen takana jakavat ne, joten nosta rajaa suurelle toimistolle, esimerkiksi `OPENCDE_RATE_LIMIT_API=3000/minute`.
 - Pidä `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false`, ellet tarvitse
   itsepalveluna tapahtuvaa asiakasrekisteröintiä (Foundation API 2.2.3);
   rekisteröi asiakkaat `/admin`-sivulla.

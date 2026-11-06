@@ -22,6 +22,7 @@ Hver kontroll har minst én automatisert test. "Suite" navngir testmodulen.
 | Signerte, utløpende, formålsbundne skjematokens; manipulering avvises | CSRF | `test_security_oauth2::test_tampered_or_replayed_form_token_is_refused`, `test_auth_primitives` |
 | Innlogging hastighetsbegrenset per adresse | OWASP ASVS 2.2.1 | `test_security_oauth2::test_sign_in_is_rate_limited` |
 | Mislykkede innlogginger får et brukernavn til å vente: etter fem på rad en ventetid som dobles fra 30 sekunder opp til 15 minutter, i tillegg til grensen per adresse. Ukjente navn teller på samme måte, så svaret sier ingenting om hvilke kontoer som finnes, og navn lagres som hashverdier | OWASP ASVS 6.3 | `test_sign_in_throttle` |
+| En grense per adresse på hver forespørsel (600 i minuttet, `OPENCDE_RATE_LIMIT_API`), snevrere på administrasjonen (240 i minuttet); helsesjekker og statiske filer er unntatt; et delt lager som feiler, stopper ingenting | OWASP API4 | `test_rate_limits` |
 | Generisk feilmelding; deaktiverte kontoer kan ikke logge inn og mister tokenene sine | OWASP ASVS 2.2 | `test_security_oauth2::test_disabled_user_cannot_sign_in_and_loses_tokens` |
 | Passord, koder og tokens opptrer aldri i logger | OWASP ASVS 7.1 | `test_security_oauth2::test_passwords_and_codes_never_reach_the_logs`, `test_logging` |
 | Argon2id-hashing av passord; policy (lengde, zxcvbn, ikke brukernavnet) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |

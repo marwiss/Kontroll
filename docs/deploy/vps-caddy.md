@@ -56,6 +56,17 @@ OAuth2 clients your applications need.
   named volume.
 - `OPENCDE_TRUSTED_PROXIES` covers the compose network so the client address in
   the audit log is the real one; leave it unless you change the network.
+- The administration can be kept to internal addresses. Add this to the site block in `Caddyfile` and adapt the addresses; `/admin/api` goes with it, so Dataspatium's administration works only from those addresses:
+
+  ```caddyfile
+  @admin_outside {
+  	path /admin /admin/*
+  	not remote_ip 10.0.0.0/8 192.168.0.0/16
+  }
+  respond @admin_outside 404
+  ```
+
+- The API allows 600 requests a minute per address. Everyone behind one address shares them, so raise the limit for a large office, for example `OPENCDE_RATE_LIMIT_API=3000/minute`.
 - Keep `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` unless you need self-service
   client registration (Foundation API 2.2.3); register clients in `/admin`.
 - Rotate the secret key and database password per your policy
