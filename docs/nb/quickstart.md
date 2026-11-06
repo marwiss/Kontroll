@@ -190,7 +190,7 @@ Hver rad siterer skjermen slik den ser ut med de norske navnene.
 | *Du er ikke medlem i noe prosjekt på serveren.* | Du logget inn som `admin`, som ikke er med i noe prosjekt | Trykk *Logg ut* og deretter *Logg inn* som `inspection_manager` |
 | *Logg inn* fortsetter å spinne | Vinduet ble lukket før innloggingen var ferdig | Last siden på nytt |
 | Vinduet sier *Kopiera adressen … / Copy the address …* | Det kunne ikke nå appens vindu, som kanskje ble lukket eller lastet på nytt imens | Lukk vinduet, og trykk *Logg inn* igjen |
-| *En annen konto* på opplastingssiden | Nettleseren er logget inn på serveren som `admin`, som ikke startet opplastingen | Trykk *Logg ut* på den siden, og lukk vinduet. Last appen på nytt, fordi *Send* ellers forblir opptatt, trykk *Logg inn* i kildens visning, velg modellen i venstre kolonne i *Del*, og send igjen |
+| *En annen konto* på opplastingssiden | Nettleseren er logget inn på serveren som `admin`, som ikke startet opplastingen | Trykk *Logg ut* på den siden, og logg inn som `inspection_manager`; opplastingen fortsetter så i samme vindu |
 
 ## Start på nytt
 

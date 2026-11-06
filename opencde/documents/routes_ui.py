@@ -78,12 +78,19 @@ PAGE_PATHS = (
 
 
 def _message(
-    request: Request, web_user: WebUser | None, title: str, message: str, *, status_code: int, hint: str = ""
+    request: Request,
+    web_user: WebUser | None,
+    title: str,
+    message: str,
+    *,
+    status_code: int,
+    hint: str = "",
+    signout_next: str | None = None,
 ) -> Response:
     return render(
         request,
         "web/message.html",
-        page_context(request, web_user, title=title, message=message, hint=hint),
+        page_context(request, web_user, title=title, message=message, hint=hint, signout_next=signout_next),
         status_code=status_code,
     )
 
@@ -107,6 +114,7 @@ def _wrong_user(request: Request, web_user: WebUser | None) -> Response:
         tr(request, "docs.message.other_account_text"),
         status_code=403,
         hint=tr(request, "docs.message.other_account_hint"),
+        signout_next=request.url.path,  # signing in as the right user continues the flow in this window
     )
 
 

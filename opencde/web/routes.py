@@ -10,6 +10,7 @@ user name or password is wrong.
 from __future__ import annotations
 
 from typing import Annotated
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import RedirectResponse, Response
@@ -97,9 +98,12 @@ async def signout(
     web_user: WebUserDep,
     graph: GraphDep,
     signout_token: Annotated[str | None, Form()] = None,
+    next_page: Annotated[str | None, Form(alias="next")] = None,
 ) -> Response:
     require_same_origin(request)
-    response = RedirectResponse("/", status_code=302, headers=NO_STORE)
+    target = safe_next(next_page)
+    after = "/" if target == "/" else f"/signin?{urlencode({'next': target})}"
+    response = RedirectResponse(after, status_code=302, headers=NO_STORE)
     if web_user is not None:
         try:
             form_tokens(request).load(signout_token, SIGNOUT_PURPOSE)

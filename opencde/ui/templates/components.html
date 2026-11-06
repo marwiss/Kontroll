@@ -22,12 +22,13 @@
         {% if formnovalidate %}formnovalidate{% endif %}>{{ text }}</button>
 {% endmacro %}
 
-{% macro user_nav(web_user, signout_token) %}
+{% macro user_nav(web_user, signout_token, signout_next=None) %}
 <nav class="nav" aria-label="{{ t('nav.account') }}">
   {% if web_user %}
   <span class="nav__user">{{ t("layout.signed_in_as") }} <strong>{{ web_user.user.username }}</strong></span>
   <form method="post" action="/signout" class="nav__form">
     <input type="hidden" name="signout_token" value="{{ signout_token }}">
+    {% if signout_next %}<input type="hidden" name="next" value="{{ signout_next }}">{% endif %}
     <button class="btn btn--secondary btn--small" type="submit">{{ t("opencde.signout") }}</button>
   </form>
   {% else %}
