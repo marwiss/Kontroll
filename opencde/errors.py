@@ -111,7 +111,7 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(StarletteHTTPException)
     async def _http_exception(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
         detail = exc.detail if isinstance(exc.detail, str) else "Request failed"
-        headers = dict(exc.headers) if isinstance(exc, HTTPException) and exc.headers else None
+        headers = dict(exc.headers) if exc.headers else None  # the Allow of a 405 comes from Starlette itself
         return error_response(exc.status_code, detail, headers, code=getattr(exc, "code", None))
 
     @app.exception_handler(RequestValidationError)

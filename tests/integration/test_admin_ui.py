@@ -15,6 +15,8 @@ from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import authorize, exchange
 from tests.integration.test_web_signin import form_token, web_sign_in
 
+INLINE_SCRIPT = re.compile(r"<script(?![^>]*\bsrc=)")  # the pages load files from their own origin, nothing inline
+
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
 SECRET = re.compile(r'id="secret-value">([^<]+)<')
@@ -69,7 +71,7 @@ def test_admin_pages_need_the_admin_role(client: TestClient, world: World) -> No
         if path.endswith(".csv"):
             continue
         assert response.headers["content-security-policy"].startswith("default-src 'none'")
-        assert "<script" not in response.text.replace('<script type="module" src="/static/js/admin.js"></script>', "")
+        assert not INLINE_SCRIPT.search(response.text)
         assert ' style="' not in response.text and "onclick" not in response.text
     assert client.get("/static/js/admin.js").status_code == 200
 

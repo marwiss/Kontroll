@@ -13,6 +13,7 @@ from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from opencde.auth.tokens import Principal, TokenRepository
 from opencde.deps import GraphDep, SettingsDep
@@ -22,6 +23,14 @@ from opencde.settings import Settings
 from opencde.timeutil import later_iso
 
 BEARER_CHALLENGE = {"WWW-Authenticate": 'Bearer realm="opencde"'}
+
+# Declares the scheme in the OpenAPI document, so that every operation behind ``current_principal`` says it
+# needs a token and the interactive documentation offers to enter one. Refusals stay in ``current_principal``.
+BEARER_SCHEME = HTTPBearer(
+    auto_error=False,
+    scheme_name="bearer",
+    description="An access token from the OAuth2 flow of the Foundation API.",
+)
 
 
 def token_repository(graph: Graph, settings: Settings) -> TokenRepository:
@@ -48,7 +57,11 @@ def _bearer(request: Request) -> str | None:
     return value.strip()
 
 
-async def current_principal(request: Request, tokens: TokensDep) -> Principal:
+async def current_principal(
+    request: Request,
+    tokens: TokensDep,
+    _declared: Annotated[HTTPAuthorizationCredentials | None, Depends(BEARER_SCHEME)],
+) -> Principal:
     token = _bearer(request)
     if token is None:
         raise ApiError(401, "Authentication required", code=CODE_UNAUTHENTICATED, headers=BEARER_CHALLENGE)
