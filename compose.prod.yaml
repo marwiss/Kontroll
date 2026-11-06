@@ -48,10 +48,11 @@ services:
     depends_on:
       graph:
         condition: service_healthy
+        required: false  # compose.external-db.yaml leaves the container out
     env_file:
       - .env
     environment:
-      OPENCDE_GRAPH_URI: bolt://graph:7687
+      OPENCDE_GRAPH_URI: "${OPENCDE_STACK_GRAPH_URI:-bolt://graph:7687}"
       OPENCDE_DATA_DIR: /data
     volumes:
       - api-data:/data:ro

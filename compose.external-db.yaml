@@ -1,0 +1,16 @@
+# A database you already have instead of the one in the stack: AuraDB, Memgraph Cloud
+# or a server of your own. Say where it is in .env, and the database container stays out:
+#
+#   OPENCDE_STACK_GRAPH_URI=neo4j+s://xxxx.databases.neo4j.io
+#   OPENCDE_GRAPH_USER=neo4j
+#   OPENCDE_GRAPH_PASSWORD=<from the provider>
+#
+#   docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+#
+# The API and the backup sidecar read OPENCDE_STACK_GRAPH_URI and wait for the database
+# container only if it is there. Nothing starts this profile, so its volumes stay empty.
+# See docs/deploy/cloud-aura.md.
+
+services:
+  graph:
+    profiles: ["bundled-database"]

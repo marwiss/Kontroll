@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- `compose.external-db.yaml` runs the stack against a database elsewhere, with its address in
+  `OPENCDE_STACK_GRAPH_URI`, and leaves the database container out.
 - A generated or reset password has to be changed before anything else works, as the
   documentation said. It only led to the account page once, and a client could get tokens with it
   for as long as it liked. A sign-in through OAuth2 now goes through the change and on to the client.

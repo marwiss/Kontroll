@@ -45,3 +45,21 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 Hliðargámurinn `backup` í `compose.prod.yaml` gildir ekki hér. Tímasettu
 `opencde backup /data/backups` (cron-verk eða tímasett verk á vettvanginum)
 og afritaðu möppuna í hlutageymslu; Aura hefur líka sínar eigin skyndimyndir.
+
+## Eigin þjónn með gagnagrunninn annars staðar
+
+Ef þú keyrir restina af staflanum sjálfur, eins og á [eigin þjóni](vps-caddy.md), og aðeins
+gagnagrunninn annars staðar, tilgreindu hvar hann er í `.env` og slepptu gagnagrunnsgámnum:
+
+```
+OPENCDE_STACK_GRAPH_URI=neo4j+s://xxxx.databases.neo4j.io
+OPENCDE_GRAPH_USER=neo4j
+OPENCDE_GRAPH_PASSWORD=<frá Aura>
+```
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+```
+
+API og öryggisafritunin nota þá þann gagnagrunn. Fyrir Memgraph skaltu einnig stilla
+`OPENCDE_GRAPH_DIALECT=memgraph`.

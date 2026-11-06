@@ -45,3 +45,21 @@ Sidevognen `backup` i `compose.prod.yaml` gjelder ikke her. Planlegg
 `opencde backup /data/backups` (en cron-jobb eller en planlagt oppgave på
 plattformen) og kopier mappen til objektlagring; Aura har også sine egne
 snapshots.
+
+## Egen server med databasen et annet sted
+
+Hvis du selv kjører resten av stakken, som på [en egen server](vps-caddy.md), og bare databasen
+et annet sted, oppgi hvor den er i `.env`, og la databasecontaineren stå utenfor:
+
+```
+OPENCDE_STACK_GRAPH_URI=neo4j+s://xxxx.databases.neo4j.io
+OPENCDE_GRAPH_USER=neo4j
+OPENCDE_GRAPH_PASSWORD=<fra Aura>
+```
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+```
+
+API-et og sikkerhetskopieringen bruker da den databasen. For Memgraph, sett også
+`OPENCDE_GRAPH_DIALECT=memgraph`.
