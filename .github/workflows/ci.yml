@@ -74,7 +74,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --group ui
-      - run: uv run playwright install --with-deps chromium
+      - run: uv run playwright install --with-deps chromium firefox
       - run: uv run pytest -q -m ui
 
   security:

@@ -59,9 +59,10 @@ the commit history.
   overlay, `opencde init --dev` and the documentation. A redirect to `127.0.0.1` needs
   no setting, so the quick start has one line less to change in `.env`. `localhost`
   keeps working as an address, and `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` still exists.
-- The server's pages remove a service worker that another app left on the same
-  address, and fetch the page again once. Such a worker answers with old copies of
-  the pages, so that the sign-in fails with an expired form.
+- The server removes a service worker that another app left on the same address, by answering
+  the browser's check for its script with one that removes it, empties its caches and reloads
+  the windows. Such a worker answers with old copies of the pages, so that the sign-in fails
+  with an expired form. It works while a saved page is showing, and needs nothing in the pages.
 - The quick start covers everything it takes to sign in to Kontroll from
   Dataspatium: what you need, exactly which lines of `.env` to change and why, the
   words on the screen in each language, and a troubleshooting table that quotes each
