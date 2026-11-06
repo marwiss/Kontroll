@@ -45,3 +45,21 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 The `backup` sidecar of `compose.prod.yaml` does not apply here. Schedule
 `opencde backup /data/backups` (a cron job or a scheduled task on the platform)
 and copy the folder to object storage; Aura has its own snapshots as well.
+
+## Your own server with a database elsewhere
+
+If you run the rest of the stack yourself, as in [your own server](vps-caddy.md), and only the
+database elsewhere, say where it is in `.env` and leave the database container out:
+
+```
+OPENCDE_STACK_GRAPH_URI=neo4j+s://xxxx.databases.neo4j.io
+OPENCDE_GRAPH_USER=neo4j
+OPENCDE_GRAPH_PASSWORD=<from Aura>
+```
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+```
+
+The API and the backup sidecar then use that database. For Memgraph, also set
+`OPENCDE_GRAPH_DIALECT=memgraph`.

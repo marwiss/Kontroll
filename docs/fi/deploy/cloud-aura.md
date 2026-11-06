@@ -46,3 +46,21 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 `opencde backup /data/backups` (cron-työ tai alustan ajastettu tehtävä) ja
 kopioi kansio objektitallennukseen; Auralla on lisäksi omat
 tilannevedoksensa.
+
+## Oma palvelin ja tietokanta muualla
+
+Jos ajat muun pinon itse, kuten [omalla palvelimella](vps-caddy.md), ja vain tietokanta on
+muualla, kerro tiedostossa `.env`, missä se on, ja jätä tietokantakontti pois:
+
+```
+OPENCDE_STACK_GRAPH_URI=neo4j+s://xxxx.databases.neo4j.io
+OPENCDE_GRAPH_USER=neo4j
+OPENCDE_GRAPH_PASSWORD=<Aurasta>
+```
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+```
+
+API ja varmuuskopiointi käyttävät silloin tätä tietokantaa. Memgraphille aseta myös
+`OPENCDE_GRAPH_DIALECT=memgraph`.
