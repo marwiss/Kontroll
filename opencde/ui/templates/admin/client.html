@@ -5,6 +5,7 @@
   <h1>{{ client.name }}</h1>
   <div class="cluster">
     <span class="badge badge--neutral">{% if client.is_public %}{{ t("admin.clients.public") }}{% else %}{{ t("admin.clients.confidential") }}{% endif %}</span>
+    {% if client.pkce_optional %}<span class="badge badge--warning">{{ t("admin.client.without_pkce_badge") }}</span>{% endif %}
     {% if client.pending %}<span class="badge badge--warning">{{ t("admin.clients.pending") }}</span>
     {% elif client.disabled %}<span class="badge badge--danger">{{ t("common.disabled") }}</span>{% endif %}
   </div>
@@ -33,9 +34,10 @@
       <dt>{{ t("common.created") }}</dt><dd>{{ when(client.created_at) }}</dd>
     </dl>
     {{ field("name", t("common.name"), value=client.name, required=true, maxlength=200) }}
-    {{ field("description", t("common.description"), value=client.description or "", maxlength=1000) }}
+    {{ field("description", t("common.description"), value=client.description or "", maxlength=4000) }}
     {{ field("url", t("admin.client.website"), type="url", value=client.url or "", maxlength=2000) }}
     {{ textarea_field("redirect_uris", t("common.redirect_uris"), value=client.redirect_uris|join("\n"), rows=3, hint=t("admin.client.redirect_hint")) }}
+    {% if client.is_confidential %}{{ checkbox("pkce_optional", t("admin.client.without_pkce_label"), checked=client.pkce_optional, hint=t("admin.client.without_pkce_hint")) }}{% endif %}
     {{ checkbox("disabled", t("admin.client.disabled_label"), checked=client.disabled) }}
     <div class="cluster">{{ button(t("common.save")) }}</div>
   </form>

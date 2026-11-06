@@ -558,6 +558,10 @@ def client_create(
         bool, typer.Option("--public", help="Public client (native or browser app): PKCE, no secret.")
     ] = False,
     description: Annotated[str | None, typer.Option()] = None,
+    without_pkce: Annotated[
+        bool,
+        typer.Option("--without-pkce", help="Confidential client that cannot use PKCE, such as BCF API 2.1 clients."),
+    ] = False,
 ) -> None:
     """Register an OAuth2 client. A confidential client's secret is shown once."""
     from opencde.auth.clients import ClientError, ClientRepository
@@ -565,7 +569,9 @@ def client_create(
     async def work(graph, settings):
         repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
         try:
-            return await repo.create(name, redirect_uri, public=public, description=description)
+            return await repo.create(
+                name, redirect_uri, public=public, description=description, pkce_optional=without_pkce
+            )
         except ClientError as exc:
             raise _fail(str(exc)) from None
 

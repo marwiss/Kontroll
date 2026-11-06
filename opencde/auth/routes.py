@@ -2,7 +2,8 @@
 """OAuth2 endpoints of the Foundation API (2.2).
 
 * ``GET  /foundation/oauth2/auth``   the authorization endpoint: shows the
-  sign-in and consent page (RFC 6749 §4.1.1, PKCE required).
+  sign-in and consent page (RFC 6749 §4.1.1, PKCE required unless the client is
+  marked otherwise).
 * ``POST /foundation/oauth2/auth``   the page's form: authenticates the user,
   issues a one-time code and redirects back to the client (§4.1.2).
 * ``POST /foundation/oauth2/token``  exchanges a code or a refresh token
@@ -12,7 +13,8 @@
   API 2.2.3) when enabled.
 
 Security rules follow RFC 9700: exact redirect URI matching with the RFC 8252
-loopback exception, PKCE ``S256`` for every client, ``state`` required, the
+loopback exception, PKCE ``S256`` for every client but a confidential one an
+administrator has marked ``pkce_optional``, ``state`` required, the
 ``iss`` parameter in responses (RFC 9207), no open redirects (errors about
 the client or its redirect URI are shown here, never redirected), and token
 responses that are never cached.
@@ -31,7 +33,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opencde import audit
 from opencde.auth import pkce, throttle
-from opencde.auth.clients import LOCALHOST_REFUSED, Client, ClientError, redirect_uri_matches, validate_redirect_uri
+from opencde.auth.clients import (
+    LOCALHOST_REFUSED,
+    MAX_DESCRIPTION,
+    Client,
+    ClientError,
+    redirect_uri_matches,
+    validate_redirect_uri,
+)
 from opencde.auth.dependencies import BEARER_CHALLENGE, TokensDep, bearer_token
 from opencde.auth.forms import FormTokenError, FormTokens
 from opencde.auth.scopes import SCOPES, ScopeError, parse_scope, scope_string
@@ -144,7 +153,10 @@ async def authorize_page(
         return _error_redirect(
             redirect_to, "invalid_request", "state is required (and at most 512 characters)", None, issuer
         )
-    if not pkce.is_valid_challenge(code_challenge) or (code_challenge_method or pkce.METHOD) != pkce.METHOD:
+    without_pkce = client.pkce_optional and not code_challenge and not code_challenge_method
+    if not without_pkce and (
+        not pkce.is_valid_challenge(code_challenge) or (code_challenge_method or pkce.METHOD) != pkce.METHOD
+    ):
         return _error_redirect(
             redirect_to, "invalid_request", "PKCE with code_challenge_method=S256 is required", state, issuer
         )
@@ -158,6 +170,7 @@ async def authorize_page(
         {
             "client_id": client.client_id,
             "redirect_uri": redirect_to,
+            "redirect_given": bool(redirect_uri or redirect_url),
             "state": state,
             "scope": scope_string(scopes),
             "code_challenge": code_challenge,
@@ -242,8 +255,11 @@ async def authorize_submit(
         # The password has just been proved, so changing it needs no second sign-in. The flow then starts over at
         # the authorization page, with what the client asked for, and the client notices nothing.
         session = await sessions.create(user.id, ip)
-        again = {name: data[name] for name in ("client_id", "redirect_uri", "state", "scope", "code_challenge")}
-        again |= {"response_type": "code", "code_challenge_method": "S256"}
+        again = {name: data[name] for name in ("client_id", "state", "scope")} | {"response_type": "code"}
+        if data.get("redirect_given"):
+            again["redirect_uri"] = redirect_to
+        if data["code_challenge"]:
+            again |= {"code_challenge": data["code_challenge"], "code_challenge_method": pkce.METHOD}
         target = safe_next(f"{request.url.path}?{urlencode(again)}")
         response = RedirectResponse(change_password_url(target), status_code=303, headers=NO_STORE)
         set_session_cookie(response, session, settings)
@@ -256,10 +272,16 @@ async def authorize_submit(
         redirect_uri=redirect_to,
         scope=data["scope"],
         code_challenge=data["code_challenge"],
+        redirect_required=bool(data.get("redirect_given")) and not data["code_challenge"],
     )
     await users.touch_sign_in(user.id)
     await audit.record(
-        graph, "auth.code.issued", actor=user.id, client_id=client.client_id, ip=ip, details={"scope": data["scope"]}
+        graph,
+        "auth.code.issued",
+        actor=user.id,
+        client_id=client.client_id,
+        ip=ip,
+        details={"scope": data["scope"], "pkce": bool(data["code_challenge"])},
     )
     return _redirect_with(redirect_to, {"code": code, "state": state, "iss": issuer})
 
@@ -325,15 +347,14 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
     try:
         if grant_type == "authorization_code":
             code = params.get("code", "")
-            verifier = params.get("code_verifier", "")
-            if not code or not verifier:
-                raise GrantError("invalid_request", "code and code_verifier are required")
+            if not code:
+                raise GrantError("invalid_request", "code is required")
             redirect_uri = params.get("redirect_uri") or params.get("redirect_url")
             pair = await tokens.redeem_code(
                 code=code,
                 client_id=client.client_id,
                 redirect_uri=redirect_uri,
-                code_verifier=verifier,
+                code_verifier=params.get("code_verifier") or None,
             )
             await audit.record(
                 graph, "auth.token.issued", client_id=client.client_id, ip=ip, details={"grant": grant_type}
@@ -415,7 +436,7 @@ class RegistrationRequest(BaseModel):
     """Client metadata of Foundation API 2.2.3, plus the RFC 7591 §2 fields that choose a public client."""
 
     client_name: str = Field(min_length=1, max_length=200)
-    client_description: str | None = Field(None, max_length=1000)
+    client_description: str | None = Field(None, max_length=MAX_DESCRIPTION)
     client_url: str | None = Field(None, max_length=2000)
     redirect_url: str | None = Field(None, max_length=2000)
     redirect_uris: list[str] | None = Field(None, max_length=10)
@@ -435,6 +456,19 @@ async def register_client(
     """Register a client and return its metadata (RFC 7591 §3.2.1): ``client_id`` and, for a confidential
     client, the ``client_secret`` shown once. ``token_endpoint_auth_method: "none"`` registers a public client
     without a secret. Available only when ``OPENCDE_DYNAMIC_CLIENT_REGISTRATION`` is true."""
+    return await registered(request, body, clients, settings, graph)
+
+
+async def registered(
+    request: Request,
+    body: RegistrationRequest,
+    clients: Any,
+    settings: Any,
+    graph: Any,
+    *,
+    without_pkce: bool = False,
+) -> Response:
+    """The registration itself. ``without_pkce`` lets a confidential client that registers sign in without PKCE."""
     if not settings.dynamic_client_registration:
         raise HTTPException(404, "Dynamic client registration is not enabled on this server")
     required = settings.dynamic_client_registration_token.get_secret_value()
@@ -465,6 +499,7 @@ async def register_client(
             software_id=body.software_id,
             software_version=body.software_version,
             pending=settings.dynamic_client_approval,
+            pkce_optional=without_pkce and not public,
         )
     except ClientError as exc:
         code = CODE_LOCALHOST_REDIRECT if exc.key == LOCALHOST_REFUSED else CODE_VALIDATION

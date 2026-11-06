@@ -35,7 +35,7 @@ from opencde.accounts.users import AccountError, User
 from opencde.admin import queries
 from opencde.admin.doctor import run_checks
 from opencde.admin.routes_overview import SAFE_SETTINGS
-from opencde.auth.clients import Client, ClientError
+from opencde.auth.clients import MAX_DESCRIPTION, Client, ClientError
 from opencde.auth.dependencies import AdminPrincipal, FreshAdminPrincipal, TokensDep, fresh_admin_principal
 from opencde.auth.tokens import Principal
 from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, StorageDep, UsersDep, client_ip
@@ -108,6 +108,7 @@ def _client(client: Client) -> dict[str, Any]:
         "last_used_at": client.last_used_at,
         "software_id": client.software_id,
         "software_version": client.software_version,
+        "pkce_optional": client.pkce_optional,
     }
 
 
@@ -631,16 +632,18 @@ class ClientCreate(BaseModel):
     name: str = Field(max_length=200)
     redirect_uris: list[str] = Field(max_length=10)
     public: bool = True
-    description: str | None = Field(None, max_length=1000)
+    description: str | None = Field(None, max_length=MAX_DESCRIPTION)
     url: str | None = Field(None, max_length=2000)
+    pkce_optional: bool = False
 
 
 class ClientUpdate(BaseModel):
     name: str | None = Field(None, max_length=200)
-    description: str | None = Field(None, max_length=1000)
+    description: str | None = Field(None, max_length=MAX_DESCRIPTION)
     url: str | None = Field(None, max_length=2000)
     redirect_uris: list[str] | None = Field(None, max_length=10)
     disabled: bool | None = None
+    pkce_optional: bool | None = None
 
 
 @router.post("/clients", status_code=201, summary="Administration (extension): register a client")
@@ -655,6 +658,7 @@ async def create_client(
             description=body.description,
             url=body.url,
             created_by=principal.user_id,
+            pkce_optional=body.pkce_optional,
         )
     except ClientError as exc:
         raise _bad_request(exc) from None
@@ -687,6 +691,7 @@ async def update_client(
             url=body.url,
             redirect_uris=body.redirect_uris,
             disabled=body.disabled,
+            pkce_optional=body.pkce_optional,
         )
     except ClientError as exc:
         raise _bad_request(exc) from None

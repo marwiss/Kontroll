@@ -19,7 +19,7 @@ from opencde.admin.access import (
     redirect_with_notice,
     text,
 )
-from opencde.auth.clients import Client, ClientError
+from opencde.auth.clients import MAX_DESCRIPTION, Client, ClientError
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import ClientsDep, GraphDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
@@ -87,9 +87,10 @@ async def client_create(request: Request, admin: AdminDep, clients: ClientsDep, 
             text(data, "name", max_length=200),
             lines(data, "redirect_uris", max_items=10, max_length=2000),
             public=public,
-            description=text(data, "description", max_length=1000) or None,
+            description=text(data, "description", max_length=MAX_DESCRIPTION) or None,
             url=text(data, "url", max_length=2000) or None,
             created_by=admin.user.id,
+            pkce_optional=flag(data, "pkce_optional"),
         )
     except ClientError as exc:
         return render(
@@ -138,10 +139,11 @@ async def client_action(
             await clients.update(
                 client.client_id,
                 name=text(data, "name", max_length=200) or None,
-                description=text(data, "description", max_length=1000),
+                description=text(data, "description", max_length=MAX_DESCRIPTION),
                 url=text(data, "url", max_length=2000),
                 redirect_uris=lines(data, "redirect_uris", max_items=10, max_length=2000),
                 disabled=disabled,
+                pkce_optional=flag(data, "pkce_optional"),
             )
             if disabled and not client.disabled:
                 await tokens.revoke_all_for_client(client.client_id)
