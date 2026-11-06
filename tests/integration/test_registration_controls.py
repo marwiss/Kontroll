@@ -8,6 +8,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
+from opencde import ratelimit
 from opencde.auth import pkce
 from opencde.main import create_app
 from opencde.settings import Settings
@@ -80,6 +81,15 @@ def test_the_capabilities_say_what_it_takes_to_register(with_token: TestClient, 
     found = with_token.get("/.well-known/kontroll").json()["extensions"]["dynamic_client_registration"]
     assert found["initial_access_token"] is True and found["approval"] is False
     assert "an-invitation-to-register" not in str(found), "the value itself is a secret"
+
+
+def test_the_registration_limit_follows_the_environment(
+    settings: Settings, world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(ratelimit, "RATE_REGISTRATION_DEVELOPMENT", "2/hour")
+    with _client_for(settings, dynamic_client_registration=True, rate_limits_enabled=True) as client:
+        statuses = [client.post("/foundation/oauth2/reg", json=BODY).status_code for _ in range(3)]
+    assert statuses == [201, 201, 429]
 
 
 def test_a_client_waits_for_approval_and_then_works(with_approval: TestClient, world: World) -> None:

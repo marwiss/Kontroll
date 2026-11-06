@@ -179,7 +179,7 @@ Hver rad siterer skjermen slik den ser ut med de norske navnene.
 | *Kunne ikke nå 127.0.0.1:8000 …* | Kontroll kjører ikke, eller adressen er feilskrevet | <http://127.0.0.1:8000/readyz> må svare. Adressen er `http://127.0.0.1:8000` uten noe etter |
 | *Serveren tillater ikke at appen registrerer seg selv …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` er ikke `true` | Endre `.env`, kjør `up`-kommandoen igjen, og trykk *Legg til kilde* igjen |
 | *Registreringen mislyktes:* … `http redirect URIs are only allowed for the loopback address` | Appen ble åpnet på `localhost`, som serveren ikke godtar som vei tilbake | Åpne `http://127.0.0.1:8080/`, og legg til kilden der |
-| *Registreringen mislyktes:* … `rate_limited` | Flere enn fem registreringer innen en time; hver *Legg til kilde* med tom *Klient-id* er én | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nullstiller telleren |
+| *Registreringen mislyktes:* … `rate_limited` | Flere enn 60 registreringer innen en time; hver *Legg til kilde* med tom *Klient-id* er én | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nullstiller telleren |
 | *Internettilgang for … er ikke tillatt.* | Det ble trykket *Avslå* | Tillat det under *Håndter*, *Arbeidsområde*, *Internettilgang*, og prøv igjen |
 | *Nettleseren blokkerte innloggingsvinduet …* | Nettleserens blokkering av popup-vinduer | Tillat popup-vinduer for `http://127.0.0.1:8080`, og trykk *Logg inn* igjen |
 | I popup-vinduet: *Kan ikke fortsette* og *Ukjent klient.* | Serveren har glemt appens registrering, som regel etter `down -v` | Lukk vinduet, og last appen på nytt, fordi *Logg inn* ellers spinner i fem minutter. Slett kilden med krysset ved siden av den under *Tillagte kilder*, og legg den til igjen |

@@ -37,6 +37,7 @@ dependencies = [
     "pwdlib[argon2]>=0.3.1",
     "zxcvbn>=4.5",
     "slowapi>=0.1.10",
+    "limits>=5.0",  # comes with slowapi; used directly for the limit on every request
     "odata-query>=0.10",
     "httpx>=0.28",
 ]
@@ -44,6 +45,8 @@ dependencies = [
 [project.optional-dependencies]
 # IFC-graph import (stage 9). Pulls in IfcOpenShell, which is large; off by default.
 ifcgraph = ["ifcopenshell>=0.9.0"]
+# A shared store for the rate limits when several server processes run (ADR 0007).
+redis = ["redis>=5.0"]
 
 [project.scripts]
 opencde = "opencde.cli:app"
@@ -60,6 +63,7 @@ dev = [
     "pytest-asyncio>=1.3",
     "anyio>=4.11",
     "testcontainers>=4.15",
+    "redis>=5.0",  # the shared store for the rate limits, tested against a real one
     "jsonschema>=4.26",
     "openapi-core>=0.23",
     "openapi-spec-validator>=0.8",

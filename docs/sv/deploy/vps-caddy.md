@@ -57,6 +57,17 @@ användare och OAuth2-klienter som dina program behöver.
   lagringen är en namngiven volym.
 - `OPENCDE_TRUSTED_PROXIES` täcker compose-nätet så att klientadressen i
   revisionsloggen är den riktiga; låt den vara om du inte ändrar nätet.
+- Administrationen kan hållas till interna adresser. Lägg till det här i webbplatsblocket i `Caddyfile` och anpassa adresserna; `/admin/api` följer med, så Dataspatiums administration fungerar bara från de adresserna:
+
+  ```caddyfile
+  @admin_outside {
+  	path /admin /admin/*
+  	not remote_ip 10.0.0.0/8 192.168.0.0/16
+  }
+  respond @admin_outside 404
+  ```
+
+- API:et tillåter 600 anrop i minuten per adress. Alla bakom samma adress delar på dem, så höj gränsen för ett stort kontor, till exempel `OPENCDE_RATE_LIMIT_API=3000/minute`.
 - Behåll `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` om du inte behöver
   självbetjänad klientregistrering (Foundation API 2.2.3); registrera klienter
   i `/admin`.

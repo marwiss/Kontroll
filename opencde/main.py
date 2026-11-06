@@ -41,7 +41,7 @@ from opencde.middleware import (
     SecurityHeadersMiddleware,
     UnhandledErrorMiddleware,
 )
-from opencde.ratelimit import install_rate_limiting
+from opencde.ratelimit import PathRateLimitMiddleware, install_rate_limiting
 from opencde.requestlog import RequestLogMiddleware, RequestLogWriter
 from opencde.settings import Settings
 from opencde.ui.templating import STATIC_DIR, render
@@ -130,11 +130,17 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
 
     install_error_handlers(app)
     install_page_handlers(app)
-    install_rate_limiting(app, settings.rate_limits_enabled)
+    install_rate_limiting(
+        app,
+        settings.rate_limits_enabled,
+        production=settings.is_production,
+        storage_uri=settings.rate_limit_storage.get_secret_value(),
+    )
 
     # Middleware runs outermost-last: request id first, then size limit, CORS, ETag, headers on the way out.
     # Unhandled errors are turned into the spec 500 innermost, so CORS and the security headers still apply.
     app.add_middleware(UnhandledErrorMiddleware)
+    app.add_middleware(PathRateLimitMiddleware, api_limit=settings.rate_limit_api)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(ETagMiddleware)
     app.add_middleware(

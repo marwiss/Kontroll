@@ -19,11 +19,13 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Self
 
+from limits import parse
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SECRETS_DIR = Path("/run/secrets")
 
+RATE_LIMIT_STORES = ("memory://", "redis://", "rediss://")
 GRAPH_URI_SCHEMES = ("bolt://", "bolt+s://", "bolt+ssc://", "neo4j://", "neo4j+s://", "neo4j+ssc://")
 # A published Bolt address must be encrypted with a certificate clients can verify ("+ssc" trusts anything).
 SECURE_GRAPH_URI_SCHEMES = ("bolt+s://", "neo4j+s://")
@@ -79,6 +81,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         secrets_dir=str(SECRETS_DIR) if SECRETS_DIR.is_dir() else None,
         extra="ignore",
+        hide_input_in_errors=True,  # a refused value can be, or hold, a password
     )
 
     # --- deployment -------------------------------------------------------
@@ -203,6 +206,14 @@ class Settings(BaseSettings):
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",
     )
     rate_limits_enabled: bool = True
+    rate_limit_api: str = Field(
+        "600/minute",
+        description="Requests per address. Everyone behind one address shares them, so a large office may raise it.",
+    )
+    rate_limit_storage: SecretStr = Field(
+        SecretStr("memory://"),
+        description="Where the counts live. Several server processes share a store such as redis://host:6379/0.",
+    )
     sign_in_throttle_enabled: bool = Field(True, description="Make a user name wait after repeated failed sign-ins.")
     sign_in_free_attempts: int = Field(5, ge=1, description="Failures in a row before the wait begins.")
     sign_in_delay_seconds: int = Field(30, ge=1, description="The first wait; each further failure doubles it.")
@@ -233,6 +244,22 @@ class Settings(BaseSettings):
     # --- logging ----------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     log_json: bool = Field(True, description="JSON logs for production; set false for readable console logs.")
+
+    @field_validator("rate_limit_api")
+    @classmethod
+    def _check_rate_limit_api(cls, value: str) -> str:
+        try:
+            parse(value)
+        except ValueError:
+            raise ValueError('OPENCDE_RATE_LIMIT_API must read like "600/minute"') from None
+        return value
+
+    @field_validator("rate_limit_storage")
+    @classmethod
+    def _check_rate_limit_storage(cls, value: SecretStr) -> SecretStr:
+        if not value.get_secret_value().startswith(RATE_LIMIT_STORES):
+            raise ValueError(f"OPENCDE_RATE_LIMIT_STORAGE must use one of {', '.join(RATE_LIMIT_STORES)}")
+        return value
 
     @field_validator("public_url")
     @classmethod
