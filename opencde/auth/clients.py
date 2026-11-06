@@ -24,6 +24,9 @@ MAX_REDIRECTS = 10
 LOOPBACK_HOSTS = ("127.0.0.1", "[::1]")
 
 
+LOCALHOST_REFUSED = "error.redirect_uri.localhost"
+
+
 class ClientError(UserFacingError):
     """A client-management request that cannot be fulfilled; the message is safe to show, ``key`` names it."""
 
@@ -93,6 +96,12 @@ def validate_redirect_uri(uri: str, *, allow_localhost: bool = False) -> str:
         if not host:
             raise ClientError("redirect URI needs a host", key="error.redirect_uri.host")
     elif scheme == "http":
+        if host == "localhost" and not allow_localhost:
+            raise ClientError(
+                "Redirect URIs to http://localhost are not allowed here. Use http://127.0.0.1 instead, "
+                "or set OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true on the server",
+                key=LOCALHOST_REFUSED,
+            )
         loopback = host in ("127.0.0.1", "::1") or (allow_localhost and host == "localhost")
         if not loopback:
             raise ClientError(

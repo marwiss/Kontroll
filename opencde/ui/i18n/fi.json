@@ -335,6 +335,7 @@
   "error.redirect_uri.fragment": "Redirect-URI ei saa sisältää fragmenttia.",
   "error.redirect_uri.absolute": "Redirect-URIn on oltava absoluuttinen.",
   "error.redirect_uri.host": "Redirect-URI tarvitsee isännän.",
+  "error.redirect_uri.localhost": "Redirect-URIt osoitteeseen http://localhost eivät ole sallittuja täällä. Käytä sen sijaan osoitetta http://127.0.0.1 tai aseta palvelimelle OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true.",
   "error.redirect_uri.http_loopback": "http-redirect-URIt sallitaan vain loopback-osoitteelle (127.0.0.1 tai [::1]).",
   "error.redirect_uri.scheme": "Redirect-URI käyttää turvatonta skeemaa.",
   "error.redirect_uri.required": "Vähintään yksi redirect-URI vaaditaan.",

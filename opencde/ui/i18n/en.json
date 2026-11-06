@@ -335,6 +335,7 @@
   "error.redirect_uri.fragment": "The redirect URI must not contain a fragment.",
   "error.redirect_uri.absolute": "The redirect URI must be absolute.",
   "error.redirect_uri.host": "The redirect URI needs a host.",
+  "error.redirect_uri.localhost": "Redirect URIs to http://localhost are not allowed here. Use http://127.0.0.1 instead, or set OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true on the server.",
   "error.redirect_uri.http_loopback": "http redirect URIs are only allowed for the loopback address (127.0.0.1 or [::1]).",
   "error.redirect_uri.scheme": "The redirect URI uses an unsafe scheme.",
   "error.redirect_uri.required": "At least one redirect URI is required.",

@@ -180,7 +180,7 @@ Jokainen rivi lainaa näyttöä sellaisena kuin se on suomenkielisillä nimillä
 | *Sovellus voi rekisteröityä palvelimelle itse vain, kun se toimii web-palvelimelta …* | Sovellus avattiin kansiosta | Avaa `http://127.0.0.1:8080/` |
 | *Palveluun 127.0.0.1:8000 ei saatu yhteyttä …* | Kontroll ei ole käynnissä, tai osoite on kirjoitettu väärin | Osoitteen <http://127.0.0.1:8000/readyz> on vastattava. Osoite on `http://127.0.0.1:8000` ilman mitään perässä |
 | *Palvelin ei salli sovelluksen rekisteröidä itseään …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` ei ole `true` | Muuta tiedostoa `.env`, suorita `up`-komento uudelleen ja paina *Lisää lähde* uudelleen |
-| *Rekisteröinti epäonnistui:* … `http redirect URIs are only allowed for the loopback address` | Sovellus avattiin osoitteessa `localhost`, jota palvelin ei hyväksy paluureitiksi | Avaa `http://127.0.0.1:8080/` ja lisää lähde siellä |
+| *Rekisteröinti epäonnistui:* … `Redirect URIs to http://localhost are not allowed here` | Sovellus avattiin osoitteessa `localhost`, jota palvelin ei hyväksy paluureitiksi | Avaa `http://127.0.0.1:8080/` ja lisää lähde siellä |
 | *Rekisteröinti epäonnistui:* … `rate_limited` | Yli 60 rekisteröintiä tunnin sisällä; jokainen *Lisää lähde* tyhjällä kentällä *Asiakastunnus (client id)* on yksi | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nollaa laskurin |
 | *Internetyhteyttä tarkoitukseen … ei ole sallittu.* | Painettiin *Kiellä* | Salli se kohdassa *Hallitse*, *Työtila*, *Internetyhteys* ja yritä uudelleen |
 | *Selain esti kirjautumisikkunan …* | Selaimen ponnahdusikkunoiden esto | Salli ponnahdusikkunat osoitteelle `http://127.0.0.1:8080` ja paina *Kirjaudu* uudelleen |

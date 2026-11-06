@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- A registration that asks to come back to `http://localhost` is refused with its own code,
+  `localhost_redirect`, and a message that says what to do, so that a client can translate it.
 - The limit per address on the API, which the documentation described but no code applied,
   now holds at 600 requests a minute, with 240 on the administration. `OPENCDE_RATE_LIMIT_API`
   raises it for an office behind one address, and several server processes can share the counts

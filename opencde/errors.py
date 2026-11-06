@@ -35,6 +35,7 @@ log = get_logger(__name__)
 
 # Codes a client may act on, by status. Statuses outside this table (405, 415 from the framework) carry no code.
 CODE_VALIDATION = "validation_error"  # 400: body, query, OData or extension value not accepted
+CODE_LOCALHOST_REDIRECT = "localhost_redirect"  # 400: a client asked to come back to http://localhost
 CODE_UNAUTHENTICATED = "unauthenticated"  # 401: no bearer token at all
 CODE_INVALID_TOKEN = "invalid_token"  # 401: a label for a stale token, not a secret  # noqa: S105  # nosec B105
 CODE_INSUFFICIENT_SCOPE = "insufficient_scope"  # 403: token lacks the scope the route needs

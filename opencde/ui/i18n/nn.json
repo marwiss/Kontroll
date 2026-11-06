@@ -335,6 +335,7 @@
   "error.redirect_uri.fragment": "Redirect-URI-en kan ikkje innehalde eit fragment.",
   "error.redirect_uri.absolute": "Redirect-URI-en må vere absolutt.",
   "error.redirect_uri.host": "Redirect-URI-en treng ein vert.",
+  "error.redirect_uri.localhost": "Redirect-URI-ar til http://localhost er ikkje tillatne her. Bruk http://127.0.0.1 i staden, eller set OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true på tenaren.",
   "error.redirect_uri.http_loopback": "http-redirect-URI-ar er berre tillatne for loopback-adressa (127.0.0.1 eller [::1]).",
   "error.redirect_uri.scheme": "Redirect-URI-en bruker eit utrygt skjema.",
   "error.redirect_uri.required": "Minst éin redirect-URI krevst.",

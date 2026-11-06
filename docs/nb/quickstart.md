@@ -178,7 +178,7 @@ Hver rad siterer skjermen slik den ser ut med de norske navnene.
 | *Appen kan registrere seg selv hos serveren bare når den kjører fra en webserver …* | Appen ble åpnet fra mappen | Åpne `http://127.0.0.1:8080/` |
 | *Kunne ikke nå 127.0.0.1:8000 …* | Kontroll kjører ikke, eller adressen er feilskrevet | <http://127.0.0.1:8000/readyz> må svare. Adressen er `http://127.0.0.1:8000` uten noe etter |
 | *Serveren tillater ikke at appen registrerer seg selv …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` er ikke `true` | Endre `.env`, kjør `up`-kommandoen igjen, og trykk *Legg til kilde* igjen |
-| *Registreringen mislyktes:* … `http redirect URIs are only allowed for the loopback address` | Appen ble åpnet på `localhost`, som serveren ikke godtar som vei tilbake | Åpne `http://127.0.0.1:8080/`, og legg til kilden der |
+| *Registreringen mislyktes:* … `Redirect URIs to http://localhost are not allowed here` | Appen ble åpnet på `localhost`, som serveren ikke godtar som vei tilbake | Åpne `http://127.0.0.1:8080/`, og legg til kilden der |
 | *Registreringen mislyktes:* … `rate_limited` | Flere enn 60 registreringer innen en time; hver *Legg til kilde* med tom *Klient-id* er én | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nullstiller telleren |
 | *Internettilgang for … er ikke tillatt.* | Det ble trykket *Avslå* | Tillat det under *Håndter*, *Arbeidsområde*, *Internettilgang*, og prøv igjen |
 | *Nettleseren blokkerte innloggingsvinduet …* | Nettleserens blokkering av popup-vinduer | Tillat popup-vinduer for `http://127.0.0.1:8080`, og trykk *Logg inn* igjen |

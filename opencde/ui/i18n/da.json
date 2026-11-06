@@ -335,6 +335,7 @@
   "error.redirect_uri.fragment": "Redirect-URI'en må ikke indeholde et fragment.",
   "error.redirect_uri.absolute": "Redirect-URI'en skal være absolut.",
   "error.redirect_uri.host": "Redirect-URI'en skal have en vært.",
+  "error.redirect_uri.localhost": "Redirect-URI'er til http://localhost er ikke tilladt her. Brug http://127.0.0.1 i stedet, eller sæt OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true på serveren.",
   "error.redirect_uri.http_loopback": "http-redirect-URI'er er kun tilladt for loopback-adressen (127.0.0.1 eller [::1]).",
   "error.redirect_uri.scheme": "Redirect-URI'en bruger et usikkert skema.",
   "error.redirect_uri.required": "Mindst én redirect-URI er påkrævet.",

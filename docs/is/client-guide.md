@@ -193,6 +193,7 @@ brugðist við eða þýtt, meðan `message` er áfram ensk setning fyrir fólk:
 | `code` | Staða | Þegar | Hvað biðlari gerir |
 |---|---|---|---|
 | `validation_error` | 400 | Meginmálið eða fyrirspurnin stóðst ekki sannprófun, OData-segð gat ekki verið þýdd, gildi er ekki í extensions verkefnisins, `Content-Range` eða upphalsfyrirmæli eru röng, skyndimynd eða bitamynd er ekki PNG eða JPEG; `message` nefnir sviðið | Lagaðu beiðnina |
+| `localhost_redirect` | 400 | Skráning tilgreindi `http://localhost` sem redirect-URI, sem þessi þjónn leyfir ekki | Skráðu `http://127.0.0.1` í staðinn eða segðu rekstraraðilanum frá `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Enginn bearer-tóki | Skráðu þig inn |
 | `invalid_token` | 401 | Tókinn er óþekktur, útrunninn eða afturkallaður (`WWW-Authenticate: Bearer error="invalid_token"`) | Endurnýjaðu, skráðu þig svo inn aftur |
 | `insufficient_scope` | 403 | Tókann skortir heimildina sem leiðin þarf, svo sem `admin` | Veittu heimild aftur með þeirri heimild |

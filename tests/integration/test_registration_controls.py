@@ -83,6 +83,19 @@ def test_the_capabilities_say_what_it_takes_to_register(with_token: TestClient, 
     assert "an-invitation-to-register" not in str(found), "the value itself is a secret"
 
 
+def test_a_way_back_to_localhost_is_refused_with_its_own_code_and_advice(settings: Settings, world: World) -> None:
+    to_localhost = {**BODY, "redirect_uris": ["http://localhost:8080/callback"]}
+    with _client_for(settings, dynamic_client_registration=True) as client:
+        refused = client.post("/foundation/oauth2/reg", json=to_localhost)
+        assert refused.status_code == 400 and refused.json()["code"] == "localhost_redirect"
+        assert "http://127.0.0.1" in refused.json()["message"]
+        assert "OPENCDE_ALLOW_LOCALHOST_REDIRECTS" in refused.json()["message"]
+        other = client.post("/foundation/oauth2/reg", json={**BODY, "redirect_uris": ["http://example.test/cb"]})
+        assert other.status_code == 400 and other.json()["code"] == "validation_error"
+    with _client_for(settings, dynamic_client_registration=True, allow_localhost_redirects=True) as client:
+        assert client.post("/foundation/oauth2/reg", json=to_localhost).status_code == 201
+
+
 def test_the_registration_limit_follows_the_environment(
     settings: Settings, world: World, monkeypatch: pytest.MonkeyPatch
 ) -> None:
