@@ -15,4 +15,14 @@
     {% if admin_enabled %}<a class="btn btn--secondary" href="/admin">{{ t("admin.title") }}</a>{% endif %}
   </div>
 </section>
+{% set docs = "https://github.com/marwiss/Kontroll/blob/main/docs/" ~ ("" if lang == "en" else lang ~ "/") %}
+<section class="card">
+  <h2>{{ t("index.path.title") }}</h2>
+  <ol class="stack">
+    <li><a href="{{ docs }}quickstart.md">{{ t("index.path.try") }}</a>: {{ t("index.path.try_hint") }}</li>
+    <li><a href="{{ docs }}architecture.md">{{ t("index.path.understand") }}</a>: {{ t("index.path.understand_hint") }}</li>
+    <li><a href="{{ docs }}deploy/vps-caddy.md">{{ t("index.path.run") }}</a>: {{ t("index.path.run_hint") }}</li>
+    <li><a href="{{ docs }}client-guide.md">{{ t("index.path.build") }}</a>: {{ t("index.path.build_hint") }}</li>
+  </ol>
+</section>
 {% endblock %}

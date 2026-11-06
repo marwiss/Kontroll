@@ -203,4 +203,4 @@ def test_api_docs_have_their_own_policy_and_are_off_in_production(client: TestCl
     with TestClient(create_app(production_like, startup_wait_seconds=0)) as hardened:
         assert hardened.get("/docs").status_code == 404
         assert hardened.get("/openapi.json").status_code == 200
-        assert "/docs" not in hardened.get("/").text
+        assert 'href="/docs"' not in hardened.get("/").text

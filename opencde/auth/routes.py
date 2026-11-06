@@ -27,7 +27,7 @@ from urllib.parse import unquote, urlencode, urlsplit
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from opencde import audit
 from opencde.auth import pkce, throttle
@@ -400,6 +400,18 @@ AUTH_METHOD_NONE = "none"  # a public client: no secret, PKCE only
 
 
 class RegistrationRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "client_name": "A viewer",
+                    "redirect_uris": ["http://127.0.0.1:8093/callback"],
+                    "token_endpoint_auth_method": "none",
+                }
+            ]
+        }
+    )
+
     """Client metadata of Foundation API 2.2.3, plus the RFC 7591 §2 fields that choose a public client."""
 
     client_name: str = Field(min_length=1, max_length=200)

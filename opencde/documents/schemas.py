@@ -91,6 +91,17 @@ class DocumentMetadata(DocumentsModel):
 
 
 class SelectDocuments(DocumentsModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "callback": {"url": "http://127.0.0.1:8080/callback", "expires_in": 3600},
+                    "supported_file_extensions": [".ifc"],
+                }
+            ]
+        }
+    )
+
     callback: CallbackLink
     server_context: str | None = Field(None, max_length=MAX_ID)
     supported_file_extensions: list[str] | None = Field(None, max_length=50)
