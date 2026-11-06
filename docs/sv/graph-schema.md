@@ -142,6 +142,7 @@ erDiagram
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` tills filen sätts samman; städjobbet tar bort utgångna delar och deras filer |
 | `SelectionSession` | `id`, indexerad `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` håller `document_id:version_index`-par valda i webbläsaren |
 | `WebSession` | `id` (hash av kakan) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Webbläsarinloggning; `expires_at` är den absoluta livslängden |
+| `SignInThrottle` | `key` (hash av användarnamnet) | `failures`, `blocked_until`, `expires_at` | Misslyckade inloggningar per användarnamn; går ut ett dygn efter det senaste misslyckandet, och en lyckad inloggning tar bort den |
 
 ## IFC-graf (etapp 9)
 

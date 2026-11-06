@@ -75,6 +75,7 @@
   "signin.lead": "Använd ditt konto på den här servern.",
   "signin.error.credentials": "Användarnamnet eller lösenordet är inte korrekt.",
   "signin.error.expired": "Formuläret har gått ut. Försök igen.",
+  "signin.error.throttled": "För många misslyckade försök för det här användarnamnet. Försök igen om {seconds} sekunder.",
   "signout.error.title": "Kan inte logga ut",
   "signout.error.expired": "Formuläret har gått ut. Ladda om sidan.",
   "consent.asks": "ber om att få agera för din räkning på den här servern.",

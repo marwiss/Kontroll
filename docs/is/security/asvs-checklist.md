@@ -27,7 +27,7 @@ ekki við** (þjónninn hefur enga slíka einingu).
 |---|---|---|
 | Jákvæð sannprófun með mörkum á öllu inntaki | uppfyllt | Pydantic v2-líkön með lengdar-, lista- og dýptarmörkum, endanlegar tölur; óþekkt svið hunsuð samkvæmt Foundation API 1.8 |
 | Viðskiptareglum framfylgt þjónsmegin | uppfyllt | Málagildi gegn extensions, nákvæmlega ein myndavél, 409 við eyðingu viewpoint sem vísað er í, tvítekin guid, ein færsla á hvert skrif |
-| Varnir gegn sjálfvirkni við auðkenningu og kostnaðarsamar aðgerðir | að hluta | Innskráningar- og tókaendapunktar tíðnitakmarkaðir á hvert vistfang (`test_sign_in_is_rate_limited`); upphöl takmörkuð á hverja skrá (`max_upload_bytes`); enginn geymslukvóti á hvern notanda enn |
+| Varnir gegn sjálfvirkni við auðkenningu og kostnaðarsamar aðgerðir | að hluta | Innskráningar- og tókaendapunktar tíðnitakmarkaðir á hvert vistfang (`test_sign_in_is_rate_limited`), og misheppnaðar innskráningar láta notandanafnið bíða (`test_sign_in_throttle`); upphöl takmörkuð á hverja skrá (`max_upload_bytes`); enginn geymslukvóti á hvern notanda enn |
 
 ## V3 Öryggi vefframenda
 
@@ -69,7 +69,7 @@ ekki við** (þjónninn hefur enga slíka einingu).
 | Stefna um lengd og styrk lykilorða, engar samsetningarreglur | uppfyllt | `auth/passwords.py`: minnst 12 tákn og zxcvbn-einkunn ≥ 3 með notandanafnið sem þekkt inntak, `test_password_policy_and_hashing` |
 | Athugun gegn listum yfir lekin lykilorð | að hluta | Orðabækur zxcvbn yfir algeng lykilorð; engin lifandi uppfletting í lekalistum |
 | Argon2id-tæting | uppfyllt | `pwdlib` með Argon2id, `test_password_policy_and_hashing` |
-| Vörn gegn brute force með almennum skilaboðum | uppfyllt | Tíðnimörk á hvert vistfang, föst skilaboð við rangan notanda eða lykilorð, óvirkum reikningum hafnað (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
+| Vörn gegn brute force með almennum skilaboðum | uppfyllt | Tíðnimörk á hvert vistfang, vaxandi bið á hvert notandanafn, föst skilaboð við rangan notanda eða lykilorð, óvirkum reikningum hafnað (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
 | Fjölþátta auðkenning | ekki uppfyllt | Aðeins lykilorð; TOTP fyrir innskráningarsíðuna er áætlað (*Síðar* í áætluninni). API-biðlarar sjá aldrei lykilorð: þeir auðkenna sig um OAuth2 gegn þessari innskráningarsíðu, svo ein MFA nær yfir allt |
 | Örugg endurheimt innskráningarupplýsinga | uppfyllt | Engin sjálfsafgreiðsla endurstillinga; stjórnandi gefur út einnota lykilorð eftir endurauðkenningu, og notandinn þarf að breyta því við næstu innskráningu |
 | Endurauðkenning fyrir viðkvæmar aðgerðir | uppfyllt | Eigið lykilorð krafist við lykilorðsbreytingar, endurstillingar, breytingar stjórnandamerkis, skipti leyndarmála og eyðingu (`test_user_management`, `test_client_management_and_secret_rotation`) |

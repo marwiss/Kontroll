@@ -75,6 +75,7 @@
   "signin.lead": "Bruk kontoen din på denne serveren.",
   "signin.error.credentials": "Brukernavnet eller passordet er ikke riktig.",
   "signin.error.expired": "Skjemaet er utløpt. Prøv igjen.",
+  "signin.error.throttled": "For mange mislykkede forsøk for dette brukernavnet. Prøv igjen om {seconds} sekunder.",
   "signout.error.title": "Kan ikke logge ut",
   "signout.error.expired": "Skjemaet er utløpt. Last siden på nytt.",
   "consent.asks": "ber om å handle på dine vegne på denne serveren.",

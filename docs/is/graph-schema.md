@@ -143,6 +143,7 @@ erDiagram
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bæti undir `parts/<id>` þar til skráin er sett saman; hreinsunarverkið eyðir útrunnum hlutum og skrám þeirra |
 | `SelectionSession` | `id`, atriðaskráð `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` geymir `document_id:version_index`-pör valin í vafranum |
 | `WebSession` | `id` (tætigildi vefkökunnar) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Vafrainnskráning; `expires_at` er heildarlíftíminn |
+| `SignInThrottle` | `key` (tætigildi notandanafnsins) | `failures`, `blocked_until`, `expires_at` | Misheppnaðar innskráningar á hvert notandanafn; rennur út sólarhring eftir síðustu villu, og vel heppnuð innskráning fjarlægir hann |
 
 ## IFC-graf (áfangi 9)
 

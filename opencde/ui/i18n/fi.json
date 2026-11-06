@@ -75,6 +75,7 @@
   "signin.lead": "Käytä tiliäsi tällä palvelimella.",
   "signin.error.credentials": "Käyttäjätunnus tai salasana ei ole oikein.",
   "signin.error.expired": "Lomake on vanhentunut. Yritä uudelleen.",
+  "signin.error.throttled": "Liian monta epäonnistunutta yritystä tällä käyttäjätunnuksella. Yritä uudelleen {seconds} sekunnin kuluttua.",
   "signout.error.title": "Uloskirjautuminen ei onnistu",
   "signout.error.expired": "Lomake on vanhentunut. Lataa sivu uudelleen.",
   "consent.asks": "pyytää lupaa toimia puolestasi tällä palvelimella.",

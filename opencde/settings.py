@@ -191,6 +191,12 @@ class Settings(BaseSettings):
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",
     )
     rate_limits_enabled: bool = True
+    sign_in_throttle_enabled: bool = Field(True, description="Make a user name wait after repeated failed sign-ins.")
+    sign_in_free_attempts: int = Field(5, ge=1, description="Failures in a row before the wait begins.")
+    sign_in_delay_seconds: int = Field(30, ge=1, description="The first wait; each further failure doubles it.")
+    sign_in_max_delay_seconds: int = Field(
+        900, ge=1, description="The ceiling, so that nobody can lock an account out."
+    )
     admin_ui_enabled: bool = True
     api_docs_enabled: bool | None = Field(
         None,

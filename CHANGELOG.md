@@ -9,6 +9,8 @@ the commit history.
 
 ## Unreleased
 
+- Failed sign-ins make a user name wait, on both sign-in forms: after five in a row a
+  wait that doubles from 30 seconds up to 15 minutes, on top of the limit per address.
 - `opencde doctor` runs the checks of the settings page, and both now also look at the
   schema, the CORS origins and the headers and certificate at the public address. It
   exits with 1 when a check fails.

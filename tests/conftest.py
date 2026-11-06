@@ -34,6 +34,7 @@ def test_settings(tmp_path: Path | None = None, **overrides: object) -> Settings
         "log_json": False,
         "log_level": "WARNING",
         "rate_limits_enabled": False,
+        "sign_in_throttle_enabled": False,
         "ntp_server": "",  # tests never touch the network
     }
     if tmp_path is not None:

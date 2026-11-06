@@ -27,7 +27,7 @@ operatören), **ej tillämpligt** (servern har ingen sådan komponent).
 |---|---|---|
 | Positiv validering med gränser på varje indata | uppfyllt | Pydantic v2-modeller med längd-, list- och djupgränser, finita tal; okända fält ignoreras enligt Foundation API 1.8 |
 | Affärsregler upprätthålls på serversidan | uppfyllt | Ärendevärden mot extensions, exakt en kamera, 409 vid borttagning av refererad viewpoint, dubblerade guid, en transaktion per skrivning |
-| Anti-automatisering vid autentisering och dyra operationer | delvis | Inloggnings- och token-endpoints hastighetsbegränsade per adress (`test_sign_in_is_rate_limited`); uppladdningar begränsade per fil (`max_upload_bytes`); ingen lagringskvot per användare ännu |
+| Anti-automatisering vid autentisering och dyra operationer | delvis | Inloggnings- och token-endpoints hastighetsbegränsade per adress (`test_sign_in_is_rate_limited`), och misslyckade inloggningar får användarnamnet att vänta (`test_sign_in_throttle`); uppladdningar begränsade per fil (`max_upload_bytes`); ingen lagringskvot per användare ännu |
 
 ## V3 Webbfrontendens säkerhet
 
@@ -69,7 +69,7 @@ operatören), **ej tillämpligt** (servern har ingen sådan komponent).
 | Policy för lösenordslängd och -styrka, inga sammansättningsregler | uppfyllt | `auth/passwords.py`: minst 12 tecken och zxcvbn-poäng ≥ 3 med användarnamnet som känd indata, `test_password_policy_and_hashing` |
 | Kontroll mot listor över läckta lösenord | delvis | zxcvbn:s ordlistor över vanliga lösenord; ingen live-uppslagning mot läcklistor |
 | Argon2id-hashning | uppfyllt | `pwdlib` med Argon2id, `test_password_policy_and_hashing` |
-| Skydd mot brute force med generiska meddelanden | uppfyllt | Hastighetsgräns per adress, konstant meddelande för fel användare eller lösenord, inaktiverade konton avvisas (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
+| Skydd mot brute force med generiska meddelanden | uppfyllt | Hastighetsgräns per adress, en växande väntan per användarnamn, konstant meddelande för fel användare eller lösenord, inaktiverade konton avvisas (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
 | Flerfaktorsautentisering | ej uppfyllt | Bara lösenord; TOTP för inloggningssidan är planerat (*Senare* i planen). API-klienter ser aldrig lösenord: de autentiserar sig via OAuth2 mot den här inloggningssidan, så en MFA täcker allt |
 | Säker återställning av inloggningsuppgifter | uppfyllt | Ingen självbetjäningsåterställning; en administratör utfärdar ett engångslösenord efter förnyad autentisering, och användaren måste byta det vid nästa inloggning |
 | Förnyad autentisering för känsliga operationer | uppfyllt | Eget lösenord krävs för lösenordsbyten, återställningar, ändring av adminflaggan, hemlighetsrotation och borttagning (`test_user_management`, `test_client_management_and_secret_rotation`) |

@@ -20,6 +20,7 @@ Kvar kontroll har minst éin automatisert test. "Suite" namngjev testmodulen.
 | Samtykke kan nektast (`access_denied`) | RFC 6749 §4.1.2.1 | `test_oauth2::test_deny_redirects_with_access_denied` |
 | Signerte, utgåande, formålsbundne skjematokens; manipulering blir avvist | CSRF | `test_security_oauth2::test_tampered_or_replayed_form_token_is_refused`, `test_auth_primitives` |
 | Innlogging takstavgrensa per adresse | OWASP ASVS 2.2.1 | `test_security_oauth2::test_sign_in_is_rate_limited` |
+| Mislukka innloggingar får eit brukarnamn til å vente: etter fem på rad ei ventetid som blir dobla frå 30 sekund opp til 15 minutt, i tillegg til grensa per adresse. Ukjende namn tel på same måte, så svaret seier ingenting om kva kontoar som finst, og namn blir lagra som hashverdiar | OWASP ASVS 6.3 | `test_sign_in_throttle` |
 | Generisk feilmelding; deaktiverte kontoar kan ikkje logge inn og mistar tokena sine | OWASP ASVS 2.2 | `test_security_oauth2::test_disabled_user_cannot_sign_in_and_loses_tokens` |
 | Passord, kodar og tokens opptrer aldri i loggar | OWASP ASVS 7.1 | `test_security_oauth2::test_passwords_and_codes_never_reach_the_logs`, `test_logging` |
 | Argon2id-hashing av passord; policy (lengd, zxcvbn, ikkje brukarnamnet) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |

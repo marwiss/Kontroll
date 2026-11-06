@@ -143,6 +143,7 @@ erDiagram
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>`, indtil filen samles; oprydningsjobbet sletter udløbne dele og deres filer |
 | `SelectionSession` | `id`, indekseret `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` holder `document_id:version_index`-par valgt i browseren |
 | `WebSession` | `id` (hash af cookien) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Browserlogin; `expires_at` er den absolutte levetid |
+| `SignInThrottle` | `key` (hash af brugernavnet) | `failures`, `blocked_until`, `expires_at` | Mislykkede logins per brugernavn; udløber et døgn efter den seneste fejl, og et vellykket login fjerner den |
 
 ## IFC-graf (etape 9)
 

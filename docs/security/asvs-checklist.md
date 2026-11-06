@@ -27,7 +27,7 @@ documented limitation), **not met** (planned or left to the operator),
 |---|---|---|
 | Positive validation with bounds on every input | met | Pydantic v2 models with length, list and depth limits, finite numbers; unknown fields ignored per Foundation API 1.8 |
 | Business rules enforced server-side | met | Topic values against extensions, exactly one camera, 409 on deleting a referenced viewpoint, duplicate guids, one transaction per write |
-| Anti-automation on authentication and expensive operations | partly | Sign-in and token endpoints rate limited per address (`test_sign_in_is_rate_limited`); uploads capped per file (`max_upload_bytes`); no per-user storage quota yet |
+| Anti-automation on authentication and expensive operations | partly | Sign-in and token endpoints rate limited per address (`test_sign_in_is_rate_limited`), and failed sign-ins make the user name wait (`test_sign_in_throttle`); uploads capped per file (`max_upload_bytes`); no per-user storage quota yet |
 
 ## V3 Web frontend security
 
@@ -69,7 +69,7 @@ documented limitation), **not met** (planned or left to the operator),
 | Password length and strength policy, no composition rules | met | `auth/passwords.py`: at least 12 characters and zxcvbn score ≥ 3 with the user name as a known input, `test_password_policy_and_hashing` |
 | Check against breached password lists | partly | zxcvbn's dictionaries of common passwords; no live breach-list lookup |
 | Argon2id hashing | met | `pwdlib` with Argon2id, `test_password_policy_and_hashing` |
-| Brute-force protection with generic messages | met | Rate limit per address, constant message for wrong user or password, disabled accounts refused (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
+| Brute-force protection with generic messages | met | Rate limit per address, a growing wait per user name, constant message for wrong user or password, disabled accounts refused (`test_disabled_user_cannot_sign_in_and_loses_tokens`) |
 | Multi-factor authentication | not met | Passwords only; TOTP for the sign-in page is planned (*Later* in the plan). API clients never see passwords: they authenticate through OAuth2 against this sign-in page, so one MFA covers everything |
 | Secure credential recovery | met | No self-service reset; an administrator issues a one-time password after re-authenticating, and the user must change it at the next sign-in |
 | Re-authentication for sensitive operations | met | Own password required for password changes, resets, admin flag changes, secret rotation and deletion (`test_user_management`, `test_client_management_and_secret_rotation`) |

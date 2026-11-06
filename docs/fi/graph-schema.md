@@ -146,6 +146,7 @@ erDiagram
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Tavut polussa `parts/<id>`, kunnes tiedosto kootaan; siivoustyö poistaa vanhentuneet osat ja niiden tiedostot |
 | `SelectionSession` | `id`, indeksoitu `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` sisältää selaimessa valitut `document_id:version_index`-parit |
 | `WebSession` | `id` (evästeen tiiviste) | `created_at`, `expires_at`, `idle_expires_at`, `ip` | Selainkirjautuminen; `expires_at` on absoluuttinen elinaika |
+| `SignInThrottle` | `key` (käyttäjätunnuksen tiiviste) | `failures`, `blocked_until`, `expires_at` | Epäonnistuneet kirjautumiset käyttäjätunnuksittain; vanhenee vuorokauden kuluttua viimeisestä epäonnistumisesta, ja onnistunut kirjautuminen poistaa sen |
 
 ## IFC-graafi (vaihe 9)
 
