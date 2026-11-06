@@ -196,6 +196,34 @@ og atvikaskráin í forritinu sýni sama samtal. Forritið les getuskjal þjóns
 til að sjá hvaða viðbætur eru virkar og bregst við villukóðunum sem þjónninn
 setur í villusvör sín.
 
+Svona tengjast þau:
+
+```mermaid
+flowchart LR
+    subgraph app ["Dataspatium, í vafranum"]
+        source["Uppspretta og innskráning"]
+        issues["Mál í þrívíddarsýn"]
+        files["Líkön og skjöl"]
+        queries["Fyrirspurnir á IFC-grafið"]
+        log["Skráin í forritinu"]
+        admin["Spjaldið Stjórnun"]
+    end
+    subgraph server ["Kontroll, þjónninn"]
+        foundation["Foundation API, OAuth2"]
+        bcf["BCF API"]
+        documents["Documents API"]
+        graph[("IFC-graf")]
+        requests["Beiðnaskrá"]
+        adminapi["Stjórnunar-API"]
+    end
+    source <--> foundation
+    issues <--> bcf
+    files <--> documents
+    queries --> graph
+    log <-- "X-Request-ID" --> requests
+    admin --> adminapi
+```
+
 Fyrir utan merktu viðbæturnar fer allt sem Dataspatium gerir gagnvart þjóninum
 um OpenCDE-forritaskilin þrjú, svo að forritið notar ekkert sem annar biðlari
 getur ekki notað, sjá [OpenCDE-forritaskilin og biðlarar þeirra](#opencde-forritaskilin-og-biðlarar-þeirra). Vörurnar tvær eru settar

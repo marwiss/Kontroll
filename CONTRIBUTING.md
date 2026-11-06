@@ -59,6 +59,7 @@ Run the suites before you push:
 uv run pytest                    # unit, conformance and security tests
 uv run pytest -m integration     # Neo4j and Memgraph in testcontainers (Docker)
 uv run pytest -m ui              # Playwright and axe-core (uv sync --group ui)
+uv run poe security              # ruff, bandit and pip-audit; CI adds gitleaks, zizmor and Semgrep
 ```
 
 ## Translations

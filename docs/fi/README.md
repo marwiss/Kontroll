@@ -208,6 +208,34 @@ näyttävät saman keskustelun. Sovellus lukee palvelimen kyvykkyysasiakirjan
 nähdäkseen, mitkä laajennukset ovat päällä, ja toimii palvelimen
 virhevastauksiin lisäämien virhekoodien mukaan.
 
+Näin ne liittyvät toisiinsa:
+
+```mermaid
+flowchart LR
+    subgraph app ["Dataspatium, selaimessa"]
+        source["Lähde ja kirjautuminen"]
+        issues["Asiat 3D-näkymässä"]
+        files["Mallit ja asiakirjat"]
+        queries["Kyselyt IFC-graafiin"]
+        log["Sovelluksen loki"]
+        admin["Kortti Hallinta"]
+    end
+    subgraph server ["Kontroll, palvelin"]
+        foundation["Foundation API, OAuth2"]
+        bcf["BCF API"]
+        documents["Documents API"]
+        graph[("IFC-graafi")]
+        requests["Pyyntöloki"]
+        adminapi["Hallinta-API"]
+    end
+    source <--> foundation
+    issues <--> bcf
+    files <--> documents
+    queries --> graph
+    log <-- "X-Request-ID" --> requests
+    admin --> adminapi
+```
+
 Merkittyjä laajennuksia lukuun ottamatta kaikki, mitä Dataspatium tekee
 palvelinta vastaan, kulkee kolmen OpenCDE-rajapinnan kautta, joten sovellus ei käytä mitään, mitä toinen
 asiakas ei voisi käyttää, katso [OpenCDE-rajapinnat ja niiden asiakkaat](#opencde-rajapinnat-ja-niiden-asiakkaat). Kaksi tuotetta asennetaan erikseen: tämä repo ei niputa

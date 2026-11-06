@@ -195,6 +195,34 @@ that the request log here and the log in the app show the same conversation.
 It reads the server's capabilities document to see which extensions are on
 and acts on the error codes the server adds to its error bodies.
 
+This is how they fit together:
+
+```mermaid
+flowchart LR
+    subgraph app ["Dataspatium, in the browser"]
+        source["Source and sign-in"]
+        issues["Issues in the 3D view"]
+        files["Models and documents"]
+        queries["Queries on the IFC graph"]
+        log["The log in the app"]
+        admin["The card Administration"]
+    end
+    subgraph server ["Kontroll, the server"]
+        foundation["Foundation API, OAuth2"]
+        bcf["BCF API"]
+        documents["Documents API"]
+        graph[("IFC graph")]
+        requests["Request log"]
+        adminapi["Administration API"]
+    end
+    source <--> foundation
+    issues <--> bcf
+    files <--> documents
+    queries --> graph
+    log <-- "X-Request-ID" --> requests
+    admin --> adminapi
+```
+
 Apart from the marked extensions, everything Dataspatium does against the
 server goes through the three OpenCDE APIs, so the app uses nothing another client
 cannot use, see [The OpenCDE APIs and their clients](#the-opencde-apis-and-their-clients). The two products are installed

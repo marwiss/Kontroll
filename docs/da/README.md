@@ -197,6 +197,34 @@ kald, så forespørgselsloggen her og loggen i appen viser den samme samtale.
 Appen læser serverens kapabilitetsdokument for at se, hvilke udvidelser der
 er slået til, og reagerer på de fejlkoder, serveren lægger i sine fejlsvar.
 
+Sådan hænger de sammen:
+
+```mermaid
+flowchart LR
+    subgraph app ["Dataspatium, i browseren"]
+        source["Kilde og login"]
+        issues["Sager i 3D-visningen"]
+        files["Modeller og dokumenter"]
+        queries["Forespørgsler mod IFC-grafen"]
+        log["Loggen i appen"]
+        admin["Kortet Administration"]
+    end
+    subgraph server ["Kontroll, serveren"]
+        foundation["Foundation API, OAuth2"]
+        bcf["BCF API"]
+        documents["Documents API"]
+        graph[("IFC-graf")]
+        requests["Forespørgselslog"]
+        adminapi["Administrations-API"]
+    end
+    source <--> foundation
+    issues <--> bcf
+    files <--> documents
+    queries --> graph
+    log <-- "X-Request-ID" --> requests
+    admin --> adminapi
+```
+
 Bortset fra de markerede udvidelser går alt, hvad Dataspatium gør mod
 serveren, gennem de tre OpenCDE-API'er, så appen bruger intet, som en anden klient
 ikke kan bruge, se [OpenCDE-API'erne og deres klienter](#opencde-apierne-og-deres-klienter). De to produkter installeres hver
