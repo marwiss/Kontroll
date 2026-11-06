@@ -29,8 +29,8 @@ modulen held fram med å vere av.
 4. Postane blir importerte i batchar av `UNWIND … CREATE` (portabel Cypher,
    ingen APOC). `IfcModel` endar i tilstanden `done` med tal og
    `IfcProject`-guid, eller `failed` med ein feil.
-5. Ei konvertering som ein stoppa tenar har late etter seg, byrjar på nytt: ei køa så snart tenaren er tilbake,
-   ei pågåande når dobbel tidsgrense er passert, fordi ho kan køyre i ein annan tenarprosess.
+5. Ei konvertering som ein stoppa server har late etter seg, byrjar på nytt: ei køa så snart serveren er tilbake,
+   ei pågåande når dobbel tidsgrense er passert, fordi ho kan køyre i ein annan serverprosess.
 
 ## Grafen
 

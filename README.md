@@ -176,7 +176,9 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 - [docs/sv/client-guide.md](docs/sv/client-guide.md) och [docs/examples/](docs/examples/):
   hur man bygger en klient, kapabilitetsdokumentet, felkoderna och körbara
   exempel med Python-biblioteket i [client/](client/).
-- [docs/sv/flows/](docs/sv/flows/): sekvensdiagram för OAuth2- och Documents API-flödena.
+- [docs/sv/architecture.md](docs/sv/architecture.md): hur delarna hänger ihop, vad som händer med ett anrop och var allt finns i koden.
+- [docs/sv/glossary.md](docs/sv/glossary.md): orden som dokumentationen använder.
+- [docs/sv/flows/](docs/sv/flows/): sekvensdiagram för OAuth2-, Documents API- och BCF-viewpoint-flödena.
 - [docs/sv/graph-schema.md](docs/sv/graph-schema.md): grafmodellen.
 - [docs/sv/ifcgraph.md](docs/sv/ifcgraph.md): den valfria IFC-grafmodulen och exempel på Cypher-frågor.
 - [docs/sv/ui-styleguide.md](docs/sv/ui-styleguide.md): regler för serverns sidor och märket.
@@ -201,6 +203,17 @@ Dokumentationen finns på den här README-filens sju språk: engelska under
 `docs/`, de andra under `docs/<språk>/`. Projektloggarna (acceptans, inventering,
 samordning), arkitekturbesluten, utkasten till IfcOpenShell och CONTRIBUTING
 hålls på engelska.
+
+### Vidare läsning
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) och [Documents API](https://github.com/buildingSMART/documents-API):
+  specifikationerna som servern följer.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): filformatet för byggnadsmodeller.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): dagens bästa praxis för säkerhet i OAuth 2.0, och
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), utkastet som samlar den.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (appar i datorn eller telefonen) och
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (registrering av klienter).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): checklistan för säkerhetsarbetet.
 
 ## Begränsningar i korthet
 

@@ -177,7 +177,9 @@ og hva de to prosjektene samordner står i
 - [docs/nb/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   hvordan bygge en klient, kapabilitetsdokumentet, feilkodene og kjørbare
   eksempler med Python-biblioteket i [client/](../../client/).
-- [docs/nb/flows/](flows/): sekvensdiagrammer for OAuth2- og Documents API-flytene.
+- [docs/nb/architecture.md](architecture.md): hvordan delene henger sammen, hva som skjer med en forespørsel, og hvor alt finnes i koden.
+- [docs/nb/glossary.md](glossary.md): ordene dokumentasjonen bruker.
+- [docs/nb/flows/](flows/): sekvensdiagrammer for OAuth2-, Documents API- og BCF-viewpoint-flytene.
 - [docs/nb/graph-schema.md](graph-schema.md): grafmodellen.
 - [docs/nb/ifcgraph.md](ifcgraph.md): den valgfrie IFC-grafmodulen og eksempler på Cypher-spørringer.
 - [docs/nb/ui-styleguide.md](ui-styleguide.md): regler for serverens sider og merket.
@@ -201,6 +203,17 @@ Dokumentasjonen finnes på denne READMEens sju språk: engelsk under `docs/`, de
 andre under `docs/<språk>/`. Prosjektloggene (akseptanse, inventar, samordning),
 arkitekturbeslutningene, utkastene til IfcOpenShell og CONTRIBUTING holdes på
 engelsk.
+
+### Videre lesning
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) og [Documents API](https://github.com/buildingSMART/documents-API):
+  spesifikasjonene serveren følger.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): filformatet for bygningsmodeller.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): dagens beste praksis for sikkerhet i OAuth 2.0, og
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), utkastet som samler den.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (apper på datamaskin eller telefon) og
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (registrering av klienter).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): sjekklisten for sikkerhetsarbeidet.
 
 ## Begrensninger i korte trekk
 

@@ -42,7 +42,7 @@ til autorisationssiden, callback-siden, der rapporterer koden tilbage,
 tokenudvekslingen som offentlig klient, refresh med rotation og
 tilbagekaldelse ved logout.
 
-En bruger med en adgangskode, som en anden kender (en ny konto eller en nulstilling), får ingen kode. Serveren fører browseren til kontosiden for at skifte den og derefter tilbage til autorisationssiden med det, klienten bad om. Klienten mærker intet andet end en længere ventetid.
+En bruger med et kodeord, som en anden kender (en ny konto eller en nulstilling), får ingen kode. Serveren fører browseren til kontosiden for at skifte det og derefter tilbage til autorisationssiden med det, klienten bad om. Klienten mærker intet andet end en længere ventetid.
 
 ## Hvad hver part skal gøre
 

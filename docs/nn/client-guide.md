@@ -196,7 +196,7 @@ menneske:
 | `code` | Status | Når | Kva ein klient gjer |
 |---|---|---|---|
 | `validation_error` | 400 | Kroppen eller spørjinga stod ikkje valideringa, eit OData-uttrykk kunne ikkje kompilerast, ein verdi finst ikkje i extensions til prosjektet, ein `Content-Range` eller ein opplastingsinstruksjon er feil, eit snapshot eller ein bitmap er ikkje PNG eller JPEG; `message` namngjev feltet | Rett førespurnaden |
-| `localhost_redirect` | 400 | Ei registrering oppgav `http://localhost` som redirect-URI, noko denne tenaren ikkje tillèt | Registrer `http://127.0.0.1` i staden, eller fortel operatøren om `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
+| `localhost_redirect` | 400 | Ei registrering oppgav `http://localhost` som redirect-URI, noko denne serveren ikkje tillèt | Registrer `http://127.0.0.1` i staden, eller fortel operatøren om `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Ingen bearer-token | Logg inn |
 | `invalid_token` | 401 | Tokenet er ukjent, utgått eller trekt tilbake (`WWW-Authenticate: Bearer error="invalid_token"`) | Forny, logg deretter inn igjen |
 | `insufficient_scope` | 403 | Tokenet manglar scopet ruta krev, til dømes `admin` | Autoriser igjen med det scopet |
