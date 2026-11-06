@@ -13,7 +13,7 @@ from opencde.bcf.access import ProjectCtx
 from opencde.bcf.schemas import ExtensionsGET, ProjectAuthorization, ProjectGET, ProjectPUT, dump
 from opencde.deps import ProjectsDep
 
-router = APIRouter(prefix="/bcf/3.0", tags=["BCF API"])
+router = APIRouter(tags=["BCF API"])
 
 IncludeAuthorization = Annotated[bool, Query(alias="includeAuthorization")]
 

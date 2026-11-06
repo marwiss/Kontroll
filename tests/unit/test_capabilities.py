@@ -15,9 +15,10 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert response.headers["cache-control"] == "public, max-age=300"
     assert response.headers["access-control-allow-origin"] == "*", "clients read it cross-origin"
     body = response.json()
-    assert set(body) == {"server", "apis", "scopes", "extensions", "limits", "links"}
+    assert set(body) == {"server", "apis", "bcf_versions", "scopes", "extensions", "limits", "links"}
     assert body["server"]["name"] == "Kontroll OpenCDE server" and body["server"]["public_url"] == "http://testserver"
     assert body["apis"] == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
+    assert body["bcf_versions"] == ["3.0", "2.1"]
     assert body["scopes"] == ["profile", "bcf", "documents", "admin"]
     extensions = body["extensions"]
     assert set(extensions) == {"dynamic_client_registration", "request_log", "admin_api", "ifcgraph", "graph_query"}

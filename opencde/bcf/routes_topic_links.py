@@ -25,7 +25,7 @@ from opencde.deps import SettingsDep, StorageDep
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import make_key
 
-router = APIRouter(prefix="/bcf/3.0/projects/{project_id}/topics/{topic_id}", tags=["BCF API"])
+router = APIRouter(prefix="/projects/{project_id}/topics/{topic_id}", tags=["BCF API"])
 
 ReferenceId = Annotated[str, Path(alias="reference_id", max_length=64)]
 

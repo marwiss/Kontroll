@@ -233,6 +233,9 @@ class _CypherVisitor(NodeVisitor):
         if name in ("contains", "startswith", "endswith"):
             if len(args) != 2 or not isinstance(args[0], _Ref) or not isinstance(args[1], _Lit):
                 raise ODataError(f"{name}() takes a string field and a string literal")
+            if name == "contains" and args[0].kind == "string_list" and isinstance(args[1].value, str):
+                # The way BCF API 2.1 asks after a label: ``contains(labels, 'Architecture')`` (its section 4.2.1).
+                return _Clause(f"{self._param(args[1].value)} IN coalesce({args[0].cypher}, [])")
             if args[0].kind != "string" or not isinstance(args[1].value, str):
                 raise ODataError(f"{name}() works on string fields only")
             operator = {"contains": "CONTAINS", "startswith": "STARTS WITH", "endswith": "ENDS WITH"}[name]

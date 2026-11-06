@@ -6,9 +6,10 @@
 * ``GET /foundation/1.0/current-user``  2.3.1 The signed-in user.
 
 The versions service is always served from ``/foundation/versions``; the other
-APIs may be relocated through ``api_base_url``. BCF API 2.1 clients still call
-``/bcf/versions``, ``/bcf/{version}/auth`` and ``/bcf/{version}/current-user``,
-so those are served as aliases.
+APIs may be relocated through ``api_base_url``. It lists both versions of the BCF
+API, the newest first. Clients still call ``/bcf/{version}/auth`` and
+``/bcf/{version}/current-user`` for 3.0 too, so those are served as aliases. In
+2.1 they are real services, in :mod:`opencde.bcf.routes_v21`.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from opencde.settings import Settings
 router = APIRouter(tags=["Foundation API"])
 
 BCF_VERSION = "3.0"
+BCF_OLDER_VERSION = "2.1"
 DOCUMENTS_VERSION = "1.0"
 FOUNDATION_VERSION = "1.0"
 
@@ -52,6 +54,12 @@ def versions_payload(settings: Settings) -> dict[str, Any]:
                 "api_base_url": settings.url(f"/bcf/{BCF_VERSION}"),
             },
             {
+                "api_id": "bcf",
+                "version_id": BCF_OLDER_VERSION,
+                "detailed_version": "https://github.com/buildingSMART/BCF-API/tree/release_2_1",
+                "api_base_url": settings.url(f"/bcf/{BCF_OLDER_VERSION}"),
+            },
+            {
                 "api_id": "documents",
                 "version_id": DOCUMENTS_VERSION,
                 "detailed_version": "https://github.com/buildingSMART/documents-API/tree/release_1_0",
@@ -77,6 +85,16 @@ def auth_payload(settings: Settings) -> dict[str, Any]:
     return payload
 
 
+def auth_payload_v21(settings: Settings) -> dict[str, Any]:
+    """What 2.1's authentication service says. A client registered through this URL need not use PKCE, so it does not
+    say that PKCE is required, only that it is on offer."""
+    payload = auth_payload(settings)
+    del payload["oauth2_pkce_required"]
+    if settings.dynamic_client_registration:
+        payload["oauth2_dynamic_client_reg_url"] = settings.url(f"/bcf/{BCF_OLDER_VERSION}/oauth2/reg")
+    return payload
+
+
 @router.get("/foundation/versions", summary="2.1 Versions service")
 async def versions(settings: SettingsDep) -> dict[str, Any]:
     return versions_payload(settings)
@@ -92,14 +110,9 @@ async def current_user(principal: PrincipalDep) -> CurrentUser:
     return CurrentUser(id=principal.username, name=principal.display_name)
 
 
-# -- aliases kept from BCF API 2.1 for clients that still use them ---------------------------
+# -- what BCF API 2.1 calls these under its own address, for clients that do so on 3.0 too ---
 
 alias_router = APIRouter(tags=["BCF API"], include_in_schema=False)
-
-
-@alias_router.get("/bcf/versions")
-async def bcf_versions(settings: SettingsDep) -> dict[str, Any]:
-    return {"versions": [v for v in versions_payload(settings)["versions"] if v["api_id"] == "bcf"]}
 
 
 @alias_router.get(f"/bcf/{BCF_VERSION}/auth")

@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse
 from opencde import __version__
 from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
-from opencde.foundation.routes import BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
+from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
 from opencde.settings import Settings
 
 router = APIRouter(tags=["Capabilities (extension)"])
@@ -33,6 +33,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
     return {
         "server": {"name": "Kontroll OpenCDE server", "version": __version__, "public_url": settings.public_url},
         "apis": {"foundation": FOUNDATION_VERSION, "bcf": BCF_VERSION, "documents": DOCUMENTS_VERSION},
+        "bcf_versions": [BCF_VERSION, BCF_OLDER_VERSION],
         "scopes": list(SCOPES),
         "extensions": {
             "dynamic_client_registration": {

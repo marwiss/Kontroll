@@ -20,7 +20,7 @@ from opencde.logging import get_logger
 
 log = get_logger(__name__)
 
-router = APIRouter(prefix="/bcf/3.0/projects/{project_id}/topics/{topic_id}/viewpoints", tags=["BCF API"])
+router = APIRouter(prefix="/projects/{project_id}/topics/{topic_id}/viewpoints", tags=["BCF API"])
 
 IncludeAuthorization = Annotated[bool, Query(alias="includeAuthorization")]
 ViewpointId = Annotated[str, Path(alias="viewpoint_id", max_length=64)]
