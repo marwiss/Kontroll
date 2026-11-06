@@ -60,6 +60,36 @@ esitysalkiot, esitykset, profiilit, sijoitukset ja tyylit; ne ovat suurin osa
 mallista ja harvoin sitä, mitä CDE-kysely tarvitsee. `IfcOwnerHistory`
 säilytetään vain `IfcProject`-entiteetille.
 
+## Mistä menetelmä on peräisin
+
+Muunnos noudattaa Zhun, Wun ja Lein IFC-Graph-menetelmää: yksi solmu ilmentymää
+kohden, luokkahierarkia nimiöinä, literaaliattribuutit ominaisuuksina ja toisiin
+ilmentymiin viittaavat attribuutit, käänteiset attribuutit mukaan lukien,
+attribuutin mukaan nimettyinä suhteina. Vuoden 2023 prototyyppi käytti artikkelin
+koodia. Tämän palvelimen muunnos on kirjoitettu uudelleen.
+
+Junxiang Zhu, Peng Wu ja Xiang Lei: "IFC-graph for facilitating building
+information access and query". *Automation in Construction* 148 (2023), 104778.
+[doi:10.1016/j.autcon.2023.104778](https://doi.org/10.1016/j.autcon.2023.104778),
+avoimesti saatavilla CC BY 4.0 -lisenssillä.
+
+Se eroaa artikkelista seuraavasti:
+
+- Geometria jätetään pois, ellei sitä pyydetä. Artikkeli muuntaa kaiken ja
+  mainitsee graafin koon rajoituksena.
+- Tietueet kirjoitetaan erissä `CREATE`-komennolla erillisestä prosessista.
+  Artikkeli yhdistää jokaisen solmun ja suhteen, mikä etsii graafista
+  kaksoiskappaleita ja hidastuu graafin kasvaessa.
+- Select-arvoista tulee solmunsa ominaisuuksia. Artikkeli antaa niille omat
+  solmut, joilla on luotu tunniste.
+- Useat mallit jakavat yhden tietokannan ja erotetaan toisistaan `model_id`:n
+  avulla. Artikkelissa on yksi malli tietokantaa kohden.
+- Suhdetyypit kirjoitetaan isoin kirjaimin, ja `SAME_AS` sekä GTIN-kopio on
+  lisätty tässä.
+
+Luetteloiden järjestys katoaa myös tässä, kuten artikkeli huomauttaa omasta
+graafistaan: suhde ei kerro, missä kohdassa luetteloa sen kohde oli.
+
 ## Ylläpito
 
 Jokainen IFC-tiedoston lähetys lisää `IfcModel`-solmun entiteetteineen, joten

@@ -9,6 +9,11 @@ the commit history.
 
 ## Unreleased
 
+- In the IFC graph, a model's `IfcOwnerHistory` is linked from its `IfcProject` only, as the documentation
+  said. Until now every entity that shared it got an `OWNER_HISTORY` relationship, which made one node the
+  centre of the graph. A model imported earlier keeps them until it is uploaded again.
+- The documentation of the IFC graph says where the method comes from: the article by Zhu, Wu and Lei
+  (2023), and where the conversion differs from it.
 - The APIs take the schemas' types at their word: a text where a boolean or a number should be,
   such as `"yes"` or `"5"`, is refused with 400 where it was once converted. A number may still
   be written without decimals. The length limits count what was sent, whitespace included.

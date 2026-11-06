@@ -60,6 +60,36 @@ representasjonselement, representasjonar, profilar, plasseringar og stilar;
 dei utgjer det meste av ein modell og er sjeldan det ei CDE-spørjing treng.
 `IfcOwnerHistory` blir halden på berre for `IfcProject`.
 
+## Kvar metoden kjem frå
+
+Konverteringa følgjer IFC-Graph-metoden til Zhu, Wu og Lei: éin node per instans,
+klassehierarkiet som etikettar, literale attributt som eigenskapar og attributt
+som peikar på andre instansar, inverse attributt medrekna, som relasjonar
+namngjevne etter attributtet. Prototypen frå 2023 brukte koden i artikkelen.
+Konverteringa i denne serveren er skriven på nytt.
+
+Junxiang Zhu, Peng Wu og Xiang Lei: "IFC-graph for facilitating building
+information access and query". *Automation in Construction* 148 (2023), 104778.
+[doi:10.1016/j.autcon.2023.104778](https://doi.org/10.1016/j.autcon.2023.104778),
+fritt tilgjengeleg under CC BY 4.0.
+
+Ho skil seg frå artikkelen på desse punkta:
+
+- Geometri blir utelaten dersom ho ikkje blir etterspurd. Artikkelen konverterer
+  alt og nemner storleiken på grafen som ei avgrensing.
+- Postane blir skrivne i puljar med `CREATE` frå ein eigen prosess. Artikkelen
+  slår saman kvar node og relasjon, noko som søkjer etter duplikat i grafen og går
+  seinare di større grafen blir.
+- Select-verdiar blir eigenskapar på noden sin. Artikkelen gjev dei eigne nodar
+  med ein generert identifikator.
+- Fleire modellar deler éin database og blir skilde med `model_id`. Artikkelen har
+  éin modell per database.
+- Relasjonstypane blir skrivne med store bokstavar, og `SAME_AS` og kopien av GTIN
+  er tillegg her.
+
+Rekkjefølgja i lister går tapt òg her, slik artikkelen peikar på om sin eigen graf:
+ein relasjon seier ikkje kvar i ei liste målet stod.
+
 ## Opprydding
 
 Kvar opplasting av ei IFC-fil legg til ein `IfcModel` med entitetane sine, så
