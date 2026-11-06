@@ -113,7 +113,7 @@ engin JWT til að sannreyna.
 | Auðkenning biðlara; opinberir biðlarar án leyndarmála | uppfyllt | `test_client_authentication_failures` |
 | Tókasvör ekki geymanleg í skyndiminni | uppfyllt | `test_token_response_is_never_cached_and_has_spec_fields` |
 | Samþykkisskjárinn nefnir biðlarann og áframsendingarmarkið; notandinn getur neitað | uppfyllt | `test_deny_redirects_with_access_denied`, `auth/templates` |
-| Kvik skráning takmörkuð | uppfyllt | Óvirk sjálfgefið; aðeins https- eða loopback-áframsendingar þegar virk; opinberar skráningar (RFC 7591 `none`) reiða sig á PKCE og á að samþykkissíðan nefni biðlarann og áframsendingarhýsil hans; tíðnitakmörkuð |
+| Kvik skráning takmörkuð | uppfyllt | Óvirk sjálfgefið; aðeins https- eða loopback-áframsendingar þegar virk; opinberar skráningar (RFC 7591 `none`) reiða sig á PKCE og á að samþykkissíðan nefni biðlarann og áframsendingarhýsil hans; tíðnitakmörkuð; upphafsaðgangstóki og samþykki stjórnanda eru valkostir |
 | Sendandabundnir tókar (DPoP, mTLS) | ekki uppfyllt | Atriði á stigi 3; talið upp undir *Síðar* í áætluninni |
 | Samræmi prófað með ytra tóli | ekki uppfyllt | OAuch-keyrsla lýst í [pentest-howto.md](pentest-howto.md) §4, á að gera fyrir fyrstu framleiðsluuppsetningu |
 

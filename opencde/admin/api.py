@@ -102,6 +102,7 @@ def _client(client: Client) -> dict[str, Any]:
         "dynamic": client.dynamic,
         "redirect_uris": list(client.redirect_uris),
         "disabled": client.disabled,
+        "pending": client.pending,
         "created_at": client.created_at,
         "expires_at": client.expires_at,
         "last_used_at": client.last_used_at,

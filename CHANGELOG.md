@@ -9,6 +9,10 @@ the commit history.
 
 ## Unreleased
 
+- Dynamic registration can be limited further: `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN`
+  asks for an initial access token, and `OPENCDE_DYNAMIC_CLIENT_APPROVAL` keeps a new client
+  disabled until an administrator approves it under `/admin/clients` or with
+  `opencde client approve`. The capabilities document says which applies.
 - A refresh token left unused for two weeks stops working, inside the absolute lifetime
   of 30 days (`OPENCDE_REFRESH_TOKEN_IDLE_SECONDS`).
 - Failed sign-ins make a user name wait, on both sign-in forms: after five in a row a

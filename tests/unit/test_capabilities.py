@@ -24,6 +24,8 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["dynamic_client_registration"] == {
         "enabled": False,
         "public_clients": True,
+        "initial_access_token": False,
+        "approval": False,
         "unused_days": 30,
         "url": "/foundation/oauth2/reg",
     }

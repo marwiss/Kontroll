@@ -49,7 +49,7 @@ erDiagram
 | `MEMBER_OF` (suhde User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Roolit kuvautuvat BCF:n `*_actions`-arvoihin, katso `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter` | `topic_counter` numeroi `server_assigned_id`-arvot |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` lasketaan jäsenistä |
-| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `created_at`, `created_by`, `dynamic`, `expires_at` (vain itse rekisteröityneet) | OAuth2-asiakas; itse rekisteröitynyt poistetaan, kun `expires_at` on ohitettu ilman tokenin myöntämistä |
+| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (vain itse rekisteröityneet) | OAuth2-asiakas; itse rekisteröitynyt poistetaan, kun `expires_at` on ohitettu ilman tokenin myöntämistä |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-merkkijono) | Turvallisuuden kannalta merkitykselliset tapahtumat |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Konteksti tarkastussuunnitelman käyttötapauksesta (seed-data): tarkastava organisaatio (alkuperäisessä tarinassa kunta) ja rakennus |
 

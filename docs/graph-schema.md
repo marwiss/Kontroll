@@ -44,7 +44,7 @@ erDiagram
 | `MEMBER_OF` (relationship User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Roles map to BCF `*_actions`, see `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter` | `topic_counter` numbers `server_assigned_id` |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` is computed from members |
-| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `created_at`, `created_by`, `dynamic`, `expires_at` (self-registered only) | OAuth2 client; a self-registered one is deleted once `expires_at` passes without a token issuance |
+| `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (self-registered only) | OAuth2 client; a self-registered one is deleted once `expires_at` passes without a token issuance |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON string) | Security-relevant events |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Context from the inspection-plan use case (seed data): the reviewing organisation (a municipality in the original story) and the building |
 

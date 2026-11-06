@@ -38,7 +38,7 @@ comes from `OPENCDE_DATASPATIUM_URL`; the administration API is mounted by
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
-    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},

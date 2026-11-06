@@ -154,6 +154,13 @@ class Settings(BaseSettings):
     dynamic_client_registration: bool = Field(
         False, description="Offer POST /foundation/oauth2/reg (Foundation API 2.2.3). Off unless you need it."
     )
+    dynamic_client_registration_token: SecretStr = Field(
+        SecretStr(""),
+        description="When set, registering takes this value as a bearer token (RFC 7591 initial access token).",
+    )
+    dynamic_client_approval: bool = Field(
+        False, description="A self-registered client can sign nobody in until an administrator approves it."
+    )
     dynamic_client_unused_days: int = Field(
         30,
         ge=1,

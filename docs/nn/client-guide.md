@@ -34,7 +34,7 @@ tilpassar seg i staden for å prøve seg fram:
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
-    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
@@ -111,6 +111,8 @@ finst. Send `software_id` og `software_version` (RFC 7591 §2): serveren
 lagrar dei på klienten og viser dei for administratorar ved sida av
 registreringa, som er slik ein operatør skil installasjonar og versjonar av
 applikasjonen din frå kvarandre.
+
+Ein server kan avgrense dette ytterlegare. Med `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN` sett tek kallet den verdien som `Authorization: Bearer …` (RFC 7591 §3) og svarar 401 utan han. Med `OPENCDE_DYNAMIC_CLIENT_APPROVAL=true` kan den nye klienten ikkje logge inn nokon før ein administrator godkjenner han, og innloggingssida seier det. Kapabilitetsdokumentet fortel kva som gjeld.
 
 Registrer éin gong per installasjon og lagre `client_id`: ein sjølvregistrert
 klient som ikkje utferdar noko token på `OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS`

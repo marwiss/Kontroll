@@ -35,7 +35,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
-    "dynamic_client_registration": {"enabled": true, "public_clients": true, "unused_days": 30,
+    "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
@@ -112,6 +112,8 @@ olemassa. Lähetä `software_id` ja `software_version` (RFC 7591 §2): palvelin
 tallentaa ne asiakkaalle ja näyttää ne järjestelmänvalvojille rekisteröinnin
 vierellä; näin ylläpitäjä erottaa sovelluksesi asennukset ja versiot
 toisistaan.
+
+Palvelin voi rajoittaa tätä lisää. Kun `OPENCDE_DYNAMIC_CLIENT_REGISTRATION_TOKEN` on asetettu, pyyntö ottaa arvon muodossa `Authorization: Bearer …` (RFC 7591 §3) ja vastaa ilman sitä 401. Kun `OPENCDE_DYNAMIC_CLIENT_APPROVAL=true`, uusi asiakas ei voi kirjata ketään sisään ennen kuin järjestelmänvalvoja hyväksyy sen, ja kirjautumissivu kertoo sen. Kyvykkyysasiakirja kertoo, mikä on voimassa.
 
 Rekisteröi kerran asennusta kohti ja tallenna `client_id`: itse
 rekisteröitynyt asiakas, joka ei myönnä yhtään tokenia

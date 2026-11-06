@@ -27,6 +27,7 @@ Hver kontroll har minst én automatisert test. "Suite" navngir testmodulen.
 | Argon2id-hashing av passord; policy (lengde, zxcvbn, ikke brukernavnet) | OWASP ASVS 2.1 | `test_core_helpers::test_password_policy_and_hashing` |
 | Dynamisk registrering av som standard; bare https- eller loopback-omdirigeringer; offentlige klienter (RFC 7591 `token_endpoint_auth_method: "none"`) får ingen hemmelighet og må bruke PKCE som enhver klient; bare kode- og refresh-grantene kan registreres | Foundation API 2.2.3, RFC 7591 | `test_oauth2::test_dynamic_registration_when_enabled`, `::test_registration_is_404_when_disabled` |
 | Selvregistrerte klienter som ikke utsteder noe token på `dynamic_client_unused_days`, slettes med tokenene sine (oppryddingen og `opencde client prune`); manuelle klienter utløper aldri | Dataminimering | `test_maintenance::test_unused_self_registered_clients_expire_and_can_be_pruned`, `test_oauth2::test_dynamic_registration_when_enabled` |
+| Registreringen kan begrenses ytterligere: `dynamic_client_registration_token` krever et innledende tilgangstoken (RFC 7591 §3), og `dynamic_client_approval` holder en selvregistrert klient deaktivert til en administrator godkjenner den | RFC 7591 §3 | `test_registration_controls` |
 | Bare Bearer på API-et; HTTP Basic avvises | Foundation API 2.2.1 | `test_foundation::test_current_user_requires_a_bearer_token` |
 | Sider: streng CSP, ingen inline-kode, ingen innramming, ingen caching | OWASP ASVS 14.4 | `test_foundation::test_authorize_without_client_shows_an_error_page_and_never_redirects` |
 

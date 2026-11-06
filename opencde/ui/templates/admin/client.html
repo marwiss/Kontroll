@@ -5,10 +5,23 @@
   <h1>{{ client.name }}</h1>
   <div class="cluster">
     <span class="badge badge--neutral">{% if client.is_public %}{{ t("admin.clients.public") }}{% else %}{{ t("admin.clients.confidential") }}{% endif %}</span>
-    {% if client.disabled %}<span class="badge badge--danger">{{ t("common.disabled") }}</span>{% endif %}
+    {% if client.pending %}<span class="badge badge--warning">{{ t("admin.clients.pending") }}</span>
+    {% elif client.disabled %}<span class="badge badge--danger">{{ t("common.disabled") }}</span>{% endif %}
   </div>
 </div>
 {% if error %}{{ alert("error", error) }}{% endif %}
+
+{% if client.pending %}
+<section class="card">
+  <h2>{{ t("admin.clients.pending") }}</h2>
+  <p class="muted">{{ t("admin.client.pending_lead") }}</p>
+  <form method="post" action="/admin/clients/{{ client.client_id }}">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="approve">
+    {{ button(t("admin.client.approve")) }}
+  </form>
+</section>
+{% endif %}
 
 <section class="card">
   <h2>{{ t("common.client") }}</h2>

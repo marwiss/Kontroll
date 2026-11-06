@@ -42,6 +42,7 @@ NOTICES = {
         "created",
         "deleted",
         "revoked",
+        "approved",
         "member_saved",
         "member_removed",
         "extensions_saved",
