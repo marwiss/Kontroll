@@ -1,0 +1,72 @@
+# The nightly job's scan as someone signed in: the API from its document with bearer tokens, and
+# the administration through its pages with a session cookie. The baseline scan looks at what
+# anyone can reach; this one attacks what takes a sign-in. See docs/security/pentest-howto.md.
+#
+# TARGET, SESSION, TOKEN and ADMIN_TOKEN come from the environment (.zap/credentials.py).
+env:
+  contexts:
+    - name: kontroll
+      urls:
+        - ${TARGET}
+      includePaths:
+        - ${TARGET}/.*
+      excludePaths:
+        # Signing out would end the session the scan depends on.
+        - ${TARGET}/signout.*
+        # The interactive documentation is FastAPI's page with its own policy (see rules.tsv).
+        - ${TARGET}/docs.*
+        - ${TARGET}/redoc.*
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+
+jobs:
+  - type: replacer
+    parameters:
+      deleteAllRules: true
+    rules:
+      - description: The administrator's session on the pages
+        url: ${TARGET}/(admin|account|documents/1\.0/(upload|select)-ui).*
+        matchType: req_header
+        matchString: Cookie
+        matchRegex: false
+        replacementString: opencde_session=${SESSION}
+      - description: A manager's token on the APIs
+        url: ${TARGET}/(foundation|bcf|documents/1\.0).*
+        matchType: req_header
+        matchString: Authorization
+        matchRegex: false
+        replacementString: Bearer ${TOKEN}
+      - description: An administrator's token on the administration API
+        url: ${TARGET}/admin/api.*
+        matchType: req_header
+        matchString: Authorization
+        matchRegex: false
+        replacementString: Bearer ${ADMIN_TOKEN}
+  - type: openapi
+    parameters:
+      apiUrl: ${TARGET}/openapi.json
+      context: kontroll
+  - type: spider
+    parameters:
+      context: kontroll
+      url: ${TARGET}/admin
+      maxDuration: 3
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+  - type: activeScan
+    parameters:
+      context: kontroll
+      maxScanDurationInMins: 25
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /zap/wrk/
+      reportFile: zap-authenticated
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /zap/wrk/
+      reportFile: zap-authenticated

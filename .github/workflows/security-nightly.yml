@@ -1,8 +1,8 @@
 name: Nightly security
 
 # Slow or noisy checks that do not belong in every push: the Memgraph contract
-# run, an image vulnerability scan, and an OWASP ZAP baseline scan of the
-# running server's pages and API.
+# run, an image vulnerability scan, an OWASP ZAP baseline scan of the running
+# server's pages and API, the same scanner signed in, and a restart of the stack.
 
 on:
   schedule:
@@ -31,6 +31,45 @@ jobs:
         env:
           OPENCDE_TEST_MEMGRAPH: "1"
           OPENCDE_SCHEMATHESIS_EXAMPLES: "50"
+
+  zap-signed-in:
+    name: OWASP ZAP signed in (API and administration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: Start the server with demo data
+        run: |
+          uv run opencde init --dev
+          echo "OPENCDE_RATE_LIMITS_ENABLED=false" >> .env  # the scan is to see every page it asks for
+          docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
+          docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde seed --password demo-password-for-zap-only > seed.txt
+          echo "CLIENT_ID=$(awk '/client +public/ {print $3}' seed.txt)" >> "$GITHUB_ENV"
+      - name: Sign in
+        run: uv run python .zap/credentials.py http://127.0.0.1:8000 "$CLIENT_ID" demo-password-for-zap-only
+      - name: The scan
+        run: |
+          chmod a+w .zap
+          docker run --rm --network host -v "$PWD/.zap:/zap/wrk:rw" \
+            -e TARGET=http://127.0.0.1:8000 -e SESSION -e TOKEN -e ADMIN_TOKEN \
+            ghcr.io/zaproxy/zaproxy:2.17.0 zap.sh -cmd -autorun /zap/wrk/authenticated.yaml
+      - name: What it found
+        run: uv run python .zap/findings.py .zap/zap-authenticated.json
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zap-signed-in
+          path: .zap/zap-authenticated.*
+          if-no-files-found: ignore
+      - name: Server log
+        if: always()
+        run: docker compose -f compose.yaml -f compose.dev.yaml logs api | tail -200
 
   restart:
     name: The stack in Docker outlives a restart
