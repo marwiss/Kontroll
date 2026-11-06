@@ -4,6 +4,9 @@
 A client is the application that asks for access on a user's behalf: a BCF
 plugin, a web viewer, a script. Confidential clients hold a secret (stored
 hashed); public clients (native and browser apps) have none and rely on PKCE.
+Every client uses PKCE, except a confidential one an administrator has marked
+``pkce_optional`` because it cannot: BCF API 2.1 and its OAuth2 example know
+nothing of PKCE. Its secret is what protects its codes then (RFC 9700 §2.1.1).
 Redirect URIs are registered exactly and matched exactly (RFC 9700 §4.1),
 with the loopback exception of RFC 8252 §7.3: for ``http://127.0.0.1`` and
 ``http://[::1]`` the port may vary.
@@ -21,6 +24,7 @@ from opencde.ids import hash_secret, is_uuid, new_id, new_secret, normalize_guid
 from opencde.timeutil import now_iso
 
 MAX_REDIRECTS = 10
+MAX_DESCRIPTION = 4000  # BCF API 2.1 and Foundation API 2.2.3
 LOOPBACK_HOSTS = ("127.0.0.1", "[::1]")
 
 
@@ -48,6 +52,7 @@ class Client:
     software_version: str | None = None
     last_used_at: str | None = None  # the latest token issuance
     pending: bool = False  # self-registered and waiting for an administrator, disabled until then
+    pkce_optional: bool = False  # a confidential client that may sign in without PKCE
 
     @property
     def is_confidential(self) -> bool:
@@ -71,12 +76,13 @@ def _client(row: dict[str, Any]) -> Client:
         software_version=row.get("software_version"),
         last_used_at=row.get("last_used_at"),
         pending=bool(row.get("pending_approval", False)),
+        pkce_optional=bool(row.get("pkce_optional", False)),
     )
 
 
 FIELDS = (
     "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, "
-    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at, .pending_approval}"
+    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at, .pending_approval, .pkce_optional}"
 )
 
 
@@ -162,6 +168,7 @@ class ClientRepository:
         software_id: str | None = None,
         software_version: str | None = None,
         pending: bool = False,
+        pkce_optional: bool = False,
     ) -> tuple[Client, str | None]:
         """Create a client. Returns the client and, for confidential clients, the secret (shown once).
 
@@ -171,6 +178,8 @@ class ClientRepository:
         name = name.strip()
         if not name or len(name) > 200:
             raise ClientError("client name: 1-200 characters", key="error.client.name_length", max=200)
+        if pkce_optional and public:
+            raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
         if client_id is not None:
             if not is_uuid(client_id):
                 raise ClientError("client_id must be a UUID", key="error.client.id_uuid")
@@ -183,13 +192,14 @@ class ClientRepository:
                 redirect_uris: $redirect_uris, is_public: $public, secret_hash: $secret_hash,
                 disabled: $pending, pending_approval: $pending, created_at: $now, created_by: $created_by,
                 dynamic: $dynamic,
-                expires_at: $expires_at, software_id: $software_id, software_version: $software_version
+                expires_at: $expires_at, software_id: $software_id, software_version: $software_version,
+                pkce_optional: $pkce_optional
             }})
             RETURN {FIELDS} AS client
             """,
             client_id=client_id or new_id(),
             name=name,
-            description=(description or "").strip()[:1000] or None,
+            description=(description or "").strip()[:MAX_DESCRIPTION] or None,
             url=(url or "").strip()[:2000] or None,
             redirect_uris=self._clean_redirects(redirect_uris),
             public=public,
@@ -201,6 +211,7 @@ class ClientRepository:
             software_id=(software_id or "").strip()[:100] or None,
             software_version=(software_version or "").strip()[:50] or None,
             pending=pending,
+            pkce_optional=pkce_optional,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
             raise ClientError("client was not created", key="error.client.not_created")
@@ -252,7 +263,10 @@ class ClientRepository:
         url: str | None = None,
         redirect_uris: list[str] | None = None,
         disabled: bool | None = None,
+        pkce_optional: bool | None = None,
     ) -> Client:
+        if pkce_optional and (client := await self.get(client_id)) is not None and client.is_public:
+            raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
         row = await self.graph.one(
             f"""
             MATCH (c:Client {{client_id: $id}})
@@ -261,6 +275,7 @@ class ClientRepository:
                 c.url = coalesce($url, c.url),
                 c.redirect_uris = coalesce($redirect_uris, c.redirect_uris),
                 c.disabled = coalesce($disabled, c.disabled),
+                c.pkce_optional = coalesce($pkce_optional, c.pkce_optional),
                 c.pending_approval = CASE WHEN $disabled = false THEN false ELSE c.pending_approval END
             RETURN {FIELDS} AS client
             """,
@@ -270,6 +285,7 @@ class ClientRepository:
             url=url,
             redirect_uris=self._clean_redirects(redirect_uris) if redirect_uris is not None else None,
             disabled=disabled,
+            pkce_optional=pkce_optional,
         )
         if row is None:
             raise ClientError("no such client", key="error.client.not_found")

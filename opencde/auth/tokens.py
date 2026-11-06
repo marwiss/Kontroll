@@ -82,15 +82,25 @@ class TokenRepository:
     # -- authorization codes ------------------------------------------------------
 
     async def issue_code(
-        self, *, user_id: str, client_id: str, redirect_uri: str, scope: str, code_challenge: str
+        self,
+        *,
+        user_id: str,
+        client_id: str,
+        redirect_uri: str,
+        scope: str,
+        code_challenge: str | None,
+        redirect_required: bool = False,
     ) -> str:
+        """``code_challenge`` is None for a client that may do without PKCE. ``redirect_required`` then says that
+        the request named its redirect URI, and the token request has to name it too (RFC 6749 §4.1.3)."""
         code = new_secret()
         await self.graph.run(
             """
             MATCH (u:User {id: $user_id}), (c:Client {client_id: $client_id})
             CREATE (ac:AuthorizationCode {
                 code_hash: $code_hash, redirect_uri: $redirect_uri, scope: $scope,
-                code_challenge: $code_challenge, created_at: $now, expires_at: $expires_at, spent: false,
+                code_challenge: $code_challenge, redirect_required: $redirect_required,
+                created_at: $now, expires_at: $expires_at, spent: false,
                 auth_time: $now
             })
             CREATE (ac)-[:FOR]->(u)
@@ -102,18 +112,21 @@ class TokenRepository:
             redirect_uri=redirect_uri,
             scope=scope,
             code_challenge=code_challenge,
+            redirect_required=redirect_required,
             now=now_iso(),
             expires_at=later_iso(self.code_ttl),
         )
         return code
 
     async def redeem_code(
-        self, *, code: str, client_id: str, redirect_uri: str | None, code_verifier: str
+        self, *, code: str, client_id: str, redirect_uri: str | None, code_verifier: str | None
     ) -> TokenPair:
         """Exchange a code for tokens, atomically; any mismatch is ``invalid_grant``.
 
-        ``redirect_uri`` may be omitted by the client (OAuth 2.1 drops it when PKCE is
-        used, and PKCE is always used here); when present it must match the request.
+        ``redirect_uri`` may be omitted by the client when PKCE is used (OAuth 2.1 drops
+        it then); when present it must match the request. A code with no challenge belongs
+        to a client marked ``pkce_optional``, and a verifier for it is refused, so that
+        nobody can talk a request with PKCE out of it (RFC 9700 §2.1.1).
         """
         code_hash = hash_secret(code or "")
 
@@ -122,7 +135,8 @@ class TokenRepository:
                 """
                 MATCH (ac:AuthorizationCode {code_hash: $code_hash})-[:FOR]->(u:User), (ac)-[:ISSUED_TO]->(c:Client)
                 RETURN properties(ac) AS code, u.id AS user_id, u.disabled AS user_disabled,
-                       c.client_id AS client_id, c.disabled AS client_disabled
+                       c.client_id AS client_id, c.disabled AS client_disabled,
+                       c.pkce_optional AS pkce_optional
                 """,
                 code_hash=code_hash,
             )
@@ -142,8 +156,16 @@ class TokenRepository:
                 return _Refusal(GrantError("invalid_grant", "authorization code was issued to another client"))
             if redirect_uri is not None and stored["redirect_uri"] != redirect_uri:
                 return _Refusal(GrantError("invalid_grant", "redirect_uri does not match the authorization request"))
-            if not pkce.verify(code_verifier, stored["code_challenge"]):
-                return _Refusal(GrantError("invalid_grant", "PKCE code_verifier does not match"))
+            if redirect_uri is None and stored.get("redirect_required"):
+                return _Refusal(GrantError("invalid_grant", "redirect_uri is required for this code"))
+            challenge = stored.get("code_challenge")
+            if challenge:
+                if not code_verifier:
+                    return _Refusal(GrantError("invalid_request", "code_verifier is required"))
+                if not pkce.verify(code_verifier, challenge):
+                    return _Refusal(GrantError("invalid_grant", "PKCE code_verifier does not match"))
+            elif code_verifier or not row["pkce_optional"]:
+                return _Refusal(GrantError("invalid_grant", "this code was issued without PKCE"))
             if row["user_disabled"] or row["client_disabled"]:
                 return _Refusal(GrantError("invalid_grant", "account or client is disabled"))
             await tx.run(
@@ -214,7 +236,8 @@ class TokenRepository:
                 """
                 MATCH (rt:RefreshToken {token_hash: $token_hash})-[:FOR]->(u:User), (rt)-[:ISSUED_TO]->(c:Client)
                 RETURN properties(rt) AS token, u.id AS user_id, u.disabled AS user_disabled,
-                       c.client_id AS client_id, c.disabled AS client_disabled
+                       c.client_id AS client_id, c.disabled AS client_disabled,
+                       c.pkce_optional AS pkce_optional
                 """,
                 token_hash=token_hash,
             )

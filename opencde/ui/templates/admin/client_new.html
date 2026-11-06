@@ -7,10 +7,11 @@
   <form method="post" action="/admin/clients" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     {{ field("name", t("common.name"), required=true, autofocus=true, maxlength=200, hint=t("admin.client_new.name_hint")) }}
-    {{ field("description", t("common.description"), maxlength=1000) }}
+    {{ field("description", t("common.description"), maxlength=4000) }}
     {{ field("url", t("admin.client.website"), type="url", maxlength=2000) }}
     {{ textarea_field("redirect_uris", t("common.redirect_uris"), rows=3, hint=t("admin.client_new.redirect_hint")) }}
     {{ select_field("kind", t("common.type"), [("public", t("admin.client_new.public_option")), ("confidential", t("admin.client_new.confidential_option"))], selected="public", hint=t("admin.client_new.type_hint")) }}
+    {{ checkbox("pkce_optional", t("admin.client.without_pkce_label"), hint=t("admin.client.without_pkce_hint")) }}
     <div class="cluster">
       {{ button(t("admin.clients.register")) }}
       <a class="btn btn--secondary" href="/admin/clients">{{ t("common.cancel") }}</a>
