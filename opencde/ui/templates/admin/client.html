@@ -25,7 +25,7 @@
 
 <section class="card">
   <h2>{{ t("common.client") }}</h2>
-  <form method="post" action="/admin/clients/{{ client.client_id }}" class="stack">
+  <form method="post" data-inline action="/admin/clients/{{ client.client_id }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="update">
     <dl class="facts">

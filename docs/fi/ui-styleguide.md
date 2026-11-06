@@ -173,5 +173,6 @@ muulle (`nav.*`, `account.*`, `docs.*`, `admin.*`, `notice.*`, `js.*`).
   `createElement`- ja `textContent`-kutsuilla.
 - Paranna vain sitä, mikä on olemassa: lue `data-*`-attribuutteja, älä
   koskaan asetuksia inline-skripteistä.
+- Lomakkeella, joka pysyy sivullaan, voi olla `data-inline` (`inline.js`): se tallentaa `fetch`-kutsulla, ja palvelimen vastaussivun `main`-elementti korvaa vanhan. Sivu jäsennetään kokonaisena `DOMParser`illa, joten palvelimen escaping pätee, ja lomake lähetetään tavalliseen tapaan, jos jokin menee vikaan.
 - Pidä käytös palautuvana: sivun on toimittava oikein, jos moduuli ei
   lataudu.

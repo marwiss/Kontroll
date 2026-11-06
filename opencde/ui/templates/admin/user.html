@@ -13,7 +13,7 @@
 
 <section class="card">
   <h2>{{ t("admin.user.account") }}</h2>
-  <form method="post" action="/admin/users/{{ user.id }}" class="stack">
+  <form method="post" data-inline action="/admin/users/{{ user.id }}" class="stack">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="update">
     <dl class="facts">
@@ -46,7 +46,7 @@
         <tr>
           <td><a href="/admin/projects/{{ project_id }}">{{ name }}</a></td>
           <td>
-            <form method="post" action="/admin/users/{{ user.id }}" class="cluster">
+            <form method="post" data-inline action="/admin/users/{{ user.id }}" class="cluster">
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="membership">
               <input type="hidden" name="project_id" value="{{ project_id }}">
@@ -58,7 +58,7 @@
             </form>
           </td>
           <td>
-            <form method="post" action="/admin/users/{{ user.id }}" data-confirm="{{ t('admin.user.remove_confirm', user=user.username, name=name) }}">
+            <form method="post" data-inline action="/admin/users/{{ user.id }}" data-confirm="{{ t('admin.user.remove_confirm', user=user.username, name=name) }}">
               <input type="hidden" name="form_token" value="{{ form_token }}">
               <input type="hidden" name="action" value="remove_membership">
               <input type="hidden" name="project_id" value="{{ project_id }}">
@@ -74,7 +74,7 @@
   <p class="muted">{{ t("admin.user.no_roles") }}</p>
   {% endif %}
   {% if other_projects %}
-  <form method="post" action="/admin/users/{{ user.id }}" class="form-grid form-grid--end">
+  <form method="post" data-inline action="/admin/users/{{ user.id }}" class="form-grid form-grid--end">
     <input type="hidden" name="form_token" value="{{ form_token }}">
     <input type="hidden" name="action" value="membership">
     {{ select_field("project_id", t("admin.user.add_to_project"), other_projects|map(attribute="project_id")|zip(other_projects|map(attribute="name"))|list) }}
