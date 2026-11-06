@@ -26,20 +26,21 @@ jobs:
     parameters:
       deleteAllRules: true
     rules:
+      # The url of a rule is a regular expression, so ${TARGET} cannot stand in it.
       - description: The administrator's session on the pages
-        url: ${TARGET}/(admin|account|documents/1\.0/(upload|select)-ui).*
+        url: ^https?://[^/]+/(admin|account|documents/1\.0/(upload|select)-ui).*
         matchType: req_header
         matchString: Cookie
         matchRegex: false
         replacementString: opencde_session=${SESSION}
       - description: A manager's token on the APIs
-        url: ${TARGET}/(foundation|bcf|documents/1\.0).*
+        url: ^https?://[^/]+/(foundation|bcf|documents/1\.0).*
         matchType: req_header
         matchString: Authorization
         matchRegex: false
         replacementString: Bearer ${TOKEN}
       - description: An administrator's token on the administration API
-        url: ${TARGET}/admin/api.*
+        url: ^https?://[^/]+/admin/api.*
         matchType: req_header
         matchString: Authorization
         matchRegex: false
