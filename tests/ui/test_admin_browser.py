@@ -7,7 +7,9 @@ from collections.abc import Iterator
 
 import pytest
 
+from opencde_client import ApiError, AuthError, OAuth2Client, OpenCdeClient, generate_state, generate_verifier
 from tests.ui.conftest import LiveServer
+from tests.ui.test_popup_opener import _client_site
 
 # The browser tools live in the optional ``ui`` dependency group; without it this module is skipped,
 # not broken, when the whole tree is collected.
@@ -71,12 +73,22 @@ def serious_violations(page: Page) -> list[str]:
 def test_admin_pages_are_accessible_and_quiet(page: tuple[Page, list[str]], live_server: LiveServer) -> None:
     browser_page, problems = page
     sign_in(browser_page, live_server, "admin")
-    for path in PAGES:
+    world = live_server.world
+    browser_page.goto("/admin/users")
+    user_page = browser_page.get_by_role("link", name="editor", exact=True).get_attribute("href")
+    for path in (
+        *PAGES,
+        user_page,
+        f"/admin/projects/{world.project_id}",
+        f"/admin/clients/{world.public_client_id}",
+    ):
         browser_page.goto(path)
         expect(browser_page.get_by_role("main")).to_be_visible()
         assert browser_page.title().endswith("OpenCDE server"), path
         violations = serious_violations(browser_page)
         assert violations == [], f"{path}: {violations}"
+        # The browser refuses a form over a required field nobody can see, without saying why.
+        assert browser_page.locator("details:not([open]) [required]").count() == 0, path
     assert problems == [], "no console errors (CSP violations would show up here)"
 
 
@@ -128,4 +140,70 @@ def test_admin_creates_a_project_and_a_user_through_the_forms(
     expect(browser_page.get_by_role("link", name="editor", exact=True)).to_be_hidden()
     browser_page.get_by_role("columnheader", name="User name").click()
     assert browser_page.get_by_role("columnheader", name="User name").get_attribute("aria-sort") == "ascending"
+    assert problems == []
+
+
+def test_the_whole_way_from_the_administration_to_an_issue_and_back(
+    page: tuple[Page, list[str]], live_server: LiveServer
+) -> None:
+    """An administrator sets up a project, a user and a public client in the forms. The new user signs in from
+    the client library in a browser of their own and files an issue. The administrator disables the user, and
+    the token stops working at once."""
+    admin, problems = page
+    sign_in(admin, live_server, "admin")
+
+    admin.goto("/admin/projects/new")
+    admin.get_by_label("Name").fill("The whole way")
+    admin.get_by_role("button", name="Create project").click()
+    expect(admin.get_by_role("heading", name="The whole way")).to_be_visible()
+    project_id = admin.url.split("/admin/projects/")[1].split("?")[0]
+
+    admin.goto("/admin/users/new")
+    admin.get_by_label("User name").fill("whole.way")
+    admin.get_by_role("button", name="Create user").click()
+    expect(admin.get_by_role("heading", name="Password for whole.way")).to_be_visible()
+    password = admin.locator("#secret-value").inner_text().strip()
+
+    admin.goto(f"/admin/projects/{project_id}")
+    admin.get_by_label("Add member").select_option(label="whole.way")
+    admin.get_by_label("Role", exact=True).select_option("editor")
+    admin.get_by_role("button", name="Add member").click()
+    expect(admin.get_by_role("status")).to_contain_text("Membership saved.")
+
+    admin.goto("/admin/clients/new")
+    admin.get_by_label("Name").fill("A viewer of the new user's")
+    admin.get_by_label("Redirect URIs").fill("http://127.0.0.1/callback")
+    admin.get_by_label("Type").select_option("public")
+    admin.get_by_role("button", name="Register client").click()
+    expect(admin.get_by_role("heading", name="A viewer of the new user's")).to_be_visible()
+    client_id = admin.url.split("/admin/clients/")[1].split("?")[0]
+
+    cde = OpenCdeClient(live_server.url, client_id=client_id)
+    state, verifier = generate_state(), generate_verifier()
+    own_browser = admin.context.browser.new_context()  # type: ignore[union-attr]
+    person = own_browser.new_page()
+    with _client_site() as app_origin:
+        redirect = f"{app_origin}/callback"
+        person.goto(cde.oauth.authorization_url(redirect_uri=redirect, state=state, verifier=verifier))
+        person.get_by_label("User name").fill("whole.way")
+        person.get_by_label("Password").fill(password)
+        person.get_by_role("button", name="Allow and sign in").click()
+        person.wait_for_url(lambda url: url.startswith(redirect))
+        code = OAuth2Client.parse_callback(person.url, expected_state=state)
+    own_browser.close()
+    cde.use_tokens(cde.oauth.exchange(code=code, verifier=verifier, redirect_uri=redirect))
+
+    with cde:
+        assert cde.foundation.current_user()["id"] == "whole.way"
+        topic = cde.bcf.create_topic(project_id, {"title": "Filed by the new user"})
+        assert [found["guid"] for found in cde.bcf.topics(project_id)] == [topic["guid"]]
+
+        admin.goto("/admin/users")
+        admin.get_by_role("link", name="whole.way").click()
+        admin.get_by_label("Disabled: cannot sign in; tokens are revoked").check()
+        admin.get_by_role("button", name="Save").click()
+        expect(admin.get_by_role("status")).to_be_visible()
+
+        with pytest.raises((ApiError, AuthError)):
+            cde.foundation.current_user()
     assert problems == []

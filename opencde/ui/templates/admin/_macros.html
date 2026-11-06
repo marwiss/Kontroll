@@ -60,11 +60,11 @@
 </div>
 {% endmacro %}
 
-{% macro confirm_password(form_id) %}
+{% macro confirm_password(form_id, required=true) %}
 <div class="field">
   <label class="field__label" for="{{ form_id }}-confirm">{{ t("macro.confirm_label") }}</label>
   <input class="input" id="{{ form_id }}-confirm" name="confirm_password" type="password" autocomplete="current-password"
-         required maxlength="256" aria-describedby="{{ form_id }}-confirm-hint">
+         {% if required %}required {% endif %}maxlength="256" aria-describedby="{{ form_id }}-confirm-hint">
   <p class="field__hint" id="{{ form_id }}-confirm-hint">{{ t("macro.confirm_hint") }}</p>
 </div>
 {% endmacro %}
