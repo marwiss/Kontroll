@@ -290,7 +290,7 @@ the Dataspatium side:
    comment with fixed ids (client-guide §7, inventory §9).
 5. The pair's CI (item 7): Dataspatium's live suite from its release,
    headless, in Kontroll's nightly job (done 2026-11-05,
-   `dataspatium-nightly.yml`, against Dataspatium v2.1.0); the same job in
+   `dataspatium-nightly.yml`, against the paired Dataspatium release); the same job in
    Dataspatium with a pinned server image.
 6. Deep links both ways: `OPENCDE_DATASPATIUM_URL` gives the server's project
    and document pages an "Open in Dataspatium" link (also for workspace
@@ -300,7 +300,8 @@ the Dataspatium side:
    honours `project`, `document` and `version` from 2.1.0).
 7. `software_id`/`software_version` at registration (item 2) — Dataspatium
    2.33 sends them.
-8. A joint quick start (item 8).
+8. A joint quick start (item 8). Done 2026-11-05: `docs/quickstart.md` here
+   and `docs/snabbstart.md` there, the same text in seven languages.
 9. The administration API (item 12) — Dataspatium 2.2.0. Read and write
    endpoints done 2026-11-05 in the shapes of Dataspatium's resource list
    (`docs/client-guide.md` §7) together with `auth_time` on token families,
@@ -309,8 +310,10 @@ the Dataspatium side:
     (`POST /admin/api/graph/query`, off by default; item 3 has the shape).
 11. A shared security and personal-data page: what the app keeps in the
     browser, what the server stores and for how long, one half each, cross-linked.
+    Done 2026-11-06: `docs/security/personal-data.md` here, `docs/sakerhet.md`
+    there, linked in each language.
 12. `CONTRIBUTING.md` in Kontroll and the licence terms of the shared pieces
-    (decision B).
+    (decision B). Done 2026-11-05: `CONTRIBUTING.md`, "Working with Dataspatium".
 
 Continuously: specification quirks from both sides (item 9). Later: BCFzip on
 the server (item 10) and the inspection-plan domain (item 11).
