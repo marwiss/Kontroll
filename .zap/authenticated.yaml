@@ -2,21 +2,35 @@
 # the administration through its pages with a session cookie. The baseline scan looks at what
 # anyone can reach; this one attacks what takes a sign-in. See docs/security/pentest-howto.md.
 #
+# The API goes first, since the scan sends the pages' forms again with their valid tokens, and
+# they can disable the user who holds the API's token. What ends the scan's own sign-in is left
+# out, or everything after it would be answered 401 and prove nothing (.zap/reached.py checks).
+#
 # TARGET comes from the environment. SESSION, TOKEN and ADMIN_TOKEN are filled in by .zap/credentials.py,
 # which writes the copy of this plan that runs, since ZAP leaves variables in a replacer rule as they stand.
 env:
   contexts:
-    - name: kontroll
+    - name: api
       urls:
-        - ${TARGET}
+        - ${TARGET}/foundation/versions
+        - ${TARGET}/bcf/3.0/projects
+        - ${TARGET}/documents/1.0/
+        - ${TARGET}/admin/api/users
       includePaths:
-        - ${TARGET}/.*
+        - ${TARGET}/(foundation|bcf|documents/1\.0|admin/api)/.*
       excludePaths:
-        # Signing out would end the session the scan depends on.
+        - ${TARGET}/admin/api/sessions.*
+        - ${TARGET}/foundation/oauth2/revoke.*
+    - name: pages
+      urls:
+        - ${TARGET}/admin
+      includePaths:
+        - ${TARGET}/admin.*
+      excludePaths:
+        - ${TARGET}/admin/api.*
+        - ${TARGET}/admin/sessions.*
         - ${TARGET}/signout.*
-        # The interactive documentation is FastAPI's page with its own policy (see rules.tsv).
-        - ${TARGET}/docs.*
-        - ${TARGET}/redoc.*
+        - ${TARGET}/account.*
   parameters:
     failOnError: true
     failOnWarning: false
@@ -29,7 +43,7 @@ jobs:
     rules:
       # The url of a rule is a regular expression, so ${TARGET} cannot stand in it.
       - description: The administrator's session on the pages
-        url: ^https?://[^/]+/(admin|account|documents/1\.0/(upload|select)-ui).*
+        url: ^https?://[^/]+/(admin|documents/1\.0/(upload|select)-ui).*
         matchType: req_header
         matchString: Cookie
         matchRegex: false
@@ -49,10 +63,17 @@ jobs:
   - type: openapi
     parameters:
       apiUrl: ${TARGET}/openapi.json
-      context: kontroll
+      context: api
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+  - type: activeScan
+    parameters:
+      context: api
+      maxScanDurationInMins: 15
   - type: spider
     parameters:
-      context: kontroll
+      context: pages
       url: ${TARGET}/admin
       maxDuration: 3
   - type: passiveScan-wait
@@ -60,8 +81,8 @@ jobs:
       maxDuration: 5
   - type: activeScan
     parameters:
-      context: kontroll
-      maxScanDurationInMins: 25
+      context: pages
+      maxScanDurationInMins: 10
   - type: report
     parameters:
       template: traditional-html

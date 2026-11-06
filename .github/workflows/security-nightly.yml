@@ -46,7 +46,9 @@ jobs:
       - name: Start the server with demo data
         run: |
           uv run opencde init --dev
-          echo "OPENCDE_RATE_LIMITS_ENABLED=false" >> .env  # the scan is to see every page it asks for
+          # The scan is to see every page it asks for, and the same answer to the same question.
+          echo "OPENCDE_RATE_LIMITS_ENABLED=false" >> .env
+          echo "OPENCDE_SIGN_IN_THROTTLE_ENABLED=false" >> .env
           docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
           docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde seed --password demo-password-for-zap-only > seed.txt
           echo "CLIENT_ID=$(awk '/client +public/ {print $3}' seed.txt)" >> "$GITHUB_ENV"
