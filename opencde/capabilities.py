@@ -8,7 +8,7 @@ administration API, the IFC graph and whether its database is published, and
 the limits a client must respect. Nothing in it is secret. A server without
 the document answers 404, which a client reads as "no extensions". Unknown
 keys are to be treated as absent. Agreed with Dataspatium (docs/dataspatium-
-coordination.md, item 1).
+coordination.md, "The capabilities document").
 """
 
 from __future__ import annotations

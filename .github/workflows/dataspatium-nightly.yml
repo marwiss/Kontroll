@@ -4,7 +4,8 @@ name: Nightly pair test with Dataspatium
 # more: discovery, PKCE sign-in, the BCF tables, both Documents API flows, the
 # IFC graph over Bolt, the request log through the administration API) against
 # this server's development stack, with the Dataspatium release that pairs with
-# this Kontroll. Coordination item 5 in docs/dataspatium-coordination.md. The
+# this Kontroll. "Tests across the repositories" in
+# docs/dataspatium-coordination.md describes it. The
 # helpers in Dataspatium's tools/ play the user at the server's own pages.
 
 on:

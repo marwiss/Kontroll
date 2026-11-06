@@ -180,8 +180,7 @@ og það sem verkefnin tvö samræma er í
 - [docs/acceptance.md](../acceptance.md): gátlisti fyrir sjónræna samþykkt
   með óháðum biðlurum (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvað
-  Kontroll og Dataspatium eiga sameiginlegt, hvað meira er samræmt og
-  ákvarðanir eigandans.
+  Kontroll og Dataspatium eiga sameiginlegt og ákvarðanir eigandans.
 - [docs/inventory.md](../inventory.md): yfirlit yfir virkni frumgerðarinnar
   frá 2023 og staða í endurskrifinu, með athugasemdum um sérkenni forskriftanna.
 - [docs/adr/](../adr/): arkitektúrákvarðanir (grafgagnagrunnur, ógegnsæir tókar,

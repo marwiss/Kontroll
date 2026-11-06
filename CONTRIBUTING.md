@@ -88,5 +88,5 @@ resources (the quick start, the sample model, anything else) under its own
 licence. The licences are otherwise unchanged, and third-party material
 keeps its own terms (the buildingSMART specification files, the Inter font,
 the dependencies). Dataspatium's `docs/licenser.md` says the same. Keep the
-shared pieces in step. What the two coordinate, and in which order, is in
+shared pieces in step. What the two coordinate is in
 [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).

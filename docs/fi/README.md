@@ -193,7 +193,7 @@ sovittavat yhteen, on tiedostossa
 - [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
   tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
-  Kontroll ja Dataspatium jakavat, mitä muuta sovitetaan yhteen ja omistajan päätökset.
+  Kontroll ja Dataspatium jakavat sekä omistajan päätökset.
 - [docs/inventory.md](../inventory.md): vuoden 2023 prototyypin
   toimintoluettelo ja tilanne uudelleenkirjoituksessa sekä huomioita
   spesifikaatioiden erikoisuuksista.
