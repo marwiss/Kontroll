@@ -134,8 +134,8 @@ databasepassord, og ingenting er ope før det er konfigurert.
   image for kvart utrullingsscenario.
 - **Status**: alle elleve etappane i planen er gjennomførte (dei tre API-ane,
   administrasjonen, klientbiblioteket, utrulling, IFC-graf,
-  akseptansesjekklista og tryggingsherdinga); bidraget til IfcOpenShell ventar
-  på svar frå vedlikehaldarane (utkast i [docs/upstream/](../upstream/)).
+  akseptansesjekklista og tryggingsherdinga); bidraget til IfcOpenShell er
+  enno ikkje føreslått (utkast i [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) viser kva prototypen frå 2023 gjorde og
   kvar kvar funksjon står i den nye koden.
 

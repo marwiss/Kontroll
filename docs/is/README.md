@@ -133,8 +133,8 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   rekstraraðstæðu.
 - **Staða**: öll ellefu stig áætlunarinnar eru útfærð (forritaskilin þrjú,
   stjórnunin, biðlarasafnið, uppsetning í rekstur, IFC-graf,
-  samþykktargátlistinn og öryggisherðingin); framlagið til IfcOpenShell bíður
-  svars umsjónarmanna (uppköst í [docs/upstream/](../upstream/)).
+  samþykktargátlistinn og öryggisherðingin); framlagið til IfcOpenShell hefur
+  ekki enn verið lagt fram (uppköst í [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) sýnir hvað frumgerðin frá 2023 gerði og
   hvar hver aðgerð stendur í nýja kóðanum.
 
