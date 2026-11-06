@@ -141,6 +141,11 @@ password, and nothing is open until it is configured.
   [docs/inventory.md](../inventory.md) records what the 2023 prototype did
   and where each function stands in the new code.
 
+<img src="../images/signin.png" alt="The sign-in page a client opens" width="240">
+<img src="../images/upload.png" alt="The upload page, where the user gives the file a title and a version" width="340">
+<img src="../images/admin-project.png" alt="A project in the administration, with its members and roles" width="440">
+<img src="../images/admin-settings.png" alt="The health checks on the settings page" width="440">
+
 ## The OpenCDE APIs and their clients
 
 OpenCDE is buildingSMART International's family of open web APIs for a common data

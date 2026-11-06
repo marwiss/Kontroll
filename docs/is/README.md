@@ -143,6 +143,11 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   [docs/inventory.md](../inventory.md) sýnir hvað frumgerðin frá 2023 gerði og
   hvar hver aðgerð stendur í nýja kóðanum.
 
+<img src="../images/signin.png" alt="Innskráningarsíðan sem biðlari opnar" width="240">
+<img src="../images/upload.png" alt="Upphleðslusíðan, þar sem notandinn gefur skránni titil og útgáfu" width="340">
+<img src="../images/admin-project.png" alt="Verkefni í stjórnuninni, með meðlimum og hlutverkum" width="440">
+<img src="../images/admin-settings.png" alt="Heilsufarsathuganirnar á stillingasíðunni" width="440">
+
 ## OpenCDE-forritaskilin og biðlarar þeirra
 
 OpenCDE er fjölskylda buildingSMART International af opnum vefforritaskilum fyrir

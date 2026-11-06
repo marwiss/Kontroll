@@ -151,6 +151,11 @@ mikään ole auki ennen kuin se on määritetty.
   kertoo, mitä vuoden 2023 prototyyppi teki ja missä kukin toiminto on
   uudessa koodissa.
 
+<img src="../images/signin.png" alt="Kirjautumissivu, jonka asiakas avaa" width="240">
+<img src="../images/upload.png" alt="Lataussivu, jolla käyttäjä antaa tiedostolle otsikon ja version" width="340">
+<img src="../images/admin-project.png" alt="Projekti hallinnassa jäsenineen ja rooleineen" width="440">
+<img src="../images/admin-settings.png" alt="Terveystarkistukset asetussivulla" width="440">
+
 ## OpenCDE-rajapinnat ja niiden asiakkaat
 
 OpenCDE on buildingSMART Internationalin avoimien verkkorajapintojen perhe yhteiselle

@@ -143,6 +143,11 @@ databasekodeord, og intet er åbent, før det er konfigureret.
   [docs/inventory.md](../inventory.md) viser, hvad prototypen fra 2023
   gjorde, og hvor hver funktion står i den nye kode.
 
+<img src="../images/signin.png" alt="Login-siden, som en klient åbner" width="240">
+<img src="../images/upload.png" alt="Upload-siden, hvor brugeren giver filen titel og version" width="340">
+<img src="../images/admin-project.png" alt="Et projekt i administrationen med medlemmer og roller" width="440">
+<img src="../images/admin-settings.png" alt="Sundhedstjekkene på indstillingssiden" width="440">
+
 ## OpenCDE-API'erne og deres klienter
 
 OpenCDE er buildingSMART Internationals familie af åbne web-API'er til et fælles
