@@ -85,18 +85,19 @@ def _error_redirect(
 async def _resolve_client_and_redirect(
     clients: Any, client_id: str | None, redirect_uri: str | None
 ) -> tuple[Client, str]:
-    """RFC 6749 §4.1.2.1: these two are checked first and never cause a redirect."""
+    """RFC 6749 §4.1.2.1: these two are checked first and never cause a redirect. A refusal's detail
+    is the catalogue key of its reason, since the page that shows it follows the user's language."""
     if not client_id:
-        raise HTTPException(400, "The request does not name a client (client_id).")
+        raise HTTPException(400, "auth.error.no_client")
     client = await clients.get(client_id)
     if client is None or client.disabled:
-        raise HTTPException(400, "Unknown client.")
+        raise HTTPException(400, "auth.error.unknown_client")
     if not redirect_uri:
         if len(client.redirect_uris) == 1:
             return client, client.redirect_uris[0]
-        raise HTTPException(400, "The request does not name a redirect URI and the client has several registered.")
+        raise HTTPException(400, "auth.error.no_redirect")
     if not any(redirect_uri_matches(registered, redirect_uri) for registered in client.redirect_uris):
-        raise HTTPException(400, "The redirect URI is not registered for this client.")
+        raise HTTPException(400, "auth.error.bad_redirect")
     return client, redirect_uri
 
 
@@ -126,7 +127,7 @@ async def authorize_page(
     try:
         client, redirect_to = await _resolve_client_and_redirect(clients, client_id, redirect_uri or redirect_url)
     except HTTPException as exc:
-        return render(request, "auth/error.html", {"message": exc.detail}, status_code=exc.status_code)
+        return render(request, "auth/error.html", {"message": tr(request, exc.detail)}, status_code=exc.status_code)
 
     issuer = settings.public_url
     if response_type != "code":

@@ -45,6 +45,17 @@ def test_unregistered_redirect_uri_is_shown_not_followed(client: TestClient, wor
         assert "not registered" in response.text
 
 
+def test_a_refused_authorization_is_explained_in_the_language_of_the_page(client: TestClient, world: World) -> None:
+    """A client opens this page with ``?lang=``, and the reason is what the user acts on."""
+    unknown = client.get("/foundation/oauth2/auth", params={"client_id": "no-such-client", "lang": "sv"})
+    assert unknown.status_code == 400 and "Okänd klient." in unknown.text
+    wrong = _authorize_params(world, redirect_uri="https://evil.test/callback", lang="sv")
+    refused = client.get("/foundation/oauth2/auth", params=wrong)
+    assert refused.status_code == 400 and "inte registrerad" in refused.text
+    nameless = client.get("/foundation/oauth2/auth", params={"lang": "sv"})
+    assert nameless.status_code == 400 and "client_id" in nameless.text
+
+
 def test_loopback_port_may_vary_but_host_may_not(client: TestClient, world: World) -> None:
     ok = client.get(
         "/foundation/oauth2/auth", params=_authorize_params(world, redirect_uri="http://127.0.0.1:53421/callback")
