@@ -144,6 +144,22 @@ latest release per major number is kept: the next release removes the previous
 release and its tag, the commits stay, and `CHANGELOG.md` folds the notes
 together.
 
+### The checklist of a joint release
+
+The same steps on both sides, in this order, under the same number on the same day:
+
+| Step | Kontroll | Dataspatium |
+|---|---|---|
+| The version | `pyproject.toml`, `opencde/__init__.py`, `client/pyproject.toml`, `client/opencde_client/__init__.py` and `uv.lock`; the number in the READMEs, `docs/client-guide.md` and `docs/deploy/vps-caddy.md` in every language | `src/platform/registry.js` and `sw-coi.js`; the number in the READMEs |
+| The notes | `## Unreleased` in `CHANGELOG.md` is folded in under the number | The release notes |
+| Each other | `DATASPATIUM_REF` in `dataspatium-nightly.yml` is the other side's new commit; the READMEs say which release works with which | The READMEs say the same |
+| The tests | CI and both nightly jobs are green on the commit | The test matrix: Edge and Firefox from `file://`, the ZIP, Pages, localhost with real Python |
+| The tag | `vX.Y.Z` builds the image and the SBOM (`release.yml`) | `vX.Y.Z` builds the ZIP |
+| What was published | Pull the image and start it: `/readyz` answers and `/healthz` has the number | Download the ZIP and try it, and try Pages |
+| The record | A row in `docs/acceptance.md` for the pair's run on the tag | `docs/help/*.js` is regenerated (`tools/wrap_local.py`), since it embeds the quick start |
+| In words | Notes in Swedish and English on the release | The same |
+| The one before | The previous release of the major number and its tag go; the commits stay | The same |
+
 ## Tests across the repositories
 
 The live suite runs on the owner's machine against the local stack, and
