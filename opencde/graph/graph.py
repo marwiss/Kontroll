@@ -17,11 +17,12 @@ node objects. Never build Cypher from user input: parameters only.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Any, LiteralString, TypeVar, cast
 
 from neo4j import AsyncDriver, AsyncManagedTransaction
-from neo4j.exceptions import ClientError
+from neo4j.exceptions import ClientError, TransientError
 
 from opencde.graph.dialect import Dialect
 from opencde.logging import get_logger
@@ -29,6 +30,9 @@ from opencde.logging import get_logger
 log = get_logger(__name__)
 
 T = TypeVar("T")
+
+DDL_ATTEMPTS = 6  # schema statements that meet a transient error, at growing intervals
+DDL_RETRY_SECONDS = 0.5
 
 
 class Tx:
@@ -83,21 +87,33 @@ class Graph:
 
         Memgraph refuses schema changes inside explicit transactions (which
         ``execute_query`` uses), so the statement runs as an auto-commit
-        ``session.run``. Memgraph also raises when a constraint or index already
-        exists; that is treated as "nothing to do".
+        ``session.run``, which the driver does not retry. The server and a command
+        such as ``opencde seed`` can apply the schema at the same moment, and the
+        database then answers one of them with a transient error (a deadlock in
+        Neo4j), so that is retried here. Memgraph also raises when a constraint or
+        index already exists; that is treated as "nothing to do".
         """
-        try:
-            async with self.driver.session(database=self.database) as session:
-                result = await session.run(cast("LiteralString", statement))
-                summary = await result.consume()
-        except ClientError as exc:
-            message = f"{exc.code} {exc.message}"
-            if any(marker in message for marker in self.dialect.already_exists_markers):
-                return False
-            raise
-        counters = summary.counters
-        added = getattr(counters, "constraints_added", 0) + getattr(counters, "indexes_added", 0)
-        return added > 0 if counters.contains_updates or added else False
+        attempt = 0
+        while True:
+            attempt += 1
+            try:
+                async with self.driver.session(database=self.database) as session:
+                    result = await session.run(cast("LiteralString", statement))
+                    summary = await result.consume()
+            except ClientError as exc:
+                message = f"{exc.code} {exc.message}"
+                if any(marker in message for marker in self.dialect.already_exists_markers):
+                    return False
+                raise
+            except TransientError:
+                if attempt >= DDL_ATTEMPTS:
+                    raise
+                log.debug("schema_statement_retried", attempt=attempt)
+                await asyncio.sleep(DDL_RETRY_SECONDS * attempt)
+                continue
+            counters = summary.counters
+            added = getattr(counters, "constraints_added", 0) + getattr(counters, "indexes_added", 0)
+            return added > 0 if counters.contains_updates or added else False
 
     async def close(self) -> None:
         await self.driver.close()
