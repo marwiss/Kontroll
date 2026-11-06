@@ -152,27 +152,23 @@ def init(
 
 @app.command()
 def doctor() -> None:
-    """Check configuration and the graph database connection."""
-    from opencde.graph.driver import create_driver, ping_within
+    """Check the configuration, the database and its schema, the storage, the clock and the server's headers."""
+    from opencde.admin.doctor import run_checks
+    from opencde.bootstrap import make_graph, make_storage
 
     settings = _settings()
-    print(f"OK      version {__version__}")
-    print(f"OK      environment {settings.environment}")
-    print(f"OK      public_url {settings.public_url}")
-    print(f"OK      graph {settings.graph_dialect.value} {settings.graph_uri} database={settings.database_name}")
-    print(f"OK      data_dir {settings.data_dir.resolve()}")
 
-    async def check_graph() -> bool:
-        driver = create_driver(settings)
+    async def work():
+        graph = make_graph(settings)
         try:
-            return await ping_within(driver, settings.database_name, settings.graph_connect_timeout_seconds)
+            return await run_checks(settings, graph, make_storage(settings))
         finally:
-            await driver.close()
+            await graph.close()
 
-    if asyncio.run(check_graph()):
-        print("OK      graph database answers")
-    else:
-        print("FAIL    graph database does not answer (check OPENCDE_GRAPH_URI, user and password)")
+    checks = asyncio.run(work())
+    for check in checks:
+        print(f"{'OK' if check.ok else 'FAIL':7} {check.name}: {check.detail}")
+    if not all(check.ok for check in checks):
         raise typer.Exit(code=1)
 
 

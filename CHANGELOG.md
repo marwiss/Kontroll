@@ -9,6 +9,9 @@ the commit history.
 
 ## Unreleased
 
+- `opencde doctor` runs the checks of the settings page, and both now also look at the
+  schema, the CORS origins and the headers and certificate at the public address. It
+  exits with 1 when a check fails.
 - Local development uses `http://127.0.0.1:8000` throughout, in the development
   overlay, `opencde init --dev` and the documentation. A redirect to `127.0.0.1` needs
   no setting, so the quick start has one line less to change in `.env`. `localhost`

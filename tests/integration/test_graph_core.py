@@ -11,6 +11,7 @@ from neo4j.exceptions import ClientError as GraphClientError
 from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
 from opencde.accounts.users import AccountError, UserRepository
+from opencde.admin.doctor import schema_check
 from opencde.auth.clients import ClientError, ClientRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.dialect import NEO4J
@@ -49,6 +50,11 @@ async def test_the_schema_can_be_applied_twice_at_once_on_an_empty_database(grap
         await graph.run("DROP INDEX $name", name=row["name"])
     await asyncio.gather(apply_schema(graph), apply_schema(graph), apply_schema(graph))
     assert await apply_schema(graph) == 0, "the schema is complete afterwards"
+
+
+async def test_the_doctor_counts_the_constraints_on_both_products(graph: Graph) -> None:
+    check = await schema_check(graph)
+    assert check.ok, check.detail
 
 
 def test_readyz_reports_dialect(client: TestClient, graph_target: GraphTarget) -> None:
