@@ -90,6 +90,17 @@ def test_project_rename_needs_manager(client: TestClient, world: World) -> None:
     )
 
 
+def test_a_guid_that_is_no_uuid_is_refused(client: TestClient, world: World) -> None:
+    """Generated requests found it: it answered 500, as the guid was put in its canonical form before the check."""
+    editor = login(client, world, "editor")
+    answer = client.post(
+        f"/bcf/3.0/projects/{world.project_id}/topics",
+        json={"title": "A title", "guid": "no-uuid"},
+        headers=editor.headers,
+    )
+    assert answer.status_code == 400 and answer.json()["message"] == "guid must be a UUID"
+
+
 def test_topic_lifecycle_with_events(client: TestClient, world: World) -> None:
     contributor = login(client, world, "contributor")
     base = f"/bcf/3.0/projects/{world.project_id}/topics"

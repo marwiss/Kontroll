@@ -167,9 +167,9 @@ class TopicRepository:
         return bool(row and row["n"])
 
     async def create(self, *, project_id: str, author: str, body: TopicPOST) -> TopicGET:
-        guid = normalize_guid(body.guid) if body.guid else new_id()
         if body.guid and not is_uuid(body.guid):
             raise HTTPException(400, "guid must be a UUID")
+        guid = normalize_guid(body.guid) if body.guid else new_id()
         now = now_iso()
         data = _flatten(body)
 

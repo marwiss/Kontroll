@@ -6,7 +6,7 @@
 # they can disable the user who holds the API's token. What ends the scan's own sign-in is left
 # out, or everything after it would be answered 401 and prove nothing (.zap/reached.py checks).
 #
-# TARGET comes from the environment. SESSION, TOKEN and ADMIN_TOKEN are filled in by .zap/credentials.py,
+# TARGET comes from the environment. SESSION, TOKEN, ADMIN_TOKEN and ADMIN_ID are filled in by .zap/credentials.py,
 # which writes the copy of this plan that runs, since ZAP leaves variables in a replacer rule as they stand.
 env:
   contexts:
@@ -29,6 +29,7 @@ env:
       excludePaths:
         - ${TARGET}/admin/api.*
         - ${TARGET}/admin/sessions.*
+        - ${TARGET}/admin/users/${ADMIN_ID}.*
         - ${TARGET}/signout.*
         - ${TARGET}/account.*
   parameters:
