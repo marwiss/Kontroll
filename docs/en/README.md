@@ -174,7 +174,9 @@ coordinate is in
 - [docs/client-guide.md](../client-guide.md) and [docs/examples/](../examples/):
   how to build a client, the capabilities document, the error codes, and
   runnable examples with the Python library in [client/](../../client/).
-- [docs/flows/](../flows/): sequence diagrams of the OAuth2 and Documents API flows.
+- [docs/architecture.md](../architecture.md): how the parts fit together, what happens to a request and where each thing lives in the code.
+- [docs/glossary.md](../glossary.md): the words the documentation uses.
+- [docs/flows/](../flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [docs/graph-schema.md](../graph-schema.md): the graph model.
 - [docs/ifcgraph.md](../ifcgraph.md): the optional IFC-graph module and example Cypher queries.
 - [docs/ui-styleguide.md](../ui-styleguide.md): rules for the server's pages and the mark.
@@ -198,6 +200,17 @@ The documentation exists in the seven languages of this README: English under
 `docs/`, the others under `docs/<language>/`. The project logs (acceptance,
 inventory, coordination), the architecture decisions, the upstream drafts and
 CONTRIBUTING are kept in English.
+
+### Further reading
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) and [Documents API](https://github.com/buildingSMART/documents-API):
+  the specifications the server follows.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): the file format for building models.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): today's best practice for security in OAuth 2.0, and
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), the draft that gathers it.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (apps on a computer or phone) and
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (registering clients).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): the checklist for the security work.
 
 ## Limitations in brief
 

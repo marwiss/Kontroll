@@ -175,7 +175,9 @@ og það sem verkefnin tvö samræma er í
 - [docs/is/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   hvernig biðlari er smíðaður, getuskjalið, villukóðarnir og keyranleg dæmi
   með Python-safninu í [client/](../../client/).
-- [docs/is/flows/](flows/): raðrit fyrir OAuth2- og Documents API-ferlin.
+- [docs/is/architecture.md](architecture.md): hvernig hlutarnir tengjast, hvað gerist við beiðni og hvar allt er í kóðanum.
+- [docs/is/glossary.md](glossary.md): orðin sem skjölunin notar.
+- [docs/is/flows/](flows/): runurit fyrir OAuth2-, Documents API- og BCF-sjónarhornsferlin.
 - [docs/is/graph-schema.md](graph-schema.md): graflíkanið.
 - [docs/is/ifcgraph.md](ifcgraph.md): valkvæða IFC-grafeiningin og dæmi um Cypher-fyrirspurnir.
 - [docs/is/ui-styleguide.md](ui-styleguide.md): reglur um síður þjónsins og merkið.
@@ -199,6 +201,17 @@ Skjölunin er til á sjö tungumálum þessarar README-skrár: enska undir `docs
 hin undir `docs/<tungumál>/`. Verkefnaskrárnar (samþykkt, yfirlit, samræming),
 arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru höfð
 á ensku.
+
+### Frekari lestur
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) og [Documents API](https://github.com/buildingSMART/documents-API):
+  forskriftirnar sem þjónninn fylgir.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): skráarsniðið fyrir byggingarlíkön.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): bestu starfsvenjur nútímans um öryggi í OAuth 2.0, og
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), drögin sem safna þeim saman.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (forrit í tölvu eða síma) og
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (skráning biðlara).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): gátlistinn fyrir öryggisstarfið.
 
 ## Takmarkanir í stuttu máli
 

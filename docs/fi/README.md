@@ -187,7 +187,9 @@ sovittavat yhteen, on tiedostossa
 - [docs/fi/client-guide.md](client-guide.md) ja [docs/examples/](../examples/):
   miten asiakasohjelma rakennetaan, kyvykkyysasiakirja, virhekoodit ja
   ajettavia esimerkkejä Python-kirjastolla kansiossa [client/](../../client/).
-- [docs/fi/flows/](flows/): OAuth2- ja Documents API -kulkujen sekvenssikaaviot.
+- [docs/fi/architecture.md](architecture.md): miten osat liittyvät toisiinsa, mitä pyynnölle tapahtuu ja missä kaikki on koodissa.
+- [docs/fi/glossary.md](glossary.md): dokumentaation käyttämät sanat.
+- [docs/fi/flows/](flows/): OAuth2-, Documents API- ja BCF-näkymäkulkujen sekvenssikaaviot.
 - [docs/fi/graph-schema.md](graph-schema.md): graafimalli.
 - [docs/fi/ifcgraph.md](ifcgraph.md): valinnainen IFC-graafimoduuli ja esimerkkejä Cypher-kyselyistä.
 - [docs/fi/ui-styleguide.md](ui-styleguide.md): palvelimen sivujen ja tunnuksen säännöt.
@@ -212,6 +214,17 @@ Dokumentaatio on tämän README-tiedoston seitsemällä kielellä: englanti
 hakemistossa `docs/`, muut hakemistoissa `docs/<kieli>/`. Projektilokit
 (hyväksyntä, toimintoluettelo, yhteensovitus), arkkitehtuuripäätökset,
 IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
+
+### Lisälukemista
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) ja [Documents API](https://github.com/buildingSMART/documents-API):
+  määrittelyt, joita palvelin noudattaa.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): rakennusmallien tiedostomuoto.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): nykyiset parhaat käytännöt OAuth 2.0:n turvallisuudelle, ja
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), luonnos, joka kokoaa ne.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (sovellukset tietokoneessa tai puhelimessa) ja
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (asiakkaiden rekisteröinti).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): turvallisuustyön tarkistuslista.
 
 ## Rajoitukset lyhyesti
 

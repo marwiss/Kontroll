@@ -175,7 +175,9 @@ står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 - [docs/nn/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   korleis byggje ein klient, kapabilitetsdokumentet, feilkodane og køyrbare
   døme med Python-biblioteket i [client/](../../client/).
-- [docs/nn/flows/](flows/): sekvensdiagram for OAuth2- og Documents API-flytane.
+- [docs/nn/architecture.md](architecture.md): korleis delane heng saman, kva som skjer med ein førespurnad, og kvar alt finst i koden.
+- [docs/nn/glossary.md](glossary.md): orda dokumentasjonen brukar.
+- [docs/nn/flows/](flows/): sekvensdiagram for OAuth2-, Documents API- og BCF-viewpoint-flytane.
 - [docs/nn/graph-schema.md](graph-schema.md): grafmodellen.
 - [docs/nn/ifcgraph.md](ifcgraph.md): den valfrie IFC-grafmodulen og døme på Cypher-spørjingar.
 - [docs/nn/ui-styleguide.md](ui-styleguide.md): reglar for sidene til serveren og merket.
@@ -199,6 +201,17 @@ Dokumentasjonen finst på dei sju språka i denne README-fila: engelsk under
 `docs/`, dei andre under `docs/<språk>/`. Prosjektloggane (akseptanse, inventar,
 samordning), arkitekturavgjerdene, utkasta til IfcOpenShell og CONTRIBUTING blir
 haldne på engelsk.
+
+### Vidare lesing
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) og [Documents API](https://github.com/buildingSMART/documents-API):
+  spesifikasjonane serveren følgjer.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): filformatet for bygningsmodellar.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): dagens beste praksis for tryggleik i OAuth 2.0, og
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), utkastet som samlar han.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (appar på datamaskin eller telefon) og
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (registrering av klientar).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): sjekklista for tryggingsarbeidet.
 
 ## Avgrensingar i korte trekk
 

@@ -175,7 +175,9 @@ hvad de to projekter samordner, står i
 - [docs/da/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   hvordan man bygger en klient, kapabilitetsdokumentet, fejlkoderne og kørbare
   eksempler med Python-biblioteket i [client/](../../client/).
-- [docs/da/flows/](flows/): sekvensdiagrammer for OAuth2- og Documents API-forløbene.
+- [docs/da/architecture.md](architecture.md): hvordan delene hænger sammen, hvad der sker med en forespørgsel, og hvor alt findes i koden.
+- [docs/da/glossary.md](glossary.md): de ord, dokumentationen bruger.
+- [docs/da/flows/](flows/): sekvensdiagrammer for OAuth2-, Documents API- og BCF-viewpoint-forløbene.
 - [docs/da/graph-schema.md](graph-schema.md): grafmodellen.
 - [docs/da/ifcgraph.md](ifcgraph.md): det valgfrie IFC-grafmodul og eksempler på Cypher-forespørgsler.
 - [docs/da/ui-styleguide.md](ui-styleguide.md): regler for serverens sider og mærket.
@@ -199,6 +201,17 @@ Dokumentationen findes på denne READMEs syv sprog: engelsk under `docs/`, de
 andre under `docs/<sprog>/`. Projektloggene (accept, inventar, samordning),
 arkitekturbeslutningerne, udkastene til IfcOpenShell og CONTRIBUTING holdes på
 engelsk.
+
+### Videre læsning
+
+- [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) og [Documents API](https://github.com/buildingSMART/documents-API):
+  specifikationerne, serveren følger.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): filformatet til bygningsmodeller.
+- [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): dagens bedste praksis for sikkerhed i OAuth 2.0, og
+  [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), udkastet, der samler den.
+- [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (apps på computer eller telefon) og
+  [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (registrering af klienter).
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/): tjeklisten for sikkerhedsarbejdet.
 
 ## Begrænsninger i korte træk
 
