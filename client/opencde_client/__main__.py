@@ -50,6 +50,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--server", required=True, help="Base URL of the server, e.g. https://cde.example")
     parser.add_argument("--client-id", help="The OAuth2 client id registered for this application")
     parser.add_argument("--client-secret", help="Secret of a confidential client (omit for public clients)")
+    parser.add_argument(
+        "--bcf-version",
+        choices=("auto", "3.0", "2.1"),
+        default="auto",
+        help="Version of the BCF API to speak; auto takes the newest the server offers",
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("discover", help="List the APIs the server offers")
     commands.add_parser("login", help="Sign in through the browser and store the tokens")
@@ -68,7 +74,11 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("--client-id is required for this command")
         token_file = _token_file(args.server)
         with OpenCdeClient(
-            args.server, client_id=args.client_id, client_secret=args.client_secret, tokens=_load_tokens(token_file)
+            args.server,
+            client_id=args.client_id,
+            client_secret=args.client_secret,
+            tokens=_load_tokens(token_file),
+            bcf_version=args.bcf_version,
         ) as cde:
             if args.command == "login":
                 tokens = cde.login()
@@ -81,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
                 print("Not signed in. Run the login command first.", file=sys.stderr)
                 return 2
             if args.command == "whoami":
-                user = cde.foundation.current_user()
+                user = cde.current_user()
                 print(f"{user['id']}  {user.get('name', '')}")
             elif args.command == "projects":
                 for project in cde.bcf.projects():

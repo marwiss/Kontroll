@@ -14,6 +14,10 @@ class AuthError(OpenCdeError):
     """The OAuth2 flow failed (refused, mismatched state, no code)."""
 
 
+class NotInThisVersion(OpenCdeError):
+    """The version of the API this client speaks has no such service, or the server none of the versions it speaks."""
+
+
 class ApiError(OpenCdeError):
     """The server answered with an error status; ``message`` is the OpenCDE error body's text."""
 
