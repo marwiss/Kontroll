@@ -95,7 +95,7 @@ async def topic_put(
     return with_authorization(topic, ctx, extensions.get("topic_status", []), True)
 
 
-@router.delete("/topics/{topic_id}", summary="3.2.5 DELETE Topic", status_code=200)
+@router.delete("/topics/{topic_id}", summary="3.2.5 DELETE Topic", status_code=200, response_class=Response)
 async def topic_delete(ctx: ProjectCtx, topic_id: TopicId, topics: TopicsDep, storage: StorageDep) -> Response:
     """Delete the topic with its comments, viewpoints and references. Needs ``delete``."""
     guid = parse_guid(topic_id, "Topic")

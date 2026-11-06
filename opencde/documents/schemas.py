@@ -11,7 +11,9 @@ from __future__ import annotations
 import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field, field_validator
+
+from opencde.schemas import ApiModel
 
 MAX_URL = 2000
 MAX_NAME = 255
@@ -22,8 +24,8 @@ _HTTP_URL = re.compile(r"^https?://[^\s]+$", re.IGNORECASE)
 _EXTENSION = re.compile(r"^\.[A-Za-z0-9]{1,16}$")
 
 
-class DocumentsModel(BaseModel):
-    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
+class DocumentsModel(ApiModel):
+    pass
 
 
 # ---------------------------------------------------------------------------- shared

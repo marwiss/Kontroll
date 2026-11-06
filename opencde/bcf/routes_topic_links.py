@@ -42,7 +42,7 @@ async def snippet_get(topic: TopicCtx, links: LinksDep, storage: StorageDep) -> 
     return file_response(storage, info["storage_key"], media_type="application/octet-stream", filename=info["filename"])
 
 
-@router.put("/snippet", summary="3.2.7 PUT Topic BIM Snippet", status_code=200)
+@router.put("/snippet", summary="3.2.7 PUT Topic BIM Snippet", status_code=200, response_class=Response)
 @limiter.limit(RATE_UPLOAD)
 async def snippet_put(
     request: Request, topic: TopicCtx, links: LinksDep, storage: StorageDep, settings: SettingsDep

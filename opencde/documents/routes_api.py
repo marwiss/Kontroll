@@ -261,6 +261,7 @@ for _method in ("PUT", "POST"):
         methods=[_method],
         summary=f"Upload a single file part ({_method})",
         status_code=200,
+        response_class=Response,
         operation_id=f"upload_part_{_method.lower()}",
     )
 

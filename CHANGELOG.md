@@ -9,6 +9,10 @@ the commit history.
 
 ## Unreleased
 
+- The APIs take the schemas' types at their word: a text where a boolean or a number should be,
+  such as `"yes"` or `"5"`, is refused with 400 where it was once converted. A number may still
+  be written without decimals. The length limits count what was sent, whitespace included.
+- The API document says that a deletion and an uploaded part answer with no body, as they do.
 - The forms on the administration's pages for a user, a project and a client save without the
   page reloading. Without JavaScript they work as before.
 - `opencde init` without options asks for what it needs, in a terminal, and then says what comes

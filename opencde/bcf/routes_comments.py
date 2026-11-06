@@ -76,7 +76,7 @@ async def comment_put(
     return with_authorization(comment, topic.project, True)
 
 
-@router.delete("/{comment_id}", summary="3.4.5 DELETE Comment", status_code=200)
+@router.delete("/{comment_id}", summary="3.4.5 DELETE Comment", status_code=200, response_class=Response)
 async def comment_delete(topic: TopicCtx, comment_id: CommentId, comments: CommentsDep) -> Response:
     """Delete the comment. Needs the ``delete`` comment action."""
     guid = parse_guid(comment_id, "Comment")
