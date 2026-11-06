@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import asyncio
 import secrets
+import sys
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Annotated, TypeVar
+from urllib.parse import urlsplit
 
 import typer
 
@@ -102,6 +104,68 @@ def serve(
     )
 
 
+def _interactive() -> bool:
+    return sys.stdin.isatty()
+
+
+def _ask_for_values() -> tuple[str | None, list[str]]:
+    """The public address, or None for this machine only, and the lines for .env that the answers add."""
+    if not typer.confirm("Will other people use this server, over the internet?", default=False):
+        if typer.confirm(
+            "Turn on what the quick start with Dataspatium uses (self-registration, request log, IFC graph)?",
+            default=True,
+        ):
+            return None, [
+                "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true",
+                "OPENCDE_REQUEST_LOG_ENABLED=true",
+                "OPENCDE_IFCGRAPH_ENABLED=true",
+            ]
+        return None, []
+    while True:
+        url = typer.prompt("The server's public address, for example https://cde.example.org").strip().rstrip("/")
+        parts = urlsplit(url)
+        if parts.scheme == "https" and parts.hostname and not parts.path:
+            break
+        typer.echo("        It has to be https:// and a host name, with no path after it.")
+    extra = []
+    email = typer.prompt(
+        "An e-mail address for messages about the certificate (optional)", default="", show_default=False
+    )
+    if email.strip():
+        extra.append(f"OPENCDE_ACME_EMAIL={email.strip()}")
+    if typer.confirm(
+        "Let applications register themselves? Most servers register them in the administration", default=False
+    ):
+        extra.append("OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true")
+    if typer.confirm("Turn uploaded IFC models into a graph?", default=False):
+        extra.append("OPENCDE_IFCGRAPH_ENABLED=true")
+    return url, extra
+
+
+def _say_what_comes_next(url: str, *, dev: bool) -> None:
+    if dev:
+        compose = "docker compose -f compose.yaml -f compose.dev.yaml"
+        steps = [
+            f"{compose} up -d --build --wait",
+            f"{compose} exec api opencde seed",
+            f"Then open {url}/ and follow docs/quickstart.md.",
+        ]
+    else:
+        compose = "docker compose -f compose.yaml -f compose.prod.yaml"
+        steps = [
+            f"Check that {url.removeprefix('https://')} points at this machine and that ports 80 and 443 are open.",
+            f"{compose} pull",
+            f"{compose} up -d",
+            f"{compose} exec api opencde doctor",
+            f"{compose} exec api opencde user create admin --admin",
+            f'{compose} exec api opencde client create "Your application" --public --redirect-uri https://app.example.org/callback',
+            f"Then sign in at {url}/signin and see docs/deploy/vps-caddy.md.",
+        ]
+    typer.echo("        next:")
+    for step in steps:
+        typer.echo(f"          {step}")
+
+
 @app.command()
 def init(
     dev: Annotated[bool, typer.Option("--dev", help="Local development on http://127.0.0.1:8000.")] = False,
@@ -109,11 +173,16 @@ def init(
     force: Annotated[bool, typer.Option(help="Overwrite an existing .env.")] = False,
     path: Annotated[Path, typer.Option(help="Where to write the file.")] = Path(".env"),
 ) -> None:
-    """Write a .env file with fresh secrets for development or production."""
+    """Write a .env file with fresh secrets. Without --dev or --public-url it asks, then says what comes next."""
     if path.exists() and not force:
         raise _fail(f"{path} exists; use --force to overwrite")
-    if not dev and not public_url:
-        raise _fail("give --public-url https://... for production, or --dev for local development")
+    extra: list[str] = []
+    guided = not dev and not public_url
+    if guided:
+        if not _interactive():
+            raise _fail("give --public-url https://... for production, or --dev for local development")
+        public_url, extra = _ask_for_values()
+        dev = public_url is None
     url = "http://127.0.0.1:8000" if dev else (public_url or "").rstrip("/")
     if not dev and not url.startswith("https://"):
         raise _fail("the public URL must start with https:// in production")
@@ -141,8 +210,14 @@ def init(
     ]
     if not dev:
         lines.append(f"OPENCDE_DOMAIN={url.removeprefix('https://')}")
+    # A value asked for replaces the line that says otherwise.
+    names = {line.split("=", 1)[0] for line in extra}
+    lines = [line for line in lines if line.split("=", 1)[0] not in names] + extra
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     typer.secho(f"OK      wrote {path}", fg=typer.colors.GREEN)
+    if guided:
+        _say_what_comes_next(url, dev=dev)
+        return
     typer.echo(
         "        next: docker compose -f compose.yaml -f compose.dev.yaml up -d --build"
         if dev
