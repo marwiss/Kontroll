@@ -6,7 +6,7 @@ library in [client/](../client/) does all of this; the examples in
 
 ## 1. Discover
 
-`GET /foundation/versions` lists the APIs (`foundation 1.0`, `bcf 3.0`,
+`GET /foundation/versions` lists the APIs (`foundation 1.0`, `bcf 3.0`, `bcf 2.1`,
 `documents 1.0`). `GET /foundation/1.0/auth` tells you where to sign in:
 
 ```json
@@ -142,6 +142,39 @@ that redirect, not only against the form's own address.
 - Every `GET` carries an `ETag`; `If-None-Match` answers `304`.
 - Errors are `{"message": "…"}` with the usual status codes (`400`, `401`,
   `403`, `404`, `409` for duplicate guids, `413` for oversized bodies).
+
+### BCF API 2.1
+
+The server also speaks BCF API 2.1, for clients that know nothing newer.
+`GET /foundation/versions` lists both versions, the newest first, each with its
+own `api_base_url`, and a client of 2.1 finds the same list at `GET /bcf/versions`.
+Both versions work on the same data, so a topic made through one can be read and
+changed through the other.
+
+| | 2.1, under `/bcf/2.1` | 3.0, under `/bcf/3.0` |
+|---|---|---|
+| Versions, sign-in, the user | `/bcf/versions`, `/bcf/2.1/auth`, `/bcf/2.1/current-user` | The Foundation API |
+| A file in a topic's header | `file_name` | `filename` |
+| The users in the extensions | `user_id_type` | `users` |
+| A topic's short id | None | `server_assigned_id` |
+| A comment that answers another | `reply_to_comment_guid` | None |
+| A camera's `aspect_ratio` | None; 3.0 reads it as 1.0 | Required |
+| What a viewpoint must hold | Anything but two cameras | A camera or a snapshot, and a camera with anything else |
+| A `guid` chosen by the client | Ignored | Accepted, `409` if it exists |
+| `files_information`, deleting a viewpoint | None | Yes |
+| Event types of their own | `reply_to_comment_updated`, `reply_to_comment_removed` | `stage_added`, `stage_updated`, `stage_removed` |
+| Asking after a label in `$filter` | `contains(labels, 'x')` | `labels/any(l: l eq 'x')`; the other form works too |
+
+2.1's OAuth2 example knows nothing of PKCE, so a client written from it cannot send
+a `code_challenge`. An administrator can mark a confidential client that may leave
+it out: *May sign in without PKCE* on the client's page, `pkce_optional` in the
+administration API, or `opencde client create --without-pkce`. Its secret then
+protects its sign-ins, given with HTTP Basic at the token endpoint. A client that
+registers itself at the `oauth2_dynamic_client_reg_url` in `GET /bcf/2.1/auth`, when
+`OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, is marked the same way, while the
+Foundation API's registration marks no client. A public client can never leave PKCE
+out, and a marked client that sends a `code_challenge` is held to it. Use PKCE if you
+can. A redirect URI at `http://localhost` needs `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## 4. Documents API
 

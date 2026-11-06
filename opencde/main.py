@@ -54,6 +54,7 @@ Server implementation of the buildingSMART OpenCDE APIs:
 
 * **Foundation API 1.0**: service discovery, OAuth2 authorization code with PKCE, current user.
 * **BCF API 3.0**: projects, topics, comments, viewpoints, files, documents and events.
+* **BCF API 2.1**: the same on the same data, for clients that know nothing newer.
 * **Documents API 1.0**: document selection, download, upload and version queries.
 
 Data lives in a graph database (Neo4j or Memgraph). Source: https://github.com/marwiss/Kontroll
@@ -62,6 +63,7 @@ Data lives in a graph database (Neo4j or Memgraph). Source: https://github.com/m
 OPENAPI_TAGS = [
     {"name": "Foundation API", "description": "Service discovery and authentication (Foundation API 1.0)."},
     {"name": "BCF API", "description": "Issue management (BCF API 3.0)."},
+    {"name": "BCF API 2.1", "description": "Issue management for clients that know nothing newer than 2.1."},
     {"name": "Documents API", "description": "Document exchange (Documents API 1.0)."},
     {"name": "operations", "description": "Health endpoints for containers and monitoring."},
     {

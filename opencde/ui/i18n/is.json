@@ -128,7 +128,7 @@
   "notice.form_expired": "Eyðublaðið var útrunnið; engu var breytt. Reyndu aftur.",
   "notice.not_yourself": "Þetta getur þú ekki gert við þinn eigin reikning.",
   "notice.invalid": "Eyðublaðið var ekki gilt; engu var breytt.",
-  "index.lead": "buildingSMART OpenCDE-þjónn: Foundation API 1.0, BCF API 3.0 og Documents API 1.0.",
+  "index.lead": "buildingSMART OpenCDE-þjónn: Foundation API 1.0, BCF API 3.0 og 2.1 og Documents API 1.0.",
   "index.discovery": "Uppgötvun þjónustu",
   "index.auth": "Auðkenning",
   "index.auth_value": "OAuth2 authorization code með PKCE",

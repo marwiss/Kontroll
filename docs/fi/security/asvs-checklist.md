@@ -106,7 +106,7 @@ tiivisteinä (ADR 0002); ei ole JWT:itä validoitavaksi.
 
 | Vaatimus | Tila | Todiste |
 |---|---|---|
-| Vain authorization code PKCE `S256`:lla; ei implicit- tai password-granteja | täyttyy | `test_pkce_is_mandatory_and_plain_is_refused` |
+| Vain authorization code PKCE `S256`:lla, paitsi luottamukselliselle asiakkaalle, jonka ylläpitäjä on merkinnyt; ei implicit- tai password-granteja | täyttyy | `test_pkce_is_mandatory_and_plain_is_refused` |
 | Redirect-URIn tarkka vastaavuus; loopback-poikkeus RFC 8252:n mukaan | täyttyy | `test_unregistered_redirect_uri_is_shown_not_followed`, `test_loopback_port_may_vary_but_host_may_not` |
 | `state` vaaditaan; `iss` vastauksessa | täyttyy | `test_state_is_required_and_unknown_scope_is_refused`, `test_public_client_flow_with_pkce` |
 | Kertakäyttöiset koodit sidottu asiakkaaseen, redirect-URIin ja verifieriin | täyttyy | `test_code_is_single_use_and_replay_revokes_tokens`, `test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |

@@ -104,7 +104,7 @@ JWTs to validate.
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| Authorization code with PKCE `S256` only; no implicit or password grants | met | `test_pkce_is_mandatory_and_plain_is_refused` |
+| Authorization code with PKCE `S256` only, but for a confidential client an administrator has marked; no implicit or password grants | met | `test_pkce_is_mandatory_and_plain_is_refused` |
 | Exact redirect URI matching; loopback exception per RFC 8252 | met | `test_unregistered_redirect_uri_is_shown_not_followed`, `test_loopback_port_may_vary_but_host_may_not` |
 | `state` required; `iss` in the response | met | `test_state_is_required_and_unknown_scope_is_refused`, `test_public_client_flow_with_pkce` |
 | One-time codes bound to client, redirect URI and verifier | met | `test_code_is_single_use_and_replay_revokes_tokens`, `test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |

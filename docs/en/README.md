@@ -5,7 +5,7 @@
 # Kontroll OpenCDE server
 
 Kontroll is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
-BCF API 3.0 and Documents API 1.0), built on a graph database, with a web
+BCF API 3.0 and 2.1, and Documents API 1.0), built on a graph database, with a web
 administration and an optional IFC-graph module that joins BCF components to
 the building elements they point at. It grew out of a 2023 research prototype
 for the digital inspection plans of Swedish building permits and was rewritten
@@ -110,9 +110,9 @@ password, and nothing is open until it is configured.
 ## What you can do
 
 - **Foundation API 1.0**: service discovery, OAuth2 authorization code with
-  PKCE for every client, current user, token revocation, and dynamic client
+  PKCE, current user, token revocation, and dynamic client
   registration with public clients (off by default).
-- **BCF API 3.0**: projects, extensions, topics with OData queries, comments,
+- **BCF API 3.0 and 2.1**: projects, extensions, topics with OData queries, comments,
   viewpoints with snapshots, bitmaps and components, files, document
   references, documents and the event logs, all validated against the
   buildingSMART schemas.
@@ -156,7 +156,7 @@ built them. Kontroll implements all three:
 | API | What it is for | Specification |
 |---|---|---|
 | Foundation API 1.0 | Says which APIs a server offers, how to sign in and who the user is | [foundation-API](https://github.com/buildingSMART/foundation-API) |
-| BCF API 3.0 | Issues about a model, with comments and viewpoints with camera, components and images | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| BCF API 3.0 and 2.1 | Issues about a model, with comments and viewpoints with camera, components and images | [BCF-API](https://github.com/buildingSMART/BCF-API) |
 | Documents API 1.0 | Selecting, downloading and uploading documents and their versions, through pages on the server | [documents-API](https://github.com/buildingSMART/documents-API) |
 
 **Dataspatium is one client, not the only one.** Any client that follows these
@@ -166,8 +166,9 @@ know them does not notice them. A client needs three things:
 
 - a registration on the server, made by an administrator under *Clients* or by the client
   itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
-- OAuth2 authorization code with PKCE `S256`, which the server requires of every client;
-- BCF API 3.0: requests to the older version under `/bcf/2.1/` get 404.
+- OAuth2 authorization code with PKCE `S256`, which the server requires of every client but a confidential one an administrator has marked;
+- BCF API 3.0, or 2.1 for a client that only speaks that version. `GET /foundation/versions` lists both, and
+  [the client guide](../client-guide.md) says what differs between them.
 
 How far this has been shown: the server's answers are tested against buildingSMART's
 schemas on every push, and Dataspatium and the Python library in [client/](../../client/) run
@@ -281,8 +282,7 @@ CONTRIBUTING are kept in English.
 
 ## Limitations in brief
 
-- The server implements BCF API 3.0, not 2.1; only the three legacy discovery
-  aliases under `/bcf/` exist for older clients.
+- The server implements BCF API 3.0 and 2.1, not 1.0, whose resources have another shape.
 - Exporting a project as a BCFzip is left to clients; the server stores
   topics, comments and viewpoints as the API defines them.
 - The community editions of Neo4j and Memgraph have no read-only database

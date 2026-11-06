@@ -128,7 +128,7 @@
   "notice.form_expired": "The form had expired; nothing was changed. Please try again.",
   "notice.not_yourself": "You cannot do that to your own account.",
   "notice.invalid": "The form was not valid; nothing was changed.",
-  "index.lead": "A buildingSMART OpenCDE server: Foundation API 1.0, BCF API 3.0 and Documents API 1.0.",
+  "index.lead": "A buildingSMART OpenCDE server: Foundation API 1.0, BCF API 3.0 and 2.1, and Documents API 1.0.",
   "index.discovery": "Service discovery",
   "index.auth": "Authentication",
   "index.auth_value": "OAuth2 authorization code with PKCE",

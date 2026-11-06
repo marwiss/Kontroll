@@ -10,7 +10,7 @@ viewpoint and project are the same words as in Dataspatium.
 | OpenCDE | buildingSMART's APIs for a common data environment: Foundation, BCF and Documents |
 | CDE | Common data environment: the shared place for a project's information |
 | Foundation API | The part of OpenCDE that says which APIs a server offers, how to sign in and who you are |
-| BCF | BIM Collaboration Format, for issues about a building model. BCF API 3.0 is its web API |
+| BCF | BIM Collaboration Format, for issues about a building model. BCF API 3.0 and 2.1 are its web APIs |
 | Documents API | The part of OpenCDE that uploads and selects documents through pages in the browser |
 | IFC | Industry Foundation Classes, the open file format for building models |
 

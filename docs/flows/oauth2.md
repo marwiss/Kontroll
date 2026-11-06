@@ -3,7 +3,9 @@
 How a client (a BCF plugin, a viewer, a script) obtains an access token on a
 user's behalf. This is Foundation API 2.2 with the hardening of RFC 9700 and
 OAuth 2.1: PKCE `S256` for every client, exact redirect URI matching (loopback
-ports excepted, RFC 8252), one-time codes, rotating refresh tokens.
+ports excepted, RFC 8252), one-time codes, rotating refresh tokens. The exception is a confidential client an administrator has
+marked because it cannot use PKCE, such as one that implements only BCF API 2.1; see
+the [client guide](../client-guide.md).
 
 ```mermaid
 sequenceDiagram

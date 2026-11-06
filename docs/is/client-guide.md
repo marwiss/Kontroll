@@ -7,7 +7,7 @@ Python-safnið í [client/](../../client/) gerir allt þetta; dæmin í
 ## 1. Uppgötvun
 
 `GET /foundation/versions` telur upp forritaskilin (`foundation 1.0`,
-`bcf 3.0`, `documents 1.0`). `GET /foundation/1.0/auth` segir hvar skal skrá
+`bcf 3.0`, `bcf 2.1`, `documents 1.0`). `GET /foundation/1.0/auth` segir hvar skal skrá
 sig inn:
 
 ```json
@@ -147,6 +147,39 @@ nefnir líka uppruna redirect-URI þíns (eða callback-URL), svo vafrinn fylgi
 - Hvert `GET` ber `ETag`; `If-None-Match` svarar `304`.
 - Villur eru `{"message": "…"}` með venjulegu stöðukóðunum (`400`, `401`,
   `403`, `404`, `409` fyrir tvítekin guid, `413` fyrir of stór meginmál).
+
+### BCF API 2.1
+
+Þjónninn kann líka BCF API 2.1, fyrir biðlara sem þekkja ekkert nýrra.
+`GET /foundation/versions` telur upp báðar útgáfurnar, þá nýjustu fyrst, hvora með sitt
+`api_base_url`, og biðlari fyrir 2.1 finnur sama lista á `GET /bcf/versions`.
+Báðar útgáfurnar vinna með sömu gögn, svo mál sem er búið til í gegnum aðra má lesa og
+breyta í gegnum hina.
+
+| | 2.1, undir `/bcf/2.1` | 3.0, undir `/bcf/3.0` |
+|---|---|---|
+| Útgáfur, innskráning, notandinn | `/bcf/versions`, `/bcf/2.1/auth`, `/bcf/2.1/current-user` | Foundation API |
+| Skrá í haus máls | `file_name` | `filename` |
+| Notendurnir í extensions | `user_id_type` | `users` |
+| Stutt auðkenni máls | Ekkert | `server_assigned_id` |
+| Athugasemd sem svarar annarri | `reply_to_comment_guid` | Ekkert |
+| `aspect_ratio` myndavélar | Ekkert; 3.0 les það sem 1.0 | Áskilið |
+| Hvað sjónarhorn verður að innihalda | Hvað sem er nema tvær myndavélar | Myndavél eða mynd, og myndavél með öllu öðru |
+| `guid` sem biðlarinn velur | Hunsað | Samþykkt, `409` ef það er til |
+| `files_information`, að eyða sjónarhorni | Ekkert | Já |
+| Eigin atburðagerðir | `reply_to_comment_updated`, `reply_to_comment_removed` | `stage_added`, `stage_updated`, `stage_removed` |
+| Að spyrja um merki í `$filter` | `contains(labels, 'x')` | `labels/any(l: l eq 'x')`; hitt formið virkar líka |
+
+OAuth2-dæmið í 2.1 þekkir ekki PKCE, svo biðlari sem er skrifaður eftir því getur ekki
+sent neitt `code_challenge`. Stjórnandi getur merkt trúnaðarbiðlara sem má sleppa því:
+*Má skrá sig inn án PKCE* á síðu biðlarans, `pkce_optional` í stjórnunarforritaskilunum
+eða `opencde client create --without-pkce`. Þá er það leyndarmál hans sem verndar
+innskráningarnar, gefið með HTTP Basic á tókaslóðinni. Biðlari sem skráir sig sjálfur á
+`oauth2_dynamic_client_reg_url` í `GET /bcf/2.1/auth`, þegar
+`OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, er merktur á sama hátt, en skráningin í
+Foundation API merkir engan biðlara. Opinber biðlari getur aldrei sleppt PKCE, og merktur
+biðlari sem sendir `code_challenge` er bundinn við það. Notaðu PKCE ef þú getur.
+Redirect-URI á `http://localhost` krefst `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## 4. Documents API
 

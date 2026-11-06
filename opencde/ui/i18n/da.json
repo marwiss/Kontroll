@@ -128,7 +128,7 @@
   "notice.form_expired": "Formularen var udløbet; intet blev ændret. Prøv igen.",
   "notice.not_yourself": "Det kan du ikke gøre med din egen konto.",
   "notice.invalid": "Formularen var ikke gyldig; intet blev ændret.",
-  "index.lead": "En buildingSMART OpenCDE-server: Foundation API 1.0, BCF API 3.0 og Documents API 1.0.",
+  "index.lead": "En buildingSMART OpenCDE-server: Foundation API 1.0, BCF API 3.0 og 2.1 samt Documents API 1.0.",
   "index.discovery": "Tjenesteopdagelse",
   "index.auth": "Godkendelse",
   "index.auth_value": "OAuth2 authorization code med PKCE",

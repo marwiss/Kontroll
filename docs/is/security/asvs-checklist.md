@@ -104,7 +104,7 @@ engin JWT til að sannreyna.
 
 | Krafa | Staða | Sönnun |
 |---|---|---|
-| Aðeins authorization code með PKCE `S256`; engar implicit- eða password-veitingar | uppfyllt | `test_pkce_is_mandatory_and_plain_is_refused` |
+| Aðeins authorization code með PKCE `S256`, nema fyrir trúnaðarbiðlara sem stjórnandi hefur merkt; engar implicit- eða password-veitingar | uppfyllt | `test_pkce_is_mandatory_and_plain_is_refused` |
 | Nákvæm samsvörun redirect-URI; loopback-undantekning samkvæmt RFC 8252 | uppfyllt | `test_unregistered_redirect_uri_is_shown_not_followed`, `test_loopback_port_may_vary_but_host_may_not` |
 | `state` krafist; `iss` í svarinu | uppfyllt | `test_state_is_required_and_unknown_scope_is_refused`, `test_public_client_flow_with_pkce` |
 | Einnota kóðar bundnir við biðlara, redirect-URI og verifier | uppfyllt | `test_code_is_single_use_and_replay_revokes_tokens`, `test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant` |

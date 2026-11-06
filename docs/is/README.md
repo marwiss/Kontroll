@@ -5,7 +5,7 @@
 # Kontroll OpenCDE-þjónn
 
 Kontroll er þjónn fyrir **OpenCDE-forritaskil** buildingSMART (Foundation API
-1.0, BCF API 3.0 og Documents API 1.0), byggður á grafgagnagrunni, með
+1.0, BCF API 3.0 og 2.1 og Documents API 1.0), byggður á grafgagnagrunni, með
 vefstjórnun og valkvæðri IFC-grafeiningu sem tengir BCF-einingar við
 byggingarhlutana sem þær vísa á. Hann spratt upp úr rannsóknarfrumgerð frá
 2023 fyrir stafrænar eftirlitsáætlanir í sænskum byggingarleyfum og var
@@ -113,9 +113,9 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
 ## Hvað þú getur gert
 
 - **Foundation API 1.0**: uppgötvun þjónustu, OAuth2 authorization code með
-  PKCE fyrir hvern biðlara, núverandi notandi, afturköllun tóka og kvik
+  PKCE, núverandi notandi, afturköllun tóka og kvik
   biðlaraskráning með opinberum biðlurum (óvirk sjálfgefið).
-- **BCF API 3.0**: verkefni, extensions, mál með OData-fyrirspurnum,
+- **BCF API 3.0 og 2.1**: verkefni, extensions, mál með OData-fyrirspurnum,
   athugasemdir, viewpoint með skjámyndum, bitamyndum og einingum, skrár,
   skjalatilvísanir, skjöl og atburðaskrárnar, allt sannreynt gegn skemum
   buildingSMART.
@@ -158,7 +158,7 @@ Kontroll útfærir öll þrjú:
 | Forritaskil | Til hvers þau eru | Forskrift |
 |---|---|---|
 | Foundation API 1.0 | Segja hvaða forritaskil þjónn býður, hvernig á að skrá sig inn og hver notandinn er | [foundation-API](https://github.com/buildingSMART/foundation-API) |
-| BCF API 3.0 | Mál um líkan, með athugasemdum og sjónarhornum með myndavél, einingum og myndum | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| BCF API 3.0 og 2.1 | Mál um líkan, með athugasemdum og sjónarhornum með myndavél, einingum og myndum | [BCF-API](https://github.com/buildingSMART/BCF-API) |
 | Documents API 1.0 | Að velja, sækja og hlaða upp skjölum og útgáfum þeirra, á síðum á þjóninum | [documents-API](https://github.com/buildingSMART/documents-API) |
 
 **Dataspatium er einn biðlari, ekki sá eini.** Sérhver biðlari sem fylgir þessum forskriftum
@@ -168,8 +168,9 @@ eru valfrjálsar, svo að biðlari sem þekkir þær ekki verður ekki var við 
 
 - skráningu á þjóninum, sem stjórnandi gerir undir *Biðlarar* eða biðlarinn sjálfur þegar
   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
-- OAuth2 authorization code með PKCE `S256`, sem þjónninn krefst af hverjum biðlara;
-- BCF API 3.0: beiðnir til eldri útgáfunnar undir `/bcf/2.1/` fá 404.
+- OAuth2 authorization code með PKCE `S256`, sem þjónninn krefst af hverjum biðlara nema trúnaðarbiðlara sem stjórnandi hefur merkt;
+- BCF API 3.0, eða 2.1 fyrir biðlara sem kann aðeins þá útgáfu. `GET /foundation/versions` telur upp báðar, og
+  [biðlaraleiðbeiningarnar](client-guide.md) segja hvað skilur þær að.
 
 Svo langt hefur þetta verið sýnt: svör þjónsins eru prófuð gagnvart skemum buildingSMART við
 hvert push, og Dataspatium og Python-safnið í [client/](../../client/) keyra gagnvart þjóninum.
@@ -281,8 +282,7 @@ arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru h�
 
 ## Takmarkanir í stuttu máli
 
-- Þjónninn útfærir BCF API 3.0, ekki 2.1; aðeins þrjú eldri uppgötvunarsamheiti
-  undir `/bcf/` eru til fyrir eldri biðlara.
+- Þjónninn útfærir BCF API 3.0 og 2.1, ekki 1.0, þar sem tilföngin eru öðruvísi í laginu.
 - Útflutningur verkefnis sem BCFzip er látinn biðlurum eftir; þjónninn geymir
   mál, athugasemdir og viewpoint eins og forritaskilin skilgreina þau.
 - Community-útgáfur Neo4j og Memgraph hafa enga gagnagrunnsnotendur með

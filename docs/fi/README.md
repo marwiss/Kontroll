@@ -5,7 +5,7 @@
 # Kontroll OpenCDE-palvelin
 
 Kontroll on palvelin buildingSMARTin **OpenCDE-rajapinnoille** (Foundation
-API 1.0, BCF API 3.0 ja Documents API 1.0). Se on rakennettu
+API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0). Se on rakennettu
 graafitietokannan päälle, siinä on selainpohjainen hallinta ja valinnainen
 IFC-graafimoduuli, joka yhdistää BCF-komponentit rakennusosiin, joihin ne
 viittaavat. Se sai alkunsa vuoden 2023 tutkimusprototyypistä Ruotsin
@@ -117,10 +117,10 @@ mikään ole auki ennen kuin se on määritetty.
 ## Mitä voit tehdä
 
 - **Foundation API 1.0**: palvelujen löytäminen, OAuth2 authorization code ja
-  PKCE jokaiselle asiakkaalle, nykyinen käyttäjä, tokenien peruutus ja
+  PKCE, nykyinen käyttäjä, tokenien peruutus ja
   dynaaminen asiakasrekisteröinti julkisine asiakkaineen (oletuksena pois
   päältä).
-- **BCF API 3.0**: projektit, extensions-arvot, asiat OData-kyselyineen,
+- **BCF API 3.0 ja 2.1**: projektit, extensions-arvot, asiat OData-kyselyineen,
   kommentit, viewpoint-näkymät kuvakaappauksineen, bittikarttoineen ja
   komponentteineen, tiedostot, asiakirjaviittaukset, asiakirjat ja
   tapahtumalokit, kaikki validoituina buildingSMARTin skeemoja vasten.
@@ -166,7 +166,7 @@ ne rakentanut kuka tahansa. Kontroll toteuttaa ne kaikki kolme:
 | API | Mihin se on tarkoitettu | Määrittely |
 |---|---|---|
 | Foundation API 1.0 | Kertoo, mitä rajapintoja palvelin tarjoaa, miten kirjaudutaan ja kuka käyttäjä on | [foundation-API](https://github.com/buildingSMART/foundation-API) |
-| BCF API 3.0 | Mallia koskevat asiat, kommentit ja näkymät kameroineen, komponentteineen ja kuvineen | [BCF-API](https://github.com/buildingSMART/BCF-API) |
+| BCF API 3.0 ja 2.1 | Mallia koskevat asiat, kommentit ja näkymät kameroineen, komponentteineen ja kuvineen | [BCF-API](https://github.com/buildingSMART/BCF-API) |
 | Documents API 1.0 | Asiakirjojen ja niiden versioiden valinta, nouto ja lataaminen palvelimen sivuilla | [documents-API](https://github.com/buildingSMART/documents-API) |
 
 **Dataspatium on yksi asiakas, ei ainoa.** Jokaisen näitä määrittelyjä noudattavan
@@ -177,8 +177,9 @@ niitä, ei huomaa niitä. Asiakas tarvitsee kolme asiaa:
 - rekisteröinnin palvelimelle, jonka tekee ylläpitäjä kohdassa *Asiakkaat* tai asiakas itse,
   kun `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
 - OAuth2 authorization code -kulun ja PKCE:n `S256`, jota palvelin vaatii jokaiselta
-  asiakkaalta;
-- BCF API 3.0:n: pyynnöt vanhempaan versioon osoitteessa `/bcf/2.1/` saavat vastauksen 404.
+  asiakkaalta paitsi luottamukselliselta, jonka ylläpitäjä on merkinnyt;
+- BCF API 3.0:n tai 2.1:n asiakkaalle, joka osaa vain sen version. `GET /foundation/versions` luettelee molemmat, ja
+  [asiakasopas](client-guide.md) kertoo, mikä niitä erottaa.
 
 Näin pitkälle tämä on osoitettu: palvelimen vastaukset testataan buildingSMARTin skeemoja
 vasten jokaisella pushilla, ja Dataspatium ja Python-kirjasto kansiossa [client/](../../client/)
@@ -295,8 +296,7 @@ IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
 
 ## Rajoitukset lyhyesti
 
-- Palvelin toteuttaa BCF API 3.0:n, ei 2.1:tä; vanhemmille asiakkaille on vain
-  kolme vanhaa löytämisaliasta polun `/bcf/` alla.
+- Palvelin toteuttaa BCF API 3.0:n ja 2.1:n, ei 1.0:aa, jonka resurssit ovat erimuotoisia.
 - Projektin vienti BCFzip-tiedostoksi jää asiakasohjelmille; palvelin
   tallentaa asiat, kommentit ja viewpoint-näkymät rajapinnan määrittelemässä
   muodossa.

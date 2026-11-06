@@ -4,7 +4,9 @@ Hvernig biðlari (BCF-viðbót, skoðari, skrifta) fær aðgangstóka fyrir hön
 notanda. Þetta er Foundation API 2.2 með herðingu RFC 9700 og OAuth 2.1:
 PKCE `S256` fyrir hvern biðlara, nákvæm samsvörun redirect-URI
 (loopback-gáttir undanskildar, RFC 8252), einnota kóðar, endurnýjunartókar
-sem skiptast.
+sem skiptast. Undantekningin er trúnaðarbiðlari sem stjórnandi hefur merkt af
+því að hann getur ekki notað PKCE, eins og biðlari sem útfærir aðeins BCF API 2.1; sjá
+[biðlaraleiðbeiningarnar](../client-guide.md).
 
 ```mermaid
 sequenceDiagram

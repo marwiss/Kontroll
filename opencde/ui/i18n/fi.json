@@ -128,7 +128,7 @@
   "notice.form_expired": "Lomake oli vanhentunut; mitään ei muutettu. Yritä uudelleen.",
   "notice.not_yourself": "Et voi tehdä sitä omalle tilillesi.",
   "notice.invalid": "Lomake ei ollut kelvollinen; mitään ei muutettu.",
-  "index.lead": "buildingSMARTin OpenCDE-palvelin: Foundation API 1.0, BCF API 3.0 ja Documents API 1.0.",
+  "index.lead": "buildingSMARTin OpenCDE-palvelin: Foundation API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0.",
   "index.discovery": "Palvelujen löytäminen",
   "index.auth": "Todennus",
   "index.auth_value": "OAuth2 authorization code ja PKCE",

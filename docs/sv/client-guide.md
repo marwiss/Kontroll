@@ -6,7 +6,7 @@ i [examples/](../examples/) visar det i bruk.
 
 ## 1. Upptäck
 
-`GET /foundation/versions` listar API:erna (`foundation 1.0`, `bcf 3.0`,
+`GET /foundation/versions` listar API:erna (`foundation 1.0`, `bcf 3.0`, `bcf 2.1`,
 `documents 1.0`). `GET /foundation/1.0/auth` talar om var man loggar in:
 
 ```json
@@ -147,6 +147,40 @@ mot den omdirigeringen, inte bara mot formulärets egen adress.
 - Varje `GET` bär en `ETag`; `If-None-Match` svarar `304`.
 - Fel är `{"message": "…"}` med de vanliga statuskoderna (`400`, `401`,
   `403`, `404`, `409` för dubblerade guid, `413` för för stora kroppar).
+
+### BCF API 2.1
+
+Servern kan också BCF API 2.1, för klienter som inte känner till något nyare.
+`GET /foundation/versions` listar båda versionerna, den nyaste först, var och en med
+sin `api_base_url`, och en klient för 2.1 hittar samma lista på `GET /bcf/versions`.
+Båda versionerna arbetar på samma data, så ett ärende som skapats genom den ena kan
+läsas och ändras genom den andra.
+
+| | 2.1, under `/bcf/2.1` | 3.0, under `/bcf/3.0` |
+|---|---|---|
+| Versioner, inloggning, användaren | `/bcf/versions`, `/bcf/2.1/auth`, `/bcf/2.1/current-user` | Foundation API |
+| En fil i ett ärendes huvud | `file_name` | `filename` |
+| Användarna i extensions | `user_id_type` | `users` |
+| Ett ärendes korta id | Inget | `server_assigned_id` |
+| En kommentar som svarar på en annan | `reply_to_comment_guid` | Inget |
+| En kameras `aspect_ratio` | Inget; 3.0 läser den som 1.0 | Krävs |
+| Vad en viewpoint måste innehålla | Vad som helst utom två kameror | En kamera eller en bild, och en kamera tillsammans med allt annat |
+| Ett `guid` som klienten väljer | Ignoreras | Godtas, `409` om det finns |
+| `files_information`, att radera en viewpoint | Inget | Ja |
+| Egna händelsetyper | `reply_to_comment_updated`, `reply_to_comment_removed` | `stage_added`, `stage_updated`, `stage_removed` |
+| Att fråga efter en etikett i `$filter` | `contains(labels, 'x')` | `labels/any(l: l eq 'x')`; den andra formen fungerar också |
+
+OAuth2-exemplet i 2.1 känner inte till PKCE, så en klient som skrivits efter det kan
+inte skicka någon `code_challenge`. En administratör kan märka en konfidentiell klient
+som får utelämna det: *Får logga in utan PKCE* på klientens sida, `pkce_optional` i
+administrations-API:t eller `opencde client create --without-pkce`. Då är det dess
+hemlighet som skyddar inloggningarna, angiven med HTTP Basic på token-adressen. En
+klient som registrerar sig själv på `oauth2_dynamic_client_reg_url` i `GET /bcf/2.1/auth`,
+när `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, märks på samma sätt, medan
+registreringen i Foundation API inte märker någon klient. En publik klient kan aldrig
+utelämna PKCE, och en märkt klient som skickar en `code_challenge` hålls till den.
+Använd PKCE om du kan. En redirect-URI på `http://localhost` kräver
+`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
 
 ## 4. Documents API
 

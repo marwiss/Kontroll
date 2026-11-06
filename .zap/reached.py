@@ -17,10 +17,11 @@ ANSWER = re.compile(r'"(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) (/[^ ?"]*)[^"]* 
 MUST_ANSWER = (
     ("GET", "/admin/users", "200"),
     ("GET", "/bcf/3.0/projects", "200"),
+    ("GET", "/bcf/2.1/projects", "200"),
     ("GET", "/admin/api/users", "200"),
 )
 # Attacks are refused in many ways, but never with "who are you?" as long as the token holds.
-TOKEN_AREAS = ("/bcf/3.0", "/documents/1.0", "/admin/api")
+TOKEN_AREAS = ("/bcf/3.0", "/bcf/2.1", "/documents/1.0", "/admin/api")
 MOST_REFUSED = 0.1
 
 
