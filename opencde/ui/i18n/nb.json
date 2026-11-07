@@ -336,6 +336,7 @@
   "admin.settings.check": "Kontroll",
   "check.version": "Versjon",
   "check.environment": "Miljø",
+  "check.apis": "API-er som tilbys",
   "check.public_url": "Offentlig adresse",
   "check.graph": "Grafdatabase",
   "check.schema": "Skjema",

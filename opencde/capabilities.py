@@ -29,11 +29,19 @@ router = APIRouter(tags=["Capabilities (extension)"])
 ADMIN_API_VERSION = 1  # counts breaking changes of the administration API
 
 
+def offered_apis(settings: Settings) -> dict[str, str]:
+    """Each API the server offers with its version (OPENCDE_APIS); for BCF, the newest version on offer."""
+    bcf = next((version for version in (BCF_VERSION, BCF_OLDER_VERSION) if settings.offers(f"bcf-{version}")), None)
+    apis = {"foundation": FOUNDATION_VERSION if settings.offers("foundation") else None, "bcf": bcf}
+    apis["documents"] = DOCUMENTS_VERSION if settings.offers("documents") else None
+    return {api: version for api, version in apis.items() if version}
+
+
 def capabilities(settings: Settings) -> dict[str, Any]:
     return {
         "server": {"name": "Kontroll OpenCDE server", "version": __version__, "public_url": settings.public_url},
-        "apis": {"foundation": FOUNDATION_VERSION, "bcf": BCF_VERSION, "documents": DOCUMENTS_VERSION},
-        "bcf_versions": [BCF_VERSION, BCF_OLDER_VERSION],
+        "apis": offered_apis(settings),
+        "bcf_versions": [version for version in (BCF_VERSION, BCF_OLDER_VERSION) if settings.offers(f"bcf-{version}")],
         "scopes": list(SCOPES),
         "extensions": {
             "dynamic_client_registration": {

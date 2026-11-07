@@ -6,8 +6,13 @@
   <h1 class="card__title">{{ product }}</h1>
   <p class="card__lead">{{ t("index.lead") }}</p>
   <dl class="facts">
+    {% if foundation %}
     <dt>{{ t("index.discovery") }}</dt><dd><code>GET /foundation/versions</code></dd>
     <dt>{{ t("index.auth") }}</dt><dd><code>GET /foundation/1.0/auth</code> · {{ t("index.auth_value") }}</dd>
+    {% else %}
+    <dt>{{ t("index.discovery") }}</dt><dd><code>GET /bcf/versions</code></dd>
+    <dt>{{ t("index.auth") }}</dt><dd><code>GET /bcf/2.1/auth</code> · {{ t("index.auth_value") }}</dd>
+    {% endif %}
     <dt>{{ t("index.version") }}</dt><dd>{{ version }}</dd>
   </dl>
   <div class="cluster">

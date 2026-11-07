@@ -336,6 +336,7 @@
   "admin.settings.check": "Athugun",
   "check.version": "Útgáfa",
   "check.environment": "Umhverfi",
+  "check.apis": "Forritaskil í boði",
   "check.public_url": "Opinbert vistfang",
   "check.graph": "Grafgagnagrunnur",
   "check.schema": "Skema",
