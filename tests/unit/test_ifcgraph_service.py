@@ -8,10 +8,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from ifc_lpg.validation import unpack_report
 
 from opencde.ifcgraph import service as service_module
 from opencde.ifcgraph.service import IfcGraphService
-from opencde.ifcgraph.validation import unpack_report
 from opencde.storage import LocalStorage
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 
@@ -112,7 +112,7 @@ async def test_the_rules_findings_join_the_schemas_in_one_report(
     not_run = [{"rule": "GEM004", "error": "FileNotFoundError"}]
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        if command[2] == "opencde.ifcgraph.gherkin":
+        if command[2] == "ifc_lpg.gherkin":
             assert command[command.index("--env") + 1] == str(tmp_path / "gherkin") and answers == (0, 1)
             ruleset = "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"
             reply = {"ruleset": ruleset, "issue_count": 1, "error_count": 0, "truncated": False, "issues": [found]}
@@ -138,7 +138,7 @@ async def test_when_the_rules_cannot_run_the_schemas_check_stands(
     with_rules(tmp_path, service)
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        if command[2] == "opencde.ifcgraph.gherkin":
+        if command[2] == "ifc_lpg.gherkin":
             raise RuntimeError(f"behave stopped at {LINE}")
         return json.dumps(SCHEMA_ANSWER)
 
@@ -174,7 +174,7 @@ async def test_rules_that_are_configured_but_not_installed_are_left_out(
 
     monkeypatch.setattr(service, "_in_a_process", answer)
     await service._validate("check-6", "documents/x", "model.ifc")
-    assert [command[2] for command in commands] == ["opencde.ifcgraph.validation"]
+    assert [command[2] for command in commands] == ["ifc_lpg.validation"]
     assert [check["name"] for check in json.loads(graph.writes[-1][1]["fields"]["checks"])] == ["schema"]
 
 

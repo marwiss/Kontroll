@@ -13,11 +13,12 @@ import contextlib
 from dataclasses import dataclass
 from typing import Any
 
+from ifc_lpg.importer import delete_model
+
 from opencde.accounts.roles import Role
 from opencde.accounts.users import PUBLIC_FIELDS, AccountError, User, _user
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, new_id, normalize_guid
-from opencde.ifcgraph.importer import delete_model
 from opencde.storage import LocalStorage
 from opencde.timeutil import now_iso
 

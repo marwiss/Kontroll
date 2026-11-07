@@ -33,7 +33,7 @@ pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
 
 MODEL = FIXTURES_DIR / "three_walls_gtin.ifc"
 WALLS = ("1Xezbq735AdBO_4DerG66G", "3eT96F_cnDsOufCEsotwtp")
-# An environment made with `python -m opencde.ifcgraph.gherkin_install`, for the test with buildingSMART's rules.
+# An environment made with `python -m ifc_lpg.gherkin_install`, for the test with buildingSMART's rules.
 GHERKIN_ENV = os.environ.get("OPENCDE_TEST_GHERKIN_ENV", "")
 
 

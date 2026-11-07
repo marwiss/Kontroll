@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from ifc_lpg.importer import delete_model
+
 from opencde.graph.graph import Graph
-from opencde.ifcgraph.importer import delete_model
 
 
 async def list_models(graph: Graph, *, project_id: str | None = None) -> list[dict[str, Any]]:

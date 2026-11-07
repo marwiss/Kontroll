@@ -6,6 +6,8 @@
 FROM python:3.13-slim-trixie AS builder
 COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
+# git fetches IFC-LPG at the commit uv.lock names, until it is on PyPI (ADR 0014). Only this stage has it.
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Optional extras to install. The default includes the IFC-LPG module (IfcOpenShell),
@@ -32,7 +34,7 @@ ARG OPENCDE_GHERKIN=0
 RUN --mount=type=cache,target=/root/.cache/uv \
     mkdir -p /opt/gherkin \
     && if [ "$OPENCDE_GHERKIN" = "1" ] && /app/.venv/bin/python -c "import ifcopenshell" 2>/dev/null; then \
-         /app/.venv/bin/python -m opencde.ifcgraph.gherkin_install /opt/gherkin \
+         /app/.venv/bin/python -m ifc_lpg.gherkin_install /opt/gherkin \
          && /opt/gherkin/venv/bin/python -m compileall -q /opt/gherkin/run; \
        fi
 

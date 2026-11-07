@@ -8,6 +8,11 @@ import json
 from pathlib import Path
 
 import pytest
+from ifc_lpg.convert import write_jsonl
+from ifc_lpg.equivalence import compare, compare_files
+from ifc_lpg.exporter import NotExportable, export_records
+from ifc_lpg.importer import delete_model, import_records
+from ifc_lpg.writer import write_records
 from typer.testing import CliRunner
 
 from opencde import backup
@@ -17,12 +22,7 @@ from opencde.bootstrap import make_graph, make_storage
 from opencde.cli import app
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
-from opencde.ifcgraph.convert import write_jsonl
-from opencde.ifcgraph.equivalence import compare, compare_files
-from opencde.ifcgraph.exporter import NotExportable, export_records
-from opencde.ifcgraph.importer import delete_model, import_records
 from opencde.ifcgraph.service import IfcGraphService, delete_model_entities
-from opencde.ifcgraph.writer import write_records
 from opencde.settings import Settings
 from tests import conftest
 from tests.integration.conftest import GraphTarget
