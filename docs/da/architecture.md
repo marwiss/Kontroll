@@ -29,7 +29,7 @@ flowchart LR
 | Documents API | Upload og valg via sider i browseren, versioner og metadata | `opencde/documents/` |
 | Konti | Brugere, projekter, medlemskaber og roller | `opencde/accounts/` |
 | Administration | Sider og et API for administratorer, sundhedstjek og forespørgselsloggen | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-graf | Gør uploadede modeller til noder og linker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
+| IFC-LPG | Gør uploadede modeller til noder og linker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
 | Graflaget | Driveren, de to databasedialekter, skemaet og det, der udløber | `opencde/graph/` |
 | Sider | Skabeloner, typografier, scripts og sprogkatalogerne | `opencde/ui/` |
 
@@ -57,7 +57,7 @@ flowchart LR
 | Brugere, projekter, sager, kommentarer, viewpoints, dokumentmetadata, klienter og revisionsloggen | Grafdatabasen | [Grafskema](graph-schema.md) |
 | Tokens, koder og klienthemmeligheder som SHA-256-hashes; kodeord som Argon2id-hashes | Grafdatabasen | [Sikkerhedskontroller](security/controls.md) |
 | Uploadede filer og viewpoint-billeder under navne, serveren vælger | Fillageret i `OPENCDE_DATA_DIR` | [Documents API-forløb](flows/documents.md) |
-| Modeller som noder og relationer | Grafdatabasen | [IFC-graf](ifcgraph.md) |
+| Modeller som noder og relationer | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
 | Serverens egne indstillinger og hemmeligheder | `.env` eller `/run/secrets` | [Lokal test](deploy/local.md) |
 
 ## Arbejde uden for forespørgslerne

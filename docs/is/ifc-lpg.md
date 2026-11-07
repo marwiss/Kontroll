@@ -1,14 +1,18 @@
-# IFC-graf
+# IFC-LPG
 
-Valkvæða IFC-grafeiningin breytir upphlöðnu IFC-líkani í grafgögn, svo að
+Valkvæða IFC-LPG-einingin breytir upphlöðnu IFC-líkani í grafgögn, svo að
 einingar BCF-viewpoints megi tengja við byggingarhlutana sem þær vísa á, og
 svo að spyrja megi um líkanið í Cypher við hlið málanna og skjalanna.
 
-Kveiktu á henni með `OPENCDE_IFCGRAPH_ENABLED=true` og settu upp aukapakkann
-`ifcgraph` (`uv sync --extra ifcgraph`). Docker-myndin inniheldur aukapakkann
+Kveiktu á henni með `OPENCDE_IFC_LPG_ENABLED=true` og settu upp aukapakkann
+`ifc-lpg` (`uv sync --extra ifc-lpg`). Docker-myndin inniheldur aukapakkann
 sjálfgefið (`ARG OPENCDE_EXTRAS` í Dockerfile), sem meira en tvöfaldar stærð
 hennar (um 680 MB, eða 1,1 GB með reglum buildingSMART, á móti 300 MB); byggðu með `--build-arg OPENCDE_EXTRAS=`
 fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
+
+Fyrir 2.0.2 hét einingin IFC-graph. Stillingar hennar hétu `OPENCDE_IFCGRAPH_*`
+og skipunin `opencde ifcgraph`, og hvort tveggja virkar enn; atvikaskrá þjónsins
+og `opencde doctor` nefna gömlu stillingarnar sem hann fær.
 
 ## Hvað gerist við upphal
 
@@ -17,9 +21,9 @@ fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
 2. Þjónninn býr til `IfcModel`-hnút (staða `queued`) tengdan verkefninu og
    hefur umbreytingu í bakgrunni, eina í einu.
 3. Sérstakt vinnuferli (`python -m opencde.ifcgraph.worker`) les skrána. Það keyrir með tímamörkum
-   (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 mínútur), vistfangarýmismörkum á
-   POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) og hámarki eininga
-   (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Hrun eða frysting drepur vinnuferlið,
+   (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 mínútur), vistfangarýmismörkum á
+   POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) og hámarki eininga
+   (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Hrun eða frysting drepur vinnuferlið,
    ekki þjóninn. `.ifczip` er pakkað upp innan stærðarmarka upphalsins.
 4. Færslurnar eru fluttar inn í lotum með `UNWIND … CREATE` (flytjanlegt
    Cypher, ekkert APOC). `IfcModel` endar í stöðunni `done` með talningum og
@@ -38,7 +42,7 @@ upptalningar, andhverf eigindi, GlobalId og reglur EXPRESS-skemans. Prófunin
 keyrir í bakgrunni á undan umbreytingunni, í vinnsluferli með sömu mörkum. Hún
 stöðvar aldrei upphal: skráin er vistuð eins og hún kom, hvað sem prófunin finnur.
 Verkefnisskjal BCF er ekki prófað, þar sem það hefur engin lýsigögn.
-`OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` slekkur á prófuninni.
+`OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` slekkur á prófuninni.
 
 Niðurstaðan er í lýsigögnum útgáfunnar, sem sérhver biðlari Documents API getur lesið:
 
@@ -103,7 +107,7 @@ skrifað afrit þess tók 3 til 66 sekúndur samanlagt.
 
 ### ifc-gherkin-rules frá buildingSMART
 
-Þegar `OPENCDE_IFCGRAPH_GHERKIN_ENV` vísar á umhverfi fyrir þær eru upphöl
+Þegar `OPENCDE_IFC_LPG_GHERKIN_ENV` vísar á umhverfi fyrir þær eru upphöl
 einnig prófuð gagnvart `ifc-gherkin-rules` frá buildingSMART: þeim
 staðalbundnu reglum og þeirri venju greinarinnar sem sannprófunarþjónusta
 buildingSMART prófar umfram skemað ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
@@ -122,7 +126,7 @@ reglusafnsins, sem skrifa aðeins niðurstöður í gagnagrunn
 sannprófunarþjónustunnar.
 Útgefna myndin sleppir þeim, þar sem þær bæta við um 425 MB. Myndin með merkið
 `-gherkin`, eins og `latest-gherkin` eða `3.0.0-gherkin`, hefur umhverfið í
-`/opt/gherkin` og lætur `OPENCDE_IFCGRAPH_GHERKIN_ENV` vísa á það, eins og mynd
+`/opt/gherkin` og lætur `OPENCDE_IFC_LPG_GHERKIN_ENV` vísa á það, eins og mynd
 sem er smíðuð með `--build-arg OPENCDE_GHERKIN=1`. Með docker compose velur
 `OPENCDE_IMAGE_TAG` eða `OPENCDE_GHERKIN=1` í `.env`.
 
@@ -159,7 +163,7 @@ Andhverf eigindi verða líka vensl, svo báðar áttir lesist eðlilega:
 `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-gildi eru tekin úr umbúðum (`IfcLabel('3')` verður `"3"`).
 
-Engir hnútar sjálfgefið (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Engir hnútar sjálfgefið (`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=false`):
 framsetningaratriði, framsetningar, snið, staðsetningar og stílar; þau eru
 meirihluti líkans og sjaldan það sem CDE-fyrirspurn þarf, og þau eru geymd sem
 texti í grafinu, sjá Að skrifa líkan til baka. `IfcOwnerHistory` er aðeins hnútur
@@ -201,15 +205,15 @@ Grafið rúmar allt líkanið og hægt er að skrifa skrána til baka úr því:
 sömu auðkenni og sömu gildi í sömu röð, og þar með sömu landfræðilegu upplýsingar.
 
 ```sh
-uv run opencde ifcgraph export <líkansauðkenni> model.ifc            # skrifa skrána og sannprófa hana
-uv run opencde ifcgraph export <líkansauðkenni> model.ifc --verify   # og bera hana saman við þá sem var hlaðið upp
+uv run opencde ifc-lpg export <líkansauðkenni> model.ifc            # skrifa skrána og sannprófa hana
+uv run opencde ifc-lpg export <líkansauðkenni> model.ifc --verify   # og bera hana saman við þá sem var hlaðið upp
 ```
 
 Hnútarnir eru þeir sem fyrirspurnir þurfa. Það sem þeir sleppa er skrifað út sem STEP og
 þjappað í texta á `StepBlock`-hnúta sem hanga á `IfcModel`: það er í grafinu en utan
 seilingar Cypher, og því er ekki hægt að breyta þar. Það getur ekki verið eiginleikar
 vörunna, því að stór hluti þess er sameiginlegur með þeim. Með
-`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
+`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
 margfaldri stærð og innflutningstíma; fyrirspurnir tóku álíka langan tíma í
 [mælingunum](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
@@ -247,7 +251,7 @@ nefnda í skýrslunni. Með `--geometry` er möskvi hverrar vöru líka byggður
 bita fyrir bita. Hvaða tvær skrár sem er má bera saman með
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
-Með `OPENCDE_IFCGRAPH_LOSSLESS=false` er líkani umbreytt eins og fyrir 3.0.0: það er lesið með
+Með `OPENCDE_IFC_LPG_LOSSLESS=false` er líkani umbreytt eins og fyrir 3.0.0: það er lesið með
 IfcOpenShell og því sem ekki eru hnútar er sleppt alveg. Slíkt líkan, eins og líkan sem fyrri
 útgáfa umbreytti, er ekki hægt að skrifa til baka.
 
@@ -258,10 +262,10 @@ sem fær nýjar útgáfur safnar gröfum sem enginn spyr um. Skipanalínan telur
 þau upp og grisjar; skjölin og skrár þeirra haldast alltaf:
 
 ```sh
-uv run opencde ifcgraph list --project <verkefnisauðkenni>
-uv run opencde ifcgraph prune                   # misheppnuð líkön, og lokin líkön sem nýrri lokin útgáfa
+uv run opencde ifc-lpg list --project <verkefnisauðkenni>
+uv run opencde ifc-lpg prune                   # misheppnuð líkön, og lokin líkön sem nýrri lokin útgáfa
                                                 # sama skjals hefur leyst af hólmi
-uv run opencde ifcgraph prune --project <id> --all   # hvert líkan eins verkefnis (prófunarstafli, til dæmis)
+uv run opencde ifc-lpg prune --project <id> --all   # hvert líkan eins verkefnis (prófunarstafli, til dæmis)
 ```
 
 Líkön í bið eða í keyrslu eru aldrei grisjuð. Fyrirspurnir sem vilja eitt
@@ -285,8 +289,8 @@ verkefnisins, `SAME_AS`-vensl við hann. Sama tenging keyrir fyrir hverja
 fyrirliggjandi einingu verkefnisins þegar innflutningi líkans lýkur, svo
 viewpoint sem voru búin til áður en líkaninu var hlaðið upp, eða meðan það
 var enn í umbreytingu, eru tengd líka. Ef byggingarhlutinn ber stillta
-eiginleikann (`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`), er gildi hans afritað á eininguna
+eiginleikann (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
+`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), er gildi hans afritað á eininguna
 sem `gtin`. Þetta er notkunartilvik rannsóknarskýrslunnar frá 2023: skoðun
 (BCF-mál) sem vísar á byggingarvörur sem eru auðkenndar með GTIN.
 
@@ -326,7 +330,7 @@ keyrslurnar eru taldar upp í [acceptance.md](../acceptance.md).
 Framleiðsluþjónn birtir ekki Bolt; graffyrirspurn stjórnunarforritaskilanna
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gefur
 stjórnendum lesandi Cypher án gáttarinnar. Forritið teiknar líka grafið, í
-spjaldinu IFC-graf, í gegnum þá fyrirspurn eða yfir Bolt.
+spjaldinu IFC-LPG, í gegnum þá fyrirspurn eða yfir Bolt.
 
 ## Takmörk og staða
 

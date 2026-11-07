@@ -87,7 +87,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | Pages carry the strict CSP, no inline code; the enhancement scripts build DOM with `textContent` only | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (no console errors) |
 | Accessibility: no serious or critical axe-core violations on any admin page | WCAG 2.2 AA | `tests/ui/test_admin_browser.py` |
 
-## IFC-graph (stage 9)
+## IFC-LPG (stage 9)
 
 | Control | Standard | Suite |
 |---|---|---|

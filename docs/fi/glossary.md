@@ -49,6 +49,7 @@ näkymä ja projekti ovat samat sanat kuin Dataspatiumissa.
 | Sana | Mitä se tässä tarkoittaa |
 |---|---|
 | IFC-graafi | Ladattu malli solmuina ja suhteina tietokannassa, valinnainen |
+| IFC-LPG | Moduuli, joka muuttaa IFC-tiedostot IFC-graafiksi ja takaisin, ennen versiota 2.0.2 nimeltään IFC-graph |
 | `GlobalId` | Elementin pysyvä tunnus IFC-tiedostossa |
 | `SAME_AS` | Suhde näkymän komponentista mallin elementtiin |
 | GTIN | Global Trade Item Number, tuotteen numero; tässä luettu ominaisuusjoukosta `Reuse` |

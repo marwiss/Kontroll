@@ -182,12 +182,12 @@ The flows involve the user's browser; see [flows/documents.md](flows/documents.m
 Your client needs a callback URL the browser can reach (a loopback listener
 for desktop apps). The server never calls that URL itself.
 
-With the IFC-graph module on, an IFC file uploaded as a version is checked
+With the IFC-LPG module on, an IFC file uploaded as a version is checked
 against the IFC schema and, where the server has them, buildingSMART's
 ifc-gherkin-rules. Its metadata then carries `ifc_validation_status` and,
 once checked, the other `ifc_validation_*` entries; `ifc_validation_report` is
 the address of the report, an extension that answers to the same token. See
-[ifcgraph.md](ifcgraph.md#checking-uploads-against-the-ifc-schema).
+[ifc-lpg.md](ifc-lpg.md#checking-uploads-against-the-ifc-schema).
 
 ## 5. Correlating your log with the server's
 

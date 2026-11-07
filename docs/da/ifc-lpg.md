@@ -1,16 +1,20 @@
-# IFC-graf
+# IFC-LPG
 
-Det valgfrie IFC-grafmodul gør en uploadet IFC-model til grafdata, så
+Det valgfrie IFC-LPG-modul gør en uploadet IFC-model til grafdata, så
 komponenterne i et BCF-viewpoint kan knyttes til de bygningsdele, de peger
 på, og så spørgsmål om modellen kan stilles i Cypher ved siden af sagerne og
 dokumenterne.
 
-Slå det til med `OPENCDE_IFCGRAPH_ENABLED=true`, og installér ekstrapakken
-`ifcgraph` (`uv sync --extra ifcgraph`). Docker-imaget indeholder ekstrapakken
+Slå det til med `OPENCDE_IFC_LPG_ENABLED=true`, og installér ekstrapakken
+`ifc-lpg` (`uv sync --extra ifc-lpg`). Docker-imaget indeholder ekstrapakken
 som standard (`ARG OPENCDE_EXTRAS` i Dockerfile), hvilket mere end fordobler
 dets størrelse (omkring 680 MB, eller 1,1 GB med buildingSMARTs regler, mod 300 MB); byg med
 `--build-arg OPENCDE_EXTRAS=` for et slankere image uden IfcOpenShell, når
 modulet forbliver slået fra.
+
+Før 2.0.2 hed modulet IFC-graph. Dets indstillinger hed `OPENCDE_IFCGRAPH_*` og
+kommandoen `opencde ifcgraph`, og begge virker stadig; serverens log og `opencde
+doctor` nævner de gamle indstillinger, den får.
 
 ## Hvad der sker ved upload
 
@@ -21,9 +25,9 @@ modulet forbliver slået fra.
    projektet og starter en konvertering i baggrunden, én ad gangen.
 3. En separat arbejdsproces (`python -m opencde.ifcgraph.worker`) læser
    filen. Den kører med en tidsgrænse
-   (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minutter), en adresserumsgrænse på
-   POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) og et loft over antallet af
-   entiteter (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Et nedbrud eller en hængning
+   (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minutter), en adresserumsgrænse på
+   POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) og et loft over antallet af
+   entiteter (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Et nedbrud eller en hængning
    dræber arbejdsprocessen, ikke serveren. `.ifczip` pakkes ud med uploadens
    størrelsesgrænse.
 4. Posterne importeres i batches af `UNWIND … CREATE` (portabel Cypher, ingen
@@ -43,7 +47,7 @@ antal, enumerationer, inverse attributter, GlobalId og reglerne i
 EXPRESS-skemaet. Kontrollen kører i baggrunden før konverteringen, i en
 arbejdsproces med de samme grænser. Den stopper aldrig en upload: filen gemmes,
 som den kom, hvad kontrollen end finder. Et BCF-projektdokument kontrolleres
-ikke, da det ikke har metadata. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` slår
+ikke, da det ikke har metadata. `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` slår
 kontrollen fra.
 
 Resultatet står i versionens metadata, som enhver klient til Documents API kan læse:
@@ -108,7 +112,7 @@ eksempelfil og dens skrevne kopi tog 3 til 66 sekunder tilsammen.
 
 ### buildingSMARTs ifc-gherkin-rules
 
-Når `OPENCDE_IFCGRAPH_GHERKIN_ENV` peger på et miljø til dem, kontrolleres
+Når `OPENCDE_IFC_LPG_GHERKIN_ENV` peger på et miljø til dem, kontrolleres
 uploads også mod buildingSMARTs `ifc-gherkin-rules`: de normative regler og den
 branchepraksis, som buildingSMARTs valideringstjeneste kontrollerer ud over
 skemaet ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
@@ -126,7 +130,7 @@ deres hashes. To små filer fra Kontroll erstatter regelsættets Django-dele, so
 kun skriver resultater til valideringstjenestens database.
 Det publicerede image udelader dem, da de lægger omkring 425 MB til. Imaget med
 tagget `-gherkin`, som `latest-gherkin` eller `3.0.0-gherkin`, har miljøet i
-`/opt/gherkin` og lader `OPENCDE_IFCGRAPH_GHERKIN_ENV` pege på det, ligesom et
+`/opt/gherkin` og lader `OPENCDE_IFC_LPG_GHERKIN_ENV` pege på det, ligesom et
 image bygget med `--build-arg OPENCDE_GHERKIN=1`. Med docker compose vælger
 `OPENCDE_IMAGE_TAG` eller `OPENCDE_GHERKIN=1` i `.env`.
 
@@ -163,7 +167,7 @@ Inverse attributter bliver også relationer, så begge retninger læses
 naturligt: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-værdier pakkes ud (`IfcLabel('3')` bliver `"3"`).
 
-Ingen noder som standard (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Ingen noder som standard (`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=false`):
 repræsentationselementer, repræsentationer, profiler, placeringer og
 stilarter; de udgør det meste af en model og er sjældent det, en
 CDE-forespørgsel har brug for, og de bevares som tekst i grafen, jf. Skrive en
@@ -206,15 +210,15 @@ instanser med de samme id'er og de samme værdier i samme rækkefølge, og derme
 den samme geografiske information.
 
 ```sh
-uv run opencde ifcgraph export <model-id> model.ifc            # skriv filen og validér den
-uv run opencde ifcgraph export <model-id> model.ifc --verify   # og sammenlign den med den uploadede
+uv run opencde ifc-lpg export <model-id> model.ifc            # skriv filen og validér den
+uv run opencde ifc-lpg export <model-id> model.ifc --verify   # og sammenlign den med den uploadede
 ```
 
 Noderne er dem, forespørgsler har brug for. Det, de udelader, skrives ud som STEP og
 komprimeres til tekst på `StepBlock`-noder, der hænger på `IfcModel`: det er i grafen,
 men uden for Cyphers rækkevidde, og det kan ikke ændres der. Det kan ikke være
 egenskaber på produkterne, da meget af det deles mellem dem. Med
-`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` bliver hver instans i stedet en node, til
+`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` bliver hver instans i stedet en node, til
 flere gange størrelsen og importtiden; forespørgsler tog omtrent lige lang tid i
 [målingerne](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
@@ -253,7 +257,7 @@ navngivet i rapporten. Med `--geometry` bygges også hvert produkts mesh, og de
 sammenlignes bit for bit. To vilkårlige filer kan sammenlignes med
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
-Med `OPENCDE_IFCGRAPH_LOSSLESS=false` konverteres en model som før 3.0.0: den læses med
+Med `OPENCDE_IFC_LPG_LOSSLESS=false` konverteres en model som før 3.0.0: den læses med
 IfcOpenShell, og det, der ikke er noder, udelades helt. En sådan model, ligesom en, der
 er konverteret af en tidligere version, kan ikke skrives tilbage.
 
@@ -265,10 +269,10 @@ Kommandolinjen lister og fjerner dem; dokumenterne og deres filer bliver
 altid:
 
 ```sh
-uv run opencde ifcgraph list --project <projekt-id>
-uv run opencde ifcgraph prune                   # fejlede modeller, og færdige modeller erstattet af en nyere
+uv run opencde ifc-lpg list --project <projekt-id>
+uv run opencde ifc-lpg prune                   # fejlede modeller, og færdige modeller erstattet af en nyere
                                                 # færdig version af samme dokument
-uv run opencde ifcgraph prune --project <id> --all   # hver model i ét projekt (en teststak, for eksempel)
+uv run opencde ifc-lpg prune --project <id> --all   # hver model i ét projekt (en teststak, for eksempel)
 ```
 
 Modeller i kø og under kørsel fjernes aldrig. Forespørgsler, der vil have én
@@ -292,8 +296,8 @@ en `SAME_AS`-relation til den. Den samme kobling kører for hver eksisterende
 komponent i projektet, når en model er færdigimporteret, så viewpoints
 oprettet, før modellen blev uploadet, eller mens den stadig blev konverteret,
 kobles også. Hvis bygningsdelen bærer den konfigurerede egenskab
-(`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`), kopieres dens værdi til komponenten
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
+`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), kopieres dens værdi til komponenten
 som `gtin`. Det er anvendelsen fra forskningsrapporten fra 2023: en kontrol
 (BCF-sag), der peger på byggeprodukter identificeret med GTIN.
 
@@ -334,7 +338,7 @@ produktionsserver offentliggør ikke Bolt; administrations-API'ets
 grafforespørgsel (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) giver administratorer læsende Cypher
 uden porten. Appen tegner også grafen, i sit
-kort IFC-graf, gennem den forespørgsel eller over Bolt.
+kort IFC-LPG, gennem den forespørgsel eller over Bolt.
 
 ## Grænser og status
 

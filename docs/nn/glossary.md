@@ -49,6 +49,7 @@ viewpoint og prosjekt er dei same orda som i Dataspatium.
 | Ord | Kva det tyder her |
 |---|---|
 | IFC-graf | Ein opplasta modell som nodar og relasjonar i databasen, valfritt |
+| IFC-LPG | Modulen som gjer IFC-filer til ein IFC-graf og tilbake, før 2.0.2 kalla IFC-graph |
 | `GlobalId` | Den varige id-en til eit element i ei IFC-fil |
 | `SAME_AS` | Relasjonen frå ein viewpoint-komponent til elementet i ein modell |
 | GTIN | Global Trade Item Number, nummeret til eit produkt; her lese frå eigenskapssettet `Reuse` |

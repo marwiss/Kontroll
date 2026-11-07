@@ -94,7 +94,7 @@ the earlier form are all there, so queries written for it keep working. Added to
 - `(:IfcModel)-[:HAS_STEP_BLOCK]->(:StepBlock)`, whose `text` is up to about 100 KB. A query that returns any node whole, or
   walks everything hanging off a model, should leave it out.
 
-Anything that lists a node's properties sees these. `OPENCDE_IFCGRAPH_LOSSLESS=false` gives the earlier form.
+Anything that lists a node's properties sees these. `OPENCDE_IFC_LPG_LOSSLESS=false` gives the earlier form.
 
 ### Checks of a model
 
@@ -112,7 +112,7 @@ validation service holds valid; `issues` means at least one error. The report is
 the API's own origin. Its shape is stable: `status`, `checked_at`, `ruleset`, `issue_count`, `error_count`,
 `truncated`, `checks` (each with `name`, `state`, `ruleset`, `issue_count` and `rules_not_run`), and `issues`, each
 with `kind`, `severity`, `message`, and where known `rule`, `step_id`, `global_id` and `attribute`.
-[ifcgraph.md](ifcgraph.md) has an example, and ADR 0011 and ADR 0012 the reasons.
+[ifc-lpg.md](ifc-lpg.md) has an example, and ADR 0011 and ADR 0012 the reasons.
 
 ## Languages and glossary
 

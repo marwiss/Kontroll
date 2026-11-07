@@ -1,15 +1,19 @@
-# IFC-graph
+# IFC-LPG
 
-The optional IFC-graph module turns an uploaded IFC model into graph data, so
+The optional IFC-LPG module turns an uploaded IFC model into graph data, so
 that a BCF viewpoint's components can be joined to the building elements they
 point at, and so that questions about the model can be asked in Cypher next to
 the issues and documents.
 
-Turn it on with `OPENCDE_IFCGRAPH_ENABLED=true` and install the `ifcgraph`
-extra (`uv sync --extra ifcgraph`). The Docker image includes the extra by
+Turn it on with `OPENCDE_IFC_LPG_ENABLED=true` and install the `ifc-lpg`
+extra (`uv sync --extra ifc-lpg`). The Docker image includes the extra by
 default (`ARG OPENCDE_EXTRAS` in the Dockerfile), which more than doubles its
 size (about 680 MB, or 1.1 GB with buildingSMART's rules, against 300 MB); build with `--build-arg OPENCDE_EXTRAS=`
 for a slimmer image without IfcOpenShell when the module stays off.
+
+Until 2.0.2 the module was named IFC-graph. Its settings were named
+`OPENCDE_IFCGRAPH_*` and its command `opencde ifcgraph`, and both still work;
+the server's log and `opencde doctor` name the old settings it is given.
 
 ## What happens on upload
 
@@ -19,9 +23,9 @@ for a slimmer image without IfcOpenShell when the module stays off.
    project and starts a conversion in the background, one at a time.
 3. A separate worker process (`python -m opencde.ifcgraph.worker`) reads the
    file. It runs with a time limit
-   (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minutes), an address-space limit on
-   POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) and an entity cap
-   (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). A crash or a hang kills the worker, not
+   (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minutes), an address-space limit on
+   POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) and an entity cap
+   (`OPENCDE_IFC_LPG_MAX_ENTITIES`). A crash or a hang kills the worker, not
    the server. `.ifczip` is unpacked with the upload size cap.
 4. The records are imported in batches of `UNWIND … CREATE` (portable Cypher,
    no APOC). The `IfcModel` ends in state `done` with counts and the
@@ -40,7 +44,7 @@ attributes, enumerations, inverse attributes, GlobalIds, and the rules of the
 EXPRESS schema. The check runs in the background before the conversion, in a
 worker process with the same limits. It never stops an upload: the file is
 stored as it came, whatever the check finds. A BCF project document is not
-checked, since it has no metadata. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false`
+checked, since it has no metadata. `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false`
 turns the check off.
 
 The result is in the version's metadata, which any Documents API client can read:
@@ -105,7 +109,7 @@ copy took 3 to 66 seconds together.
 
 ### buildingSMART's ifc-gherkin-rules
 
-When `OPENCDE_IFCGRAPH_GHERKIN_ENV` names an environment for them, uploads are
+When `OPENCDE_IFC_LPG_GHERKIN_ENV` names an environment for them, uploads are
 also checked against buildingSMART's `ifc-gherkin-rules`: the normative rules
 and the industry practice that buildingSMART's validation service checks beyond
 the schema ([ADR 0012](adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
@@ -123,7 +127,7 @@ their hashes. Two small files of Kontroll's own replace the rule set's Django
 parts, which only write results into the validation service's database.
 The published image leaves them out, since they add about 425 MB. The image
 tagged `-gherkin`, such as `latest-gherkin` or `3.0.0-gherkin`, has the
-environment in `/opt/gherkin` and points `OPENCDE_IFCGRAPH_GHERKIN_ENV` at it,
+environment in `/opt/gherkin` and points `OPENCDE_IFC_LPG_GHERKIN_ENV` at it,
 as does an image built with `--build-arg OPENCDE_GHERKIN=1`. With docker
 compose, `OPENCDE_IMAGE_TAG` or `OPENCDE_GHERKIN=1` in `.env` makes the choice.
 
@@ -160,7 +164,7 @@ Inverse attributes become relationships too, so both directions read
 naturally: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select values are unwrapped (`IfcLabel('3')` becomes `"3"`).
 
-No nodes by default (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`): representation
+No nodes by default (`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=false`): representation
 items, representations, profiles, placements and styles; they are most of a
 model and seldom what a CDE query needs, and they are kept as text in the graph,
 as under Writing a model back. `IfcOwnerHistory` is a node for the `IfcProject`
@@ -203,15 +207,15 @@ same instances with the same ids, and the same values in the same order, so the
 same geographic information too.
 
 ```sh
-uv run opencde ifcgraph export <model id> model.ifc            # write the file and validate it
-uv run opencde ifcgraph export <model id> model.ifc --verify   # and compare it with the uploaded one
+uv run opencde ifc-lpg export <model id> model.ifc            # write the file and validate it
+uv run opencde ifc-lpg export <model id> model.ifc --verify   # and compare it with the uploaded one
 ```
 
 The nodes are the ones queries need. What they leave out is written out as STEP
 and compressed into text on `StepBlock` nodes that hang off the `IfcModel`: it is
 in the graph, but out of Cypher's reach, and it cannot be changed there. It cannot
 be properties of the products, since much of it is shared between them. With
-`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` every instance becomes a node instead, at
+`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` every instance becomes a node instead, at
 several times the size and the import time; queries took about as long in
 [the measurements](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
@@ -250,7 +254,7 @@ named in the report. With `--geometry` it also builds every product's mesh, and
 compares them bit for bit. Any two files can be compared with
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
-With `OPENCDE_IFCGRAPH_LOSSLESS=false` a model is converted as before 3.0.0: read
+With `OPENCDE_IFC_LPG_LOSSLESS=false` a model is converted as before 3.0.0: read
 with IfcOpenShell, and what is no node left out altogether. Such a model, like one
 converted by an earlier version, cannot be written back.
 
@@ -261,10 +265,10 @@ that receives new versions accumulates graphs nobody queries. The command line
 lists and prunes them; the documents and their files always stay:
 
 ```sh
-uv run opencde ifcgraph list --project <project id>
-uv run opencde ifcgraph prune                   # failed models, and finished models superseded by a newer
+uv run opencde ifc-lpg list --project <project id>
+uv run opencde ifc-lpg prune                   # failed models, and finished models superseded by a newer
                                                 # finished version of the same document
-uv run opencde ifcgraph prune --project <id> --all   # every model of one project (a test stack, for example)
+uv run opencde ifc-lpg prune --project <id> --all   # every model of one project (a test stack, for example)
 ```
 
 Queued and running models are never pruned. Queries that want one graph per
@@ -288,7 +292,7 @@ gets a `SAME_AS` relationship to it. The same linking runs for every existing
 component of the project when a model finishes importing, so viewpoints created
 before the model was uploaded, or while it was still converting, are linked
 too. If the element carries the configured property
-(`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`),
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`),
 its value is copied to the component as `gtin`. This is the use case of the
 2023 research report: an inspection (BCF topic) pointing at building products
 identified by GTIN.
@@ -328,7 +332,7 @@ in [acceptance.md](acceptance.md). A production server does not publish Bolt;
 the administration API's graph query (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) gives administrators read-only Cypher
 without the port. The app also draws the graph, in
-its card IFC graph, through that query or over Bolt.
+its card IFC-LPG, through that query or over Bolt.
 
 ## Limits and status
 

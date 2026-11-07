@@ -61,7 +61,7 @@ Ett projekt som användaren inte är medlem i finns inte för hen (404).
 
 ## Från en viewpoint till modellen
 
-När [IFC-grafen](../ifcgraph.md) är på får varje komponent som nämner ett `GlobalId`
+När [IFC-LPG](../ifc-lpg.md) är på får varje komponent som nämner ett `GlobalId`
 en `SAME_AS`-relation till det elementet i projektets färdiga modeller, också när
 modellen laddas upp efteråt.
 
