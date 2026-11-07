@@ -39,34 +39,46 @@ class CurrentUser(BaseModel):
 
 
 def versions_payload(settings: Settings) -> dict[str, Any]:
-    return {
-        "versions": [
+    """Every API the server offers (``OPENCDE_APIS``), and no other."""
+    every = [
+        (
+            "foundation",
             {
                 "api_id": "foundation",
                 "version_id": FOUNDATION_VERSION,
                 "detailed_version": "https://github.com/buildingSMART/foundation-API/tree/v1.0",
                 "api_base_url": settings.url(f"/foundation/{FOUNDATION_VERSION}"),
             },
+        ),
+        (
+            "bcf-3.0",
             {
                 "api_id": "bcf",
                 "version_id": BCF_VERSION,
                 "detailed_version": "https://github.com/buildingSMART/BCF-API/tree/release_3_0",
                 "api_base_url": settings.url(f"/bcf/{BCF_VERSION}"),
             },
+        ),
+        (
+            "bcf-2.1",
             {
                 "api_id": "bcf",
                 "version_id": BCF_OLDER_VERSION,
                 "detailed_version": "https://github.com/buildingSMART/BCF-API/tree/release_2_1",
                 "api_base_url": settings.url(f"/bcf/{BCF_OLDER_VERSION}"),
             },
+        ),
+        (
+            "documents",
             {
                 "api_id": "documents",
                 "version_id": DOCUMENTS_VERSION,
                 "detailed_version": "https://github.com/buildingSMART/documents-API/tree/release_1_0",
                 "api_base_url": settings.url(f"/documents/{DOCUMENTS_VERSION}"),
             },
-        ]
-    }
+        ),
+    ]
+    return {"versions": [entry for api, entry in every if settings.offers(api)]}
 
 
 def auth_payload(settings: Settings) -> dict[str, Any]:

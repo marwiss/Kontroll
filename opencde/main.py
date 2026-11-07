@@ -190,13 +190,22 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.add_middleware(RequestIDMiddleware)
 
     app.include_router(health.router)
-    app.include_router(foundation_routes.router)
-    app.include_router(foundation_routes.alias_router)
+    # Only the APIs the server offers are mounted (OPENCDE_APIS); sign-in under /foundation/oauth2 serves them all.
+    if settings.offers("foundation"):
+        app.include_router(foundation_routes.router)
+    if settings.offers("bcf-3.0"):
+        app.include_router(foundation_routes.alias_router)
     app.include_router(oauth2_routes.router)
-    app.include_router(bcf_router.router)
-    app.include_router(documents_api.router)
-    app.include_router(documents_validation.router)
-    app.include_router(documents_ui.router)
+    if settings.offers("bcf-3.0"):
+        app.include_router(bcf_router.v30)
+    if settings.offers("bcf-2.1"):
+        app.include_router(bcf_router.v21)
+    if settings.offers("bcf-3.0") or settings.offers("bcf-2.1"):
+        app.include_router(bcf_router.versions)
+    if settings.offers("documents"):
+        app.include_router(documents_api.router)
+        app.include_router(documents_validation.router)
+        app.include_router(documents_ui.router)
     app.include_router(web_routes.router)
     app.include_router(account_routes.router)
     if settings.admin_ui_enabled:
@@ -211,7 +220,15 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
 
     @app.get("/", include_in_schema=False, response_class=HTMLResponse)
     async def index(request: Request) -> HTMLResponse:
-        return render(request, "index.html", {"version": __version__, "admin_enabled": settings.admin_ui_enabled})
+        return render(
+            request,
+            "index.html",
+            {
+                "version": __version__,
+                "admin_enabled": settings.admin_ui_enabled,
+                "foundation": settings.offers("foundation"),
+            },
+        )
 
     @app.get("/favicon.ico", include_in_schema=False)
     async def favicon() -> FileResponse:

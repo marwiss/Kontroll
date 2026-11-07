@@ -356,6 +356,7 @@
   "admin.settings.check": "Kontroll",
   "check.version": "Version",
   "check.environment": "Miljö",
+  "check.apis": "API:er som erbjuds",
   "check.public_url": "Publik adress",
   "check.graph": "Grafdatabas",
   "check.schema": "Schema",
