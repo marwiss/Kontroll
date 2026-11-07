@@ -148,13 +148,15 @@ erDiagram
 erDiagram
     Project ||--o{ IfcModel : HAS_MODEL
     IfcModel ||--o| IfcEntity : HAS_PROJECT
+    IfcModel ||--o{ StepBlock : HAS_STEP_BLOCK
     IfcEntity }o--o{ IfcEntity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
     Component }o--o| IfcEntity : SAME_AS
 ```
 
 | Label | Key | Properties | Notes |
 |---|---|---|---|
-| `IfcModel` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
+| `IfcModel` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `ifc_header`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
 | `IfcEntity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse), written like every relationship type in upper case with underscores: `IsDefinedBy` becomes `IS_DEFINED_BY` |
+| `StepBlock` | `id` (`<model id>:<first step id>`) | `first_step`, `instances`, `text` | Instances of a model converted with `OPENCDE_IFCGRAPH_LOSSLESS` that are no nodes: written out as STEP in order of id and compressed. Do not return this node whole in a query, for the sake of `text` |
 
 See [ifcgraph.md](ifcgraph.md) for the conversion rules and example queries.

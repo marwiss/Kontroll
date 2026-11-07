@@ -7,6 +7,20 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## Unreleased
+
+Toward 3.0.0, with Dataspatium.
+
+- An IFC model can be written back from the graph as a file that holds the same model, on Neo4j and on Memgraph.
+  Turn it on with `OPENCDE_IFCGRAPH_LOSSLESS=true`; `opencde ifcgraph export <model id> model.ifc --verify` writes the
+  file and compares it with the upload. A model converted this way has the nodes of the ordinary form, with its geometry
+  as compressed text in `StepBlock` nodes, and `position` on the relationships of forward attributes. The ordinary
+  form does not change, and stays the default. See [docs/ifcgraph.md](docs/ifcgraph.md).
+- `python -m opencde.ifcgraph.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
+- `GET /admin/api/settings` has `ifcgraph.lossless`.
+- Deleting a project now deletes all the entities of its IFC models. Those more than a few steps from the project stayed
+  behind before, though the documentation said otherwise.
+
 ## 2.0.0 — 2026-11-07
 
 The single release of the 2 series: everything in it, up to and including 2.7.0, in one

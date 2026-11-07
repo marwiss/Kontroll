@@ -88,7 +88,56 @@ Den skiljer sig från artikeln på dessa punkter:
   tillägg här.
 
 Ordningen i listor går förlorad även här, vilket artikeln påpekar om sin egen
-graf: en relation säger inte var i en lista dess mål stod.
+graf: en relation säger inte var i en lista dess mål stod. Formen under Skriva
+tillbaka en modell behåller den.
+
+## Skriva tillbaka en modell
+
+Med `OPENCDE_IFCGRAPH_LOSSLESS=true` konverteras en modell så att grafen
+rymmer hela den, och filen kan skrivas tillbaka från grafen: samma instanser
+med samma id, och samma värden i samma ordning, alltså också samma geografiska
+information. Det är avstängt som standard. En modell som konverterats utan det
+behåller sin form och kan inte skrivas tillbaka.
+
+```sh
+uv run opencde ifcgraph export <modell-id> model.ifc            # skriv filen
+uv run opencde ifcgraph export <modell-id> model.ifc --verify   # och jämför den med den uppladdade
+```
+
+Noderna förblir den vanliga formens, med samma egenskaper och relationer, så
+frågorna på den här sidan fungerar på båda. Det den formen utelämnar skrivs ut
+som STEP och komprimeras till text på `StepBlock`-noder som hänger på `IfcModel`:
+det finns i grafen men utom räckhåll för Cypher. Det kan inte vara egenskaper på
+produkterna, eftersom mycket av det delas mellan dem. Med
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` blir varje instans en nod i stället, till
+flera gånger storleken och importtiden; frågor tog ungefär lika lång tid i
+[mätningarna](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+
+Filen skrivs från det grafen rymmer och kopieras inte, så en egenskap eller en
+relation som ändras i grafen syns i den; det som ligger i ett block kan inte
+ändras så. Inget kontrollerar att en ändrad modell fortfarande är giltig. En
+export avbryts om ett block saknas. Detta tillkommer till det den vanliga formen har:
+
+| I filen | I grafen |
+|---|---|
+| En referens | En relation med `position`, `[rad, kolumn]` i en lista av listor; inversa relationer har ingen |
+| Ett typat värde, `IFCLABEL('3')` | `NominalValue: "3"`, och `NominalValue__type: "IFCLABEL"` bredvid |
+| En lista av listor av tal | JSON-text |
+| Det som saknar enkel form, som en lista av typade värden | Märkt JSON, med `$json` som typ |
+| Headern | `ifc_header` på `IfcModel` |
+| En instans i ett block | Text i ett `StepBlock`; det som refererar till den har dess id i märkt JSON |
+
+Den här formen läses inte med IfcOpenShell, som här bara står för schemat. Det
+ändrar vissa värden vid läsning (`.NULLENUM.` blir `$`, och `($,$)` blir `()`),
+och filer från Tekla och Archicad har sådana. Därför läser arbetsprocessen filen
+själv och refuserar det den inte kan läsa.
+[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) säger varför.
+
+`--verify` frågar om de två filerna rymmer samma modell, enligt definitionen i
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ett till ett,
+värde för värde och utan tolerans, med georeferensen namngiven i rapporten. Med
+`--geometry` byggs också varje produkts mesh, och de jämförs bit för bit. Två valfria filer kan jämföras med
+`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
 ## Underhåll
 
@@ -174,7 +223,9 @@ grafen, i sitt kort IFC-graf, genom den frågan eller över Bolt.
   entiteter) importeras på ungefär en sekund; en arkitektmodell på 200 MB tar
   minuter.
 - `IfcModel`-noden bär `state`, `entities`, `relationships`, `skipped`,
-  `schema`, `ifc_project_guid`, tidsstämplar och `error`. Administratörer kan
+  `lossless`, `schema`, `ifc_project_guid`, tidsstämplar och `error`. Administratörer kan
   granska den i Neo4j Browser eller Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - När ett projekt tas bort tas dess modellers entiteter bort med det.
+- En modell kommer tillbaka identisk från båda databaserna upp till 224 496 instanser och
+  19 MB, i varje form som mätts. Inget större har provats.

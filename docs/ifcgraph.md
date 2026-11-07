@@ -85,7 +85,55 @@ It differs from the article in these ways:
   the GTIN are added here.
 
 The order of lists is lost here too, as the article notes for its own graph: a
-relationship does not say where in a list its target stood.
+relationship does not say where in a list its target stood. The form under
+Writing a model back keeps it.
+
+## Writing a model back
+
+With `OPENCDE_IFCGRAPH_LOSSLESS=true` a model is converted so that the graph
+holds all of it, and the file can be written back from the graph: the same
+instances with the same ids, and the same values in the same order, so the same
+geographic information too. It is off by default. A model converted without it
+keeps its form and cannot be written back.
+
+```sh
+uv run opencde ifcgraph export <model id> model.ifc            # write the file
+uv run opencde ifcgraph export <model id> model.ifc --verify   # and compare it with the uploaded one
+```
+
+The nodes stay those of the ordinary form, with the same properties and
+relationships, so the queries on this page work on both. What that form leaves
+out is written out as STEP and compressed into text on `StepBlock` nodes that
+hang off the `IfcModel`: it is in the graph, but out of Cypher's reach. It cannot
+be properties of the products, since much of it is shared between them. With
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` every instance becomes a node instead,
+at several times the size and the import time; queries took about as long in
+[the measurements](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+
+The file is written from what the graph holds, not copied, so a property or a
+relationship changed in the graph shows up in it; what is in a block cannot be
+changed that way. Nothing checks that a changed model is still valid. An export
+stops if a block has gone missing. These are added to what the ordinary form has:
+
+| In the file | In the graph |
+|---|---|
+| A reference | A relationship with `position`, `[row, column]` in a list of lists; inverse relationships have none |
+| A typed value, `IFCLABEL('3')` | `NominalValue: "3"`, and `NominalValue__type: "IFCLABEL"` beside it |
+| A list of lists of numbers | JSON text |
+| What has no plain form, such as a list of typed values | Tagged JSON, with `$json` as its type |
+| The header | `ifc_header` on the `IfcModel` |
+| An instance in a block | Text in a `StepBlock`; what refers to it holds its id in tagged JSON |
+
+This form is not read with IfcOpenShell, which takes only the schema here.
+IfcOpenShell changes some values on reading (`.NULLENUM.` becomes `$`, and `($,$)` becomes
+`()`), and files from Tekla and Archicad have them. So the worker reads the file
+itself, and refuses what it cannot read. [ADR 0010](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md)
+says why.
+
+`--verify` asks whether the two files hold the same model, by the definition in
+[ADR 0009](adr/0009-what-makes-two-ifc-files-the-same-model.md): one to one, value by
+value and with no tolerance, georeference named in the report. With `--geometry`
+it also builds every product's mesh, and compares them bit for bit. Any two files can be compared with `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
 ## Housekeeping
 
@@ -169,7 +217,9 @@ its card IFC graph, through that query or over Bolt.
   entities) imports in about a second; a 200 MB architectural model takes
   minutes.
 - The `IfcModel` node carries `state`, `entities`, `relationships`, `skipped`,
-  `schema`, `ifc_project_guid`, timestamps and `error`. Administrators can
+  `lossless`, `schema`, `ifc_project_guid`, timestamps and `error`. Administrators can
   inspect it in Neo4j Browser or Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Deleting a project deletes its models' entities with it.
+- A model comes back identical from both databases at up to 224,496 instances and 19 MB, in
+  every form measured. Nothing larger has been tried.
