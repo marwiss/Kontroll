@@ -573,12 +573,18 @@ async def update_project(
 
 @router.delete("/projects/{project_id}", status_code=204, summary="Administration (extension): delete a project")
 async def delete_project(
-    request: Request, principal: FreshAdminPrincipal, project_id: IdPath, projects: ProjectsDep, graph: GraphDep
+    request: Request,
+    principal: FreshAdminPrincipal,
+    project_id: IdPath,
+    projects: ProjectsDep,
+    graph: GraphDep,
+    storage: StorageDep,
 ) -> Response:
+    """The project, what it owns and its stored files. Its members stay, and so do their other projects."""
     project = await projects.get(project_id)
     if project is None:
         raise HTTPException(404, "No such project")
-    await projects.delete(project.project_id)
+    await projects.delete_with_files(project.project_id, storage)
     await _record(request, graph, principal, "project.delete", project_id=project.project_id, name=project.name)
     return NO_CONTENT
 

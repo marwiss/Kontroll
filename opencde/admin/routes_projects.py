@@ -167,13 +167,7 @@ async def project_action(
         if action == "delete":
             if not await password_confirmed(users, admin, data.get("confirm_password")):
                 return redirect_with_notice(page, "wrong_password")
-            keys = await projects.storage_keys(project.project_id)
-            await projects.delete(project.project_id)
-            for key in keys:
-                try:
-                    storage.delete(key)
-                except ValueError:
-                    pass
+            await projects.delete_with_files(project.project_id, storage)
             await form.record(graph, "project.delete", project_id=project.project_id, name=project.name)
             return redirect_with_notice("/admin/projects", "deleted")
     except AccountError as exc:
