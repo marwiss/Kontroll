@@ -195,6 +195,12 @@ Asiakkaasi tarvitsee callback-URLin, johon selain pääsee
 (loopback-kuuntelija työpöytäsovelluksille). Palvelin ei koskaan kutsu tuota
 URLia itse.
 
+Kun IFC-graafimoduuli on käytössä, versiona lähetetty IFC-tiedosto tarkistetaan
+IFC-skeemaa vasten. Sen metatiedoissa on silloin `ifc_validation_status` ja
+tarkistuksen jälkeen muut `ifc_validation_*`-kohdat; `ifc_validation_report` on
+raportin osoite, laajennus, joka vastaa samalle tunnisteelle. Katso
+[ifcgraph.md](ifcgraph.md#lähetysten-tarkistus-ifc-skeemaa-vasten).
+
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 
 Lähetä `X-Request-ID`-otsake (1–128 merkkiä joukosta `A-Za-z0-9._-`)

@@ -49,8 +49,8 @@ image is built without it. It is pure Python and is called by nothing else. A te
 ## Consequences
 
 Validation adds time: 3 to 66 s for a file and its upload together on the samples, up to 224,496 instances and 19 MB. It
-reads with IfcOpenShell's parser, so it does not see what that parser drops without a word (ADR 0010). An upload is not
-validated when it comes in, only a file written from the graph.
+reads with IfcOpenShell's parser, so it does not see what that parser drops without a word (ADR 0010). Uploads are
+validated too since the amendment below.
 
 It does not check everything the standard asks. The implementer agreements in `ifc-gherkin-rules` and the geometry itself
 are outside it, so a wall can pass with a meaningless shape. Those can be added behind the same comparison with the upload
@@ -59,3 +59,29 @@ and export is where they are caught.
 
 Project members get files through the Documents API, and this adds no route. A written file that is to replace a model is
 uploaded as a new version of its document, and is then converted like any other.
+
+## Amendment: uploads are checked too (2026-11-07)
+
+The owner decided that every uploaded IFC file is checked as well, and the result shown, without stopping the upload.
+
+**The result is where clients already look.** The Documents API has one place for what is known of a version: its
+metadata, which any client can read. Five entries hold the status (`pending`, `passed`, `issues`, or `unknown` when the
+file could not be checked), the number of issues, when the file was checked, what with, and the address of the report.
+The log is for the operator, project members do not see it, and an issue may quote the file, which the log is not to
+carry. A BCF topic per issue would bury a project's topics, since 12 of the 26 samples have issues as uploaded and one
+has 5,711. Turning findings into topics is a person's choice, made in a client.
+
+**The report is an extension.** `GET …/versions/{index}/ifc-validation` answers every member of the project with the
+Documents API's bearer token. It lists up to 10,000 issues, each with its instance and, for a rooted entity, its
+GlobalId, so that a client can find the element in a model view. The version's page shows the first 100 and gives the
+whole report as a file.
+
+**The check runs where the conversion runs.** It runs in the background, before the conversion and one job at a time,
+in a worker process with the same limits, and starts over after a restart as a conversion does. It belongs to the
+IFC-graph module, which brings IfcOpenShell, and `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` turns it off. The result is
+an `IfcValidation` node below the version, with the issues as compressed JSON, and it goes when the project goes. Only
+the number of issues is logged.
+
+**What is left to others.** Whether to run buildingSMART's `ifc-gherkin-rules` as well is open: they come with a test
+runner and packages of their own. A check against an IDS, or for clashes, depends on what a person asks, and is done in
+a client such as Dataspatium, which sends its findings back as BCF topics.

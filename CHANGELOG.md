@@ -21,8 +21,14 @@ Toward 3.0.0, with Dataspatium.
   theirs, and cannot be written back until uploaded again.
 - A file written from the graph is validated against the IFC standard, and an issue the upload does not have ends the
   command with an error. The `ifcgraph` extra now includes pytest, which IfcOpenShell's validator needs at run time.
+- Every IFC file uploaded as a document version is checked against the IFC schema in the background, and the upload is
+  never held back by it. The version's metadata says how it went (`ifc_validation_status`, `ifc_validation_issues`,
+  `ifc_validation_checked_at`, `ifc_validation_ruleset`) and where the report is (`ifc_validation_report`). The report is
+  an extension, `GET /documents/1.0/documents/{id}/versions/{index}/ifc-validation`, with up to 10,000 issues and the
+  GlobalId of each element. The version's page shows the first 100. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` turns it
+  off.
 - `python -m opencde.ifcgraph.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
-- `GET /admin/api/settings` has `ifcgraph.lossless`.
+- `GET /admin/api/settings` has `ifcgraph.lossless` and `ifcgraph.validate_uploads`.
 - Deleting a project now deletes all the entities of its IFC models. Those more than a few steps from the project stayed
   behind before, though the documentation said otherwise.
 - Deleting a project deletes only what the project owns. It followed every relationship from the project, so it also

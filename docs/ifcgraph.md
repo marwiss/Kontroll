@@ -31,6 +31,66 @@ for a slimmer image without IfcOpenShell when the module stays off.
 
 `opencde seed` converts the sample model the same way when the module is on.
 
+## Checking uploads against the IFC schema
+
+Every `.ifc` or `.ifczip` file uploaded as a document version is also checked
+against the IFC schema, with the validator that checks a written file
+([Writing a model back](#writing-a-model-back)): the type and number of
+attributes, enumerations, inverse attributes, GlobalIds, and the rules of the
+EXPRESS schema. The check runs in the background before the conversion, in a
+worker process with the same limits. It never stops an upload: the file is
+stored as it came, whatever the check finds. A BCF project document is not
+checked, since it has no metadata. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false`
+turns the check off.
+
+The result is in the version's metadata, which any Documents API client can read:
+
+| Entry | Type | Value |
+|---|---|---|
+| `ifc_validation_status` | `string` | `pending` until the file is checked, then `passed`, `issues`, or `unknown` when it could not be checked |
+| `ifc_validation_issues` | `integer32` | How many issues the file has |
+| `ifc_validation_checked_at` | `date-time` | When it was checked |
+| `ifc_validation_ruleset` | `string` | What it was checked with |
+| `ifc_validation_report` | `url` | Where the report is |
+
+The report is an extension of the Documents API. Every member of the project
+gets it with the same Bearer token:
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation
+```
+
+```json
+{
+  "status": "issues",
+  "checked_at": "2026-11-07T10:05:25.123Z",
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
+  "issue_count": 1,
+  "truncated": false,
+  "issues": [
+    {
+      "kind": "schema",
+      "severity": "error",
+      "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
+      "step_id": 373,
+      "global_id": "1Xezbq735AdBO_4DerG66G"
+    }
+  ]
+}
+```
+
+It lists up to 10,000 issues, each with its instance and, for a rooted entity,
+its GlobalId, so that a model view can find the element. `kind` says what found
+the issue: `schema`, `entity_rule`, `simpletype_rule` or `global_rule`. A
+message may quote a line of the file and is cut at 1,000 characters. The
+version's page in the browser shows the first 100 issues and offers the whole
+report as a file.
+
+Many files break a rule already as they come from their program: 12 of 26
+samples do, one from Tekla with 5,711 issues. Checking a sample and its written
+copy took 3 to 66 seconds together. The implementer agreements of
+buildingSMART's `ifc-gherkin-rules` are not checked ([ADR 0011](adr/0011-a-file-written-from-the-graph-is-validated.md)).
+
 ## The graph
 
 Every entity becomes an `IfcEntity` node carrying its class and all its

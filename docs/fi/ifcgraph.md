@@ -34,6 +34,67 @@ IfcOpenShelliä, kun moduuli pysyy pois päältä.
 
 `opencde seed` muuntaa esimerkkimallin samalla tavalla, kun moduuli on käytössä.
 
+## Lähetysten tarkistus IFC-skeemaa vasten
+
+Jokainen dokumenttiversiona lähetetty `.ifc`- tai `.ifczip`-tiedosto tarkistetaan
+myös IFC-skeemaa vasten samalla validaattorilla, joka tarkistaa kirjoitetun
+tiedoston ([Mallin kirjoittaminen takaisin](#mallin-kirjoittaminen-takaisin)):
+attribuuttien tyyppi ja määrä, luetellut arvot, käänteiset attribuutit, GlobalId
+ja EXPRESS-skeeman säännöt. Tarkistus ajetaan taustalla ennen muunnosta
+erillisessä työprosessissa samoin rajoin. Se ei koskaan estä lähetystä: tiedosto
+tallennetaan sellaisenaan, löysi tarkistus mitä tahansa. BCF-projektidokumenttia
+ei tarkisteta, koska sillä ei ole metatietoja.
+`OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` poistaa tarkistuksen käytöstä.
+
+Tulos on version metatiedoissa, joita mikä tahansa Documents API -asiakas voi lukea:
+
+| Kohta | Tyyppi | Arvo |
+|---|---|---|
+| `ifc_validation_status` | `string` | `pending`, kunnes tiedosto on tarkistettu, sitten `passed`, `issues` tai `unknown`, kun sitä ei voitu tarkistaa |
+| `ifc_validation_issues` | `integer32` | Kuinka monta huomautusta tiedostossa on |
+| `ifc_validation_checked_at` | `date-time` | Milloin se tarkistettiin |
+| `ifc_validation_ruleset` | `string` | Millä se tarkistettiin |
+| `ifc_validation_report` | `url` | Missä raportti on |
+
+Raportti on Documents API:n laajennus. Jokainen projektin jäsen saa sen samalla
+Bearer-tunnisteella:
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation
+```
+
+```json
+{
+  "status": "issues",
+  "checked_at": "2026-11-07T10:05:25.123Z",
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
+  "issue_count": 1,
+  "truncated": false,
+  "issues": [
+    {
+      "kind": "schema",
+      "severity": "error",
+      "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
+      "step_id": 373,
+      "global_id": "1Xezbq735AdBO_4DerG66G"
+    }
+  ]
+}
+```
+
+Siinä luetellaan enintään 10 000 huomautusta, kukin instansseineen ja
+juurioliolle myös GlobalId-tunnisteineen, jotta mallinäkymä löytää elementin.
+`kind` kertoo, mikä huomautuksen löysi: `schema`, `entity_rule`,
+`simpletype_rule` tai `global_rule`. Viesti voi lainata tiedoston riviä, ja se
+katkaistaan 1 000 merkin kohdalta. Version sivu selaimessa näyttää ensimmäiset 100
+huomautusta ja tarjoaa koko raportin tiedostona.
+
+Monet tiedostot rikkovat jo jotakin sääntöä tullessaan ohjelmastaan: 12
+esimerkkitiedostoa 26:sta tekee niin, yksi Teklasta 5 711 huomautuksella.
+Esimerkkitiedoston ja sen kirjoitetun kopion tarkistus kesti yhteensä 3–66
+sekuntia. buildingSMARTin `ifc-gherkin-rules`-sääntöjen toteuttajasopimuksia ei
+tarkisteta ([ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md)).
+
 ## Graafi
 
 Jokaisesta entiteetistä tulee `IfcEntity`-solmu, joka kantaa luokkaansa ja

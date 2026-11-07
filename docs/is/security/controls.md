@@ -96,6 +96,7 @@ prófunareininguna.
 | `.ifczip` er aðeins pakkað upp þegar hún geymir nákvæmlega eina `.ifc`, með stærðarþaki upphalsins á útpökkuðu bætin | Zip-sprengja | `service._prepare_input` |
 | Samanburðurinn og taplausa umbreytingin lesa skrár með eigin lesara: hann hafnar því sem hann getur ekki lesið, mynstur hans geta ekki bakkað, og hreiðrun er takmörkuð | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Merkimiðar og venslagerðir úr umbreytinum eru sannreynd sem auðkenni áður en þau ná Cypher; allt annað er stiki | OWASP API8 | `importer._safe`, `test_ifcgraph` |
+| Upphlaðin IFC-skrá er prófuð gagnvart IFC-skemanu í sams konar vinnsluferli, með sömu mörkum, og prófunin heldur henni aldrei aftur; skýrslan er aðeins lesin í gegnum aðild að verkefninu, og atvikaskráin fær fjölda athugasemda, aldrei skilaboð þeirra | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
 | Umbreytingarbilanir skráðar á `IfcModel`-hnútinn og í atvikaskrá án innihalds skrárinnar | OWASP ASVS 7.1 | `test_ifcgraph` |
 
 ## Uppsetning og öryggisafrit (áfangi 8)

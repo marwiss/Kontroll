@@ -187,6 +187,12 @@ Ferlin snerta vafra notandans; sjá [flows/documents.md](flows/documents.md).
 Biðlarinn þinn þarf callback-URL sem vafrinn nær í (loopback-hlustara fyrir
 skjáborðsforrit). Þjónninn kallar aldrei sjálfur á þá URL.
 
+Þegar IFC-grafeiningin er virk er IFC-skrá sem hlaðið er upp sem útgáfu prófuð
+gagnvart IFC-skemanu. Lýsigögn hennar hafa þá `ifc_validation_status` og, þegar
+hún hefur verið prófuð, hinar `ifc_validation_*`-færslurnar;
+`ifc_validation_report` er slóð skýrslunnar, viðbót sem svarar sama tóka. Sjá
+[ifcgraph.md](ifcgraph.md#prófun-upphalaðra-skráa-gagnvart-ifc-skemanu).
+
 ## 5. Að tengja atvikaskrá þína við þjónsins
 
 Sendu `X-Request-ID`-haus (1–128 tákn úr `A-Za-z0-9._-`) með hverri beiðni

@@ -95,6 +95,7 @@ Varje kontroll har minst ett automatiskt test. "Svit" namnger testmodulen.
 | `.ifczip` packas upp bara när den innehåller exakt en `.ifc`, med uppladdningens storlekstak på de uppackade bytena | Zip-bomb | `service._prepare_input` |
 | Jämförelsen och den förlustfria konverteringen läser filer med en egen läsare: det den inte kan läsa refuserar den, dess mönster kan inte backa, och nästlingen är begränsad | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Etiketter och relationstyper från konverteraren valideras som identifierare innan de når Cypher; allt annat är en parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
+| En uppladdad IFC-fil kontrolleras mot IFC-schemat i samma slags arbetsprocess, med samma gränser, och hålls aldrig tillbaka av det; rapporten läses bara genom medlemskap i projektet, och loggen får antalet anmärkningar, aldrig deras meddelanden | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
 | Konverteringsfel registreras på `IfcModel`-noden och loggas utan filens innehåll | OWASP ASVS 7.1 | `test_ifcgraph` |
 
 ## Driftsättning och säkerhetskopior (etapp 8)

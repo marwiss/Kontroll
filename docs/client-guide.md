@@ -182,6 +182,12 @@ The flows involve the user's browser; see [flows/documents.md](flows/documents.m
 Your client needs a callback URL the browser can reach (a loopback listener
 for desktop apps). The server never calls that URL itself.
 
+With the IFC-graph module on, an IFC file uploaded as a version is checked
+against the IFC schema. Its metadata then carries `ifc_validation_status` and,
+once checked, the other `ifc_validation_*` entries; `ifc_validation_report` is
+the address of the report, an extension that answers to the same token. See
+[ifcgraph.md](ifcgraph.md#checking-uploads-against-the-ifc-schema).
+
 ## 5. Correlating your log with the server's
 
 Send an `X-Request-ID` header (1–128 characters of `A-Za-z0-9._-`) with every
