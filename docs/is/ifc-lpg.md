@@ -149,6 +149,28 @@ Reglurnar taka lengri tíma en skemaprófunin: á átta sýnilíkönum frá 5 se
 fyrir það minnsta til um 5 mínútna fyrir það stærsta, og frá hálfri mínútu upp í
 tvær fyrir flest.
 
+### Information Delivery Specifications (IDS)
+
+Upphal er líka prófað gegn hverju IDS-skjali verkefnisins: skjali þar sem
+nýjasta útgáfan ber nafn sem endar á `.ids`, mest 50
+([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+Prófun IFC-LPG les hvert IDS á öruggan hátt og afhendir það IfcTester frá
+IfcOpenShell, sama prófara og Dataspatium keyrir í vafranum, svo að hvort
+tveggja gefi sömu niðurstöðu. Hún keyrir á eftir hinum prófununum, í sams konar
+vinnsluferli með sömu mörkum. IDS sem er hlaðið upp síðar gildir um þær
+IFC-útgáfur sem er hlaðið upp á eftir því.
+
+Hver krafa sem eining uppfyllir ekki verður athugasemd af gerðinni `ids`, með
+alvarleikann `error`, auðkenni eða heiti forskriftarinnar í `rule` og
+IDS-skjalið í `document_id`. Það sama á við um áskilda forskrift sem á ekki við
+neitt í skránni og einingu sem bönnuð forskrift á við. Prófunin `ids` í
+skýrslunni telur upp skjölin sem hún notaði, með útgáfu, og hverja forskrift
+með notkun hennar, stöðu (`passed`, `failed` eða `not applicable`), hve mörgum
+einingum hún á við og hve margar athugasemdir hún gaf. IDS-skjal sem ekki er
+hægt að lesa, til dæmis með DTD, er talið upp undir `rules_not_run` ásamt
+ástæðunni, og hin eru samt prófuð. Síða útgáfunnar sýnir forskriftirnar í
+sérstakri töflu.
+
 ## Grafið
 
 Hver eining verður `IfcEntity`-hnútur sem ber flokk sinn og allar yfirgerðir

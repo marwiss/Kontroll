@@ -44,6 +44,11 @@ Toward 3.0.0, with Dataspatium.
   `rule`. `ifc_validation_status` gains `warnings`, for a file whose issues are all warnings, and `issues` now means at
   least one error. `ifc_validation_ruleset` has one value per check. The report gains `error_count` and `checks`, which
   lists each check with the rules that could not run. See [ADR 0012](docs/adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md).
+- Uploads are also checked against the IDS documents of their project, the latest version of every document whose name
+  ends in `.ids`, with IfcOpenShell's IfcTester as Dataspatium runs it. A finding is an issue of the kind `ids`, an
+  error, with its document in `document_id`. The check `ids` lists the documents used and every specification with
+  its verdict, and the version's page shows them in a table. An IDS that cannot be read, such as one with a DTD, is
+  listed under `rules_not_run`. See [ADR 0015](docs/adr/0015-uploads-are-checked-against-the-projects-ids-documents.md).
 - `python -m ifc_lpg.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
 - `GET /admin/api/settings` has `ifcgraph.lossless` and `ifcgraph.validate_uploads`.
 - The round trip and the checks of the IFC-LPG module are the library [IFC-LPG](https://github.com/marwiss/IFC-LPG),
