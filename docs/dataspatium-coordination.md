@@ -96,6 +96,19 @@ the earlier form are all there, so queries written for it keep working. Added to
 
 Anything that lists a node's properties sees these. `OPENCDE_IFCGRAPH_LOSSLESS=false` gives the earlier form.
 
+### Checks of a model
+
+The owner divided the checks on 2026-11-07. Kontroll checks every uploaded IFC file against the IFC schema, since the
+answer belongs to the file and is the same for everyone. Dataspatium runs the checks a person chooses: IDS with
+ifctester, and clash detection. Findings that are to be followed up go to the server as BCF topics.
+
+From 3.0.0 the version's metadata carries `ifc_validation_status` (`pending`, `passed`, `issues`, `unknown`), and once
+the file is checked `ifc_validation_issues`, `ifc_validation_checked_at`, `ifc_validation_ruleset` and
+`ifc_validation_report`. The report is `GET /documents/1.0/documents/{id}/versions/{index}/ifc-validation`, with the same
+bearer token as the Documents API, on the API's own origin. Its shape is stable: `status`, `checked_at`, `ruleset`,
+`issue_count`, `truncated`, and `issues`, each with `kind`, `severity`, `message`, and where known `step_id`, `global_id`
+and `attribute`. [ifcgraph.md](ifcgraph.md) has an example, and ADR 0011 the reasons.
+
 ## Languages and glossary
 
 Both projects exist in seven languages, with Norwegian in both Bokmål and

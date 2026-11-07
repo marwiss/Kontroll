@@ -125,6 +125,7 @@ erDiagram
     Project ||--o{ Document : HAS_DOCUMENT
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
+    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -139,6 +140,7 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` nummererer versionerne |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON) | Bytes under `documents/<id>`; API-kroppen viser kun specifikationens felter |
+| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen af en uploadet IFC-fil mod IFC-skemaet (ADR 0011); `report` er op til 10.000 anmærkninger som komprimeret JSON. Slettes med versionens projekt |
 | `UploadSession` | `id`, indekseret `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` optræder i API-URL'er (bearer kræves); UI-URL'en bærer den token, hvis hash gemmes |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>`, indtil filen samles; oprydningsjobbet sletter udløbne dele og deres filer |
 | `SelectionSession` | `id`, indekseret `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` holder `document_id:version_index`-par valgt i browseren |

@@ -95,6 +95,7 @@ Every control has at least one automated test. "Suite" names the test module.
 | `.ifczip` is unpacked only when it holds exactly one `.ifc`, with the upload size cap on the unpacked bytes | Zip bomb | `service._prepare_input` |
 | The comparison and the lossless conversion read files with a reader of their own: what it cannot read it refuses, its patterns cannot backtrack, and nesting is limited | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Labels and relationship types from the converter are validated as identifiers before they reach Cypher; everything else is a parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
+| An uploaded IFC file is checked against the IFC schema in the same kind of worker process, with the same limits, and is never held back by it; the report is read only through membership of the project, and the log gets the number of issues, never their messages | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
 | Conversion failures are recorded on the `IfcModel` node and logged without the file's content | OWASP ASVS 7.1 | `test_ifcgraph` |
 
 ## Deployment and backups (stage 8)

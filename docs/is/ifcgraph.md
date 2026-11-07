@@ -29,6 +29,65 @@ fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
 
 `opencde seed` umbreytir sýnilíkaninu á sama hátt þegar einingin er virk.
 
+## Prófun upphalaðra skráa gagnvart IFC-skemanu
+
+Sérhver `.ifc`- eða `.ifczip`-skrá sem hlaðið er upp sem útgáfu skjals er einnig
+prófuð gagnvart IFC-skemanu, með sama sannprófara og prófar skrifaða skrá
+([Að skrifa líkan til baka](#að-skrifa-líkan-til-baka)): tag og fjöldi eiginda,
+upptalningar, andhverf eigindi, GlobalId og reglur EXPRESS-skemans. Prófunin
+keyrir í bakgrunni á undan umbreytingunni, í vinnsluferli með sömu mörkum. Hún
+stöðvar aldrei upphal: skráin er vistuð eins og hún kom, hvað sem prófunin finnur.
+Verkefnisskjal BCF er ekki prófað, þar sem það hefur engin lýsigögn.
+`OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` slekkur á prófuninni.
+
+Niðurstaðan er í lýsigögnum útgáfunnar, sem sérhver biðlari Documents API getur lesið:
+
+| Færsla | Tegund | Gildi |
+|---|---|---|
+| `ifc_validation_status` | `string` | `pending` þar til skráin hefur verið prófuð, síðan `passed`, `issues`, eða `unknown` þegar ekki tókst að prófa hana |
+| `ifc_validation_issues` | `integer32` | Hve margar athugasemdir skráin hefur |
+| `ifc_validation_checked_at` | `date-time` | Hvenær hún var prófuð |
+| `ifc_validation_ruleset` | `string` | Með hverju hún var prófuð |
+| `ifc_validation_report` | `url` | Hvar skýrslan er |
+
+Skýrslan er viðbót við Documents API. Sérhver meðlimur verkefnisins fær hana með
+sama Bearer-tóka:
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation
+```
+
+```json
+{
+  "status": "issues",
+  "checked_at": "2026-11-07T10:05:25.123Z",
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
+  "issue_count": 1,
+  "truncated": false,
+  "issues": [
+    {
+      "kind": "schema",
+      "severity": "error",
+      "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
+      "step_id": 373,
+      "global_id": "1Xezbq735AdBO_4DerG66G"
+    }
+  ]
+}
+```
+
+Hún telur upp allt að 10.000 athugasemdir, hverja með tilviki sínu og, fyrir eind
+með rót, GlobalId hennar, svo að líkansýn geti fundið hlutinn. `kind` segir hvað
+fann athugasemdina: `schema`, `entity_rule`, `simpletype_rule` eða `global_rule`.
+Skilaboð geta vitnað í línu úr skránni og eru stytt við 1.000 stafi. Síða
+útgáfunnar í vafranum sýnir fyrstu 100 athugasemdirnar og býður alla skýrsluna sem
+skrá.
+
+Margar skrár brjóta þegar einhverja reglu þegar þær koma úr forriti sínu: 12 af 26
+sýnidæmum gera það, eitt frá Tekla með 5.711 athugasemdir. Að prófa sýnidæmi og
+skrifað afrit þess tók 3 til 66 sekúndur samanlagt. Samkomulag innleiðenda í
+`ifc-gherkin-rules` frá buildingSMART er ekki prófað ([ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md)).
+
 ## Grafið
 
 Hver eining verður `IfcEntity`-hnútur sem ber flokk sinn og allar yfirgerðir

@@ -34,6 +34,66 @@ när modulen förblir avstängd.
 
 `opencde seed` konverterar exempelmodellen på samma sätt när modulen är på.
 
+## Kontroll av uppladdningar mot IFC-schemat
+
+Varje `.ifc`- eller `.ifczip`-fil som laddas upp som dokumentversion kontrolleras
+också mot IFC-schemat, med samma validerare som kontrollerar en skriven fil
+([Skriva tillbaka en modell](#skriva-tillbaka-en-modell)): attributens typ och
+antal, uppräkningar, inversa attribut, GlobalId och reglerna i EXPRESS-schemat.
+Kontrollen körs i bakgrunden före konverteringen, i en arbetsprocess med samma
+gränser. Den stoppar aldrig en uppladdning: filen sparas som den kom, vad
+kontrollen än hittar. Ett BCF-projektdokument kontrolleras inte, eftersom det
+saknar metadata. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` stänger av kontrollen.
+
+Resultatet finns i versionens metadata, som varje klient för Documents API kan läsa:
+
+| Post | Typ | Värde |
+|---|---|---|
+| `ifc_validation_status` | `string` | `pending` tills filen är kontrollerad, sedan `passed`, `issues`, eller `unknown` när den inte gick att kontrollera |
+| `ifc_validation_issues` | `integer32` | Hur många anmärkningar filen har |
+| `ifc_validation_checked_at` | `date-time` | När den kontrollerades |
+| `ifc_validation_ruleset` | `string` | Vad den kontrollerades med |
+| `ifc_validation_report` | `url` | Var rapporten finns |
+
+Rapporten är ett tillägg till Documents API. Varje medlem i projektet får den med
+samma Bearer-token:
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation
+```
+
+```json
+{
+  "status": "issues",
+  "checked_at": "2026-11-07T10:05:25.123Z",
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
+  "issue_count": 1,
+  "truncated": false,
+  "issues": [
+    {
+      "kind": "schema",
+      "severity": "error",
+      "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
+      "step_id": 373,
+      "global_id": "1Xezbq735AdBO_4DerG66G"
+    }
+  ]
+}
+```
+
+Den listar upp till 10 000 anmärkningar, var och en med sin instans och, för en
+rotad entitet, dess GlobalId, så att en modellvy kan hitta elementet. `kind` säger
+vad som hittade anmärkningen: `schema`, `entity_rule`, `simpletype_rule` eller
+`global_rule`. Ett meddelande kan citera en rad ur filen och kortas vid 1 000
+tecken. Versionens sida i webbläsaren visar de första 100 anmärkningarna och
+erbjuder hela rapporten som fil.
+
+Många filer bryter redan mot någon regel när de kommer från sitt program: 12 av
+26 exempelfiler gör det, en från Tekla med 5 711 anmärkningar. Att kontrollera en
+exempelfil och dess skrivna kopia tog 3 till 66 sekunder tillsammans.
+Implementeringsöverenskommelserna i buildingSMARTs `ifc-gherkin-rules`
+kontrolleras inte ([ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md)).
+
 ## Grafen
 
 Varje entitet blir en `IfcEntity`-nod som bär sin klass och alla sina

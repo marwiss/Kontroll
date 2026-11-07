@@ -125,6 +125,7 @@ erDiagram
     Project ||--o{ Document : HAS_DOCUMENT
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
+    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -139,6 +140,7 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` númerar útgáfurnar |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON) | Bæti undir `documents/<id>`; meginmál forritaskilanna sýnir aðeins svið forskriftarinnar |
+| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Prófun upphalaðrar IFC-skrár gagnvart IFC-skemanu (ADR 0011); `report` er allt að 10.000 athugasemdir sem þjappað JSON. Eytt með verkefni útgáfunnar |
 | `UploadSession` | `id`, atriðaskráð `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` kemur fyrir í URL forritaskilanna (bearer krafist); UI-URL ber tókann sem tætigildið er geymt fyrir |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bæti undir `parts/<id>` þar til skráin er sett saman; hreinsunarverkið eyðir útrunnum hlutum og skrám þeirra |
 | `SelectionSession` | `id`, atriðaskráð `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` geymir `document_id:version_index`-pör valin í vafranum |
