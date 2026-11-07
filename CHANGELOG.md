@@ -11,7 +11,7 @@ the commit history.
 
 Toward 3.0.0, with Dataspatium.
 
-- The IFC-graph module is now IFC-LPG, as it will be in 2.0.2: its settings are `OPENCDE_IFC_LPG_*`, its command
+- The IFC-graph module is now IFC-LPG, as in 2.0.0: its settings are `OPENCDE_IFC_LPG_*`, its command
   `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
   `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, and the log and `opencde doctor` name the old
   settings a server is given. The administration API and the capabilities document keep their keys, except that

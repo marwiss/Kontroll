@@ -394,7 +394,7 @@ def test_the_command_line_writes_a_model_back_and_says_how_it_went(
     assert done.exit_code == 1
     assert "OPENCDE_IFC_LPG_LOSSLESS" in done.output
     assert not other.exists()
-    done = runner.invoke(app, ["ifcgraph", "export", "missing", str(other)])  # the name before 2.0.2 still works
+    done = runner.invoke(app, ["ifcgraph", "export", "missing", str(other)])  # the old name still works
     assert done.exit_code == 1
     assert "no such model" in done.output
 
