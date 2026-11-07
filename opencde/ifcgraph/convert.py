@@ -1,6 +1,10 @@
 # This file was generated with the assistance of an AI coding tool.
 """Convert an IFC file into node and edge records (runs inside the worker process).
 
+Two forms come out of here. :func:`convert_lossless` is the default, and a file can be written back from what it gives.
+:func:`convert` is the ordinary form, ``OPENCDE_IFCGRAPH_LOSSLESS=false``, which the rest of this text is about, and whose
+nodes, relationships and values are all in the other one too.
+
 Every entity becomes a node labelled with its class and all its supertypes
 (``IfcWallStandardCase``, ``IfcWall``, ``IfcBuildingElement``, …, ``IfcRoot``)
 plus ``IfcEntity``. Literal attributes become properties; attributes that point

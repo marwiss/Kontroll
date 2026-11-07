@@ -16,6 +16,7 @@ import json
 import sys
 import tempfile
 import zipfile
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -277,6 +278,23 @@ class IfcGraphService:
 
     async def compare_with_upload(self, model_id: str, written: Path, *, geometry: bool = False) -> dict[str, Any]:
         """Whether a file holds the same model as the one the model was converted from (``equivalence.py``)."""
+        extra = ["--geometry"] if geometry else []
+        return await self._with_upload(
+            model_id,
+            "the comparison",
+            lambda source: ["opencde.ifcgraph.equivalence", str(source), str(written), *extra],
+        )
+
+    async def validate_against_upload(self, model_id: str, written: Path) -> dict[str, Any]:
+        """What a file breaks of the IFC standard that the one the model was converted from does not (``validation.py``)."""
+        return await self._with_upload(
+            model_id,
+            "the validation",
+            lambda source: ["opencde.ifcgraph.validation", str(written), "--against", str(source)],
+        )
+
+    async def _with_upload(self, model_id: str, what: str, command: Callable[[Path], list[str]]) -> dict[str, Any]:
+        """Run a module of this package on the uploaded file, unpacked. Exit codes 0 and 1 are both answers."""
         rows = await self.graph.run(
             "MATCH (m:IfcModel {id: $id}) RETURN m.storage_key AS storage_key, m.file_name AS file_name", id=model_id
         )
@@ -286,18 +304,8 @@ class IfcGraphService:
             source = await asyncio.to_thread(
                 self._prepare_input, rows[0]["storage_key"], rows[0]["file_name"], Path(tmp)
             )
-            command = [
-                sys.executable,
-                "-m",
-                "opencde.ifcgraph.equivalence",
-                str(source),
-                str(written),
-                "--memory-mb",
-                str(self.settings.ifcgraph_memory_mb),
-            ]
-            if geometry:
-                command.append("--geometry")
-            return json.loads(await self._in_a_process(command, "the comparison", answers=(0, 1)))
+            arguments = [sys.executable, "-m", *command(source), "--memory-mb", str(self.settings.ifcgraph_memory_mb)]
+            return json.loads(await self._in_a_process(arguments, what, answers=(0, 1)))
 
     # -- linking BCF components ----------------------------------------------------------------------
 

@@ -19,6 +19,7 @@ from typing import Any
 from opencde.ifcgraph.lossless import decode_header, decode_instance
 from opencde.ifcgraph.schema import Schema
 from opencde.ifcgraph.step import StepError, statement_text, write_exchange
+from opencde.ifcgraph.worker import limit_memory
 
 
 def _instance_lines(lines: Iterator[str], schema: Schema) -> Iterator[bytes]:
@@ -48,8 +49,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--memory-mb", type=int, default=0)
     args = parser.parse_args(argv)
     if args.memory_mb:
-        from opencde.ifcgraph.worker import limit_memory
-
         limit_memory(args.memory_mb)
     try:
         write_records(args.records, args.out)

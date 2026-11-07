@@ -835,7 +835,7 @@ def test_the_answer_stands_alone_on_stdout_whatever_the_kernel_writes() -> None:
     """The geometry kernel writes to stdout from C++, which is what a write to the file descriptor stands in for."""
     script = (
         "import os, sys\n"
-        "from opencde.ifcgraph.equivalence import keep_stdout_for_the_answer\n"
+        "from opencde.ifcgraph.worker import keep_stdout_for_the_answer\n"
         "keep_stdout_for_the_answer()\n"
         "os.write(1, b'noise from the kernel\\n')\n"
         "sys.stdout.write('the answer\\n')\n"

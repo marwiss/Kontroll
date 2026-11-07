@@ -393,11 +393,8 @@ def test_the_command_line_writes_a_model_back_and_says_how_it_went(
     assert "no such model" in done.output
 
 
-def test_a_change_after_the_upload_is_reported_by_the_command_line(
-    graph_target: GraphTarget, clean_database: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    settings = settings_for(graph_target, tmp_path, ifcgraph_lossless=True)
-    monkeypatch.setattr("opencde.cli._settings", lambda: settings)
+def sample_model_with(settings: Settings, *changes: str) -> str:
+    """The sample model in the graph, as it is after these Cypher statements. ``$id`` is the model's id."""
 
     async def build() -> str:
         graph = make_graph(settings)
@@ -406,15 +403,88 @@ def test_a_change_after_the_upload_is_reported_by_the_command_line(
             await apply_schema(graph)
             loaded = await seeding.seed(graph, storage=storage)
             model = await seeding.build_sample_graph(graph, storage, settings, loaded)
-            await graph.run("MATCH (n:IfcWall {model_id: $id}) SET n.Name = 'changed'", id=model["id"])
+            for change in changes:
+                await graph.run(change, id=model["id"])
             return model["id"]
         finally:
             await graph.close()
 
-    done = CliRunner().invoke(app, ["ifcgraph", "export", asyncio.run(build()), str(tmp_path / "w.ifc"), "--verify"])
+    return asyncio.run(build())
+
+
+def test_a_valid_change_is_reported_as_a_change_and_as_valid(
+    graph_target: GraphTarget, clean_database: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = settings_for(graph_target, tmp_path)
+    monkeypatch.setattr("opencde.cli._settings", lambda: settings)
+    model = sample_model_with(settings, "MATCH (n:IfcWall {model_id: $id}) SET n.Name = 'changed'")
+    done = CliRunner().invoke(app, ["ifcgraph", "export", model, str(tmp_path / "w.ifc"), "--verify"])
     assert done.exit_code == 1
     assert "DIFFERS same_model" in done.output
     assert "does not hold the same model" in done.output
+    assert "OK      validation: 0 issues the upload does not have" in done.output
+
+    done = CliRunner().invoke(app, ["ifcgraph", "export", model, str(tmp_path / "w.ifc")])
+    assert done.exit_code == 0, done.output
+
+
+@pytest.mark.parametrize(
+    ("change", "said"),
+    [
+        pytest.param(
+            "MATCH (n:IfcWall {model_id: $id}) WITH n LIMIT 1 SET n.Name = 5",
+            "",
+            id="a number where the schema has a string",
+        ),
+        pytest.param(
+            "MATCH (n:IfcWall {model_id: $id}) WITH n LIMIT 1 SET n.GlobalId = 'not a GlobalId'",
+            "GlobalId",
+            id="a GlobalId of the wrong form",
+        ),
+        pytest.param(
+            "MATCH (n:IfcWall {model_id: $id}) WITH n LIMIT 1 REMOVE n.GlobalId",
+            "",
+            id="an attribute that is not optional gone",
+        ),
+        pytest.param(
+            "MATCH (n:IfcWall {model_id: $id}) WITH n LIMIT 1 SET n.ObjectPlacement__step = 999999",
+            "",
+            id="a reference into a block to nothing",
+        ),
+        pytest.param(
+            "MATCH (n:IfcEntity {model_id: $id}) WHERE n:IfcMaterialLayerSet OR n:IfcMaterialLayer DETACH DELETE n",
+            "",
+            id="deleted nodes that others refer to",
+        ),
+    ],
+)
+def test_a_change_that_breaks_the_standard_is_stopped(
+    graph_target: GraphTarget,
+    clean_database: None,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    change: str,
+    said: str,
+) -> None:
+    """A graph database has no schema to hold a change to, so this is where it gets held to one."""
+    settings = settings_for(graph_target, tmp_path)
+    monkeypatch.setattr("opencde.cli._settings", lambda: settings)
+    done = CliRunner().invoke(app, ["ifcgraph", "export", sample_model_with(settings, change), str(tmp_path / "w.ifc")])
+    assert done.exit_code == 1, done.output
+    assert "INVALID validation" in done.output
+    assert "breaks the IFC standard" in done.output
+    assert said in done.output
+
+
+def test_validation_can_be_left_out(
+    graph_target: GraphTarget, clean_database: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = settings_for(graph_target, tmp_path)
+    monkeypatch.setattr("opencde.cli._settings", lambda: settings)
+    model = sample_model_with(settings, "MATCH (n:IfcWall {model_id: $id}) WITH n LIMIT 1 SET n.Name = 5")
+    done = CliRunner().invoke(app, ["ifcgraph", "export", model, str(tmp_path / "w.ifc"), "--no-validate"])
+    assert done.exit_code == 0, done.output
+    assert "validation:" not in done.output
 
 
 def test_a_model_that_does_not_hold_it_all_is_not_written(
