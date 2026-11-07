@@ -22,6 +22,13 @@ OpenCDE-palvelimen) kanssa. Python-kirjasto hakemistossa
 }
 ```
 
+Palvelimen voi asettaa tarjoamaan vain osan niistä (`OPENCDE_APIS`). Silloin
+luettelot sisältävät vain sen, mitä se tarjoaa, ja rajapinta, jota se ei tarjoa,
+vastaa 404. Palvelimella, joka tarjoaa vain BCF API 2.1:n, ei ole Foundation
+API:a: asiakas löytää sen osoitteesta `GET /bcf/versions` ja kirjautuu osoitteen
+`GET /bcf/2.1/auth` kautta. Dokumenttipalvelin tarjoaa Foundation API:n ja
+Documents API:n mutta ei BCF:ää.
+
 ### Kyvykkyysasiakirja (laajennus)
 
 Spesifikaatioiden lisäksi `GET /.well-known/kontroll` (ei todennusta, CORS

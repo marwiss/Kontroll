@@ -21,6 +21,12 @@ i [examples/](../examples/) visar det i bruk.
 }
 ```
 
+En server kan ställas in så att den bara erbjuder några av dem (`OPENCDE_APIS`).
+Då innehåller listorna bara det den erbjuder, och ett API som den inte erbjuder
+svarar 404. En server för bara BCF API 2.1 har inget Foundation API: en klient
+hittar den genom `GET /bcf/versions` och loggar in genom `GET /bcf/2.1/auth`. En
+dokumentserver erbjuder Foundation API och Documents API men ingen BCF.
+
 ### Kapabilitetsdokumentet (tillägg)
 
 Utöver specifikationerna säger `GET /.well-known/kontroll` (ingen
