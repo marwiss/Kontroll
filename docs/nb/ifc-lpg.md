@@ -12,7 +12,7 @@ størrelsen (omkring 680 MB mot 300 MB); bygg med
 `--build-arg OPENCDE_EXTRAS=` for et slankere image uten IfcOpenShell når
 modulen forblir av.
 
-Før 2.0.2 het modulen IFC-graph. Innstillingene het `OPENCDE_IFCGRAPH_*` og
+Fram til november 2026 het modulen IFC-graph. Innstillingene het `OPENCDE_IFCGRAPH_*` og
 kommandoen `opencde ifcgraph`, og begge virker fortsatt; serverens logg og
 `opencde doctor` nevner de gamle innstillingene den får.
 

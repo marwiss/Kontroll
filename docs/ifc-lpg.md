@@ -11,7 +11,7 @@ default (`ARG OPENCDE_EXTRAS` in the Dockerfile), which more than doubles its
 size (about 680 MB against 300 MB); build with `--build-arg OPENCDE_EXTRAS=`
 for a slimmer image without IfcOpenShell when the module stays off.
 
-Until 2.0.2 the module was named IFC-graph. Its settings were named
+Until November 2026 the module was named IFC-graph. Its settings were named
 `OPENCDE_IFCGRAPH_*` and its command `opencde ifcgraph`, and both still work;
 the server's log and `opencde doctor` name the old settings it is given.
 

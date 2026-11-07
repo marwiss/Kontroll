@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""The IFC-graph module became IFC-LPG in 2.0.2: its settings and command take the new names, and the old ones still work."""
+"""The IFC-graph module became IFC-LPG in November 2026: its settings and command take the new names, and the old ones still work."""
 
 from __future__ import annotations
 

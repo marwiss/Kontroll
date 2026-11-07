@@ -10,7 +10,7 @@ sjálfgefið (`ARG OPENCDE_EXTRAS` í Dockerfile), sem meira en tvöfaldar stær
 hennar (um 680 MB á móti 300 MB); byggðu með `--build-arg OPENCDE_EXTRAS=`
 fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
 
-Fyrir 2.0.2 hét einingin IFC-graph. Stillingar hennar hétu `OPENCDE_IFCGRAPH_*`
+Fram í nóvember 2026 hét einingin IFC-graph. Stillingar hennar hétu `OPENCDE_IFCGRAPH_*`
 og skipunin `opencde ifcgraph`, og hvort tveggja virkar enn; atvikaskrá þjónsins
 og `opencde doctor` nefna gömlu stillingarnar sem hann fær.
 
