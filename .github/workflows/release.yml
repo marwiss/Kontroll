@@ -50,6 +50,9 @@ jobs:
           tags: ${{ env.IMAGE }}:scan
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # The runtime stage runs apt-get upgrade; from the cache it would keep a fixed package out, as it kept
+          # zlib1g's CVE-2026-76844 and CVE-2026-85091 in the first build of 2.0.0. The builder stage stays cached.
+          no-cache-filters: runtime
       - name: Trivy (fail on fixable HIGH and CRITICAL vulnerabilities)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -84,6 +87,9 @@ jobs:
           sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # The runtime stage runs apt-get upgrade; from the cache it would keep a fixed package out, as it kept
+          # zlib1g's CVE-2026-76844 and CVE-2026-85091 in the first build of 2.0.0. The builder stage stays cached.
+          no-cache-filters: runtime
 
       # The runner's own gh CLI creates the release (zizmor: no third-party action needed for this).
       - name: GitHub release with SBOM and scan report
