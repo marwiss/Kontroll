@@ -2,6 +2,9 @@
 
 Status: accepted (2026-11-07)
 
+*The code this records moved to the library [IFC-LPG](https://github.com/marwiss/IFC-LPG) on 2026-11-07 (ADR 0014). The paths
+below are those of the time: `opencde/ifcgraph/<module>.py` is `ifc_lpg/<module>.py` there.*
+
 ## Context
 
 ADR 0011 checks every uploaded IFC file against the IFC schema with IfcOpenShell, and left open whether to run

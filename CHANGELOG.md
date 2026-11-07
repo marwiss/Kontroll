@@ -37,15 +37,19 @@ Toward 3.0.0, with Dataspatium.
   GlobalId of each element. The version's page shows the first 100. `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` turns it
   off.
 - Uploads are also checked against buildingSMART's ifc-gherkin-rules, the rules of buildingSMART's validation service,
-  where `OPENCDE_IFC_LPG_GHERKIN_ENV` names an environment for them. `python -m opencde.ifcgraph.gherkin_install` makes
+  where `OPENCDE_IFC_LPG_GHERKIN_ENV` names an environment for them. `python -m ifc_lpg.gherkin_install` makes
   one from pinned downloads. The published image leaves them out; the image tagged `-gherkin`, such as `3.0.0-gherkin`
   or `latest-gherkin`, has them and is about 1.1 GB, as is an image built with `--build-arg OPENCDE_GHERKIN=1` or by
   docker compose with `OPENCDE_GHERKIN=1`. A finding is an issue of the kind `gherkin` with the rule's code in
   `rule`. `ifc_validation_status` gains `warnings`, for a file whose issues are all warnings, and `issues` now means at
   least one error. `ifc_validation_ruleset` has one value per check. The report gains `error_count` and `checks`, which
   lists each check with the rules that could not run. See [ADR 0012](docs/adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md).
-- `python -m opencde.ifcgraph.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
+- `python -m ifc_lpg.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
 - `GET /admin/api/settings` has `ifcgraph.lossless` and `ifcgraph.validate_uploads`.
+- The round trip and the checks of the IFC-LPG module are the library [IFC-LPG](https://github.com/marwiss/IFC-LPG),
+  installed from its repository at a fixed commit until it is on PyPI. The server always has its graph side, which
+  needs no IfcOpenShell, and the `ifc-lpg` extra adds the workers with IfcOpenShell, as before. Building the image
+  fetches it with git. See [ADR 0014](docs/adr/0014-the-round-trip-comes-from-ifc-lpg.md).
 
 ## 2.0.1 — 2026-11-07
 

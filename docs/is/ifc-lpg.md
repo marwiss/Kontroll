@@ -14,13 +14,19 @@ Fram í nóvember 2026 hét einingin IFC-graph. Stillingar hennar hétu `OPENCDE
 og skipunin `opencde ifcgraph`, og hvort tveggja virkar enn; atvikaskrá þjónsins
 og `opencde doctor` nefna gömlu stillingarnar sem hann fær.
 
+Umbreytingin, ritun skrár og prófanirnar koma úr safninu
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), sem Kontroll setur upp úr
+geymslu þess við fasta útgáfu (commit), og README-skrá þess lýsir því hvernig
+líkan er geymt í grafinu. Eigið ferli þjónsins notar þann hluta sem þarf ekki
+IfcOpenShell; aukapakkinn `ifc-lpg` bætir við vinnsluferlunum sem þurfa það.
+
 ## Hvað gerist við upphal
 
 1. Documents API-upphali lýkur (eða skrá er hlaðið upp frá valsíðunni, eða
    BCF-verkefnisskjal er póstað) með `.ifc`- eða `.ifczip`-heiti.
 2. Þjónninn býr til `IfcModel`-hnút (staða `queued`) tengdan verkefninu og
    hefur umbreytingu í bakgrunni, eina í einu.
-3. Sérstakt vinnuferli (`python -m opencde.ifcgraph.worker`) les skrána. Það keyrir með tímamörkum
+3. Sérstakt vinnuferli (`python -m ifc_lpg.worker`) les skrána. Það keyrir með tímamörkum
    (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 mínútur), vistfangarýmismörkum á
    POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) og hámarki eininga
    (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Hrun eða frysting drepur vinnuferlið,
@@ -118,10 +124,10 @@ og eins og eigin prófanir reglusafnsins keyra þær: með behave og IfcOpenShel
 
 Reglurnar fá eigið umhverfi, þar sem eitt af hjálparföllum þeirra virkar ekki
 með IfcOpenShell 0.9, sem Kontroll notar.
-`python -m opencde.ifcgraph.gherkin_install <mappa>` býr það til úr festum
+`python -m ifc_lpg.gherkin_install <mappa>` býr það til úr festum
 niðurhölum, og hvert þeirra er borið saman við SHA-256 sitt: reglusafnið við
 ákveðið commit, smíð IfcOpenShell af 0.8.6 fyrir verkvanginn og Python-pakkana
-með tætigildum sínum. Tvær litlar skrár frá Kontroll koma í stað Django-hluta
+með tætigildum sínum. Tvær litlar skrár frá IFC-LPG koma í stað Django-hluta
 reglusafnsins, sem skrifa aðeins niðurstöður í gagnagrunn
 sannprófunarþjónustunnar.
 Útgefna myndin sleppir þeim, þar sem þær bæta við um 425 MB. Myndin með merkið
@@ -249,7 +255,7 @@ skrá er sannprófuð.
 [ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): eitt á móti einu, gildi fyrir gildi og án vikmarka, með staðsetningu
 nefnda í skýrslunni. Með `--geometry` er möskvi hverrar vöru líka byggður og þeir bornir saman
 bita fyrir bita. Hvaða tvær skrár sem er má bera saman með
-`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+`python -m ifc_lpg.equivalence first.ifc second.ifc`.
 
 Með `OPENCDE_IFC_LPG_LOSSLESS=false` er líkani umbreytt eins og fyrir 3.0.0: það er lesið með
 IfcOpenShell og því sem ekki eru hnútar er sleppt alveg. Slíkt líkan, eins og líkan sem fyrri

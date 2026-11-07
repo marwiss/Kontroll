@@ -17,6 +17,12 @@ Fram till november 2026 hette modulen IFC-graph. Dess inställningar hette
 fortfarande; serverns logg och `opencde doctor` nämner de gamla inställningar
 den får.
 
+Konverteringen, skrivningen av en fil och kontrollerna kommer från biblioteket
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), som Kontroll installerar från dess
+repo vid en bestämd commit och vars README beskriver hur en modell lagras i
+grafen. Serverns egen process använder den del som inte behöver IfcOpenShell;
+extrapaketet `ifc-lpg` lägger till de arbetsprocesser som gör det.
+
 ## Vad som händer vid uppladdning
 
 1. En Documents API-uppladdning slutförs (eller en fil laddas upp från
@@ -24,7 +30,7 @@ den får.
    `.ifczip`-namn.
 2. Servern skapar en `IfcModel`-nod (tillstånd `queued`) kopplad till
    projektet och startar en konvertering i bakgrunden, en i taget.
-3. En separat arbetsprocess (`python -m opencde.ifcgraph.worker`) läser
+3. En separat arbetsprocess (`python -m ifc_lpg.worker`) läser
    filen. Den körs med en tidsgräns
    (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minuter), en adressrymdsgräns på
    POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) och ett tak för antalet
@@ -123,10 +129,10 @@ ger det det utslag som dess tester väntar sig för varenda en.
 
 Reglerna får en egen miljö, eftersom en av deras hjälpfunktioner inte fungerar
 med den IfcOpenShell 0.9 som Kontroll använder.
-`python -m opencde.ifcgraph.gherkin_install <mapp>` gör den av fastlåsta
+`python -m ifc_lpg.gherkin_install <mapp>` gör den av fastlåsta
 nedladdningar, var och en kontrollerad mot sin SHA-256: regeluppsättningen vid
 en bestämd commit, IfcOpenShells bygge av 0.8.6 för plattformen och
-Python-paketen med sina hashar. Två små filer från Kontroll ersätter
+Python-paketen med sina hashar. Två små filer från IFC-LPG ersätter
 regeluppsättningens Django-delar, som bara skriver resultat till
 valideringstjänstens databas.
 Den publicerade avbilden utelämnar dem, eftersom de lägger till omkring 425 MB.
@@ -257,7 +263,7 @@ och [ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) hur en
 [ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ett till ett, värde för värde och utan tolerans, med
 georeferensen namngiven i rapporten. Med `--geometry` byggs också varje produkts
 mesh, och de jämförs bit för bit. Två valfria filer kan jämföras med
-`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+`python -m ifc_lpg.equivalence first.ifc second.ifc`.
 
 Med `OPENCDE_IFC_LPG_LOSSLESS=false` konverteras en modell som före 3.0.0: den läses
 med IfcOpenShell, och det som inte är noder utelämnas helt. En sådan modell, liksom
