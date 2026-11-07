@@ -43,7 +43,7 @@ og OAuth2-klienter, dine programmer har brug for.
 | Opgave | Kommando |
 |---|---|
 | Opdatér til det nyeste image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
-| Fastlås en version | `OPENCDE_IMAGE_TAG=2.0.1` i `.env` (tags følger GitHub-udgivelserne) |
+| Fastlås en version | `OPENCDE_IMAGE_TAG=2.0.2` i `.env` (tags følger GitHub-udgivelserne) |
 | Logs | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-linjer) |
 | Helbred | `https://cde.example.org/readyz`; siden Indstillinger i administrationen |
 | Sikkerhedskopier | hver nat til volumen `backups` af tjenesten `backup`; se [backup.md](backup.md) |
