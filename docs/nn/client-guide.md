@@ -21,6 +21,12 @@ dette; døma i [examples/](../examples/) viser det i bruk.
 }
 ```
 
+Ein tenar kan stillast inn til å tilby berre nokre av dei (`OPENCDE_APIS`). Då
+inneheld listene berre det han tilbyr, og eit API han ikkje tilbyr, svarar 404.
+Ein tenar for berre BCF API 2.1 har ikkje Foundation API: ein klient finn han
+gjennom `GET /bcf/versions` og loggar inn gjennom `GET /bcf/2.1/auth`. Ein
+dokumenttenar tilbyr Foundation API og Documents API, men ingen BCF.
+
 ### Kapabilitetsdokumentet (utviding)
 
 Utover spesifikasjonane fortel `GET /.well-known/kontroll` (ingen

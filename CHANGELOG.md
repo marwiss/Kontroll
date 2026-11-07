@@ -16,6 +16,10 @@ history is rewritten: the commits stay, and only the earlier releases and tags w
 Dataspatium 2.0.2, which also speaks BCF API 2.1, so that a server with 2.1 alone can be its
 source, and draws the IFC graph.
 
+- A server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
+  without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
+  The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
+  API that is not offered answers 404. All three are offered by default.
 - The IFC-graph module is now IFC-LPG, the name of its library,
   [IFC–LPG round-tripping](https://github.com/marwiss/IFC-LPG). Its settings are `OPENCDE_IFC_LPG_*`, its command
   `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names

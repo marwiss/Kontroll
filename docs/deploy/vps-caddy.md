@@ -43,6 +43,7 @@ OAuth2 clients your applications need.
 |---|---|
 | Update to the latest image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
 | Pin a version | `OPENCDE_IMAGE_TAG=2.0.2` in `.env` (tags follow the GitHub releases) |
+| Offer only some APIs | `OPENCDE_APIS=["bcf-2.1"]` in `.env` for a server for BCF API 2.1 alone, `["documents"]` for a document server; all three by default |
 | Logs | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON lines) |
 | Health | `https://cde.example.org/readyz`; the admin UI's Settings page |
 | Backups | nightly into the `backups` volume by the `backup` service; see [backup.md](backup.md) |
