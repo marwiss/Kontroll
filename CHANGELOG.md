@@ -7,14 +7,22 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.0.1 — 2026-11-07
+## 2.0.2 — 2026-11-07
 
-The single release of the 2 series: 2.0.0 with the deletion of a project put right, and with
-it everything up to and including 2.7.0, on the branch `release-2`. 2.0.0 is withdrawn under the
-rule above, together with Dataspatium 2.0.0. No history is rewritten: the commits stay, and only
-the earlier releases and tags went. Works with Dataspatium 2.0.1, which also speaks BCF API 2.1,
-so that a server with 2.1 alone can be its source, and draws the IFC graph.
+The single release of the 2 series: 2.0.1 with the IFC-graph module renamed IFC-LPG, and with it
+the deletion of a project put right in 2.0.1 and everything up to and including 2.7.0, on the
+branch `release-2`. 2.0.1 is withdrawn under the rule above, together with Dataspatium 2.0.1. No
+history is rewritten: the commits stay, and only the earlier releases and tags went. Works with
+Dataspatium 2.0.2, which also speaks BCF API 2.1, so that a server with 2.1 alone can be its
+source, and draws the IFC graph.
 
+- The IFC-graph module is now IFC-LPG, the name of its library,
+  [IFC–LPG round-tripping](https://github.com/marwiss/IFC-LPG). Its settings are `OPENCDE_IFC_LPG_*`, its command
+  `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
+  `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, so a server keeps its configuration across the
+  upgrade, and the log and `opencde doctor` name the old settings it is given. The administration API and the
+  capabilities document keep their keys, except that `raw` in `GET /admin/api/settings` names the settings by their
+  new names.
 - Deleting a project deletes only what the project owns. In 2.0.0 it followed every relationship from the project,
   so it also deleted each user who had created a topic, comment or viewpoint or uploaded a document in it, then the
   other projects those users were members of, and the topics and documents directly in those. The administration's
