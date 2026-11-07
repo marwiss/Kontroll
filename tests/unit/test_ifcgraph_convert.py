@@ -29,7 +29,8 @@ def test_convert_produces_labelled_nodes_and_attribute_edges() -> None:
     assert header["skipped"] > 0, "geometry is left out by default"
     assert not any("IfcCartesianPoint" in n["labels"] for n in nodes)
 
-    walls = [n for n in nodes if n["props"].get("GlobalId") in WALLS]
+    # IfcOpenShell goes through a file in an order that differs between platforms.
+    walls = sorted((n for n in nodes if n["props"].get("GlobalId") in WALLS), key=lambda n: n["props"]["Name"])
     assert len(walls) == 3
     labels = walls[0]["labels"]
     assert (
