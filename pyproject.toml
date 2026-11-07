@@ -40,12 +40,15 @@ dependencies = [
     "limits>=5.0",  # comes with slowapi; used directly for the limit on every request
     "odata-query>=0.10",
     "httpx>=0.28",
+    # The IFC graph's own side of the round trip, which needs nothing more: importing and exporting records, deleting a
+    # model, the packed reports (ADR 0014).
+    "ifc-lpg>=1.0.0",
 ]
 
 [project.optional-dependencies]
-# IFC-LPG import (stage 9). Pulls in IfcOpenShell, which is large; off by default. Its validator's EXPRESS rules import
-# _pytest when they run, which IfcOpenShell does not declare, so pytest belongs here and not only in the tests (ADR 0011).
-ifc-lpg = ["ifcopenshell>=0.9.0", "pytest>=9.0"]
+# The IFC-LPG module (stage 9): the workers that convert, write and check files, with IfcOpenShell, which is large; off
+# by default. IFC-LPG's extra brings what they need, among it the pytest its EXPRESS rules import (ADR 0011, 0014).
+ifc-lpg = ["ifc-lpg[ifcopenshell]>=1.0.0"]
 ifcgraph = ["opencde-server[ifc-lpg]"]  # the extra's old name, so that builds that name it keep working
 # A shared store for the rate limits when several server processes run (ADR 0007).
 redis = ["redis>=5.0"]
@@ -101,6 +104,8 @@ members = ["client"]
 
 [tool.uv.sources]
 opencde-client = { workspace = true }
+# From its repository, at a fixed commit, until it is on PyPI (ADR 0014).
+ifc-lpg = { git = "https://github.com/marwiss/IFC-LPG", rev = "cdbee63b91453f44296515355b255f614e517bb8" }
 
 # ---------------------------------------------------------------------------
 # Tooling. Line length 120 and ruff format follow IfcOpenShell's conventions so
@@ -140,7 +145,6 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "f
 "client/opencde_client/__main__.py" = ["T20"]     # so does the client's command line
 "docs/examples/**" = ["T20"]                      # examples print their results
 ".zap/*.py" = ["T20"]                             # they hand their results to the job through standard output
-"opencde/ifcgraph/worker.py" = ["T20"]            # the worker process reports through stdout/stderr
 
 [tool.ruff.lint.isort]
 known-first-party = ["opencde", "opencde_client"]
@@ -168,7 +172,9 @@ ui = "pytest -m ui"  # needs `uv sync --group ui` and `uv run playwright install
 security = ["lint", "_bandit", "_audit", "_audit_gherkin"]
 _bandit = "bandit -q -r opencde client/opencde_client -c pyproject.toml"
 _audit = "pip-audit --skip-editable"  # our own workspace packages are not on PyPI
-_audit_gherkin = "pip-audit -r opencde/ifcgraph/gherkin-requirements.txt --disable-pip"  # the rules' own environment
+# The rules' own environment, from the requirements that come with IFC-LPG.
+_audit_gherkin = { cmd = "pip-audit -r \"${GHERKIN_REQUIREMENTS}\" --disable-pip", uses = { GHERKIN_REQUIREMENTS = "_gherkin_requirements" } }
+_gherkin_requirements = { expr = "(ifc_lpg.gherkin_install.HERE / 'gherkin-requirements.txt').as_posix()", imports = ["ifc_lpg", "ifc_lpg.gherkin_install"] }
 
 [tool.bandit]
 exclude_dirs = ["tests", "client/tests"]

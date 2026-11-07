@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException
+from ifc_lpg.validation import unpack_report
 
 from opencde.deps import GraphDep
 from opencde.documents.links import version_links
@@ -22,7 +23,6 @@ from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion, Fi
 from opencde.documents.validation import Validation
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import new_id
-from opencde.ifcgraph.validation import unpack_report
 from opencde.timeutil import now_iso
 
 

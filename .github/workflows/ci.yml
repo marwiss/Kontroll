@@ -61,15 +61,13 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --extra ifc-lpg
-      # These need IfcOpenShell and no database. The test job above has no IfcOpenShell, so it skips them.
-      - run: uv run pytest -q tests/unit/test_ifcgraph_convert.py tests/unit/test_ifcgraph_equivalence.py tests/unit/test_ifcgraph_lossless.py tests/unit/test_ifcgraph_validation.py tests/unit/test_ifcgraph_gherkin.py
       # buildingSMART's ifc-gherkin-rules in an environment of their own, as the image has them (ADR 0012).
-      - run: uv run python -m opencde.ifcgraph.gherkin_install "$RUNNER_TEMP/gherkin"
+      - run: uv run python -m ifc_lpg.gherkin_install "$RUNNER_TEMP/gherkin"
       - run: uv run pytest -q -m "integration or e2e"
         env:
           OPENCDE_TEST_GHERKIN_ENV: ${{ runner.temp }}/gherkin
       # IfcOpenShell's EXPRESS rules import pytest at run time. The image has it from the extra alone, without the dev group.
-      - run: uv run --no-dev --extra ifc-lpg python -m opencde.ifcgraph.validation tests/fixtures/three_walls_gtin.ifc
+      - run: uv run --no-dev --extra ifc-lpg python -m ifc_lpg.validation tests/fixtures/three_walls_gtin.ifc
 
   ui:
     name: Browser tests (Playwright, axe-core)
@@ -101,8 +99,8 @@ jobs:
         run: uv run bandit -q -r opencde client/opencde_client -c pyproject.toml
       - name: pip-audit (known vulnerabilities in locked dependencies)
         run: uv run pip-audit --skip-editable
-      - name: pip-audit (the environment of buildingSMART's rules)
-        run: uv run pip-audit -r opencde/ifcgraph/gherkin-requirements.txt --disable-pip
+      - name: pip-audit (the environment of buildingSMART's rules, from the requirements in IFC-LPG)
+        run: uv run poe _audit_gherkin
       - name: gitleaks (secrets in the repository)
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:

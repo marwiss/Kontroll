@@ -24,13 +24,13 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, Request
+from ifc_lpg.exporter import export_records
+from ifc_lpg.gherkin_install import MANIFEST
+from ifc_lpg.importer import delete_blocks, delete_model, import_records
+from ifc_lpg.validation import MAX_REPORTED, pack_report
 
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
-from opencde.ifcgraph.exporter import export_records
-from opencde.ifcgraph.gherkin_install import MANIFEST
-from opencde.ifcgraph.importer import delete_blocks, delete_model, import_records
-from opencde.ifcgraph.validation import MAX_REPORTED, pack_report
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
@@ -290,7 +290,7 @@ class IfcGraphService:
                     command = [
                         sys.executable,
                         "-m",
-                        "opencde.ifcgraph.validation",
+                        "ifc_lpg.validation",
                         str(source),
                         "--report",
                         "--memory-mb",
@@ -354,7 +354,7 @@ class IfcGraphService:
         command = [
             sys.executable,
             "-m",
-            "opencde.ifcgraph.gherkin",
+            "ifc_lpg.gherkin",
             str(source),
             "--env",
             str(env),
@@ -413,7 +413,7 @@ class IfcGraphService:
         command = [
             sys.executable,
             "-m",
-            "opencde.ifcgraph.worker",
+            "ifc_lpg.worker",
             str(source),
             str(records),
             "--memory-mb",
@@ -459,7 +459,7 @@ class IfcGraphService:
                 [
                     sys.executable,
                     "-m",
-                    "opencde.ifcgraph.writer",
+                    "ifc_lpg.writer",
                     str(records),
                     str(target),
                     "--memory-mb",
@@ -475,7 +475,7 @@ class IfcGraphService:
         return await self._with_upload(
             model_id,
             "the comparison",
-            lambda source: ["opencde.ifcgraph.equivalence", str(source), str(written), *extra],
+            lambda source: ["ifc_lpg.equivalence", str(source), str(written), *extra],
         )
 
     async def validate_against_upload(self, model_id: str, written: Path) -> dict[str, Any]:
@@ -483,7 +483,7 @@ class IfcGraphService:
         return await self._with_upload(
             model_id,
             "the validation",
-            lambda source: ["opencde.ifcgraph.validation", str(written), "--against", str(source)],
+            lambda source: ["ifc_lpg.validation", str(written), "--against", str(source)],
         )
 
     async def _with_upload(self, model_id: str, what: str, command: Callable[[Path], list[str]]) -> dict[str, Any]:
