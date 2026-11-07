@@ -13,9 +13,10 @@ stands where the schema has an enumeration, raw bytes. Every attribute is read b
 those are is not a list to keep up to date. An instance the schema does not know, or that has another number of
 attributes than the schema says, has all of it in ``ifc_args`` in the same form.
 
-A reference in tagged JSON stands for the relationship at that position, so that the relationships are the one place
-that says what refers to what. Only a reference to something that is no node stays in the text: an instance the file
-does not have, or one kept in a block.
+A reference to what is no node, an instance in a block or one the file does not have, is its id in
+``<attribute>__step``, or a list of ids if every reference in a flat list is one. In tagged JSON a reference stands for
+the relationship at that position, so that the relationships are the one place that says what refers to what between
+nodes, and only a reference to what is no node stays in the text.
 
 Geometry is kept in blocks, unless it is asked to be nodes. It is most of a model and a graph of its own: 17-94% of it
 in the samples belongs to more than one product, so it cannot be properties of the products. So every instance below a
@@ -36,6 +37,7 @@ from opencde.ifcgraph.schema import Attribute, Schema
 from opencde.ifcgraph.step import string_atom, string_of_atom
 
 TYPE_SUFFIX = "__type"
+STEP_SUFFIX = "__step"
 TAGGED = "$json"
 ALL_ARGUMENTS = "ifc_args"
 ARGUMENT_RELATIONSHIP = "ARGUMENT"
@@ -217,6 +219,16 @@ def _from_tagged(value: Any, references: Mapping[int, int]) -> Any:
     return b'"%s"' % value["b"].encode("ascii")
 
 
+def _ids_outside_the_nodes(value: Any, kinds: tuple[str, ...], known: Container[int]) -> Any:
+    """What an attribute holds that refers only to what is no node: one id, or a flat list of them. Otherwise None."""
+    if isinstance(value, int):
+        return value if not kinds and value not in known else None
+    if isinstance(value, list) and value and len(kinds) == 1:
+        if all(isinstance(item, int) and item not in known for item in value):
+            return value
+    return None
+
+
 def _absent(attribute: Attribute) -> bytes:
     return b"*" if attribute.derived else b"$"
 
@@ -277,6 +289,10 @@ def encode_instance(
         if value == _absent(attribute):
             continue
         name = attribute.name
+        outside = _ids_outside_the_nodes(value, attribute.kinds, known)
+        if outside is not None:
+            properties[name + STEP_SUFFIX] = outside
+            continue
         try:
             prop, type_name, found = _encode_natural(value, attribute, schema, known)
         except _NotNatural:
@@ -314,6 +330,10 @@ def decode_instance(
     if attributes is None:
         raise ValueError(f"{keyword!r} is no class of the schema, and the node does not hold its arguments")
     for attribute in attributes:
+        outside = properties.get(attribute.name + STEP_SUFFIX)
+        if outside is not None:
+            parameters.append(outside)
+            continue
         prop = properties.get(attribute.name)
         type_name = properties.get(attribute.name + TYPE_SUFFIX)
         found_here = by_type.get(attribute.relationship, ())

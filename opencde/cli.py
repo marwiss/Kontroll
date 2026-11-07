@@ -686,12 +686,15 @@ def ifcgraph_prune(
 def ifcgraph_export(
     model_id: str,
     target: Annotated[Path, typer.Argument(help="The file to write.")],
+    validate: Annotated[
+        bool, typer.Option("--validate/--no-validate", help="Check the file against the IFC standard.")
+    ] = True,
     verify: Annotated[bool, typer.Option("--verify", help="Compare the file with the one that was uploaded.")] = False,
     geometry: Annotated[
         bool, typer.Option("--geometry", help="With --verify, also build and compare the meshes.")
     ] = False,
 ) -> None:
-    """Write a model back as an IFC file from what the graph holds. Only a model converted with
+    """Write a model back as an IFC file from what the graph holds, and validate it. Only a model converted with
     OPENCDE_IFCGRAPH_LOSSLESS can be."""
     from opencde.bootstrap import make_storage
     from opencde.ifcgraph.exporter import NotExportable
@@ -700,23 +703,31 @@ def ifcgraph_export(
     async def work(graph, settings):
         service = IfcGraphService(graph, make_storage(settings), settings)
         instances = await service.export(model_id, target)
+        found = await service.validate_against_upload(model_id, target) if validate else None
         answer = await service.compare_with_upload(model_id, target, geometry=geometry) if verify else None
-        return instances, answer
+        return instances, found, answer
 
     try:
-        instances, answer = _run(work)
+        instances, found, answer = _run(work)
     except typer.Exit:
         raise
     except (NotExportable, RuntimeError, ValueError, OSError) as exc:
         raise _fail(str(exc)[:500]) from exc
     print(f"OK      wrote {target}: {instances} instances")
-    if answer is None:
-        return
-    for check in answer["checks"]:
-        word = {True: "OK", False: "DIFFERS", None: "UNKNOWN"}[check["passed"]]
-        print(f"{word:7} {check['name']}{': ' + check['detail'] if check['detail'] else ''}")
-    if not answer["same_model"]:
+    if answer is not None:
+        for check in answer["checks"]:
+            word = {True: "OK", False: "DIFFERS", None: "UNKNOWN"}[check["passed"]]
+            print(f"{word:7} {check['name']}{': ' + check['detail'] if check['detail'] else ''}")
+    if found is not None:
+        word = "INVALID" if found["new_count"] else "OK"
+        print(f"{word:7} validation: {found['new_count']} issues the upload does not have, {found['issues']} in all")
+        for issue in found["new"]:
+            at = f"#{issue['instance']} " if issue["instance"] is not None else ""
+            print(f"        {at}{' '.join(issue['message'].split())[:400]}")  # the rule can come many lines in
+    if answer is not None and not answer["same_model"]:
         raise _fail("the file does not hold the same model as the upload")
+    if found is not None and found["new_count"]:
+        raise _fail("the file breaks the IFC standard in ways the upload does not")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import sys
 from array import array
@@ -34,6 +33,7 @@ from typing import Any
 
 from opencde.ifcgraph.schema import Schema
 from opencde.ifcgraph.step import StepError, StepFile, exact_text
+from opencde.ifcgraph.worker import keep_stdout_for_the_answer, limit_memory
 
 MAX_FAILED_PAIRINGS = 10_000
 MAX_EXPANDED_VALUES = 1_000_000
@@ -632,14 +632,6 @@ def compare_files(first: Path, second: Path, *, geometry: bool = False) -> Compa
     return Comparison((*comparison.checks, built))
 
 
-def keep_stdout_for_the_answer() -> None:
-    """Send what anything else writes to stdout to stderr instead. The geometry kernel writes to it from C++, past
-    ``sys.stdout`` and at times of its own, and the answer on stdout has to stand alone to be read."""
-    answer = os.fdopen(os.dup(1), "w", encoding="utf-8")
-    os.dup2(2, 1)
-    sys.stdout = answer
-
-
 def main(argv: list[str] | None = None) -> int:
     """Exit 0 for the same model, 1 for not the same or not shown, 2 for no file, with the answer as JSON on stdout."""
     parser = argparse.ArgumentParser(prog="opencde-ifcgraph-equivalence")
@@ -649,8 +641,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--memory-mb", type=int, default=0)
     args = parser.parse_args(argv)
     if args.memory_mb:
-        from opencde.ifcgraph.worker import limit_memory
-
         limit_memory(args.memory_mb)
     try:
         comparison = compare_files(args.first, args.second, geometry=args.geometry)

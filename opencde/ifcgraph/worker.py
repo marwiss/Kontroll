@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,14 @@ def limit_memory(megabytes: int) -> None:
     if hard != resource.RLIM_INFINITY:
         limit = min(limit, hard)
     resource.setrlimit(resource.RLIMIT_AS, (limit, hard))
+
+
+def keep_stdout_for_the_answer() -> None:
+    """Send what anything else writes to stdout to stderr instead. The geometry kernel and the parser write to it from
+    C++, past ``sys.stdout`` and at times of their own, and the answer on stdout has to stand alone to be read."""
+    answer = os.fdopen(os.dup(1), "w", encoding="utf-8")
+    os.dup2(2, 1)
+    sys.stdout = answer
 
 
 def main(argv: list[str] | None = None) -> int:

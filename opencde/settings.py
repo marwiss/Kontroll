@@ -243,8 +243,8 @@ class Settings(BaseSettings):
         False, description="Also import representation items, profiles and placements (much larger graphs)."
     )
     ifcgraph_lossless: bool = Field(
-        False,
-        description="Keep all of a converted model in the graph, geometry included, so that the file can be written back.",
+        True,
+        description="Keep all of a converted model in the graph, geometry as text, so that the file can be written back.",
     )
     ifcgraph_gtin_property_set: str = Field("Reuse", description="Property set holding the GTIN of an element.")
     ifcgraph_gtin_property: str = Field("GTIN", description="Property within that set.")

@@ -62,8 +62,10 @@ jobs:
           enable-cache: true
       - run: uv sync --extra ifcgraph
       # These need IfcOpenShell and no database. The test job above has no IfcOpenShell, so it skips them.
-      - run: uv run pytest -q tests/unit/test_ifcgraph_convert.py tests/unit/test_ifcgraph_equivalence.py tests/unit/test_ifcgraph_lossless.py
+      - run: uv run pytest -q tests/unit/test_ifcgraph_convert.py tests/unit/test_ifcgraph_equivalence.py tests/unit/test_ifcgraph_lossless.py tests/unit/test_ifcgraph_validation.py
       - run: uv run pytest -q -m "integration or e2e"
+      # IfcOpenShell's EXPRESS rules import pytest at run time. The image has it from the extra alone, without the dev group.
+      - run: uv run --no-dev --extra ifcgraph python -m opencde.ifcgraph.validation tests/fixtures/three_walls_gtin.ifc
 
   ui:
     name: Browser tests (Playwright, axe-core)

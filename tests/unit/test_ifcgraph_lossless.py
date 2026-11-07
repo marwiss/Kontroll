@@ -257,9 +257,36 @@ def statements_in(block: dict[str, Any]) -> list[tuple[int, bytes]]:
 def test_a_reference_into_a_block_is_kept_as_an_id(tmp_path: Path) -> None:
     records = records_of(MODEL.read_bytes(), tmp_path, include_geometry=False)
     wall = next(record for record in records if record["t"] == "n" and "IfcWall" in record["labels"])
-    assert wall["props"]["Representation__type"] == TAGGED
-    assert isinstance(json.loads(wall["props"]["Representation"])["d"], int)
-    assert isinstance(json.loads(wall["props"]["ObjectPlacement"])["d"], int)
+    assert isinstance(wall["props"]["Representation__step"], int)
+    assert isinstance(wall["props"]["ObjectPlacement__step"], int)
+    assert "Representation" not in wall["props"] and "Representation__type" not in wall["props"]
+
+
+@pytest.mark.parametrize(
+    ("statements", "attribute", "ids"),
+    [
+        pytest.param(("#1=IFCLINE(#9,$);",), "Pnt", 9, id="one reference to nothing"),
+        pytest.param(("#1=IFCPOLYLINE((#8,#9));",), "Points", [8, 9], id="a list of them"),
+    ],
+)
+def test_a_reference_to_what_is_no_node_is_a_plain_id(
+    statements: tuple[str, ...], attribute: str, ids: Any, tmp_path: Path
+) -> None:
+    data = exchange(*statements)
+    properties = node_of(records_of(data, tmp_path), 1)["props"]
+    assert properties[attribute + "__step"] == ids
+    assert attribute not in properties
+    assert compare(data, there_and_back(data, tmp_path)).identical
+
+
+def test_a_list_of_references_keeps_the_ones_that_are_nodes_as_relationships(tmp_path: Path) -> None:
+    data = exchange("#1=IFCPOLYLINE((#2,#9,#2));", "#2=IFCDIRECTION((1.,0.));")
+    records = records_of(data, tmp_path)
+    properties = node_of(records, 1)["props"]
+    assert "Points__step" not in properties
+    assert json.loads(properties["Points"]) == [{"r": 0}, {"d": 9}, {"r": 1}]
+    assert references_of(records, 1) == [("Points", 0, 2), ("Points", 1, 2)]
+    assert compare(data, there_and_back(data, tmp_path)).identical
 
 
 @BOTH_FORMS
@@ -270,7 +297,7 @@ def test_an_owner_history_is_linked_from_its_project_alone(as_nodes: bool, tmp_p
     project = next(record for record in records if record["t"] == "n" and "IfcProject" in record["labels"])
     assert [edge["a"] for edge in edges] == [project["step"]]
     wall = next(record for record in records if record["t"] == "n" and "IfcWall" in record["labels"])
-    assert json.loads(wall["props"]["OwnerHistory"]) == {"d": edges[0]["b"]}
+    assert wall["props"]["OwnerHistory__step"] == edges[0]["b"]
 
 
 def test_many_instances_make_many_blocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -302,8 +329,8 @@ def test_an_owner_history_is_a_node_only_for_the_project() -> None:
     edges = [(record["a"], record["type"], record["b"]) for record in records if record["t"] == "e"]
     assert edges == [(3, "OwnerHistory", 1)]
     walls = {record["step"]: record["props"] for record in records if record["t"] == "n"}
-    assert json.loads(walls[4]["OwnerHistory"]) == {"d": 1}
-    assert json.loads(walls[5]["OwnerHistory"]) == {"d": 2}
+    assert walls[4]["OwnerHistory__step"] == 1
+    assert walls[5]["OwnerHistory__step"] == 2
     block = next(record for record in records if record["t"] == "g")
     assert [step for step, _line in statements_in(block)] == [2]
 
