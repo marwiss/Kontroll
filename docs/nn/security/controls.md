@@ -95,7 +95,8 @@ Kvar kontroll har minst éin automatisert test. "Suite" namngjev testmodulen.
 | `.ifczip` blir pakka ut berre når ho inneheld nøyaktig éi `.ifc`, med storleikstaket for opplastinga på dei utpakka bytane | Zip-bombe | `service._prepare_input` |
 | Samanlikninga og den tapsfrie konverteringa les filer med sin eigen lesar: det han ikkje kan lese, avviser han, mønstera kan ikkje gå tilbake, og nøstinga er avgrensa | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Etikettar og relasjonstypar frå konverteraren blir validerte som identifikatorar før dei når Cypher; alt anna er ein parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
-| Ei opplasta IFC-fil blir kontrollert mot IFC-skjemaet i same slag arbeidsprosess, med dei same grensene, og blir aldri halden tilbake av det; rapporten blir berre lesen gjennom medlemskap i prosjektet, og loggen får talet på merknader, aldri meldingane | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
+| Ei opplasta IFC-fil blir kontrollert mot IFC-skjemaet og, der dei er installerte, ifc-gherkin-rules frå buildingSMART i same slag arbeidsprosess, med dei same grensene, og blir aldri halden tilbake av det; rapporten blir berre lesen gjennom medlemskap i prosjektet, og loggen får talet på merknader, aldri meldingane | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
+| Miljøet for reglane frå buildingSMART blir berre laga av nedlastingar låste med SHA-256 og pakkar installerte med hashane sine, og ei arkivoppføring som ville hamna utanfor mappa si, blir avvist; i imaget eig root det, og reglane køyrer utan innstillingane og løyndomane til tenaren | OWASP ASVS 14.2, ASVS 10.3 | `test_ifcgraph_gherkin` |
 | Konverteringsfeil blir registrerte på `IfcModel`-noden og logga utan innhaldet i fila | OWASP ASVS 7.1 | `test_ifcgraph` |
 
 ## Utrulling og tryggingskopiar (etappe 8)

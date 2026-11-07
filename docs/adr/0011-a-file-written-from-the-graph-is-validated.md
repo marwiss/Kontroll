@@ -85,3 +85,6 @@ the number of issues is logged.
 **What is left to others.** Whether to run buildingSMART's `ifc-gherkin-rules` as well is open: they come with a test
 runner and packages of their own. A check against an IDS, or for clashes, depends on what a person asks, and is done in
 a client such as Dataspatium, which sends its findings back as BCF topics.
+
+ADR 0012 settles the first: the rules run on uploads too, in an environment of their own. It also records two later
+decisions: a check against an IDS on the server as well, and clash detection both on the server and in Dataspatium.

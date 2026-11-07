@@ -196,7 +196,8 @@ Asiakkaasi tarvitsee callback-URLin, johon selain pääsee
 URLia itse.
 
 Kun IFC-graafimoduuli on käytössä, versiona lähetetty IFC-tiedosto tarkistetaan
-IFC-skeemaa vasten. Sen metatiedoissa on silloin `ifc_validation_status` ja
+IFC-skeemaa ja, jos palvelimella on ne, buildingSMARTin ifc-gherkin-rules-sääntöjä
+vasten. Sen metatiedoissa on silloin `ifc_validation_status` ja
 tarkistuksen jälkeen muut `ifc_validation_*`-kohdat; `ifc_validation_report` on
 raportin osoite, laajennus, joka vastaa samalle tunnisteelle. Katso
 [ifcgraph.md](ifcgraph.md#lähetysten-tarkistus-ifc-skeemaa-vasten).

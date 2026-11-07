@@ -188,7 +188,8 @@ Klienten din trenger en callback-URL som nettleseren kan nå (en
 loopback-lytter for skrivebordsapper). Serveren kaller aldri den URL-en selv.
 
 Når IFC-grafmodulen er på, kontrolleres en IFC-fil som lastes opp som versjon,
-mot IFC-skjemaet. Metadataene har da `ifc_validation_status` og, når den er
+mot IFC-skjemaet og, der serveren har dem, buildingSMARTs ifc-gherkin-rules.
+Metadataene har da `ifc_validation_status` og, når den er
 kontrollert, de andre `ifc_validation_*`-postene; `ifc_validation_report` er
 adressen til rapporten, en utvidelse som svarer på samme token. Se
 [ifcgraph.md](ifcgraph.md#kontroll-av-opplastinger-mot-ifc-skjemaet).

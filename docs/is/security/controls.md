@@ -96,7 +96,8 @@ prófunareininguna.
 | `.ifczip` er aðeins pakkað upp þegar hún geymir nákvæmlega eina `.ifc`, með stærðarþaki upphalsins á útpökkuðu bætin | Zip-sprengja | `service._prepare_input` |
 | Samanburðurinn og taplausa umbreytingin lesa skrár með eigin lesara: hann hafnar því sem hann getur ekki lesið, mynstur hans geta ekki bakkað, og hreiðrun er takmörkuð | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Merkimiðar og venslagerðir úr umbreytinum eru sannreynd sem auðkenni áður en þau ná Cypher; allt annað er stiki | OWASP API8 | `importer._safe`, `test_ifcgraph` |
-| Upphlaðin IFC-skrá er prófuð gagnvart IFC-skemanu í sams konar vinnsluferli, með sömu mörkum, og prófunin heldur henni aldrei aftur; skýrslan er aðeins lesin í gegnum aðild að verkefninu, og atvikaskráin fær fjölda athugasemda, aldrei skilaboð þeirra | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
+| Upphlaðin IFC-skrá er prófuð gagnvart IFC-skemanu og, þar sem þær eru settar upp, ifc-gherkin-rules frá buildingSMART í sams konar vinnsluferli, með sömu mörkum, og prófunin heldur henni aldrei aftur; skýrslan er aðeins lesin í gegnum aðild að verkefninu, og atvikaskráin fær fjölda athugasemda, aldrei skilaboð þeirra | OWASP ASVS 12.4, ASVS 7.1 | `test_ifc_validation`, `test_ifcgraph_service` |
+| Umhverfi reglna buildingSMART er aðeins búið til úr niðurhölum sem eru fest með SHA-256 og pökkum sem eru settir upp með tætigildum sínum, og safnfærslu sem myndi lenda utan möppu sinnar er hafnað; í myndinni á root það, og reglurnar keyra án stillinga og leyndarmála þjónsins | OWASP ASVS 14.2, ASVS 10.3 | `test_ifcgraph_gherkin` |
 | Umbreytingarbilanir skráðar á `IfcModel`-hnútinn og í atvikaskrá án innihalds skrárinnar | OWASP ASVS 7.1 | `test_ifcgraph` |
 
 ## Uppsetning og öryggisafrit (áfangi 8)
