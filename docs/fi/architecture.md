@@ -29,7 +29,7 @@ flowchart LR
 | Documents API | Lataus ja valinta selaimen sivuilla, versiot ja metatiedot | `opencde/documents/` |
 | Tilit | Käyttäjät, projektit, jäsenyydet ja roolit | `opencde/accounts/` |
 | Hallinta | Sivut ja API ylläpitäjille, terveystarkistukset ja pyyntöloki | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-graafi | Muuttaa ladatut mallit solmuiksi ja linkittää näkymien komponentit niihin | `opencde/ifcgraph/` |
+| IFC-LPG | Muuttaa ladatut mallit solmuiksi ja linkittää näkymien komponentit niihin | `opencde/ifcgraph/` |
 | Graafikerros | Ajuri, kaksi tietokantadialektia, skeema ja se, mikä vanhenee | `opencde/graph/` |
 | Sivut | Mallipohjat, tyylit, skriptit ja kieliluettelot | `opencde/ui/` |
 
@@ -57,7 +57,7 @@ flowchart LR
 | Käyttäjät, projektit, asiat, kommentit, näkymät, asiakirjojen metatiedot, asiakkaat ja tarkastusloki | Graafitietokanta | [Graafiskeema](graph-schema.md) |
 | Tokenit, koodit ja asiakassalaisuudet SHA-256-tiivisteinä; salasanat Argon2id-tiivisteinä | Graafitietokanta | [Turvallisuuskontrollit](security/controls.md) |
 | Ladatut tiedostot ja näkymien kuvat palvelimen valitsemilla nimillä | Tiedostotallennus kansiossa `OPENCDE_DATA_DIR` | [Documents API -kulut](flows/documents.md) |
-| Mallit solmuina ja suhteina | Graafitietokanta | [IFC-graafi](ifcgraph.md) |
+| Mallit solmuina ja suhteina | Graafitietokanta | [IFC-LPG](ifc-lpg.md) |
 | Palvelimen omat asetukset ja salaisuudet | `.env` tai `/run/secrets` | [Paikallinen testi](deploy/local.md) |
 
 ## Työ pyyntöjen ulkopuolella

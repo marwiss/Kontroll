@@ -6,7 +6,7 @@
 
 Kontroll er en server til buildingSMARTs **OpenCDE-API'er** (Foundation API
 1.0, BCF API 3.0 og 2.1 samt Documents API 1.0), bygget på en grafdatabase, med
-webadministration og et valgfrit IFC-grafmodul, der knytter BCF-komponenter
+webadministration og et valgfrit IFC-LPG-modul, der knytter BCF-komponenter
 til de bygningsdele, de peger på. Den voksede ud af en forskningsprototype
 fra 2023 til digitale kontrolplaner i svenske byggetilladelser og blev
 skrevet om fra bunden med sikkerhed som første krav.
@@ -102,7 +102,7 @@ databasekodeord, og intet er åbent, før det er konfigureret.
   Linux), eller Python 3.11 eller nyere med [uv](https://docs.astral.sh/uv/)
   og en egen Neo4j 5.26- eller Memgraph 3.14-database.
 - Omkring 1 GB hukommelse til databasecontaineren (`NEO4J_HEAP` og
-  `NEO4J_PAGECACHE` i `.env`), mere med IFC-grafmodulet.
+  `NEO4J_PAGECACHE` i `.env`), mere med IFC-LPG-modulet.
 - Lokalt: port 8000 til serveren og 7484/7697 til databasen, alle bundet til
   `127.0.0.1`. I produktion: portene 80 og 443 tilgængelige fra internettet og
   et DNS-navn til serveren.
@@ -131,13 +131,13 @@ databasekodeord, og intet er åbent, før det er konfigureret.
   kapabilitetsdokument på `/.well-known/kontroll`, der fortæller klienten,
   hvilke udvidelser der er slået til, en stabil `code` i hvert fejlsvar, en
   forespørgselslog til fejlsøgning af klienter (`/admin/requests`,
-  `GET /admin/api/requests` med scopet `admin`), og IFC-grafmodulet, der gør
+  `GET /admin/api/requests` med scopet `admin`), og IFC-LPG-modulet, der gør
   uploadede IFC-modeller til grafdata knyttet til BCF-komponenter.
 - **Et klientbibliotek** i Python ([client/](../../client/), LGPL) med
   kørbare eksempler, samt Dockerfile, compose-overlejringer og et udgivet
   image til hvert udrulningsscenarie.
 - **Status**: alle elleve etaper i planen er gennemført (de tre API'er,
-  administrationen, klientbiblioteket, udrulning, IFC-graf, accepttjeklisten
+  administrationen, klientbiblioteket, udrulning, IFC-LPG, accepttjeklisten
   og sikkerhedshærdningen); bidraget til IfcOpenShell er
   endnu ikke foreslået (udkast i [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) viser, hvad prototypen fra 2023
@@ -247,7 +247,7 @@ hvad de to projekter samordner, står i
 - [docs/da/glossary.md](glossary.md): de ord, dokumentationen bruger.
 - [docs/da/flows/](flows/): sekvensdiagrammer for OAuth2-, Documents API- og BCF-viewpoint-forløbene.
 - [docs/da/graph-schema.md](graph-schema.md): grafmodellen.
-- [docs/da/ifcgraph.md](ifcgraph.md): det valgfrie IFC-grafmodul og eksempler på Cypher-forespørgsler.
+- [docs/da/ifc-lpg.md](ifc-lpg.md): det valgfrie IFC-LPG-modul og eksempler på Cypher-forespørgsler.
 - [docs/da/ui-styleguide.md](ui-styleguide.md): regler for serverens sider og mærket.
 - [docs/acceptance.md](../acceptance.md): tjekliste til visuel accept med
   uafhængige klienter (Bonsai, ifc-lite, Dataspatium).
@@ -291,8 +291,8 @@ engelsk.
   har kodeordet. Porten forbliver lukket, medmindre administratoren bevidst
   offentliggør den; administrations-API'ets læsende grafforespørgsel
   (`OPENCDE_GRAPH_QUERY_ENABLED`) giver Cypher uden porten.
-- IFC-grafimporten kører i en separat proces med hukommelses- og tidsgrænser
-  (`OPENCDE_IFCGRAPH_*`); meget store modeller afvises i stedet for at blive
+- IFC-LPG-importen kører i en separat proces med hukommelses- og tidsgrænser
+  (`OPENCDE_IFC_LPG_*`); meget store modeller afvises i stedet for at blive
   efterladt halvt importeret.
 - Websiderne er til administratorer og til OAuth2- og Documents API-forløbene;
   slutbrugere arbejder i en klient som Dataspatium eller Bonsai.

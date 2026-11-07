@@ -163,4 +163,4 @@ erDiagram
 | `IfcModel` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
 | `IfcEntity` + luokkanimiöt | `id` (`<mallin tunnus>:<step-tunnus>`), indeksoitu `GlobalId`, `model_id` | `ifc_class`, `step_id`, jokainen literaali IFC-attribuutti nimellään | Entiteettien väliset suhteet nimetään IFC-attribuutin mukaan (eteen- ja käänteissuuntaan), kirjoitettuina kuten jokainen suhdetyyppi isoin kirjaimin ja alaviivoin: `IsDefinedBy` muuttuu `IS_DEFINED_BY`:ksi |
 
-Katso [ifcgraph.md](ifcgraph.md) muunnossäännöt ja esimerkkikyselyt.
+Katso [ifc-lpg.md](ifc-lpg.md) muunnossäännöt ja esimerkkikyselyt.

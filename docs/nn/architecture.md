@@ -29,7 +29,7 @@ flowchart LR
 | Documents API | Opplasting og utval via sider i nettlesaren, versjonar og metadata | `opencde/documents/` |
 | Kontoar | Brukarar, prosjekt, medlemskap og roller | `opencde/accounts/` |
 | Administrasjon | Sider og eit API for administratorar, helsesjekkar og førespurnadsloggen | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-graf | Gjer opplasta modellar til nodar og lenkjer viewpoint-komponentar til dei | `opencde/ifcgraph/` |
+| IFC-LPG | Gjer opplasta modellar til nodar og lenkjer viewpoint-komponentar til dei | `opencde/ifcgraph/` |
 | Graflaget | Drivaren, dei to databasedialektane, skjemaet og det som går ut | `opencde/graph/` |
 | Sider | Malar, stilar, skript og språkkatalogane | `opencde/ui/` |
 
@@ -56,7 +56,7 @@ flowchart LR
 | Brukarar, prosjekt, saker, kommentarar, viewpointar, dokumentmetadata, klientar og revisjonsloggen | Grafdatabasen | [Grafskjema](graph-schema.md) |
 | Token, kodar og klientløyndommar som SHA-256-hashar; passord som Argon2id-hashar | Grafdatabasen | [Tryggingskontrollar](security/controls.md) |
 | Opplasta filer og viewpoint-bilete, under namn serveren vel | Fillageret i `OPENCDE_DATA_DIR` | [Documents API-flytar](flows/documents.md) |
-| Modellar som nodar og relasjonar | Grafdatabasen | [IFC-graf](ifcgraph.md) |
+| Modellar som nodar og relasjonar | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
 | Dei eigne innstillingane og løyndommane til serveren | `.env` eller `/run/secrets` | [Lokal test](deploy/local.md) |
 
 ## Arbeid utanfor førespurnadene

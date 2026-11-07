@@ -40,7 +40,7 @@ bara bokstäver och siffror.
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
 OPENCDE_REQUEST_LOG_ENABLED=true
-OPENCDE_IFCGRAPH_ENABLED=true
+OPENCDE_IFC_LPG_ENABLED=true
 ```
 
 | Rad | Vad den gör | Utan den |
@@ -48,7 +48,7 @@ OPENCDE_IFCGRAPH_ENABLED=true
 | `OPENCDE_GRAPH_PASSWORD` | Lösenordet till grafdatabasen | Kortare än 16 tecken: databasen startar inte |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Låter Dataspatium registrera sig själv hos servern | Steg 3 stannar, och appen frågar efter ett klient-id |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Sparar appens anrop | Begärandeloggen i steg 5 förblir tom |
-| `OPENCDE_IFCGRAPH_ENABLED` | Gör uppladdade modeller till en graf | Ingen graf i steg 5 |
+| `OPENCDE_IFC_LPG_ENABLED` | Gör uppladdade modeller till en graf | Ingen graf i steg 5 |
 
 Inställningarna är till för att prova Kontroll på din egen dator, inte för en
 server som andra använder.
@@ -142,7 +142,7 @@ Inloggad som `admin`, öppna <http://127.0.0.1:8000/admin>:
   som kortet *Logg* längst ned i källans vy i *Inhämta*, så att ett misslyckat anrop
   kan hittas på båda sidor.
 
-Exempelmodellen är redan en graf, eftersom `OPENCDE_IFCGRAPH_ENABLED=true` fanns i
+Exempelmodellen är redan en graf, eftersom `OPENCDE_IFC_LPG_ENABLED=true` fanns i
 `.env` när du körde `opencde seed`. Neo4j Browser på <http://127.0.0.1:7484> (anslut
 till `bolt://127.0.0.1:7697` som `neo4j` med lösenordet från `.env`) svarar på den här
 frågan med väggen kopplad till viewpointens komponent:

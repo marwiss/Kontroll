@@ -160,4 +160,4 @@ erDiagram
 | `IfcModel` | `id`, indeksert `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, tidsstempler | Én per importert fil; `state` er `queued`, `running`, `done` eller `failed` |
 | `IfcEntity` + klasseetiketter | `id` (`<modell-id>:<step-id>`), indeksert `GlobalId`, `model_id` | `ifc_class`, `step_id`, hvert literalt IFC-attributt ved navn | Relasjoner mellom entiteter navngis etter IFC-attributtet (forover og inverst), skrevet som enhver relasjonstype med store bokstaver og understreker: `IsDefinedBy` blir `IS_DEFINED_BY` |
 
-Se [ifcgraph.md](ifcgraph.md) for konverteringsreglene og eksempelspørringer.
+Se [ifc-lpg.md](ifc-lpg.md) for konverteringsreglene og eksempelspørringer.

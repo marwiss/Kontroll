@@ -1,16 +1,20 @@
-# IFC-graf
+# IFC-LPG
 
-Det valgfrie IFC-grafmodul gør en uploadet IFC-model til grafdata, så
+Det valgfrie IFC-LPG-modul gør en uploadet IFC-model til grafdata, så
 komponenterne i et BCF-viewpoint kan knyttes til de bygningsdele, de peger
 på, og så spørgsmål om modellen kan stilles i Cypher ved siden af sagerne og
 dokumenterne.
 
-Slå det til med `OPENCDE_IFCGRAPH_ENABLED=true`, og installér ekstrapakken
-`ifcgraph` (`uv sync --extra ifcgraph`). Docker-imaget indeholder ekstrapakken
+Slå det til med `OPENCDE_IFC_LPG_ENABLED=true`, og installér ekstrapakken
+`ifc-lpg` (`uv sync --extra ifc-lpg`). Docker-imaget indeholder ekstrapakken
 som standard (`ARG OPENCDE_EXTRAS` i Dockerfile), hvilket mere end fordobler
 dets størrelse (omkring 680 MB mod 300 MB); byg med
 `--build-arg OPENCDE_EXTRAS=` for et slankere image uden IfcOpenShell, når
 modulet forbliver slået fra.
+
+Før 2.0.2 hed modulet IFC-graph. Dets indstillinger hed `OPENCDE_IFCGRAPH_*` og
+kommandoen `opencde ifcgraph`, og begge virker stadig; serverens log og `opencde
+doctor` nævner de gamle indstillinger, den får.
 
 ## Hvad der sker ved upload
 
@@ -21,9 +25,9 @@ modulet forbliver slået fra.
    projektet og starter en konvertering i baggrunden, én ad gangen.
 3. En separat arbejdsproces (`python -m opencde.ifcgraph.worker`) parser
    filen med IfcOpenShell. Den kører med en tidsgrænse
-   (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minutter), en adresserumsgrænse på
-   POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) og et loft over antallet af
-   entiteter (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Et nedbrud eller en hængning
+   (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minutter), en adresserumsgrænse på
+   POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) og et loft over antallet af
+   entiteter (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Et nedbrud eller en hængning
    dræber arbejdsprocessen, ikke serveren. `.ifczip` pakkes ud med uploadens
    størrelsesgrænse.
 4. Posterne importeres i batches af `UNWIND … CREATE` (portabel Cypher, ingen
@@ -55,7 +59,7 @@ Inverse attributter bliver også relationer, så begge retninger læses
 naturligt: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-værdier pakkes ud (`IfcLabel('3')` bliver `"3"`).
 
-Udeladt som standard (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Udeladt som standard (`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=false`):
 repræsentationselementer, repræsentationer, profiler, placeringer og
 stilarter; de udgør det meste af en model og er sjældent det, en
 CDE-forespørgsel har brug for. `IfcOwnerHistory` beholdes kun for
@@ -99,10 +103,10 @@ Kommandolinjen lister og fjerner dem; dokumenterne og deres filer bliver
 altid:
 
 ```sh
-uv run opencde ifcgraph list --project <projekt-id>
-uv run opencde ifcgraph prune                   # fejlede modeller, og færdige modeller erstattet af en nyere
+uv run opencde ifc-lpg list --project <projekt-id>
+uv run opencde ifc-lpg prune                   # fejlede modeller, og færdige modeller erstattet af en nyere
                                                 # færdig version af samme dokument
-uv run opencde ifcgraph prune --project <id> --all   # hver model i ét projekt (en teststak, for eksempel)
+uv run opencde ifc-lpg prune --project <id> --all   # hver model i ét projekt (en teststak, for eksempel)
 ```
 
 Modeller i kø og under kørsel fjernes aldrig. Forespørgsler, der vil have én
@@ -126,8 +130,8 @@ en `SAME_AS`-relation til den. Den samme kobling kører for hver eksisterende
 komponent i projektet, når en model er færdigimporteret, så viewpoints
 oprettet, før modellen blev uploadet, eller mens den stadig blev konverteret,
 kobles også. Hvis bygningsdelen bærer den konfigurerede egenskab
-(`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`), kopieres dens værdi til komponenten
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
+`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), kopieres dens værdi til komponenten
 som `gtin`. Det er anvendelsen fra forskningsrapporten fra 2023: en kontrol
 (BCF-sag), der peger på byggeprodukter identificeret med GTIN.
 
@@ -168,7 +172,7 @@ produktionsserver offentliggør ikke Bolt; administrations-API'ets
 grafforespørgsel (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) giver administratorer læsende Cypher
 uden porten. Appen tegner også grafen, i sit
-kort IFC-graf, gennem den forespørgsel eller over Bolt.
+kort IFC-LPG, gennem den forespørgsel eller over Bolt.
 
 ## Grænser og status
 

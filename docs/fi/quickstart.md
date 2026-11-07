@@ -41,7 +41,7 @@ numeroita.
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
 OPENCDE_REQUEST_LOG_ENABLED=true
-OPENCDE_IFCGRAPH_ENABLED=true
+OPENCDE_IFC_LPG_ENABLED=true
 ```
 
 | Rivi | Mitä se tekee | Ilman sitä |
@@ -49,7 +49,7 @@ OPENCDE_IFCGRAPH_ENABLED=true
 | `OPENCDE_GRAPH_PASSWORD` | Graafitietokannan salasana | Alle 16 merkkiä: tietokanta ei käynnisty |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Antaa Dataspatiumin rekisteröityä itse palvelimelle | Vaihe 3 pysähtyy, ja sovellus pyytää asiakastunnusta |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Tallentaa sovelluksen kutsut | Vaiheen 5 pyyntöloki pysyy tyhjänä |
-| `OPENCDE_IFCGRAPH_ENABLED` | Tekee ladatuista malleista graafin | Vaiheessa 5 ei ole graafia |
+| `OPENCDE_IFC_LPG_ENABLED` | Tekee ladatuista malleista graafin | Vaiheessa 5 ei ole graafia |
 
 Asetukset on tarkoitettu Kontrollin kokeiluun omalla koneella, ei palvelimelle, jota
 muut käyttävät.
@@ -143,7 +143,7 @@ Käyttäjänä `admin` kirjautuneena avaa <http://127.0.0.1:8000/admin>:
   `X-Request-ID`-arvoilla kuin kortti *Loki* lähteen näkymän alareunassa tilassa *Nouda*,
   joten epäonnistunut kutsu löytyy molemmilta puolilta.
 
-Esimerkkimalli on jo graafi, koska `OPENCDE_IFCGRAPH_ENABLED=true` oli tiedostossa
+Esimerkkimalli on jo graafi, koska `OPENCDE_IFC_LPG_ENABLED=true` oli tiedostossa
 `.env`, kun ajoit komennon `opencde seed`. Neo4j Browser osoitteessa
 <http://127.0.0.1:7484> (yhdistä osoitteeseen `bolt://127.0.0.1:7697` käyttäjänä `neo4j`
 ja tiedoston `.env` salasanalla) vastaa tähän kyselyyn seinällä, joka on linkitetty

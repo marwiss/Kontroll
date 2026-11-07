@@ -156,7 +156,7 @@ The prototype had no 2.1. Everything below is new, under `/bcf/2.1`, on the same
 
 The prototype's conversion is the code published with Zhu, Wu and Lei, "IFC-graph for facilitating building
 information access and query", Automation in Construction 148 (2023), 104778, with some changes. The rewrite
-keeps its mapping and writes it anew; [ifcgraph.md](ifcgraph.md) says where it differs.
+keeps its mapping and writes it anew; [ifc-lpg.md](ifc-lpg.md) says where it differs.
 
 | Prototype | Status | Stage |
 |---|---|---|
