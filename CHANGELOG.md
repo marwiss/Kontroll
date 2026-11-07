@@ -11,6 +11,10 @@ the commit history.
 
 Toward 3.0.0, with Dataspatium.
 
+- A server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
+  without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
+  The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
+  API that is not offered answers 404. All three are offered by default.
 - The IFC-graph module is now IFC-LPG, as in 2.0.0: its settings are `OPENCDE_IFC_LPG_*`, its command
   `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
   `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, and the log and `opencde doctor` name the old

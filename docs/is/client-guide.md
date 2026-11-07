@@ -22,6 +22,12 @@ sig inn:
 }
 ```
 
+Hægt er að stilla þjón svo að hann bjóði aðeins sum þeirra (`OPENCDE_APIS`). Þá
+innihalda listarnir aðeins það sem hann býður, og forritaskil sem hann býður
+ekki svara 404. Þjónn sem býður aðeins BCF API 2.1 hefur ekkert Foundation API:
+biðlari finnur hann með `GET /bcf/versions` og skráir sig inn með `GET
+/bcf/2.1/auth`. Skjalaþjónn býður Foundation API og Documents API en ekkert BCF.
+
 ### Getuskjalið (viðbót)
 
 Umfram forskriftirnar segir `GET /.well-known/kontroll` (engin auðkenning,

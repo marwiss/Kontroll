@@ -21,6 +21,12 @@ Python-biblioteket i [client/](../../client/) gør alt dette; eksemplerne i
 }
 ```
 
+En server kan indstilles til kun at tilbyde nogle af dem (`OPENCDE_APIS`). Så
+indeholder listerne kun det, den tilbyder, og et API, den ikke tilbyder, svarer
+404. En server til BCF API 2.1 alene har intet Foundation API: en klient finder
+den gennem `GET /bcf/versions` og logger ind gennem `GET /bcf/2.1/auth`. En
+dokumentserver tilbyder Foundation API og Documents API, men ingen BCF.
+
 ### Kapabilitetsdokumentet (udvidelse)
 
 Ud over specifikationerne fortæller `GET /.well-known/kontroll` (ingen
