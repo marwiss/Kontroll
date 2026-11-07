@@ -29,21 +29,22 @@ Toward 3.0.0, with Dataspatium.
   off.
 - `python -m opencde.ifcgraph.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
 - `GET /admin/api/settings` has `ifcgraph.lossless` and `ifcgraph.validate_uploads`.
-- Deleting a project now deletes all the entities of its IFC models. Those more than a few steps from the project stayed
-  behind before, though the documentation said otherwise.
-- Deleting a project deletes only what the project owns. It followed every relationship from the project, so it also
-  deleted each user who had created a topic, comment or viewpoint or uploaded a document in it, then the other projects
-  those users were members of, and the topics and documents directly in those. The administration's list of files to
-  remove followed the same paths, so it could delete files of other projects. Version 2.0.0 has this fault.
-  `DELETE /admin/api/projects/{id}` now also frees the project's stored files, as the administration's page did.
 
-## 2.0.0 — 2026-11-07
+## 2.0.1 — 2026-11-07
 
-The single release of the 2 series: everything in it, up to and including 2.7.0, in one
-release numbered 2.0.0, on the branch `release-2`. No history is rewritten: the commits stay,
-and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also speaks
-BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
+The single release of the 2 series: 2.0.0 with the deletion of a project put right, and with
+it everything up to and including 2.7.0, on the branch `release-2`. 2.0.0 is withdrawn under the
+rule above, together with Dataspatium 2.0.0. No history is rewritten: the commits stay, and only
+the earlier releases and tags went. Works with Dataspatium 2.0.1, which also speaks BCF API 2.1,
+so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
+- Deleting a project deletes only what the project owns. In 2.0.0 it followed every relationship from the project,
+  so it also deleted each user who had created a topic, comment or viewpoint or uploaded a document in it, then the
+  other projects those users were members of, and the topics and documents directly in those. The administration's
+  list of files to remove followed the same paths, so it could delete files of other projects.
+- Deleting a project deletes all the entities of its IFC models. Those more than a few steps from the project stayed
+  behind before.
+- `DELETE /admin/api/projects/{id}` frees the project's stored files, as the administration's page did.
 - BCF API 2.1 is served next to 3.0, under `/bcf/2.1`, on the same data, so that a client that implements only
   2.1 can connect. `GET /foundation/versions` and `GET /bcf/versions` list both versions, the newest first.
   A topic made through one version can be read and changed through the other; the client guide says what differs.
