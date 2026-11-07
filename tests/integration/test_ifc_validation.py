@@ -129,6 +129,34 @@ def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tupl
     assert download.json() == body
 
 
+def test_an_upload_is_checked_against_the_projects_ids_documents(ifc_client: tuple[TestClient, World]) -> None:
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    ids = upload(client, world, editor, "walls.ids", (FIXTURES_DIR / "walls.ids").read_bytes())
+    broken = upload(client, world, editor, "broken.ids", b'<?xml version="1.0"?><!DOCTYPE ids [<!ENTITY x "y">]><ids/>')
+    model = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+
+    entries = checked(client, editor, model)
+    assert entries["ifc_validation_status"] == ["issues"], "a specification the walls fail is an error"
+    assert any(ruleset.startswith("IfcTester ") for ruleset in entries["ifc_validation_ruleset"])
+    body = client.get(entries["ifc_validation_report"][0], headers=editor.headers).json()
+    (check,) = [check for check in body["checks"] if check["name"] == "ids"]
+    assert {document["document_id"] for document in check["documents"]} == {ids["document_id"], broken["document_id"]}
+    assert [entry["document_id"] for entry in check["rules_not_run"]] == [broken["document_id"]]
+    assert "DTD" in check["rules_not_run"][0]["error"]
+    verdicts = {spec["name"]: spec["status"] for spec in check["specifications"]}
+    assert verdicts["Walls carry a GTIN"] == "passed" and verdicts["Walls have a fire rating"] == "failed"
+    assert verdicts["The model has a door"] == "failed"
+    found = [issue for issue in body["issues"] if issue["kind"] == "ids"]
+    assert found and {issue["document_id"] for issue in found} == {ids["document_id"]}
+    assert {issue["global_id"] for issue in found} >= set(WALLS), "every wall lacks a fire rating"
+
+    page = client.get(model["links"]["document_details"]["url"], headers={"Accept-Language": "en"})
+    assert page.status_code == 200 and "IDS check" in page.text and "Walls have a fire rating" in page.text
+    assert "The IDS document broken.ids could not be read" in page.text
+
+
 @pytest.mark.skipif(not GHERKIN_ENV, reason="OPENCDE_TEST_GHERKIN_ENV names no environment for ifc-gherkin-rules")
 def test_the_gherkin_rules_add_their_findings(graph_target: GraphTarget, clean_database: None, tmp_path: Any) -> None:
     settings = settings_for(graph_target, tmp_path, ifcgraph_gherkin_env=GHERKIN_ENV)

@@ -7,14 +7,17 @@ then converts in the background: the file is handed to the worker process
 imported, and the node ends in state ``done`` or ``failed`` with counts or an
 error. A file uploaded as a document version is also checked against the IFC
 schema (``validation.py``), with the result on an ``IfcValidation`` node below
-the version, which the Documents API shows (ADR 0011). One job runs at a time,
-the check of a file before its conversion.
+the version, which the Documents API shows (ADR 0011), against buildingSMART's
+rules where they are installed (ADR 0012), and against the IDS documents of its
+project (ADR 0015). One job runs at a time, the check of a file before its
+conversion.
 """
 
 from __future__ import annotations
 
 import asyncio
 import contextlib
+import importlib.metadata
 import json
 import sys
 import tempfile
@@ -43,6 +46,18 @@ STATE_RUNNING = "running"
 STATE_DONE = "done"
 STATE_FAILED = "failed"
 IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
+IDS_SUFFIX = ".ids"
+# The IDS documents of one project an upload is checked against, and the specifications its report keeps (ADR 0015).
+MAX_IDS_DOCUMENTS = 50
+MAX_SPECIFICATIONS = 1_000
+
+
+def _ids_ruleset() -> str:
+    """What checks against IDS, also when the check could not be run."""
+    try:
+        return f"IfcTester {importlib.metadata.version('ifctester')}: IDS 1.0"
+    except importlib.metadata.PackageNotFoundError:
+        return "IfcTester: IDS 1.0"
 
 
 def _ruleset_of(env: Path) -> str:
@@ -298,6 +313,7 @@ class IfcGraphService:
                     ]
                     report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
                     gherkin = await self._gherkin(source)
+                    ids = await self._ids(source, await self._ids_documents(validation_id))
             except Exception as exc:
                 log.warning("ifc_validation_failed", validation_id=validation_id, error=type(exc).__name__)
                 await self._set_validation(
@@ -316,12 +332,14 @@ class IfcGraphService:
             total = int(report["issue_count"])
             errors = int(report.get("error_count", total))
             truncated = bool(report["truncated"])
-            if gherkin is not None:
-                checks.append(gherkin["check"])
-                issues += gherkin["issues"]
-                total += int(gherkin["check"]["issue_count"])
-                errors += int(gherkin["error_count"])
-                truncated = truncated or bool(gherkin["truncated"])
+            for other in (gherkin, ids):
+                if other is None:
+                    continue
+                checks.append(other["check"])
+                issues += other["issues"]
+                total += int(other["check"]["issue_count"])
+                errors += int(other["error_count"])
+                truncated = truncated or bool(other["truncated"])
             if len(issues) > MAX_REPORTED:
                 issues, truncated = issues[:MAX_REPORTED], True
             await self._set_validation(
@@ -382,6 +400,81 @@ class IfcGraphService:
                 "rules_not_run": report["rules_not_run"],
             },
             "issues": report["issues"],
+            "error_count": int(report["error_count"]),
+            "truncated": bool(report["truncated"]),
+        }
+
+    async def _ids_documents(self, validation_id: str) -> list[dict[str, Any]]:
+        """The latest version of every IDS document in the project of the version being checked (ADR 0015)."""
+        return await self.graph.run(
+            """
+            MATCH (:IfcValidation {id: $id})<-[:HAS_VALIDATION]-(:DocumentVersion)<-[:HAS_VERSION]-(:Document)
+                  <-[:HAS_DOCUMENT]-(p:Project)
+            MATCH (p)-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
+            WITH d, v ORDER BY v.version_index DESC
+            WITH d, collect(v)[0] AS v
+            WHERE toLower(v.file_name) ENDS WITH $suffix
+            RETURN d.document_id AS document_id, v.version_index AS version_index, d.title AS title,
+                   v.storage_key AS storage_key
+            ORDER BY document_id
+            LIMIT $limit
+            """,
+            id=validation_id,
+            suffix=IDS_SUFFIX,
+            limit=MAX_IDS_DOCUMENTS,
+        )
+
+    async def _ids(self, source: Path, documents: list[dict[str, Any]]) -> dict[str, Any] | None:
+        """The file against the project's IDS documents, with IFC-LPG's check (ADR 0015). None when there are none.
+
+        The worker gets the documents' files by their storage paths, which the server made; each finding is tied back
+        to its document by the position the worker reports.
+        """
+        if not documents:
+            return None
+        listed = [
+            {"document_id": d["document_id"], "version_index": int(d["version_index"]), "title": d["title"]}
+            for d in documents
+        ]
+        paths = [str(self.storage.path(document["storage_key"])) for document in documents]
+        memory = str(self.settings.ifcgraph_memory_mb)
+        command = [sys.executable, "-m", "ifc_lpg.ids", "--memory-mb", memory, "--", str(source), *paths]
+        try:
+            report = json.loads(await self._in_a_process(command, "the IDS check", answers=(0, 1)))
+        except Exception as exc:
+            log.warning("ifc_ids_failed", error=type(exc).__name__)
+            check = {"name": "ids", "state": STATE_FAILED, "ruleset": _ids_ruleset(), "issue_count": 0}
+            return {"check": {**check, "documents": listed}, "issues": [], "error_count": 0, "truncated": False}
+
+        def document_of(entry: dict[str, Any]) -> str:
+            return str(listed[int(entry["ids"])]["document_id"])
+
+        def without(entry: dict[str, Any], *keys: str) -> dict[str, Any]:
+            return {key: value for key, value in entry.items() if key not in keys}
+
+        not_run = [
+            {
+                "rule": str(listed[int(entry["ids"])]["title"] or document_of(entry)),
+                "error": str(entry["error"]),
+                "document_id": document_of(entry),
+            }
+            for entry in report["rules_not_run"]
+        ]
+        specifications = [
+            {**without(spec, "ids", "title"), "document_id": document_of(spec)}
+            for spec in report["specifications"][:MAX_SPECIFICATIONS]
+        ]
+        return {
+            "check": {
+                "name": "ids",
+                "state": STATE_DONE,
+                "ruleset": str(report["ruleset"]),
+                "issue_count": int(report["issue_count"]),
+                "rules_not_run": not_run,
+                "documents": listed,
+                "specifications": specifications,
+            },
+            "issues": [{**without(issue, "ids"), "document_id": document_of(issue)} for issue in report["issues"]],
             "error_count": int(report["error_count"]),
             "truncated": bool(report["truncated"]),
         }

@@ -178,6 +178,116 @@ async def test_rules_that_are_configured_but_not_installed_are_left_out(
     assert [check["name"] for check in json.loads(graph.writes[-1][1]["fields"]["checks"])] == ["schema"]
 
 
+IDS_DOCUMENTS = [
+    {"document_id": "ids-a", "version_index": 2, "title": "Walls for reuse", "storage_key": "documents/ids-a-2"},
+    {"document_id": "ids-b", "version_index": 1, "title": "Broken", "storage_key": "documents/ids-b-1"},
+]
+IDS_FOUND = {
+    "kind": "ids",
+    "rule": "Walls have a fire rating",
+    "severity": "error",
+    "message": f"Walls have a fire rating: {LINE}",
+    "step_id": 9,
+    "global_id": "0KhR8hr7H8eewFRKm6V1bJ",
+    "attribute": None,
+    "ids": 0,
+}
+IDS_SPECIFICATION = {
+    "ids": 0,
+    "title": "the IDS's own title",
+    "name": "Walls have a fire rating",
+    "identifier": None,
+    "usage": "optional",
+    "ifc_versions": ["IFC4"],
+    "for_this_schema": True,
+    "status": "failed",
+    "applicable": 3,
+    "issues": 1,
+}
+
+
+def with_ids_documents(service: IfcGraphService, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def documents(validation_id: str) -> list[dict[str, Any]]:
+        return IDS_DOCUMENTS
+
+    monkeypatch.setattr(service, "_ids_documents", documents)
+
+
+async def test_the_projects_ids_documents_join_the_report(
+    tmp_path: Path, checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    with_ids_documents(service, monkeypatch)
+    commands: list[list[str]] = []
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        commands.append(command)
+        if command[2] == "ifc_lpg.ids":
+            assert answers == (0, 1), "a specification that fails is an answer, not a failure"
+            return json.dumps(
+                {
+                    "ruleset": "IfcTester 0.9.0: IDS 1.0",
+                    "issue_count": 1,
+                    "error_count": 1,
+                    "truncated": False,
+                    "issues": [IDS_FOUND],
+                    "rules_not_run": [{"rule": "IDS 2", "ids": 1, "error": "it has a DTD or an entity"}],
+                    "specifications": [IDS_SPECIFICATION],
+                }
+            )
+        return json.dumps(SCHEMA_ANSWER)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-7", "documents/x", "model.ifc")
+
+    (ids_command,) = [command for command in commands if command[2] == "ifc_lpg.ids"]
+    stored_files = [str(service.storage.path(document["storage_key"])) for document in IDS_DOCUMENTS]
+    assert ids_command[ids_command.index("--") + 1 :] == [str(tmp_path / "model.ifc"), *stored_files], (
+        "the worker gets the paths the server made, and nothing of a document's name"
+    )
+    fields = graph.writes[-1][1]["fields"]
+    assert fields["issue_count"] == 2 and fields["error_count"] == 2
+    assert fields["ruleset"] == "IfcOpenShell 0.9.0 (IFC4); IfcTester 0.9.0: IDS 1.0"
+    ids = json.loads(fields["checks"])[1]
+    assert (ids["name"], ids["state"], ids["issue_count"]) == ("ids", "done", 1)
+    assert ids["documents"] == [
+        {"document_id": "ids-a", "version_index": 2, "title": "Walls for reuse"},
+        {"document_id": "ids-b", "version_index": 1, "title": "Broken"},
+    ]
+    assert ids["rules_not_run"] == [{"rule": "Broken", "error": "it has a DTD or an entity", "document_id": "ids-b"}]
+    expected = {key: value for key, value in IDS_SPECIFICATION.items() if key not in ("ids", "title")}
+    assert ids["specifications"] == [{**expected, "document_id": "ids-a"}]
+    stored = unpack_report(fields["report"])[1]
+    assert stored["document_id"] == "ids-a" and "ids" not in stored and stored["kind"] == "ids"
+    assert log.events == [("ifc_validation_done", {"validation_id": "check-7", "issues": 2})]
+
+
+async def test_when_the_ids_check_cannot_run_the_others_stand(
+    checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    with_ids_documents(service, monkeypatch)
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        if command[2] == "ifc_lpg.ids":
+            raise RuntimeError(f"IfcTester stopped at {LINE}")
+        return json.dumps(SCHEMA_ANSWER)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-8", "documents/x", "model.ifc")
+
+    fields = graph.writes[-1][1]["fields"]
+    assert graph.writes[-1][1]["state"] == "done" and fields["issue_count"] == 1
+    assert fields["ruleset"] == "IfcOpenShell 0.9.0 (IFC4)", "only the checks that ran"
+    ids = json.loads(fields["checks"])[1]
+    assert (ids["name"], ids["state"], ids["issue_count"]) == ("ids", "failed", 0)
+    assert ids["ruleset"].startswith("IfcTester") and [d["document_id"] for d in ids["documents"]] == ["ids-a", "ids-b"]
+    assert log.events == [
+        ("ifc_ids_failed", {"error": "RuntimeError"}),
+        ("ifc_validation_done", {"validation_id": "check-8", "issues": 1}),
+    ]
+
+
 async def test_a_check_another_process_has_taken_is_left_alone(
     checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file was generated with the assistance of an AI coding tool. -->
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>Walls for reuse</title>
+  </info>
+  <specifications>
+    <specification name="Walls carry a GTIN" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWALL</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL">
+          <propertySet><simpleValue>Reuse</simpleValue></propertySet>
+          <baseName><simpleValue>GTIN</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Walls have a fire rating" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWALL</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL">
+          <propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet>
+          <baseName><simpleValue>FireRating</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="The model has a door" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCDOOR</simpleValue></name></entity>
+      </applicability>
+    </specification>
+    <specification name="Only for IFC4X3" ifcVersion="IFC4X3_ADD2">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWALL</simpleValue></name></entity>
+      </applicability>
+    </specification>
+  </specifications>
+</ids>

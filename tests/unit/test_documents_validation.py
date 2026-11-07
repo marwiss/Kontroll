@@ -101,5 +101,55 @@ def test_the_report_tells_each_check_apart_with_the_rules_it_could_not_run() -> 
     checked = Validation(state="done", issue_count=1, ruleset=RULES, checks=[SCHEMA_CHECK, rules], issues=[issue])
     body = report(checked).model_dump(mode="json")
     assert [check["name"] for check in body["checks"]] == ["schema", "gherkin"]
-    assert body["checks"][1]["rules_not_run"] == not_run and body["checks"][0]["rules_not_run"] == []
+    assert body["checks"][1]["rules_not_run"] == [{**not_run[0], "document_id": None}]
+    assert body["checks"][0]["rules_not_run"] == [] and body["checks"][0]["specifications"] == []
     assert body["issues"][0]["rule"] == "IFC106"
+
+
+IDS_CHECK = {
+    "name": "ids",
+    "state": "done",
+    "ruleset": "IfcTester 0.9.0: IDS 1.0",
+    "issue_count": 1,
+    "rules_not_run": [{"rule": "Broken", "error": "it has a DTD or an entity", "document_id": "ids-b"}],
+    "documents": [
+        {"document_id": "ids-a", "version_index": 2, "title": "Walls for reuse"},
+        {"document_id": "ids-b", "version_index": 1, "title": "Broken"},
+    ],
+    "specifications": [
+        {
+            "document_id": "ids-a",
+            "name": "Walls have a fire rating",
+            "identifier": "W-1",
+            "usage": "optional",
+            "ifc_versions": ["IFC4"],
+            "for_this_schema": False,
+            "status": "failed",
+            "applicable": 3,
+            "issues": 1,
+        }
+    ],
+}
+
+
+def test_the_report_carries_the_ids_check_and_ties_each_finding_to_its_document() -> None:
+    issue = {
+        "kind": "ids",
+        "rule": "W-1",
+        "severity": "error",
+        "message": "Walls have a fire rating: FireRating data shall be provided in the dataset Pset_WallCommon",
+        "step_id": 242,
+        "global_id": "1Xezbq735AdBO_4DerG66G",
+        "attribute": None,
+        "document_id": "ids-a",
+    }
+    checked = Validation(state="done", issue_count=1, error_count=1, checks=[SCHEMA_CHECK, IDS_CHECK], issues=[issue])
+    body = report(checked).model_dump(mode="json")
+    assert body["status"] == "issues", "an IDS finding is an error"
+    assert body["checks"][1]["specifications"][0]["status"] == "failed"
+    assert body["checks"][1]["documents"][1]["title"] == "Broken"
+    assert body["issues"][0]["document_id"] == "ids-a"
+    assert checked.rules_not_run == [], "an IDS document that could not be read is no rule that did not run"
+    assert checked.ids_not_read == IDS_CHECK["rules_not_run"]
+    assert checked.ids_specifications[0]["document_title"] == "Walls for reuse"
+    assert "IfcTester 0.9.0: IDS 1.0" in checked.rulesets
