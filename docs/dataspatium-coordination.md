@@ -273,6 +273,10 @@ reasoning is in [ADR 0008](adr/0008-bcf-api-2-1-next-to-3-0.md). This is what th
 | Events | The same addresses, without the `stage_*` types and with `reply_to_comment_updated` and `reply_to_comment_removed`. An event with no action left in a version is not listed in it, so the counts can differ between the versions |
 | Errors | The same body and codes as 3.0 |
 
+A client may also do what Dataspatium does from 2.7.0, and the server takes it: fall back to `GET /bcf/versions` when
+`/foundation/versions` gives no readable answer at all, not only on a 404, since a server may have CORS headers on its APIs
+alone; sign in without a `scope`, which gives the default scopes; and take the address from `api_base_url`.
+
 Outside 2.1 itself, `GET /.well-known/kontroll` has `bcf_versions: ["3.0", "2.1"]`, and `apis.bcf` goes on saying `3.0`.
 The administration API's clients have `pkce_optional`, in its answers and in `POST` and `PATCH /admin/api/clients`.
 

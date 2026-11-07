@@ -161,11 +161,12 @@ Neo4j-kilden sin over Bolt (WebSocket på Bolt-porten) når operatøren
 eksponerer databasen, slik utviklingsoverlegget gjør på `127.0.0.1:7697`.
 Kontroll-arbeidsområdet dets bruker mønstrene ovenfor (modeller, klasser,
 komponenter via `SAME_AS`, den siste ferdige modellen per dokument);
-spørringene ligger i Dataspatiums dokumentasjon (`docs/cad-bim.md`), og
+spørringene ligger i Dataspatiums dokumentasjon (`docs/grafer.md`), og
 live-kjøringene er listet i [acceptance.md](../acceptance.md). En
 produksjonsserver publiserer ikke Bolt; administrasjons-API-ets grafspørring
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gir
-administratorer lesende Cypher uten porten.
+administratorer lesende Cypher uten porten. Fra versjon 2.7.0 tegner appen også
+grafen, i kortet IFC-graf, gjennom den spørringen eller over Bolt.
 
 ## Grenser og status
 
