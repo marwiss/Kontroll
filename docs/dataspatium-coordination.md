@@ -81,6 +81,21 @@ protected properties refused and kept out of answers, every call audited. The
 answer is tabular, and Dataspatium builds graphs from tables itself.
 `docs/client-guide.md` §7.
 
+### The form of the IFC graph
+
+From 3.0.0 a model is converted so that the file can be written back (ADR 0010). The nodes, relationships and values of
+the earlier form are all there, so queries written for it keep working. Added to them:
+
+- `position` on the relationships of forward attributes, an integer or `[row, column]`. Inverse relationships have none.
+- `<attribute>__type` beside a typed value, such as `NominalValue__type: "IFCLABEL"`.
+- `<attribute>__step` for a reference to what is no node, such as `Representation__step: 1234`.
+- JSON text in a property for a list of lists, and tagged JSON with `$json` in `<attribute>__type` for what has no plain form.
+- `IfcModel.lossless` and `IfcModel.ifc_header`.
+- `(:IfcModel)-[:HAS_STEP_BLOCK]->(:StepBlock)`, whose `text` is up to about 100 KB. A query that returns any node whole, or
+  walks everything hanging off a model, should leave it out.
+
+Anything that lists a node's properties sees these. `OPENCDE_IFCGRAPH_LOSSLESS=false` gives the earlier form.
+
 ## Languages and glossary
 
 Both projects exist in seven languages, with Norwegian in both Bokmål and

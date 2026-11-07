@@ -19,8 +19,8 @@ när modulen förblir avstängd.
    `.ifczip`-namn.
 2. Servern skapar en `IfcModel`-nod (tillstånd `queued`) kopplad till
    projektet och startar en konvertering i bakgrunden, en i taget.
-3. En separat arbetsprocess (`python -m opencde.ifcgraph.worker`) tolkar
-   filen med IfcOpenShell. Den körs med en tidsgräns
+3. En separat arbetsprocess (`python -m opencde.ifcgraph.worker`) läser
+   filen. Den körs med en tidsgräns
    (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minuter), en adressrymdsgräns på
    POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) och ett tak för antalet
    entiteter (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). En krasch eller en hängning
@@ -55,10 +55,11 @@ Inversa attribut blir också relationer, så att båda riktningarna läses
 naturligt: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-värden packas upp (`IfcLabel('3')` blir `"3"`).
 
-Utelämnas som standard (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Inga noder som standard (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
 representationsobjekt, representationer, profiler, placeringar och stilar; de
-utgör merparten av en modell och är sällan vad en CDE-fråga behöver.
-`IfcOwnerHistory` behålls bara för `IfcProject`.
+utgör merparten av en modell och är sällan vad en CDE-fråga behöver, och de finns
+kvar som text i grafen, enligt Skriva tillbaka en modell. `IfcOwnerHistory` är en
+nod bara för `IfcProject`.
 
 ## Varifrån metoden kommer
 
@@ -75,7 +76,7 @@ information access and query". *Automation in Construction* 148 (2023), 104778.
 
 Den skiljer sig från artikeln på dessa punkter:
 
-- Geometri utelämnas om den inte efterfrågas. Artikeln konverterar allt och
+- Geometri blir inte noder om det inte efterfrågas. Artikeln konverterar allt och
   nämner grafens storlek som en begränsning.
 - Posterna skrivs i omgångar med `CREATE` från en separat process. Artikeln slår
   samman varje nod och relation, vilket söker efter dubbletter i grafen och går
@@ -87,57 +88,66 @@ Den skiljer sig från artikeln på dessa punkter:
 - Relationstyperna skrivs med versaler, och `SAME_AS` och kopian av GTIN är
   tillägg här.
 
-Ordningen i listor går förlorad även här, vilket artikeln påpekar om sin egen
-graf: en relation säger inte var i en lista dess mål stod. Formen under Skriva
-tillbaka en modell behåller den.
+Artikeln påpekar att dess graf förlorar ordningen i listor, eftersom en relation
+inte säger var i en lista dess mål stod. Här säger `position` det.
 
 ## Skriva tillbaka en modell
 
-Med `OPENCDE_IFCGRAPH_LOSSLESS=true` konverteras en modell så att grafen
-rymmer hela den, och filen kan skrivas tillbaka från grafen: samma instanser
-med samma id, och samma värden i samma ordning, alltså också samma geografiska
-information. Det är avstängt som standard. En modell som konverterats utan det
-behåller sin form och kan inte skrivas tillbaka.
+Grafen rymmer hela modellen, och filen kan skrivas tillbaka från den: samma
+instanser med samma id, och samma värden i samma ordning, alltså också samma
+geografiska information.
 
 ```sh
-uv run opencde ifcgraph export <modell-id> model.ifc            # skriv filen
+uv run opencde ifcgraph export <modell-id> model.ifc            # skriv filen och validera den
 uv run opencde ifcgraph export <modell-id> model.ifc --verify   # och jämför den med den uppladdade
 ```
 
-Noderna förblir den vanliga formens, med samma egenskaper och relationer, så
-frågorna på den här sidan fungerar på båda. Det den formen utelämnar skrivs ut
-som STEP och komprimeras till text på `StepBlock`-noder som hänger på `IfcModel`:
-det finns i grafen men utom räckhåll för Cypher. Det kan inte vara egenskaper på
-produkterna, eftersom mycket av det delas mellan dem. Med
+Noderna är de som frågor behöver. Det de utelämnar skrivs ut som STEP och
+komprimeras till text på `StepBlock`-noder som hänger på `IfcModel`: det finns i
+grafen men utom räckhåll för Cypher, och det kan inte ändras där. Det kan inte vara
+egenskaper på produkterna, eftersom mycket av det delas mellan dem. Med
 `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` blir varje instans en nod i stället, till
 flera gånger storleken och importtiden; frågor tog ungefär lika lång tid i
 [mätningarna](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
-Filen skrivs från det grafen rymmer och kopieras inte, så en egenskap eller en
-relation som ändras i grafen syns i den; det som ligger i ett block kan inte
-ändras så. Inget kontrollerar att en ändrad modell fortfarande är giltig. En
-export avbryts om ett block saknas. Detta tillkommer till det den vanliga formen har:
-
 | I filen | I grafen |
 |---|---|
 | En referens | En relation med `position`, `[rad, kolumn]` i en lista av listor; inversa relationer har ingen |
+| En referens till en instans i ett block | Dess id, som i `Representation__step: 1234` |
 | Ett typat värde, `IFCLABEL('3')` | `NominalValue: "3"`, och `NominalValue__type: "IFCLABEL"` bredvid |
 | En lista av listor av tal | JSON-text |
 | Det som saknar enkel form, som en lista av typade värden | Märkt JSON, med `$json` som typ |
 | Headern | `ifc_header` på `IfcModel` |
-| En instans i ett block | Text i ett `StepBlock`; det som refererar till den har dess id i märkt JSON |
+| En instans i ett block | Text i ett `StepBlock` |
 
-Den här formen läses inte med IfcOpenShell, som här bara står för schemat. Det
-ändrar vissa värden vid läsning (`.NULLENUM.` blir `$`, och `($,$)` blir `()`),
-och filer från Tekla och Archicad har sådana. Därför läser arbetsprocessen filen
-själv och refuserar det den inte kan läsa.
-[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) säger varför.
+Filen skrivs från det grafen rymmer och kopieras inte, så en egenskap eller en
+relation som ändras i grafen syns i den. En grafdatabas har inget schema att hålla
+en ändring mot, så filen valideras mot IFC-standarden med IfcOpenShells validerare:
+attributens typ och antal, uppräkningar, inversa attribut, GlobalId och reglerna i
+EXPRESS-schemat. Filer som används bryter ofta redan mot någon regel, så det som
+räknas är en anmärkning som den uppladdade filen inte har. Kommandot listar den då
+och slutar med ett fel. `--no-validate` hoppar över detta. En export avbryts också
+om ett block saknas.
+
+Projektmedlemmar får filer genom Documents API, och det finns ingen annan väg ut ur
+servern. En skriven fil som ska ersätta en modell laddas upp som en ny version av
+sitt dokument, vilket också konverterar den.
+
+Den här formen läses inte med IfcOpenShell, som här bara står för schemat.
+IfcOpenShell ändrar vissa värden vid läsning (`.NULLENUM.` blir `$`, och `($,$)` blir
+`()`), och filer från Tekla och Archicad har sådana. Därför läser arbetsprocessen
+filen själv och refuserar det den inte kan läsa. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) säger varför,
+och [ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) hur en fil valideras.
 
 `--verify` frågar om de två filerna rymmer samma modell, enligt definitionen i
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ett till ett,
-värde för värde och utan tolerans, med georeferensen namngiven i rapporten. Med
-`--geometry` byggs också varje produkts mesh, och de jämförs bit för bit. Två valfria filer kan jämföras med
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ett till ett, värde för värde och utan tolerans, med
+georeferensen namngiven i rapporten. Med `--geometry` byggs också varje produkts
+mesh, och de jämförs bit för bit. Två valfria filer kan jämföras med
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+
+Med `OPENCDE_IFCGRAPH_LOSSLESS=false` konverteras en modell som före 3.0.0: den läses
+med IfcOpenShell, och det som inte är noder utelämnas helt. En sådan modell, liksom
+en som konverterats av en tidigare version, kan inte skrivas tillbaka.
 
 ## Underhåll
 

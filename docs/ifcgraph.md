@@ -17,8 +17,8 @@ for a slimmer image without IfcOpenShell when the module stays off.
    page, or a BCF project document is posted) with a `.ifc` or `.ifczip` name.
 2. The server creates an `IfcModel` node (state `queued`) attached to the
    project and starts a conversion in the background, one at a time.
-3. A separate worker process (`python -m opencde.ifcgraph.worker`) parses the
-   file with IfcOpenShell. It runs with a time limit
+3. A separate worker process (`python -m opencde.ifcgraph.worker`) reads the
+   file. It runs with a time limit
    (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minutes), an address-space limit on
    POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) and an entity cap
    (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). A crash or a hang kills the worker, not
@@ -52,10 +52,11 @@ Inverse attributes become relationships too, so both directions read
 naturally: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select values are unwrapped (`IfcLabel('3')` becomes `"3"`).
 
-Left out by default (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`): representation
+No nodes by default (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`): representation
 items, representations, profiles, placements and styles; they are most of a
-model and seldom what a CDE query needs. `IfcOwnerHistory` is kept for the
-`IfcProject` only.
+model and seldom what a CDE query needs, and they are kept as text in the graph,
+as under Writing a model back. `IfcOwnerHistory` is a node for the `IfcProject`
+only.
 
 ## Where the method comes from
 
@@ -72,7 +73,7 @@ open access under CC BY 4.0.
 
 It differs from the article in these ways:
 
-- Geometry is left out unless asked for. The article converts everything and
+- Geometry is no nodes unless asked for. The article converts everything and
   names the size of the graph as a limitation.
 - Records are written in batches with `CREATE`, from a separate process. The
   article merges every node and relationship, which checks the graph for
@@ -84,56 +85,66 @@ It differs from the article in these ways:
 - Relationship types are written in upper case, and `SAME_AS` and the copy of
   the GTIN are added here.
 
-The order of lists is lost here too, as the article notes for its own graph: a
-relationship does not say where in a list its target stood. The form under
-Writing a model back keeps it.
+The article notes that its graph loses the order of lists, since a relationship
+does not say where in a list its target stood. Here `position` says that.
 
 ## Writing a model back
 
-With `OPENCDE_IFCGRAPH_LOSSLESS=true` a model is converted so that the graph
-holds all of it, and the file can be written back from the graph: the same
-instances with the same ids, and the same values in the same order, so the same
-geographic information too. It is off by default. A model converted without it
-keeps its form and cannot be written back.
+The graph holds all of a model, and the file can be written back from it: the
+same instances with the same ids, and the same values in the same order, so the
+same geographic information too.
 
 ```sh
-uv run opencde ifcgraph export <model id> model.ifc            # write the file
+uv run opencde ifcgraph export <model id> model.ifc            # write the file and validate it
 uv run opencde ifcgraph export <model id> model.ifc --verify   # and compare it with the uploaded one
 ```
 
-The nodes stay those of the ordinary form, with the same properties and
-relationships, so the queries on this page work on both. What that form leaves
-out is written out as STEP and compressed into text on `StepBlock` nodes that
-hang off the `IfcModel`: it is in the graph, but out of Cypher's reach. It cannot
+The nodes are the ones queries need. What they leave out is written out as STEP
+and compressed into text on `StepBlock` nodes that hang off the `IfcModel`: it is
+in the graph, but out of Cypher's reach, and it cannot be changed there. It cannot
 be properties of the products, since much of it is shared between them. With
-`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` every instance becomes a node instead,
-at several times the size and the import time; queries took about as long in
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` every instance becomes a node instead, at
+several times the size and the import time; queries took about as long in
 [the measurements](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
-
-The file is written from what the graph holds, not copied, so a property or a
-relationship changed in the graph shows up in it; what is in a block cannot be
-changed that way. Nothing checks that a changed model is still valid. An export
-stops if a block has gone missing. These are added to what the ordinary form has:
 
 | In the file | In the graph |
 |---|---|
 | A reference | A relationship with `position`, `[row, column]` in a list of lists; inverse relationships have none |
+| A reference to an instance in a block | Its id, as in `Representation__step: 1234` |
 | A typed value, `IFCLABEL('3')` | `NominalValue: "3"`, and `NominalValue__type: "IFCLABEL"` beside it |
 | A list of lists of numbers | JSON text |
 | What has no plain form, such as a list of typed values | Tagged JSON, with `$json` as its type |
 | The header | `ifc_header` on the `IfcModel` |
-| An instance in a block | Text in a `StepBlock`; what refers to it holds its id in tagged JSON |
+| An instance in a block | Text in a `StepBlock` |
+
+The file is written from what the graph holds, not copied, so a property or a
+relationship changed in the graph shows up in it. A graph database has no schema
+to hold a change to, so the file is validated against the IFC standard with
+IfcOpenShell's validator: the type and number of attributes, enumerations, inverse
+attributes, GlobalIds, and the rules of the EXPRESS schema. Files in use often
+break a rule already, so what counts is an issue the uploaded file does not have.
+The command then lists it and ends with an error. `--no-validate` leaves this out.
+An export also stops if a block has gone missing.
+
+Project members get files through the Documents API, and there is no other way
+out of the server. A written file that is to replace a model is uploaded as a new
+version of its document, which also converts it.
 
 This form is not read with IfcOpenShell, which takes only the schema here.
-IfcOpenShell changes some values on reading (`.NULLENUM.` becomes `$`, and `($,$)` becomes
-`()`), and files from Tekla and Archicad have them. So the worker reads the file
-itself, and refuses what it cannot read. [ADR 0010](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md)
-says why.
+IfcOpenShell changes some values on reading (`.NULLENUM.` becomes `$`, and `($,$)`
+becomes `()`), and files from Tekla and Archicad have them. So the worker reads the
+file itself, and refuses what it cannot read. [ADR 0010](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) says why, and
+[ADR 0011](adr/0011-a-file-written-from-the-graph-is-validated.md) how a file is validated.
 
 `--verify` asks whether the two files hold the same model, by the definition in
-[ADR 0009](adr/0009-what-makes-two-ifc-files-the-same-model.md): one to one, value by
-value and with no tolerance, georeference named in the report. With `--geometry`
-it also builds every product's mesh, and compares them bit for bit. Any two files can be compared with `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+[ADR 0009](adr/0009-what-makes-two-ifc-files-the-same-model.md): one to one, value by value and with no tolerance, georeference
+named in the report. With `--geometry` it also builds every product's mesh, and
+compares them bit for bit. Any two files can be compared with
+`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+
+With `OPENCDE_IFCGRAPH_LOSSLESS=false` a model is converted as before 3.0.0: read
+with IfcOpenShell, and what is no node left out altogether. Such a model, like one
+converted by an earlier version, cannot be written back.
 
 ## Housekeeping
 

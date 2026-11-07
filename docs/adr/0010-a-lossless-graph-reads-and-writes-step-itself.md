@@ -25,10 +25,10 @@ other evidence:
 
 ## Decision
 
-`OPENCDE_IFCGRAPH_LOSSLESS` turns on a second form of conversion, off by default. It reads the file with
+A second form of conversion, the default from 3.0.0 by the owner's decision of 2026-11-07, reads the file with
 `opencde/ifcgraph/step.py`, and a file is written back with the same module. IfcOpenShell gives the schema's tables and
-nothing else, so its parser never sees the file on this path. The ordinary form stays exactly as it was, so nothing
-that queries it changes.
+nothing else, so its parser never sees the file on this path. The ordinary form stays as it was behind
+`OPENCDE_IFCGRAPH_LOSSLESS=false`, which reads with IfcOpenShell and leaves out what is no node.
 
 **The graph is what gets written.** Keeping each instance's text on its node would have been far simpler and exact by
 construction. But the graph would then say two things, and a changed property would not reach the file, so it would not
@@ -51,10 +51,10 @@ than the project's) is written out as STEP in order of id, and compressed into t
 the `IfcModel`: at most 256 KiB of STEP per block, deflated and in base64, since a string is the one thing both
 databases store alike. This is the owner's idea of geometry as properties of another node, drawn by class and not by
 product, because 17-94% of the geometry in the samples belongs to more than one product and some of it to none. What
-refers to an instance in a block holds its id in tagged JSON. `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` makes them nodes
-instead.
+refers to an instance in a block holds its id in `<attribute>__step`, as a plain number a query can read.
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` makes them nodes instead.
 
-**The relationships are the one place that says what refers to what,** between nodes. A reference in tagged JSON says
+**The relationships are the one place that says what refers to what between nodes.** A reference in tagged JSON says
 only "the relationship at this position". The inverse relationships are worked out from the schema's tables, and a test
 finds them the same as IfcOpenShell's. The writer reads only what the schema says is an attribute, so inverse
 relationships, `SAME_AS` and the copy of the GTIN stay behind. As in the ordinary form, an owner history is linked from
@@ -92,13 +92,22 @@ it costs to ask. This is one run on one machine, with other work going on, on sm
 and a model of millions of instances needs measuring first.
 
 What a block holds cannot be reached with Cypher, and a changed instance in one would need its block rewritten. Nothing
-does that today. A reference from a block into a node is not known to the database, so a deleted node would leave a
-dangling reference in the file. The edits the graph is to allow have not been decided. Today a changed property or
-relationship of a node reaches the file, and nothing checks that the model is still valid.
+does that today, so what is in a block does not become wrong. A reference from a block into a node is not known to the
+database, so a deleted node would leave a dangling reference in the file. A changed property or relationship of a node
+reaches the file, and ADR 0011 is how a file is held to the standard after that.
 
 We now keep a STEP reader and writer of about 370 lines where IfcOpenShell has a far better tested one. That is a cost,
 and if the code goes upstream, the parser's faults may be better fixed there, at which point this path could go through
 it again. A test says when the three changes it found stop happening.
 
-Whether this form becomes the default is for the owner to say. It answers the same queries as the ordinary form, so
-nothing would need rewriting for it.
+Bonsai and FreeCAD work in IFC itself, so they show what a file holds without an import that translates it, unlike
+Revit, Tekla and Archicad. Four pairs of original and written copy were opened in Bonsai 0.8.3 on IfcOpenShell 0.8.3,
+and in FreeCAD 1.0.1 through NativeIFC on its own IfcOpenShell. Both gave the same objects, products and meshes for
+original and copy, and what each would save of the two was the same, with one exception: FreeCAD's parser keeps how a
+REAL is spelled, so one line of one file reads `1.0E-5` from the original and `1.E-05` from the copy, the same number.
+Those are other versions of the parser than the one the tests run on, so they say the writer's text is read the same
+there too. FreeCAD's older importer fails on any file with that IfcOpenShell, so it says nothing either way.
+
+The ordinary form answers the same queries, so nothing written for it needs changing, but a query that reads all of a
+node's properties sees more of them. A model converted by an earlier version keeps its form and cannot be written back
+until it is uploaded again.
