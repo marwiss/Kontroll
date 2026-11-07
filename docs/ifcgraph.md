@@ -156,11 +156,12 @@ its Neo4j source over Bolt (WebSocket on the Bolt port) when the operator
 exposes the database, as the development overlay does on `127.0.0.1:7697`.
 Its Kontroll workspace uses the patterns above (models, classes, components
 through `SAME_AS`, the latest finished model per document); the queries live in
-Dataspatium's documentation (`docs/cad-bim.md`), and the live runs are listed
+Dataspatium's documentation (`docs/grafer.md`), and the live runs are listed
 in [acceptance.md](acceptance.md). A production server does not publish Bolt;
 the administration API's graph query (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) gives administrators read-only Cypher
-without the port.
+without the port. From its release 2.7.0 the app also draws the graph, in
+its card IFC graph, through that query or over Bolt.
 
 ## Limits and status
 
