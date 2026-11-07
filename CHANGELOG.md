@@ -7,12 +7,12 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.7.0 — 2026-11-07
+## 2.0.0 — 2026-11-07
 
-The release kept for 2.x. Works with Dataspatium 2.7.0, which also speaks BCF API 2.1, so
-that a server with 2.1 alone can be its source, and draws the IFC graph. It contains 2.0.0,
-2.1.0, 2.2.0, 2.3.0, 2.4.0, 2.5.0 and 2.6.0 of the last days, withdrawn under the rule above
-together with their Dataspatium counterparts.
+The single release of the 2 series: everything in it, up to and including 2.7.0, in one
+release numbered 2.0.0, on the branch `release-2`. No history is rewritten: the commits stay,
+and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also speaks
+BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
 - BCF API 2.1 is served next to 3.0, under `/bcf/2.1`, on the same data, so that a client that implements only
   2.1 can connect. `GET /foundation/versions` and `GET /bcf/versions` list both versions, the newest first.
@@ -93,8 +93,8 @@ together with their Dataspatium counterparts.
   the starting server, which restarted the server and killed the seed without output.
 - The page that refuses an authorization request states its reason in the user's
   language, not only in English.
-- Dataspatium 2.4.0 brings IfcOpenShell into the browser, 2.5.0 adds IDS checking, 2.6.0 shows downloads with their
-  progress, and 2.7.0 draws the IFC graph. Apart from BCF API 2.1 above, none of them needs anything new from the server.
+- Dataspatium brings IfcOpenShell into the browser, checks IDS, shows downloads with their progress and draws the
+  IFC graph. Apart from BCF API 2.1 above, none of it needs anything new from the server.
 - `docs/dataspatium-coordination.md` now records what the two projects share and
   the owner's decisions, without planning.
 - The language cookie `opencde_lang` is `HttpOnly`, since the pages' scripts
@@ -104,7 +104,7 @@ together with their Dataspatium counterparts.
   READMEs no longer say that the contribution to IfcOpenShell waits for an
   answer: nothing has been sent.
 - The nightly job that tests the pair now runs Dataspatium's live suite and
-  requires passed tests. Before 2.4.0 it reported success without running one,
+  requires passed tests. It used to report success without running one,
   because the browser aborted on the runner; the live runs recorded in
   `docs/acceptance.md` from the owner's machine are not affected.
 - The documentation exists in the seven languages of the README: the client
@@ -112,7 +112,7 @@ together with their Dataspatium counterparts.
   page, the style guide and the security pages are under `docs/<language>/`
   next to the quick start and the deployment guides. The project logs, the
   architecture decisions and the upstream drafts stay in English.
-- The quick start follows Dataspatium 2.3.0: a source is added from the left
+- The quick start follows Dataspatium: a source is added from the left
   column of *Inhämta*, with the client id left empty so that the app registers
   itself.
 - The Danish pages say *kodeord* for a password throughout, and the Icelandic
@@ -161,7 +161,7 @@ together with their Dataspatium counterparts.
   `SAME_AS` links from BCF components to building elements; deep links into
   Dataspatium from the project and document pages.
 - The administration API under `/admin/api/` in the resource shapes agreed
-  with Dataspatium for its 2.2.0: a flat overview with `uptime_s` and
+  with Dataspatium: a flat overview with `uptime_s` and
   `models`, users with `name` and their project roles, projects with inline
   `members`, clients with `public`, sessions with an `id` that
   `DELETE /admin/api/sessions/{id}` accepts, `DELETE /admin/api/sessions?user=`,

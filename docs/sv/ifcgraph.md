@@ -165,7 +165,7 @@ frågorna finns i Dataspatiums dokumentation (`docs/grafer.md`), och
 live-körningarna listas i [acceptance.md](../acceptance.md). En
 produktionsserver publicerar inte Bolt; administrations-API:ts graffråga
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) ger
-administratörer läsande Cypher utan porten. Från utgåva 2.7.0 ritar appen också
+administratörer läsande Cypher utan porten. Appen ritar också
 grafen, i sitt kort IFC-graf, genom den frågan eller över Bolt.
 
 ## Gränser och status

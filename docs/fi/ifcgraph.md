@@ -166,7 +166,7 @@ kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/grafer.md`), ja live-ajot
 on lueteltu tiedostossa [acceptance.md](../acceptance.md). Tuotantopalvelin
 ei julkaise Boltia; hallintarajapinnan graafikysely
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) antaa
-järjestelmänvalvojille lukevan Cypherin ilman porttia. Versiosta 2.7.0 alkaen sovellus
+järjestelmänvalvojille lukevan Cypherin ilman porttia. Sovellus
 myös piirtää graafin korttiinsa IFC-graafi tuon kyselyn kautta tai Boltilla.
 
 ## Rajat ja tila

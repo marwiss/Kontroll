@@ -160,7 +160,7 @@ Dataspatium's documentation (`docs/grafer.md`), and the live runs are listed
 in [acceptance.md](acceptance.md). A production server does not publish Bolt;
 the administration API's graph query (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) gives administrators read-only Cypher
-without the port. From its release 2.7.0 the app also draws the graph, in
+without the port. The app also draws the graph, in
 its card IFC graph, through that query or over Bolt.
 
 ## Limits and status
