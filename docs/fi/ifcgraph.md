@@ -8,7 +8,7 @@ asiakirjojen rinnalla.
 Kytke se päälle asetuksella `OPENCDE_IFCGRAPH_ENABLED=true` ja asenna
 `ifcgraph`-lisäosa (`uv sync --extra ifcgraph`). Docker-kuva sisältää
 lisäosan oletuksena (`ARG OPENCDE_EXTRAS` Dockerfilessa), mikä yli
-kaksinkertaistaa sen koon (noin 680 MB vastaan 300 MB); rakenna
+kaksinkertaistaa sen koon (noin 680 MB, buildingSMARTin säännöillä 1,1 Gt, vastaan 300 MB); rakenna
 `--build-arg OPENCDE_EXTRAS=` saadaksesi kevyemmän kuvan ilman
 IfcOpenShelliä, kun moduuli pysyy pois päältä.
 
@@ -50,10 +50,10 @@ Tulos on version metatiedoissa, joita mikä tahansa Documents API -asiakas voi l
 
 | Kohta | Tyyppi | Arvo |
 |---|---|---|
-| `ifc_validation_status` | `string` | `pending`, kunnes tiedosto on tarkistettu, sitten `passed`, `issues` tai `unknown`, kun sitä ei voitu tarkistaa |
+| `ifc_validation_status` | `string` | `pending`, kunnes tiedosto on tarkistettu, sitten `passed`, `warnings`, kun jokainen huomautus on varoitus, `issues`, kun vähintään yksi on virhe, tai `unknown`, kun sitä ei voitu tarkistaa |
 | `ifc_validation_issues` | `integer32` | Kuinka monta huomautusta tiedostossa on |
 | `ifc_validation_checked_at` | `date-time` | Milloin se tarkistettiin |
-| `ifc_validation_ruleset` | `string` | Millä se tarkistettiin |
+| `ifc_validation_ruleset` | `string` | Millä se tarkistettiin, yksi arvo kutakin tarkistusta kohden |
 | `ifc_validation_report` | `url` | Missä raportti on |
 
 Raportti on Documents API:n laajennus. Jokainen projektin jäsen saa sen samalla
@@ -67,9 +67,14 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
 {
   "status": "issues",
   "checked_at": "2026-11-07T10:05:25.123Z",
-  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
-  "issue_count": 1,
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
+  "issue_count": 2,
+  "error_count": 1,
   "truncated": false,
+  "checks": [
+    {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": []},
+    {"name": "gherkin", "state": "done", "ruleset": "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6", "issue_count": 1, "rules_not_run": [{"rule": "GEM004", "error": "FileNotFoundError"}]}
+  ],
   "issues": [
     {
       "kind": "schema",
@@ -77,6 +82,13 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
       "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
       "step_id": 373,
       "global_id": "1Xezbq735AdBO_4DerG66G"
+    },
+    {
+      "kind": "gherkin",
+      "rule": "IFC106",
+      "severity": "warning",
+      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
+      "step_id": 99999
     }
   ]
 }
@@ -84,16 +96,56 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
 
 Siinä luetellaan enintään 10 000 huomautusta, kukin instansseineen ja
 juurioliolle myös GlobalId-tunnisteineen, jotta mallinäkymä löytää elementin.
-`kind` kertoo, mikä huomautuksen löysi: `schema`, `entity_rule`,
-`simpletype_rule` tai `global_rule`. Viesti voi lainata tiedoston riviä, ja se
-katkaistaan 1 000 merkin kohdalta. Version sivu selaimessa näyttää ensimmäiset 100
+`kind` kertoo, mikä huomautuksen löysi: IFC-skeeman `schema`, `entity_rule`,
+`simpletype_rule` tai `global_rule`, tai `gherkin` jollekin buildingSMARTin
+säännöistä, jonka koodi on kentässä `rule`. `checks` pitää tarkistukset
+erillään. Viesti voi lainata tiedoston riviä, ja se katkaistaan 1 000 merkin
+kohdalta. Version sivu selaimessa näyttää ensimmäiset 100
 huomautusta ja tarjoaa koko raportin tiedostona.
 
 Monet tiedostot rikkovat jo jotakin sääntöä tullessaan ohjelmastaan: 12
 esimerkkitiedostoa 26:sta tekee niin, yksi Teklasta 5 711 huomautuksella.
 Esimerkkitiedoston ja sen kirjoitetun kopion tarkistus kesti yhteensä 3–66
-sekuntia. buildingSMARTin `ifc-gherkin-rules`-sääntöjen toteuttajasopimuksia ei
-tarkisteta ([ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md)).
+sekuntia.
+
+### buildingSMARTin ifc-gherkin-rules
+
+Kun `OPENCDE_IFCGRAPH_GHERKIN_ENV` osoittaa niille ympäristön, lähetykset
+tarkistetaan myös buildingSMARTin `ifc-gherkin-rules`-sääntöjä vasten:
+normatiivisia sääntöjä ja alan käytäntöjä, jotka buildingSMARTin
+validointipalvelu tarkistaa skeeman lisäksi ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+Ne ajetaan skeematarkistuksen jälkeen samanlaisessa työprosessissa samoin
+rajoin ja niin kuin sääntökokoelman omat testit ne ajavat: behavella ja
+IfcOpenShell 0.8.6:lla, jota sääntökokoelman CI käyttää. Sääntökokoelman 722
+testitiedostolla tämä antaa jokaiselle sen tuloksen, jota sen testit odottavat.
+
+Säännöt saavat oman ympäristönsä, koska yksi niiden apufunktioista ei toimi
+IfcOpenShell 0.9:n kanssa, jota Kontroll käyttää.
+`python -m opencde.ifcgraph.gherkin_install <kansio>` tekee sen lukituista
+latauksista, joista jokainen tarkistetaan SHA-256-tiivistettään vasten:
+sääntökokoelma tietyssä commitissa, IfcOpenShellin 0.8.6-käännös alustalle ja
+Python-paketit tiivisteineen. Kaksi Kontrollin omaa pientä tiedostoa korvaa
+sääntökokoelman Django-osat, jotka vain kirjoittavat tulokset
+validointipalvelun tietokantaan.
+Julkaistusta levykuvasta ne puuttuvat, koska ne kasvattavat sitä noin 425 Mt.
+Levykuvassa, jonka tunniste päättyy `-gherkin`, kuten `latest-gherkin` tai
+`3.0.0-gherkin`, ympäristö on hakemistossa `/opt/gherkin`, ja
+`OPENCDE_IFCGRAPH_GHERKIN_ENV` osoittaa siihen, samoin levykuvassa, joka on
+käännetty valinnalla `--build-arg OPENCDE_GHERKIN=1`. Docker composessa valinnan
+tekee `OPENCDE_IMAGE_TAG` tai `OPENCDE_GHERKIN=1` tiedostossa `.env`.
+
+Säännön löydös on huomautus, jonka laji on `gherkin`, ja siinä on säännön koodi,
+kuten `IFC106`, ja vakavuus `error` tai `warning`. Alan käytäntöjen säännöt vain
+varoittavat, ja tiedosto, jonka kaikki huomautukset ovat varoituksia, saa tilan
+`warnings`, koska buildingSMARTin validointipalvelu pitää sellaista tiedostoa
+kelvollisena. Sääntö, joka nosti poikkeuksen sen sijaan, että olisi löytänyt
+jotakin, jää ilman tulosta, ja se luetellaan tarkistuksensa kohdassa
+`rules_not_run`. Jos sääntöjä ei voida ajaa lainkaan, niiden tarkistus on
+`failed`, ja skeeman tarkistus jää ainoaksi.
+
+Säännöt vievät enemmän aikaa kuin skeematarkistus: kahdeksalla esimerkkimallilla
+5 sekunnista pienimmälle noin 5 minuuttiin suurimmalle, ja useimmille puolesta
+minuutista kahteen minuuttiin.
 
 ## Graafi
 

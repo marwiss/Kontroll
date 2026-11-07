@@ -100,14 +100,19 @@ Anything that lists a node's properties sees these. `OPENCDE_IFCGRAPH_LOSSLESS=f
 
 The owner divided the checks on 2026-11-07. Kontroll checks every uploaded IFC file against the IFC schema, since the
 answer belongs to the file and is the same for everyone. Dataspatium runs the checks a person chooses: IDS with
-ifctester, and clash detection. Findings that are to be followed up go to the server as BCF topics.
+ifctester, and clash detection. Findings that are to be followed up go to the server as BCF topics. Later the same day
+the owner added buildingSMART's ifc-gherkin-rules to the upload check (ADR 0012), an IDS check on the server too, and
+clash detection on both sides: IfcClash on the server and Dataspatium's own core, to become `marwiss/ifc-clash-js`.
 
-From 3.0.0 the version's metadata carries `ifc_validation_status` (`pending`, `passed`, `issues`, `unknown`), and once
-the file is checked `ifc_validation_issues`, `ifc_validation_checked_at`, `ifc_validation_ruleset` and
-`ifc_validation_report`. The report is `GET /documents/1.0/documents/{id}/versions/{index}/ifc-validation`, with the same
-bearer token as the Documents API, on the API's own origin. Its shape is stable: `status`, `checked_at`, `ruleset`,
-`issue_count`, `truncated`, and `issues`, each with `kind`, `severity`, `message`, and where known `step_id`, `global_id`
-and `attribute`. [ifcgraph.md](ifcgraph.md) has an example, and ADR 0011 the reasons.
+From 3.0.0 the version's metadata carries `ifc_validation_status` (`pending`, `passed`, `warnings`, `issues`,
+`unknown`), and once the file is checked `ifc_validation_issues`, `ifc_validation_checked_at`, `ifc_validation_ruleset`
+(one value per check) and `ifc_validation_report`. `warnings` means every finding is a warning, which buildingSMART's
+validation service holds valid; `issues` means at least one error. The report is
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-validation`, with the same bearer token as the Documents API, on
+the API's own origin. Its shape is stable: `status`, `checked_at`, `ruleset`, `issue_count`, `error_count`,
+`truncated`, `checks` (each with `name`, `state`, `ruleset`, `issue_count` and `rules_not_run`), and `issues`, each
+with `kind`, `severity`, `message`, and where known `rule`, `step_id`, `global_id` and `attribute`.
+[ifcgraph.md](ifcgraph.md) has an example, and ADR 0011 and ADR 0012 the reasons.
 
 ## Languages and glossary
 

@@ -27,6 +27,14 @@ Toward 3.0.0, with Dataspatium.
   an extension, `GET /documents/1.0/documents/{id}/versions/{index}/ifc-validation`, with up to 10,000 issues and the
   GlobalId of each element. The version's page shows the first 100. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` turns it
   off.
+- Uploads are also checked against buildingSMART's ifc-gherkin-rules, the rules of buildingSMART's validation service,
+  where `OPENCDE_IFCGRAPH_GHERKIN_ENV` names an environment for them. `python -m opencde.ifcgraph.gherkin_install` makes
+  one from pinned downloads. The published image leaves them out; the image tagged `-gherkin`, such as `3.0.0-gherkin`
+  or `latest-gherkin`, has them and is about 1.1 GB, as is an image built with `--build-arg OPENCDE_GHERKIN=1` or by
+  docker compose with `OPENCDE_GHERKIN=1`. A finding is an issue of the kind `gherkin` with the rule's code in
+  `rule`. `ifc_validation_status` gains `warnings`, for a file whose issues are all warnings, and `issues` now means at
+  least one error. `ifc_validation_ruleset` has one value per check. The report gains `error_count` and `checks`, which
+  lists each check with the rules that could not run. See [ADR 0012](docs/adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md).
 - `python -m opencde.ifcgraph.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
 - `GET /admin/api/settings` has `ifcgraph.lossless` and `ifcgraph.validate_uploads`.
 

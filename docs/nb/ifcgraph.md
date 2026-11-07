@@ -8,7 +8,7 @@ og dokumentene.
 Slå den på med `OPENCDE_IFCGRAPH_ENABLED=true` og installer ekstrapakken
 `ifcgraph` (`uv sync --extra ifcgraph`). Docker-imaget inneholder ekstrapakken
 som standard (`ARG OPENCDE_EXTRAS` i Dockerfile), noe som mer enn dobler
-størrelsen (omkring 680 MB mot 300 MB); bygg med
+størrelsen (omkring 680 MB, eller 1,1 GB med buildingSMARTs regler, mot 300 MB); bygg med
 `--build-arg OPENCDE_EXTRAS=` for et slankere image uten IfcOpenShell når
 modulen forblir av.
 
@@ -50,10 +50,10 @@ Resultatet står i versjonens metadata, som enhver klient for Documents API kan 
 
 | Post | Type | Verdi |
 |---|---|---|
-| `ifc_validation_status` | `string` | `pending` til filen er kontrollert, deretter `passed`, `issues`, eller `unknown` når den ikke kunne kontrolleres |
+| `ifc_validation_status` | `string` | `pending` til filen er kontrollert, deretter `passed`, `warnings` når hver anmerkning er en advarsel, `issues` når minst én er en feil, eller `unknown` når den ikke kunne kontrolleres |
 | `ifc_validation_issues` | `integer32` | Hvor mange anmerkninger filen har |
 | `ifc_validation_checked_at` | `date-time` | Når den ble kontrollert |
-| `ifc_validation_ruleset` | `string` | Hva den ble kontrollert med |
+| `ifc_validation_ruleset` | `string` | Hva den ble kontrollert med, én verdi per kontroll |
 | `ifc_validation_report` | `url` | Hvor rapporten er |
 
 Rapporten er en utvidelse av Documents API. Hvert medlem av prosjektet får den med
@@ -67,9 +67,14 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
 {
   "status": "issues",
   "checked_at": "2026-11-07T10:05:25.123Z",
-  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
-  "issue_count": 1,
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
+  "issue_count": 2,
+  "error_count": 1,
   "truncated": false,
+  "checks": [
+    {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": []},
+    {"name": "gherkin", "state": "done", "ruleset": "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6", "issue_count": 1, "rules_not_run": [{"rule": "GEM004", "error": "FileNotFoundError"}]}
+  ],
   "issues": [
     {
       "kind": "schema",
@@ -77,6 +82,13 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
       "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
       "step_id": 373,
       "global_id": "1Xezbq735AdBO_4DerG66G"
+    },
+    {
+      "kind": "gherkin",
+      "rule": "IFC106",
+      "severity": "warning",
+      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
+      "step_id": 99999
     }
   ]
 }
@@ -85,15 +97,50 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
 Den viser opptil 10 000 anmerkninger, hver med sin instans og, for en rotfestet
 entitet, dens GlobalId, slik at en modellvisning kan finne elementet. `kind` sier
 hva som fant anmerkningen: `schema`, `entity_rule`, `simpletype_rule` eller
-`global_rule`. En melding kan sitere en linje fra filen og kortes av ved 1 000
-tegn. Versjonens side i nettleseren viser de første 100 anmerkningene og tilbyr
+`global_rule` i IFC-skjemaet, eller `gherkin` for en av buildingSMARTs regler,
+der koden står i `rule`. `checks` holder kontrollene fra hverandre. En melding
+kan sitere en linje fra filen og kortes av ved 1 000 tegn. Versjonens side i nettleseren viser de første 100 anmerkningene og tilbyr
 hele rapporten som fil.
 
 Mange filer bryter allerede en regel når de kommer fra programmet sitt: 12 av 26
 eksempelfiler gjør det, én fra Tekla med 5 711 anmerkninger. Å kontrollere en
 eksempelfil og den skrevne kopien tok 3 til 66 sekunder til sammen.
-Implementeringsavtalene i buildingSMARTs `ifc-gherkin-rules` kontrolleres ikke
-([ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md)).
+
+### buildingSMARTs ifc-gherkin-rules
+
+Når `OPENCDE_IFCGRAPH_GHERKIN_ENV` peker på et miljø for dem, kontrolleres
+opplastinger også mot buildingSMARTs `ifc-gherkin-rules`: de normative reglene
+og den bransjepraksisen som buildingSMARTs valideringstjeneste kontrollerer
+utover skjemaet ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+De kjører etter skjemakontrollen, i samme slags arbeidsprosess med de samme
+grensene, og slik regelsettets egne tester kjører dem: med behave og
+IfcOpenShell 0.8.6, som regelsettets CI bruker. På regelsettets 722 testfiler
+gir det utfallet testene venter for hver eneste en.
+
+Reglene får et eget miljø, fordi en av hjelpefunksjonene deres ikke virker med
+IfcOpenShell 0.9, som Kontroll bruker.
+`python -m opencde.ifcgraph.gherkin_install <mappe>` lager det av fastlåste
+nedlastinger, hver kontrollert mot sin SHA-256: regelsettet ved en bestemt
+commit, IfcOpenShells bygg av 0.8.6 for plattformen og Python-pakkene med
+hashene sine. To små filer fra Kontroll erstatter regelsettets Django-deler, som
+bare skriver resultater til valideringstjenestens database.
+Det publiserte imaget utelater dem, siden de legger til omkring 425 MB. Imaget
+med taggen `-gherkin`, som `latest-gherkin` eller `3.0.0-gherkin`, har miljøet i
+`/opt/gherkin` og lar `OPENCDE_IFCGRAPH_GHERKIN_ENV` peke på det, slik et image
+bygget med `--build-arg OPENCDE_GHERKIN=1` også gjør. Med docker compose velger
+`OPENCDE_IMAGE_TAG` eller `OPENCDE_GHERKIN=1` i `.env`.
+
+Et funn fra en regel er en anmerkning av typen `gherkin`, med regelens kode, som
+`IFC106`, og alvorlighetsgraden `error` eller `warning`. Regler for
+bransjepraksis advarer bare, og en fil der alle anmerkningene er advarsler, får
+statusen `warnings`, siden buildingSMARTs valideringstjeneste regner en slik fil
+som gyldig. En regel som kastet et unntak i stedet for å finne noe, har ikke noe
+utfall og står under `rules_not_run` i kontrollen sin. Kan reglene ikke kjøre i
+det hele tatt, blir kontrollen deres `failed`, og skjemaets kontroll står alene.
+
+Reglene tar lengre tid enn skjemakontrollen: på åtte eksempelmodeller fra 5
+sekunder for den minste til omkring 5 minutter for den største, og mellom et
+halvt og to minutter for de fleste.
 
 ## Grafen
 

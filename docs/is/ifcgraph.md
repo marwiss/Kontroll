@@ -7,7 +7,7 @@ svo að spyrja megi um líkanið í Cypher við hlið málanna og skjalanna.
 Kveiktu á henni með `OPENCDE_IFCGRAPH_ENABLED=true` og settu upp aukapakkann
 `ifcgraph` (`uv sync --extra ifcgraph`). Docker-myndin inniheldur aukapakkann
 sjálfgefið (`ARG OPENCDE_EXTRAS` í Dockerfile), sem meira en tvöfaldar stærð
-hennar (um 680 MB á móti 300 MB); byggðu með `--build-arg OPENCDE_EXTRAS=`
+hennar (um 680 MB, eða 1,1 GB með reglum buildingSMART, á móti 300 MB); byggðu með `--build-arg OPENCDE_EXTRAS=`
 fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
 
 ## Hvað gerist við upphal
@@ -44,10 +44,10 @@ Niðurstaðan er í lýsigögnum útgáfunnar, sem sérhver biðlari Documents A
 
 | Færsla | Tegund | Gildi |
 |---|---|---|
-| `ifc_validation_status` | `string` | `pending` þar til skráin hefur verið prófuð, síðan `passed`, `issues`, eða `unknown` þegar ekki tókst að prófa hana |
+| `ifc_validation_status` | `string` | `pending` þar til skráin hefur verið prófuð, síðan `passed`, `warnings` þegar hver athugasemd er viðvörun, `issues` þegar að minnsta kosti ein er villa, eða `unknown` þegar ekki tókst að prófa hana |
 | `ifc_validation_issues` | `integer32` | Hve margar athugasemdir skráin hefur |
 | `ifc_validation_checked_at` | `date-time` | Hvenær hún var prófuð |
-| `ifc_validation_ruleset` | `string` | Með hverju hún var prófuð |
+| `ifc_validation_ruleset` | `string` | Með hverju hún var prófuð, eitt gildi fyrir hverja prófun |
 | `ifc_validation_report` | `url` | Hvar skýrslan er |
 
 Skýrslan er viðbót við Documents API. Sérhver meðlimur verkefnisins fær hana með
@@ -61,9 +61,14 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
 {
   "status": "issues",
   "checked_at": "2026-11-07T10:05:25.123Z",
-  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules",
-  "issue_count": 1,
+  "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
+  "issue_count": 2,
+  "error_count": 1,
   "truncated": false,
+  "checks": [
+    {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": []},
+    {"name": "gherkin", "state": "done", "ruleset": "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6", "issue_count": 1, "rules_not_run": [{"rule": "GEM004", "error": "FileNotFoundError"}]}
+  ],
   "issues": [
     {
       "kind": "schema",
@@ -71,6 +76,13 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
       "message": "On instance:\n    #373=IfcWallStandardCase('1Xezbq735AdBO_4DerG66G',...)\n...\nRule IfcRoot.UR1:\n    The attribute GlobalId should be unique\n...",
       "step_id": 373,
       "global_id": "1Xezbq735AdBO_4DerG66G"
+    },
+    {
+      "kind": "gherkin",
+      "rule": "IFC106",
+      "severity": "warning",
+      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
+      "step_id": 99999
     }
   ]
 }
@@ -78,15 +90,54 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
 
 Hún telur upp allt að 10.000 athugasemdir, hverja með tilviki sínu og, fyrir eind
 með rót, GlobalId hennar, svo að líkansýn geti fundið hlutinn. `kind` segir hvað
-fann athugasemdina: `schema`, `entity_rule`, `simpletype_rule` eða `global_rule`.
-Skilaboð geta vitnað í línu úr skránni og eru stytt við 1.000 stafi. Síða
+fann athugasemdina: `schema`, `entity_rule`, `simpletype_rule` eða `global_rule`
+IFC-skemans, eða `gherkin` fyrir eina af reglum buildingSMART, og kóði hennar er
+í `rule`. `checks` heldur prófununum aðskildum. Skilaboð geta vitnað í línu úr
+skránni og eru stytt við 1.000 stafi. Síða
 útgáfunnar í vafranum sýnir fyrstu 100 athugasemdirnar og býður alla skýrsluna sem
 skrá.
 
 Margar skrár brjóta þegar einhverja reglu þegar þær koma úr forriti sínu: 12 af 26
 sýnidæmum gera það, eitt frá Tekla með 5.711 athugasemdir. Að prófa sýnidæmi og
-skrifað afrit þess tók 3 til 66 sekúndur samanlagt. Samkomulag innleiðenda í
-`ifc-gherkin-rules` frá buildingSMART er ekki prófað ([ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md)).
+skrifað afrit þess tók 3 til 66 sekúndur samanlagt.
+
+### ifc-gherkin-rules frá buildingSMART
+
+Þegar `OPENCDE_IFCGRAPH_GHERKIN_ENV` vísar á umhverfi fyrir þær eru upphöl
+einnig prófuð gagnvart `ifc-gherkin-rules` frá buildingSMART: þeim
+staðalbundnu reglum og þeirri venju greinarinnar sem sannprófunarþjónusta
+buildingSMART prófar umfram skemað ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+Þær keyra á eftir skemaprófuninni, í sams konar vinnsluferli með sömu mörkum,
+og eins og eigin prófanir reglusafnsins keyra þær: með behave og IfcOpenShell
+0.8.6, sem CI reglusafnsins notar. Á 722 prófunarskrám reglusafnsins gefur það
+þá niðurstöðu sem prófanir þess búast við fyrir hverja einustu.
+
+Reglurnar fá eigið umhverfi, þar sem eitt af hjálparföllum þeirra virkar ekki
+með IfcOpenShell 0.9, sem Kontroll notar.
+`python -m opencde.ifcgraph.gherkin_install <mappa>` býr það til úr festum
+niðurhölum, og hvert þeirra er borið saman við SHA-256 sitt: reglusafnið við
+ákveðið commit, smíð IfcOpenShell af 0.8.6 fyrir verkvanginn og Python-pakkana
+með tætigildum sínum. Tvær litlar skrár frá Kontroll koma í stað Django-hluta
+reglusafnsins, sem skrifa aðeins niðurstöður í gagnagrunn
+sannprófunarþjónustunnar.
+Útgefna myndin sleppir þeim, þar sem þær bæta við um 425 MB. Myndin með merkið
+`-gherkin`, eins og `latest-gherkin` eða `3.0.0-gherkin`, hefur umhverfið í
+`/opt/gherkin` og lætur `OPENCDE_IFCGRAPH_GHERKIN_ENV` vísa á það, eins og mynd
+sem er smíðuð með `--build-arg OPENCDE_GHERKIN=1`. Með docker compose velur
+`OPENCDE_IMAGE_TAG` eða `OPENCDE_GHERKIN=1` í `.env`.
+
+Það sem regla finnur er athugasemd af tegundinni `gherkin`, með kóða reglunnar,
+eins og `IFC106`, og alvarleikanum `error` eða `warning`. Reglur um venju
+greinarinnar vara aðeins við, og skrá þar sem allar athugasemdir eru viðvaranir
+fær stöðuna `warnings`, þar sem sannprófunarþjónusta buildingSMART telur slíka
+skrá gilda. Regla sem kastaði undantekningu í stað þess að finna eitthvað hefur
+enga niðurstöðu og er talin upp undir `rules_not_run` í prófun sinni. Ef
+reglurnar geta alls ekki keyrt verður prófun þeirra `failed`, og prófun
+skemans stendur ein.
+
+Reglurnar taka lengri tíma en skemaprófunin: á átta sýnilíkönum frá 5 sekúndum
+fyrir það minnsta til um 5 mínútna fyrir það stærsta, og frá hálfri mínútu upp í
+tvær fyrir flest.
 
 ## Grafið
 

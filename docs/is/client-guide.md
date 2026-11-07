@@ -188,7 +188,8 @@ Biðlarinn þinn þarf callback-URL sem vafrinn nær í (loopback-hlustara fyrir
 skjáborðsforrit). Þjónninn kallar aldrei sjálfur á þá URL.
 
 Þegar IFC-grafeiningin er virk er IFC-skrá sem hlaðið er upp sem útgáfu prófuð
-gagnvart IFC-skemanu. Lýsigögn hennar hafa þá `ifc_validation_status` og, þegar
+gagnvart IFC-skemanu og, þar sem þjónninn hefur þær, ifc-gherkin-rules frá
+buildingSMART. Lýsigögn hennar hafa þá `ifc_validation_status` og, þegar
 hún hefur verið prófuð, hinar `ifc_validation_*`-færslurnar;
 `ifc_validation_report` er slóð skýrslunnar, viðbót sem svarar sama tóka. Sjá
 [ifcgraph.md](ifcgraph.md#prófun-upphalaðra-skráa-gagnvart-ifc-skemanu).
