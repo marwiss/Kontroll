@@ -149,6 +149,28 @@ The rules take longer than the schema check: on eight sample models from 5
 seconds for the smallest to about 5 minutes for the largest, and between half a
 minute and two minutes for most.
 
+### Information Delivery Specifications (IDS)
+
+An upload is also checked against every IDS document of its project: a
+document whose latest version has a name ending in `.ids`, at most 50 of them
+([ADR 0015](adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+IFC-LPG's check reads each IDS safely and gives it to IfcOpenShell's IfcTester,
+the checker Dataspatium runs in the browser, so that the two give the same
+verdict. It runs after the other checks, in the same kind of worker with the
+same limits. An IDS uploaded later applies to the IFC versions uploaded after
+it.
+
+Every requirement an element fails is an issue of the kind `ids`, with the
+severity `error`, the specification's identifier or name in `rule`, and the IDS
+document in `document_id`. So is a required specification that applies to
+nothing in the file, and an element that a prohibited specification applies to.
+The report's check `ids` lists the documents it used, each with its version,
+and every specification with its usage, its verdict (`passed`, `failed` or
+`not applicable`), how many elements it applies to and how many issues it gave.
+An IDS document that cannot be read, such as one with a DTD, is listed under
+`rules_not_run` with the reason, and the others are checked all the same. The
+version's page shows the specifications in a table of their own.
+
 ## The graph
 
 Every entity becomes an `IfcEntity` node carrying its class and all its

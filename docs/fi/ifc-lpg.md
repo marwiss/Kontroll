@@ -157,6 +157,28 @@ Säännöt vievät enemmän aikaa kuin skeematarkistus: kahdeksalla esimerkkimal
 5 sekunnista pienimmälle noin 5 minuuttiin suurimmalle, ja useimmille puolesta
 minuutista kahteen minuuttiin.
 
+### Information Delivery Specifications (IDS)
+
+Lähetys tarkistetaan myös jokaista projektinsa IDS-asiakirjaa vasten:
+asiakirjaa, jonka uusimman version nimi päättyy `.ids`, enintään 50
+([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+IFC-LPG:n tarkistus lukee jokaisen IDS:n turvallisesti ja antaa sen
+IfcOpenShellin IfcTesterille, samalle tarkistimelle, jota Dataspatium ajaa
+selaimessa, jotta molemmat antavat saman tuloksen. Se ajetaan muiden
+tarkistusten jälkeen, samanlaisessa työprosessissa samoin rajoin. Myöhemmin
+lähetetty IDS koskee sen jälkeen lähetettyjä IFC-versioita.
+
+Jokaisesta vaatimuksesta, jota elementti ei täytä, tulee huomautus lajia `ids`,
+vakavuudella `error`, määrittelyn tunnisteella tai nimellä kentässä `rule` ja
+IDS-asiakirjalla kentässä `document_id`. Samoin käy pakolliselle määrittelylle,
+joka ei koske mitään tiedostossa, ja elementille, jota kielletty määrittely
+koskee. Raportin tarkistus `ids` luettelee käyttämänsä asiakirjat versioineen ja
+jokaisen määrittelyn käyttöineen ja tuloksineen (`passed`, `failed` tai
+`not applicable`) sekä sen, kuinka moneen elementtiin se kohdistuu ja kuinka
+monta huomautusta se antoi. IDS-asiakirja, jota ei voi lukea, esimerkiksi
+sellainen, jossa on DTD, luetellaan kohdassa `rules_not_run` syineen, ja muut
+tarkistetaan silti. Version sivu näyttää määrittelyt omassa taulukossaan.
+
 ## Graafi
 
 Jokaisesta entiteetistä tulee `IfcEntity`-solmu, joka kantaa luokkaansa ja

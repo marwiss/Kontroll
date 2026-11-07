@@ -152,6 +152,28 @@ Reglene tar lengre tid enn skjemakontrollen: på åtte eksempelmodeller fra 5
 sekunder for den minste til omkring 5 minutter for den største, og mellom et
 halvt og to minutter for de fleste.
 
+### Information Delivery Specifications (IDS)
+
+En opplasting kontrolleres også mot hvert IDS-dokument i prosjektet sitt: et
+dokument der den nyeste versjonen har et navn som slutter på `.ids`, høyst 50
+([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+IFC-LPGs kontroll leser hver IDS trygt og gir den til IfcOpenShells IfcTester,
+den samme kontrollen som Dataspatium kjører i nettleseren, så de to gir samme
+utfall. Den kjøres etter de andre kontrollene, i samme slags arbeidsprosess med
+de samme grensene. En IDS som lastes opp senere, gjelder IFC-versjonene som
+lastes opp etter den.
+
+Hvert krav et element ikke oppfyller, blir en anmerkning av typen `ids`, med
+alvorligheten `error`, spesifikasjonens identifikator eller navn i `rule` og
+IDS-dokumentet i `document_id`. Det samme gjør en påkrevd spesifikasjon som ikke
+gjelder noe i filen, og et element som en forbudt spesifikasjon gjelder.
+Rapportens kontroll `ids` viser dokumentene den brukte, med versjon, og hver
+spesifikasjon med bruken, utfallet (`passed`, `failed` eller `not applicable`),
+hvor mange elementer den gjelder, og hvor mange anmerkninger den ga. Et
+IDS-dokument som ikke kan leses, for eksempel ett med en DTD, står under
+`rules_not_run` med grunnen, og de andre kontrolleres likevel. Versjonens side
+viser spesifikasjonene i en egen tabell.
+
 ## Grafen
 
 Hver entitet blir en `IfcEntity`-node som bærer klassen sin og alle
