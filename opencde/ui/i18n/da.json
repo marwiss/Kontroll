@@ -356,6 +356,7 @@
   "admin.settings.check": "Tjek",
   "check.version": "Version",
   "check.environment": "Miljø",
+  "check.apis": "API'er, der tilbydes",
   "check.public_url": "Offentlig adresse",
   "check.graph": "Grafdatabase",
   "check.schema": "Skema",

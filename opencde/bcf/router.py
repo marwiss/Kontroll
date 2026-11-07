@@ -36,7 +36,10 @@ v30.include_router(routes_viewpoints.router)
 v30.include_router(routes_topic_links.router)
 v30.include_router(routes_documents.router)
 
+v21 = routes_v21.router
+versions = routes_v21.public_router  # GET /bcf/versions, served when either version is (OPENCDE_APIS)
+
 router = APIRouter()
 router.include_router(v30)
-router.include_router(routes_v21.router)
-router.include_router(routes_v21.public_router)
+router.include_router(v21)
+router.include_router(versions)

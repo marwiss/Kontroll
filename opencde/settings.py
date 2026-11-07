@@ -304,6 +304,11 @@ class Settings(BaseSettings):
         "Unset means: only outside production. The OpenAPI document at /openapi.json is always served.",
     )
     server_assigned_id_prefix: str = Field("ISSUE-", description="Prefix of human-readable topic ids (BCF 3.2.9).")
+    apis: list[Literal["bcf-3.0", "bcf-2.1", "documents"]] = Field(
+        ["bcf-3.0", "bcf-2.1", "documents"],
+        description="The APIs the server offers. The Foundation API comes with BCF API 3.0 and the Documents API, which "
+        'need it. ["bcf-2.1"] makes a server for BCF API 2.1 alone, ["documents"] a document server.',
+    )
 
     # --- optional modules -------------------------------------------------
     # The IFC-LPG module: read as OPENCDE_IFC_LPG_*, and still as OPENCDE_IFCGRAPH_* (see `_ifc`).
@@ -373,6 +378,13 @@ class Settings(BaseSettings):
             raise ValueError(f"OPENCDE_RATE_LIMIT_STORAGE must use one of {', '.join(RATE_LIMIT_STORES)}")
         return value
 
+    @field_validator("apis")
+    @classmethod
+    def _some_api(cls, value: list[str]) -> list[str]:
+        if not value:
+            raise ValueError('OPENCDE_APIS must name at least one of "bcf-3.0", "bcf-2.1" and "documents"')
+        return list(dict.fromkeys(value))
+
     @field_validator("public_url")
     @classmethod
     def _normalize_public_url(cls, value: str) -> str:
@@ -428,6 +440,13 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    def offers(self, api: str) -> bool:
+        """Whether the server offers an API: "bcf-3.0", "bcf-2.1", "documents", or "foundation", which comes with
+        the two that need it."""
+        if api == "foundation":
+            return "bcf-3.0" in self.apis or "documents" in self.apis
+        return api in self.apis
 
     @property
     def api_docs_on(self) -> bool:

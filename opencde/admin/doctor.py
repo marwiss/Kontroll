@@ -126,6 +126,7 @@ async def headers_check(settings: Settings, transport: httpx.AsyncBaseTransport 
 
 async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) -> list[Check]:
     checks = [Check("version", True, value=__version__), Check("environment", True, value=settings.environment)]
+    checks.append(Check("apis", True, value=", ".join(settings.apis)))
     https = settings.public_url.startswith("https://")
     fine = https or settings.environment != "production"
     checks.append(
