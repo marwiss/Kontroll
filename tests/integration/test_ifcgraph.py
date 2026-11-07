@@ -303,9 +303,18 @@ def test_components_created_before_the_model_are_linked_when_it_finishes(
     assert model["state"] == "done", model.get("error")
     assert model["bcf_document_guid"] == uploaded.json()["guid"]
 
+    # A model is `done` a moment before its components are linked: a viewpoint made after `done` is linked by its own
+    # call, one made before by the model's, and none in between is missed. So the links are waited for.
+    expected = sorted([(WALLS[0], "3"), (WALLS[2], "1")])
+    deadline = time.monotonic() + 30
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
-        rows, _, _ = driver.execute_query(
-            "MATCH (c:Component)-[:SAME_AS]->(e:IfcEntity) RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
-            database_=client.app.state.settings.database_name,  # type: ignore[attr-defined]
-        )
-        assert [(r["guid"], r["gtin"]) for r in rows] == sorted([(WALLS[0], "3"), (WALLS[2], "1")])
+        while True:
+            rows, _, _ = driver.execute_query(
+                "MATCH (c:Component)-[:SAME_AS]->(e:IfcEntity) RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
+                database_=client.app.state.settings.database_name,  # type: ignore[attr-defined]
+            )
+            linked = [(r["guid"], r["gtin"]) for r in rows]
+            if linked == expected or time.monotonic() > deadline:
+                break
+            time.sleep(0.2)
+    assert linked == expected
