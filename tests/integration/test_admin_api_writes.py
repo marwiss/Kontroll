@@ -105,6 +105,27 @@ def test_administrators_manage_users_projects_and_clients(client: TestClient, wo
     assert all(event["actor"] == me["id"] and event["request_id"] for event in events)
 
 
+def test_deleting_a_project_through_the_api_frees_its_files_and_no_others(client: TestClient, world: World) -> None:
+    """The administration's page did; the API left the files on the disk."""
+    admin = login_with_scope(client, world, "admin", "profile admin")
+    stored = {}
+    for project_id, username in ((world.project_id, "editor"), (world.other_project_id, "outsider")):
+        session = login_as(client, world, username)
+        created = client.post(
+            f"/bcf/3.0/projects/{project_id}/documents",
+            content=b"ISO-10303-21;",
+            headers={**session.headers, "Content-Disposition": 'attachment; filename="walls.ifc"'},
+        )
+        assert created.status_code == 201, created.text
+        stored[project_id] = client.app.state.storage.path(f"bcf-documents/{created.json()['guid']}")  # type: ignore[attr-defined]
+        assert stored[project_id].is_file()
+
+    assert client.delete(f"/admin/api/projects/{world.project_id}", headers=admin.headers).status_code == 204
+    assert not stored[world.project_id].exists()
+    assert stored[world.other_project_id].is_file(), "another project's file stays"
+    assert login_as(client, world, "editor").headers, "the member who uploaded is still there"
+
+
 def test_dangerous_writes_need_a_fresh_sign_in(client: TestClient, world: World) -> None:
     """A token whose authentication is older than the window answers reauthentication_required."""
     admin = login_with_scope(client, world, "admin", "profile admin")

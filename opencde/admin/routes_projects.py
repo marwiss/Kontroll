@@ -167,13 +167,7 @@ async def project_action(
         if action == "delete":
             if not await password_confirmed(users, admin, data.get("confirm_password")):
                 return redirect_with_notice(page, "wrong_password")
-            keys = await _storage_keys(graph, project.project_id)
-            await projects.delete(project.project_id)
-            for key in keys:
-                try:
-                    storage.delete(key)
-                except ValueError:
-                    pass
+            await projects.delete_with_files(project.project_id, storage)
             await form.record(graph, "project.delete", project_id=project.project_id, name=project.name)
             return redirect_with_notice("/admin/projects", "deleted")
     except AccountError as exc:
@@ -182,16 +176,3 @@ async def project_action(
         )
 
     return redirect_with_notice(page, "invalid")
-
-
-async def _storage_keys(graph: GraphDep, project_id: str) -> list[str]:
-    """Every stored file below a project, so deleting the project also frees the disk."""
-    rows = await graph.run(
-        """
-        MATCH (p:Project {project_id: $id})-[*1..4]->(n)
-        WHERE n.storage_key IS NOT NULL OR n.snippet_storage_key IS NOT NULL
-        RETURN DISTINCT coalesce(n.storage_key, n.snippet_storage_key) AS key
-        """,
-        id=project_id,
-    )
-    return [row["key"] for row in rows if row["key"]]

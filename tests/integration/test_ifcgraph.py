@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from neo4j import GraphDatabase
 
 from opencde import seed as seeding
+from opencde.accounts.projects import ProjectRepository
 from opencde.bootstrap import make_graph, make_storage
 from opencde.documents.assembly import store_stream
 from opencde.graph.schema import apply_schema
@@ -92,6 +93,40 @@ def test_seeding_builds_the_graph_of_the_sample_model(
     assert model["state"] == "done", model.get("error")
     assert model["entities"] > 0
     assert [link["guid"] for link in links] == [next(iter(seeding.SAMPLE_MODEL_WALLS))], "the viewpoint's wall"
+
+
+def test_deleting_a_project_leaves_nothing_of_its_models(
+    graph_target: GraphTarget, clean_database: None, tmp_path
+) -> None:
+    """Deleting a project follows only what it owns, so its models' entities are deleted first, in batches."""
+    settings = test_settings(
+        tmp_path,
+        graph_dialect=graph_target.dialect,
+        graph_uri=graph_target.uri,
+        graph_user=graph_target.user,
+        graph_password=graph_target.password,
+        graph_connect_timeout_seconds=10.0,
+        ifcgraph_enabled=True,
+        ifcgraph_timeout_seconds=300,
+        ifcgraph_include_geometry=True,
+    )
+
+    async def work() -> tuple[int, list[str]]:
+        graph = make_graph(settings)
+        storage = make_storage(settings)
+        try:
+            await apply_schema(graph)
+            loaded = await seeding.seed(graph, storage=storage)
+            model = await seeding.build_sample_graph(graph, storage, settings, loaded)
+            await ProjectRepository(graph).delete(loaded.projects["Building permit"])
+            rows = await graph.run("MATCH (n) WHERE n:IfcEntity OR n:IfcModel RETURN DISTINCT labels(n)[0] AS label")
+            return int(model["entities"]), [row["label"] for row in rows]
+        finally:
+            await graph.close()
+
+    entities, left = asyncio.run(work())
+    assert entities > 0
+    assert left == []
 
 
 def test_a_conversion_a_stopped_server_left_behind_starts_over(
