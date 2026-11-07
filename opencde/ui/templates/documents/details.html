@@ -42,7 +42,7 @@
       <tbody>
         {% for issue in validation_issues %}
         <tr>
-          <td>{% if issue.kind == "gherkin" and issue.rule %}<code>{{ issue.rule }}</code>{% else %}{{ t("docs.details.validation_schema") }}{% endif %}</td>
+          <td>{% if issue.kind == "gherkin" and issue.rule %}<code>{{ issue.rule }}</code>{% elif issue.kind == "ids" %}{{ t("docs.details.ids_rule", rule=issue.rule) }}{% else %}{{ t("docs.details.validation_schema") }}{% endif %}</td>
           <td>{% if issue.severity == "warning" %}{{ t("docs.details.validation_warning") }}{% else %}{{ t("docs.details.validation_error") }}{% endif %}</td>
           <td>{% if issue.step_id %}<code>#{{ issue.step_id }}</code>{% endif %}</td>
           <td>{% if issue.global_id %}<code>{{ issue.global_id }}</code>{% endif %}</td>
@@ -55,6 +55,33 @@
   <div class="cluster">
     <a class="btn btn--secondary" href="{{ validation_url }}">{{ t("docs.details.validation_download") }}</a>
   </div>
+</section>
+{% endif %}
+
+{% if validation and (validation.ids_specifications or validation.ids_not_read) %}
+<section class="card">
+  <h2>{{ t("docs.details.ids_title") }}</h2>
+  <p class="card__lead">{{ t("docs.details.ids_lead") }}</p>
+  {% if validation.ids_specifications %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">{{ t("docs.details.ids_specification") }}</th><th scope="col">{{ t("docs.details.ids_document") }}</th><th scope="col">{{ t("docs.details.ids_usage") }}</th><th scope="col">{{ t("docs.details.ids_verdict") }}</th><th scope="col">{{ t("docs.details.ids_applicable") }}</th><th scope="col">{{ t("docs.details.ids_issues") }}</th></tr></thead>
+      <tbody>
+        {% for spec in validation.ids_specifications %}
+        <tr>
+          <td>{{ spec.name }}{% if spec.identifier %} <code>{{ spec.identifier }}</code>{% endif %}{% if not spec.for_this_schema %}<br><span class="muted">{{ t("docs.details.ids_other_schema", versions=spec.ifc_versions|join(", ")) }}</span>{% endif %}</td>
+          <td>{{ spec.document_title or spec.document_id }}</td>
+          <td>{% if spec.usage == "required" %}{{ t("docs.details.ids_required") }}{% elif spec.usage == "prohibited" %}{{ t("docs.details.ids_prohibited") }}{% else %}{{ t("docs.details.ids_optional") }}{% endif %}</td>
+          <td>{% if spec.status == "passed" %}{{ t("docs.details.ids_passed") }}{% elif spec.status == "failed" %}{{ t("docs.details.ids_failed") }}{% else %}{{ t("docs.details.ids_not_applicable") }}{% endif %}</td>
+          <td>{{ spec.applicable }}</td>
+          <td>{{ spec.issues }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% for entry in validation.ids_not_read %}<p class="muted">{{ t("docs.details.ids_not_read", name=entry.rule, error=entry.error) }}</p>{% endfor %}
 </section>
 {% endif %}
 

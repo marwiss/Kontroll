@@ -47,7 +47,34 @@ class Validation:
     @property
     def rules_not_run(self) -> list[str]:
         """The gherkin rules that raised an exception on the file, so that their verdict is unknown."""
-        return sorted({str(rule["rule"]) for check in self.checks for rule in check.get("rules_not_run", [])})
+        return sorted(
+            {
+                str(rule["rule"])
+                for check in self.checks
+                if check.get("name") != "ids"
+                for rule in check.get("rules_not_run", [])
+            }
+        )
+
+    @property
+    def ids_check(self) -> dict[str, Any] | None:
+        """The check against the IDS documents of the version's project, when it has any (ADR 0015)."""
+        return next((check for check in self.checks if check.get("name") == "ids"), None)
+
+    @property
+    def ids_specifications(self) -> list[dict[str, Any]]:
+        """Each specification of the IDS check, with the title of its document."""
+        check = self.ids_check or {}
+        titles = {document["document_id"]: document.get("title") for document in check.get("documents", [])}
+        return [
+            {**specification, "document_title": titles.get(specification.get("document_id"))}
+            for specification in check.get("specifications", [])
+        ]
+
+    @property
+    def ids_not_read(self) -> list[dict[str, Any]]:
+        """The IDS documents that could not be read, each with the reason."""
+        return list((self.ids_check or {}).get("rules_not_run", []))
 
     @property
     def status(self) -> Status:
@@ -96,28 +123,65 @@ class _Report(BaseModel):
 class IfcValidationIssue(_Report):
     kind: str = Field(
         description="What found it: `schema`, `entity_rule`, `simpletype_rule` or `global_rule` of the IFC schema, "
-        "or `gherkin` for one of buildingSMART's ifc-gherkin-rules."
+        "`gherkin` for one of buildingSMART's ifc-gherkin-rules, or `ids` for a specification of one of the project's "
+        "IDS documents."
     )
-    rule: str | None = Field(None, description="The code of the gherkin rule, as in `GRP001`.")
+    rule: str | None = Field(
+        None,
+        description="The code of the gherkin rule, as in `GRP001`, or the identifier of the IDS specification, or "
+        "else its name.",
+    )
     severity: str = Field(description="`error` or `warning`.")
     message: str = Field(description="The validator's words, which may quote the file; at most 1,000 characters.")
     step_id: int | None = Field(None, description="The number of the instance in the file, as in `#123`.")
     global_id: str | None = Field(None, description="The GlobalId of the instance, when it is a rooted entity.")
     attribute: str | None = Field(None, description="The attribute the issue is about, when the validator says.")
+    document_id: str | None = Field(None, description="For `ids`: the IDS document whose specification found it.")
 
 
 class IfcValidationRuleNotRun(_Report):
-    rule: str = Field(description="The code of the gherkin rule.")
-    error: str = Field(description="What it raised, by type.")
+    rule: str = Field(description="The code of the gherkin rule, or the title of the IDS document.")
+    error: str = Field(description="What the rule raised, by type, or why the IDS document could not be read.")
+    document_id: str | None = Field(None, description="For `ids`: the IDS document that could not be read.")
+
+
+class IfcValidationIdsDocument(_Report):
+    document_id: str = Field(description="An IDS document of the project.")
+    version_index: int = Field(description="The version checked against, the latest when the file was checked.")
+    title: str | None = Field(None, description="The document's title.")
+
+
+class IfcValidationSpecification(_Report):
+    document_id: str = Field(description="The IDS document the specification is in.")
+    name: str = Field(description="The specification's name.")
+    identifier: str | None = Field(None, description="The specification's identifier, when it has one.")
+    usage: Literal["required", "optional", "prohibited"] = Field(description="As IDS 1.0 has it.")
+    ifc_versions: list[str] = Field(description="The IFC versions the specification names.")
+    for_this_schema: bool = Field(
+        description="Whether those include the file's. The specification is checked either way, as IfcTester does."
+    )
+    status: Literal["passed", "failed", "not applicable"] = Field(
+        description="`not applicable` for an optional specification that applies to nothing in the file."
+    )
+    applicable: int = Field(description="How many elements of the file the specification applies to.")
+    issues: int = Field(description="How many issues it gave.")
 
 
 class IfcValidationCheck(_Report):
-    name: str = Field(description="`schema` or `gherkin`.")
+    name: str = Field(description="`schema`, `gherkin` or `ids`.")
     state: Literal["done", "failed"] = Field(description="`failed` when the check could not be made at all.")
     ruleset: str = Field(description="What the check ran, and which version of it.")
     issue_count: int = Field(description="How many issues this check found.")
     rules_not_run: list[IfcValidationRuleNotRun] = Field(
-        default_factory=list, description="Rules that raised an exception, so their verdict is unknown."
+        default_factory=list,
+        description="Rules that raised an exception, so their verdict is unknown, or IDS documents that could not be "
+        "read.",
+    )
+    documents: list[IfcValidationIdsDocument] = Field(
+        default_factory=list, description="For `ids`: the IDS documents the file was checked against."
+    )
+    specifications: list[IfcValidationSpecification] = Field(
+        default_factory=list, description="For `ids`: every specification of those documents, with its verdict."
     )
 
 
