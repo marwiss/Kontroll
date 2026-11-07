@@ -46,7 +46,7 @@ dependencies = [
 # IFC-LPG import (stage 9). Pulls in IfcOpenShell, which is large; off by default. Its validator's EXPRESS rules import
 # _pytest when they run, which IfcOpenShell does not declare, so pytest belongs here and not only in the tests (ADR 0011).
 ifc-lpg = ["ifcopenshell>=0.9.0", "pytest>=9.0"]
-ifcgraph = ["opencde-server[ifc-lpg]"]  # the extra's name before 2.0.2, so that builds that name it keep working
+ifcgraph = ["opencde-server[ifc-lpg]"]  # the extra's old name, so that builds that name it keep working
 # A shared store for the rate limits when several server processes run (ADR 0007).
 redis = ["redis>=5.0"]
 

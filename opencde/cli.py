@@ -34,7 +34,7 @@ app.add_typer(user_app, name="user")
 app.add_typer(project_app, name="project")
 app.add_typer(client_app, name="client")
 app.add_typer(ifcgraph_app, name="ifc-lpg")
-app.add_typer(ifcgraph_app, name="ifcgraph", hidden=True)  # its name before 2.0.2, so that scripts keep working
+app.add_typer(ifcgraph_app, name="ifcgraph", hidden=True)  # its old name, so that scripts keep working
 
 T = TypeVar("T")
 

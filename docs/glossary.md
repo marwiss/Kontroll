@@ -49,7 +49,7 @@ viewpoint and project are the same words as in Dataspatium.
 | Word | What it means here |
 |---|---|
 | IFC graph | An uploaded model as nodes and relationships in the database, optional |
-| IFC-LPG | The module that turns IFC files into an IFC graph and back, named IFC-graph before 2.0.2 |
+| IFC-LPG | The module that turns IFC files into an IFC graph and back, named IFC-graph until November 2026 |
 | `GlobalId` | The permanent id of an element in an IFC file |
 | `SAME_AS` | The relationship from a viewpoint's component to the element in a model |
 | GTIN | Global Trade Item Number, a product's number; here read from the property set `Reuse` |
