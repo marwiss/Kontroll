@@ -12,7 +12,7 @@ kaksinkertaistaa sen koon (noin 680 MB vastaan 300 MB); rakenna
 `--build-arg OPENCDE_EXTRAS=` saadaksesi kevyemmän kuvan ilman
 IfcOpenShelliä, kun moduuli pysyy pois päältä.
 
-Ennen versiota 2.0.2 moduulin nimi oli IFC-graph. Sen asetusten nimet olivat
+Marraskuuhun 2026 asti moduulin nimi oli IFC-graph. Sen asetusten nimet olivat
 `OPENCDE_IFCGRAPH_*` ja komennon `opencde ifcgraph`, ja molemmat toimivat yhä;
 palvelimen loki ja `opencde doctor` nimeävät vanhat asetukset, jotka se saa.
 

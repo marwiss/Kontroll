@@ -26,7 +26,7 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, Settings
 
 SECRETS_DIR = Path("/run/secrets")
 
-# The IFC-LPG module was the IFC-graph module before 2.0.2. Its settings are read by their new names first and by the
+# The IFC-LPG module was the IFC-graph module until November 2026. Its settings are read by their new names first and by the
 # old ones still, so that a server keeps its configuration across the upgrade, and the old names in use are reported.
 IFC_PREFIX = "OPENCDE_IFC_LPG_"
 OLD_IFC_PREFIX = "OPENCDE_IFCGRAPH_"
@@ -35,7 +35,7 @@ _OLD_NAMES_SEEN: ContextVar[tuple[str, ...]] = ContextVar("old_setting_names", d
 
 
 def _ifc(name: str) -> AliasChoices:
-    """Where an IFC-LPG setting is read from: its own name, then the name it had before 2.0.2."""
+    """Where an IFC-LPG setting is read from: its own name, then the name it had until November 2026."""
     return AliasChoices(IFC_PREFIX + name.upper(), OLD_IFC_PREFIX + name.upper())
 
 
@@ -306,7 +306,7 @@ class Settings(BaseSettings):
     server_assigned_id_prefix: str = Field("ISSUE-", description="Prefix of human-readable topic ids (BCF 3.2.9).")
 
     # --- optional modules -------------------------------------------------
-    # The IFC-LPG module: read as OPENCDE_IFC_LPG_*, and as OPENCDE_IFCGRAPH_* as before 2.0.2 (see `_ifc`).
+    # The IFC-LPG module: read as OPENCDE_IFC_LPG_*, and still as OPENCDE_IFCGRAPH_* (see `_ifc`).
     ifcgraph_enabled: bool = Field(
         False,
         validation_alias=_ifc("enabled"),
