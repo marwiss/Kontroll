@@ -19,8 +19,10 @@ from fastapi import Depends, HTTPException
 from opencde.deps import GraphDep
 from opencde.documents.links import version_links
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion, FileDescription
+from opencde.documents.validation import Validation
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import new_id
+from opencde.ifcgraph.validation import unpack_report
 from opencde.timeutil import now_iso
 
 
@@ -159,6 +161,34 @@ class DocumentRepository:
             user_id=user_id,
         )
         return [_record(row) for row in rows]
+
+    async def validation(
+        self, *, user_id: str, document_id: str, version_index: int, with_issues: bool = False
+    ) -> Validation | None:
+        """The check of a version against the IFC schema, if it has one (``documents/validation.py``)."""
+        row = await self.graph.one(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                  -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_VALIDATION]->(r:IfcValidation)
+            RETURN r.state AS state, r.issue_count AS issue_count, r.truncated AS truncated, r.checked_at AS checked_at,
+                   r.ruleset AS ruleset, CASE WHEN $with_issues THEN r.report ELSE null END AS report
+            ORDER BY r.created_at DESC LIMIT 1
+            """,
+            user_id=user_id,
+            document_id=document_id,
+            version_index=version_index,
+            with_issues=with_issues,
+        )
+        if row is None:
+            return None
+        return Validation(
+            state=str(row["state"]),
+            issue_count=None if row["issue_count"] is None else int(row["issue_count"]),
+            truncated=bool(row["truncated"]),
+            checked_at=row["checked_at"],
+            ruleset=row["ruleset"],
+            issues=unpack_report(row["report"]),
+        )
 
     async def create_version(
         self,

@@ -31,7 +31,7 @@ from opencde.auth.tokens import Principal
 from opencde.bcf.binary import file_response, receive_upload
 from opencde.deps import SettingsDep, StorageDep, UsersDep
 from opencde.documents.assembly import AssemblyError, assemble
-from opencde.documents.links import api_base, part_ranges
+from opencde.documents.links import api_base, part_ranges, validation_report_url
 from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata
 from opencde.documents.schemas import (
     DocumentDiscoverySessionInitialization,
@@ -62,6 +62,7 @@ from opencde.documents.sessions import (
     UploadSession,
     UploadSessionsDep,
 )
+from opencde.documents.validation import metadata_entries as validation_metadata
 from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
 from opencde.etag import etag_for, matches
 from opencde.ids import is_uuid, new_id, normalize_guid
@@ -328,6 +329,7 @@ async def _complete(
             file_name=record.file_name,
             document_id=record.document_id,
             version_index=record.version_index,
+            version_id=record.version_id,
         )
     return record.to_model(base)
 
@@ -526,10 +528,22 @@ async def document_version(
     response_model_exclude_none=True,
 )
 async def document_metadata(
-    principal: DocumentsPrincipal, document_id: DocumentId, version_index: VersionIndex, documents: DocumentsDep
+    principal: DocumentsPrincipal,
+    document_id: DocumentId,
+    version_index: VersionIndex,
+    documents: DocumentsDep,
+    settings: SettingsDep,
 ) -> DocumentMetadata:
+    """The metadata given at upload, and for an IFC file the result of checking it (``ifc_validation_*``)."""
     record = await _version(principal, documents, document_id, version_index)
-    return DocumentMetadata(metadata=record.metadata_entries())
+    entries = record.metadata_entries()
+    validation = await documents.validation(
+        user_id=principal.user_id, document_id=record.document_id, version_index=record.version_index
+    )
+    if validation is not None:
+        url = validation_report_url(api_base(settings), record.document_id, record.version_index)
+        entries += validation_metadata(validation, url)
+    return DocumentMetadata(metadata=entries)
 
 
 @router.get(

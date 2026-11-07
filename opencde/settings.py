@@ -246,6 +246,11 @@ class Settings(BaseSettings):
         True,
         description="Keep all of a converted model in the graph, geometry as text, so that the file can be written back.",
     )
+    ifcgraph_validate_uploads: bool = Field(
+        True,
+        description="Check every IFC file uploaded as a document version against the IFC schema, and show the result "
+        "in the version's metadata.",
+    )
     ifcgraph_gtin_property_set: str = Field("Reuse", description="Property set holding the GTIN of an element.")
     ifcgraph_gtin_property: str = Field("GTIN", description="Property within that set.")
 
