@@ -1,17 +1,18 @@
 # Changelog
 
 Kontroll takes the same release numbers as [Dataspatium](https://github.com/marwiss/Dataspatium):
-the same number on both means they work together. Only the latest release
-of each major number is kept; an earlier one of the same major number is
-withdrawn (its commits remain) and its notes are folded into the one that
-stays. Every release lists what a client can see; internal changes are in
+the same number on both means they work together. Each major number has one
+release, numbered X.0.0: 2.0.0 for the 2 series and 3.0.0 for the 3 series.
+A change to a series is released again under the same number; the release
+before it is withdrawn (its commits remain) and its notes are folded into the
+new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
 ## Unreleased
 
 Toward 3.0.0, with Dataspatium.
 
-- A server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
+- As in 2.0.0, a server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
   without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
   The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
   API that is not offered answers 404. All three are offered by default.
@@ -56,15 +57,27 @@ Toward 3.0.0, with Dataspatium.
   needs no IfcOpenShell, and the `ifc-lpg` extra adds the workers with IfcOpenShell, as before. Building the image
   fetches it with git. See [ADR 0014](docs/adr/0014-the-round-trip-comes-from-ifc-lpg.md).
 
-## 2.0.1 — 2026-11-07
+## 2.0.0 — 2026-11-07
 
-The single release of the 2 series: 2.0.0 with the deletion of a project put right, and with
-it everything up to and including 2.7.0, on the branch `release-2`. 2.0.0 is withdrawn under the
-rule above, together with Dataspatium 2.0.0. No history is rewritten: the commits stay, and only
-the earlier releases and tags went. Works with Dataspatium 2.0.1, which also speaks BCF API 2.1,
-so that a server with 2.1 alone can be its source, and draws the IFC graph.
+The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
+project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
+and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
+Dataspatium's, and this release takes the first number again. No history is rewritten: the
+commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
+speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
-- Deleting a project deletes only what the project owns. In 2.0.0 it followed every relationship from the project,
+- A server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
+  without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
+  The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
+  API that is not offered answers 404. All three are offered by default.
+- The IFC-graph module is now IFC-LPG, the name of its library,
+  [IFC–LPG round-tripping](https://github.com/marwiss/IFC-LPG). Its settings are `OPENCDE_IFC_LPG_*`, its command
+  `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
+  `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, so a server keeps its configuration across the
+  upgrade, and the log and `opencde doctor` name the old settings it is given. The administration API and the
+  capabilities document keep their keys, except that `raw` in `GET /admin/api/settings` names the settings by their
+  new names.
+- Deleting a project deletes only what the project owns. Before, it followed every relationship from the project,
   so it also deleted each user who had created a topic, comment or viewpoint or uploaded a document in it, then the
   other projects those users were members of, and the topics and documents directly in those. The administration's
   list of files to remove followed the same paths, so it could delete files of other projects.

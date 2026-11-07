@@ -22,7 +22,7 @@ from opencde_client.errors import ApiError, AuthError, NotInThisVersion, OpenCde
 from opencde_client.foundation import ApiVersion, AuthInfo, FoundationClient, auth_info, discover
 from opencde_client.http import ApiSession
 
-__version__ = "2.0.1"
+__version__ = "2.0.0"
 
 __all__ = [
     "ApiError",
