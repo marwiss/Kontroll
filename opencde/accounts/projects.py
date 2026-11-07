@@ -16,6 +16,7 @@ from opencde.accounts.roles import Role
 from opencde.accounts.users import PUBLIC_FIELDS, AccountError, User, _user
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.ifcgraph.importer import delete_model
 from opencde.timeutil import now_iso
 
 MAX_NAME = 200
@@ -150,7 +151,16 @@ class ProjectRepository:
         return _project(row["project"])
 
     async def delete(self, project_id: str) -> bool:
-        """Delete the project and everything hanging off it (topics, documents metadata, sessions)."""
+        """Delete the project and everything hanging off it (topics, documents metadata, sessions).
+
+        Its IFC models go first, in batches of their own: the entities of a model reach far beyond the few steps
+        the query below follows, and they are too many for one transaction.
+        """
+        models = await self.graph.run(
+            "MATCH (:Project {project_id: $id})-[:HAS_MODEL]->(m:IfcModel) RETURN m.id AS id", id=project_id
+        )
+        for model in models:
+            await delete_model(self.graph, model["id"])
 
         async def work(tx: Any) -> int:
             counters = await tx.counters(

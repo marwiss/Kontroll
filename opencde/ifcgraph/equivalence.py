@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from array import array
@@ -31,6 +32,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from opencde.ifcgraph.schema import Schema
 from opencde.ifcgraph.step import StepError, StepFile, exact_text
 
 MAX_FAILED_PAIRINGS = 10_000
@@ -91,65 +93,10 @@ class Comparison:
         }
 
 
-class _Shapes:
-    """What the schema says about order: the aggregate kinds of each attribute, outermost first."""
-
-    def __init__(self, schema_name: str) -> None:
-        try:
-            from ifcopenshell import ifcopenshell_wrapper
-        except ImportError as exc:  # pragma: no cover - depends on the optional extra
-            raise StepError("IfcOpenShell is not installed; install the 'ifcgraph' extra") from exc
-        try:
-            self._schema: Any = ifcopenshell_wrapper.schema_by_name(schema_name)
-        except RuntimeError as exc:
-            raise StepError(f"IfcOpenShell knows no schema named {schema_name[:40]!r}") from exc
-        self._entities: dict[bytes, tuple[tuple[str, tuple[str, ...]], ...]] = {}
-        self._types: dict[bytes, tuple[str, ...]] = {}
-
-    def _declaration(self, keyword: bytes) -> Any:
-        try:
-            return self._schema.declaration_by_name(keyword.decode("ascii"))
-        except (RuntimeError, UnicodeDecodeError):
-            return None  # An unknown class. Without a schema to say otherwise, all its aggregates count as ordered.
-
-    @classmethod
-    def _kinds(cls, declared: Any) -> tuple[str, ...]:
-        aggregate = declared.as_aggregation_type()
-        if aggregate:
-            return (aggregate.type_of_aggregation_string(), *cls._kinds(aggregate.type_of_element()))
-        named = declared.as_named_type()
-        if named:
-            definition = named.declared_type().as_type_declaration()
-            if definition:
-                return cls._kinds(definition.declared_type())
-        return ()
-
-    def attributes(self, keyword: bytes) -> tuple[tuple[str, tuple[str, ...]], ...]:
-        """Name and aggregate kinds of each attribute, by position."""
-        known = self._entities.get(keyword)
-        if known is None:
-            declaration = self._declaration(keyword)
-            entity = declaration.as_entity() if declaration is not None else None
-            known = (
-                tuple(
-                    (attribute.name(), self._kinds(attribute.type_of_attribute()))
-                    for attribute in entity.all_attributes()
-                )
-                if entity
-                else ()
-            )
-            self._entities[keyword] = known
-        return known
-
-    def defined_type(self, keyword: bytes) -> tuple[str, ...]:
-        """The aggregate kinds of a typed value, such as ``IFCPROPERTYSETDEFINITIONSET``, which is a SET."""
-        known = self._types.get(keyword)
-        if known is None:
-            declaration = self._declaration(keyword)
-            definition = declaration.as_type_declaration() if declaration is not None else None
-            known = self._kinds(definition.declared_type()) if definition else ()
-            self._types[keyword] = known
-        return known
+def _kinds_of_type(schema: Schema, keyword: bytes) -> tuple[str, ...]:
+    """The aggregates of a typed value. What the schema has no such type for counts as ordered."""
+    shape = schema.defined_type(keyword)
+    return shape[0] if shape else ()
 
 
 class _Matching:
@@ -159,9 +106,9 @@ class _Matching:
     exist: refinement treats alike what is alike, so an unbalanced class shows that none does.
     """
 
-    def __init__(self, first: StepFile, second: StepFile, shapes: _Shapes) -> None:
+    def __init__(self, first: StepFile, second: StepFile, schema: Schema) -> None:
         self.files = (first, second)
-        self.shapes = shapes
+        self.schema = schema
         self.split = len(first)
         self.ids = array("Q", first.ids() + second.ids())
         size = len(self.ids)
@@ -188,18 +135,17 @@ class _Matching:
 
     def _compile(self, file: StepFile, base: int, skeletons: dict[bytes, int]) -> None:
         nodes = {step_id: base + offset for offset, step_id in enumerate(file.ids())}
-        attributes = self.shapes.attributes
         for step_id, keyword, parameters in file:
             node = nodes[step_id]
             ordered: list[int] = []
             groups: list[tuple[int, ...]] = []
-            shape = attributes(keyword)
+            attributes = self.schema.attributes(keyword) or ()
             parts = [keyword]
             for position, value in enumerate(parameters):
                 if isinstance(value, bytes):
                     parts.append(value)
                 else:
-                    kinds = shape[position][1] if position < len(shape) else ()
+                    kinds = attributes[position].kinds if position < len(attributes) else ()
                     parts.append(self._fold(value, kinds, nodes, ordered, groups))
             self.skeleton[node] = skeletons.setdefault(b"|".join(parts), len(skeletons))
             if ordered:
@@ -231,7 +177,7 @@ class _Matching:
             return _REFERENCE
         if isinstance(value, tuple):
             keyword, items = value
-            inner = self.shapes.defined_type(keyword)
+            inner = _kinds_of_type(self.schema, keyword)
             return b"%s(%s)" % (keyword, b",".join([self._fold(item, inner, nodes, ordered, groups) for item in items]))
         rest = kinds[1:]
         if kinds and kinds[0] in _UNORDERED:
@@ -419,7 +365,7 @@ def same_model(first: StepFile, second: StepFile) -> Check:
         return Check(name, False, f"The schemas differ: {first.schema} and {second.schema}.")
     if len(first) != len(second):
         return Check(name, False, f"The files have {len(first)} and {len(second)} instances.")
-    matching = _Matching(first, second, _Shapes(first.schema))
+    matching = _Matching(first, second, Schema(first.schema))
     for cls, balance in enumerate(matching.balance):
         if balance:
             return Check(name, False, matching.without_partner(cls, "has the values of"))
@@ -496,9 +442,9 @@ class _Expander:
     since what a cycle writes out depends on where it was entered, and the limit is on the work, not on the depth.
     """
 
-    def __init__(self, file: StepFile, shapes: _Shapes) -> None:
+    def __init__(self, file: StepFile, schema: Schema) -> None:
         self.file = file
-        self.shapes = shapes
+        self.schema = schema
         self._written = 0
 
     def _value(self, value: Any, kinds: tuple[str, ...], path: set[int]) -> bytes:
@@ -507,7 +453,7 @@ class _Expander:
         if isinstance(value, int):
             return self._instance(value, path)
         if isinstance(value, tuple):
-            inner = self.shapes.defined_type(value[0])
+            inner = _kinds_of_type(self.schema, value[0])
             return b"%s(%s)" % (value[0], b",".join([self._value(item, inner, path) for item in value[1]]))
         parts = [self._value(item, kinds[1:], path) for item in value]
         if kinds and kinds[0] in _UNORDERED:
@@ -524,9 +470,9 @@ class _Expander:
         if self._written > MAX_EXPANDED_VALUES:
             raise StepError(f"writing out what #{step_id} refers to takes more than {MAX_EXPANDED_VALUES} values")
         path.add(step_id)
-        shape = self.shapes.attributes(keyword)
+        attributes = self.schema.attributes(keyword) or ()
         parts = [
-            self._value(item, shape[position][1] if position < len(shape) else (), path)
+            self._value(item, attributes[position].kinds if position < len(attributes) else (), path)
             for position, item in enumerate(parameters)
         ]
         path.discard(step_id)
@@ -537,9 +483,9 @@ class _Expander:
         keyword, parameters = self.file[step_id]
         wanted = _GEOREFERENCE.get(keyword)
         said: dict[str, bytes] = {}
-        for position, (name, kinds) in enumerate(self.shapes.attributes(keyword)):
-            if position < len(parameters) and (wanted is None or name in wanted):
-                said[name] = self._value(parameters[position], kinds, {step_id})
+        for position, attribute in enumerate(self.schema.attributes(keyword) or ()):
+            if position < len(parameters) and (wanted is None or attribute.name in wanted):
+                said[attribute.name] = self._value(parameters[position], attribute.kinds, {step_id})
         return said
 
 
@@ -555,8 +501,8 @@ def _check_georeference(
     name = "georeference"
     if first.schema != second.schema:
         return Check(name, None, "The schemas differ.")
-    shapes = _Shapes(first.schema)
-    expand_first, expand_second = _Expander(first, shapes), _Expander(second, shapes)
+    schema = Schema(first.schema)
+    expand_first, expand_second = _Expander(first, schema), _Expander(second, schema)
     differences: list[str] = []
     compared = 0
     for keyword in sorted(ours.keys() | theirs.keys()):
@@ -686,6 +632,14 @@ def compare_files(first: Path, second: Path, *, geometry: bool = False) -> Compa
     return Comparison((*comparison.checks, built))
 
 
+def keep_stdout_for_the_answer() -> None:
+    """Send what anything else writes to stdout to stderr instead. The geometry kernel writes to it from C++, past
+    ``sys.stdout`` and at times of its own, and the answer on stdout has to stand alone to be read."""
+    answer = os.fdopen(os.dup(1), "w", encoding="utf-8")
+    os.dup2(2, 1)
+    sys.stdout = answer
+
+
 def main(argv: list[str] | None = None) -> int:
     """Exit 0 for the same model, 1 for not the same or not shown, 2 for no file, with the answer as JSON on stdout."""
     parser = argparse.ArgumentParser(prog="opencde-ifcgraph-equivalence")
@@ -704,8 +658,10 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.write(json.dumps({"error": f"{type(exc).__name__}: {exc}"}) + "\n")
         return 2
     sys.stdout.write(json.dumps(comparison.to_dict(), indent=2) + "\n")
+    sys.stdout.flush()
     return 0 if comparison.same_model else 1
 
 
 if __name__ == "__main__":
+    keep_stdout_for_the_answer()
     sys.exit(main())

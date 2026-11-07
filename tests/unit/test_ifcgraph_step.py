@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from opencde.ifcgraph.step import MAX_NESTING, StepError, StepFile, exact_text, parse_statement
+from opencde.ifcgraph.step import MAX_NESTING, StepError, StepFile, exact_text, parse_statement, statements_of
 from tests.conftest import FIXTURES_DIR
 
 HEAD = (
@@ -126,6 +126,10 @@ def test_bytes_above_ascii_are_counted() -> None:
         b"#1=IFCX(1);#1=IFCX(2);",
         b"#1=IFCX(" + b"(" * (MAX_NESTING + 1) + b")" * (MAX_NESTING + 1) + b");",
         b"#1=IFCX(" + b"9" * 5000 + b");",
+        b"#" + b"9" * 5000 + b"=IFCX(1);",
+        b"#1=IFCX(#" + b"9" * 5000 + b");",
+        b"#9223372036854775808=IFCX(1);",
+        b"#1=IFCX(#9223372036854775808);",
         rb"#1=IFCX('\X4\FFFFFFFF\X0\');",
         b"#1=(IFCA(1)IFCB(2);",
     ],
@@ -162,6 +166,27 @@ def test_a_hostile_file_cannot_make_the_reader_backtrack() -> None:
     for body in (b"#1=IFCX(" + b"a" * size, b"#1=IFCX('" + b"''" * size, b"#1=IFCX(" + b"/" * size):
         with pytest.raises(StepError):
             StepFile(HEAD + body)
+
+
+def test_a_keyword_is_read_without_the_rest_where_that_can_be_done() -> None:
+    file = StepFile(
+        HEAD + b"#1=ifcx(1);\n#2= /* first */ IFCY(1);\n#3=(IFCA(1)IFCB(2));\n#4 = !USER(1);\n#5=IFCZ('a;b');\n" + TAIL
+    )
+    assert [file.keyword_of(step) for step in file.ids()] == [b"IFCX", b"IFCY", b"(IFCA IFCB)", b"!USER", b"IFCZ"]
+
+
+def test_a_run_of_instances_is_split_where_they_end() -> None:
+    text = b"#1=IFCX('a;b');\n#2=IFCY('r\xc3\xa5\nline');\n\n#3=IFCZ(1);"
+    assert list(statements_of(text)) == [
+        (1, b"#1=IFCX('a;b');"),
+        (2, b"#2=IFCY('r\xc3\xa5\nline');"),
+        (3, b"#3=IFCZ(1);"),
+    ]
+    assert list(statements_of(b"")) == []
+    with pytest.raises(StepError):
+        list(statements_of(b"IFCX(1);"))
+    with pytest.raises(StepError):
+        list(statements_of(b"#1=IFCX('open);"))
 
 
 def test_the_fixture_model_reads_completely() -> None:

@@ -682,5 +682,42 @@ def ifcgraph_prune(
     print(f"OK      deleted {result['models']} model(s) and {result['entities']} entities")
 
 
+@ifcgraph_app.command("export")
+def ifcgraph_export(
+    model_id: str,
+    target: Annotated[Path, typer.Argument(help="The file to write.")],
+    verify: Annotated[bool, typer.Option("--verify", help="Compare the file with the one that was uploaded.")] = False,
+    geometry: Annotated[
+        bool, typer.Option("--geometry", help="With --verify, also build and compare the meshes.")
+    ] = False,
+) -> None:
+    """Write a model back as an IFC file from what the graph holds. Only a model converted with
+    OPENCDE_IFCGRAPH_LOSSLESS can be."""
+    from opencde.bootstrap import make_storage
+    from opencde.ifcgraph.exporter import NotExportable
+    from opencde.ifcgraph.service import IfcGraphService
+
+    async def work(graph, settings):
+        service = IfcGraphService(graph, make_storage(settings), settings)
+        instances = await service.export(model_id, target)
+        answer = await service.compare_with_upload(model_id, target, geometry=geometry) if verify else None
+        return instances, answer
+
+    try:
+        instances, answer = _run(work)
+    except typer.Exit:
+        raise
+    except (NotExportable, RuntimeError, ValueError, OSError) as exc:
+        raise _fail(str(exc)[:500]) from exc
+    print(f"OK      wrote {target}: {instances} instances")
+    if answer is None:
+        return
+    for check in answer["checks"]:
+        word = {True: "OK", False: "DIFFERS", None: "UNKNOWN"}[check["passed"]]
+        print(f"{word:7} {check['name']}{': ' + check['detail'] if check['detail'] else ''}")
+    if not answer["same_model"]:
+        raise _fail("the file does not hold the same model as the upload")
+
+
 if __name__ == "__main__":
     app()

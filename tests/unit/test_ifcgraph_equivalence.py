@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import random
 import re
+import subprocess
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -25,6 +27,7 @@ from ifcopenshell import ifcopenshell_wrapper
 
 from opencde.ifcgraph import equivalence
 from opencde.ifcgraph.equivalence import compare, compare_files, main
+from opencde.ifcgraph.schema import Schema, relationship_type
 from opencde.ifcgraph.step import StepFile
 
 MODEL = FIXTURES_DIR / "three_walls_gtin.ifc"
@@ -435,7 +438,7 @@ def test_a_search_that_reaches_its_limit_says_nothing_and_counts_as_not_the_same
 
 
 def matching_of(one: tuple[str, ...], other: tuple[str, ...]) -> equivalence._Matching:
-    return equivalence._Matching(StepFile(exchange(*one)), StepFile(exchange(*other)), equivalence._Shapes("IFC4"))
+    return equivalence._Matching(StepFile(exchange(*one)), StepFile(exchange(*other)), Schema("IFC4"))
 
 
 def test_a_pairing_is_checked_against_the_files_alone() -> None:
@@ -662,21 +665,73 @@ def test_every_schema_keeps_order_inside_a_set_out_of_it() -> None:
             entity = declaration.as_entity()
             if not entity:
                 continue
-            for attribute in entity.attributes():
-                kinds = equivalence._Shapes._kinds(attribute.type_of_attribute())
-                assert not (set(kinds[:-1]) & {"set", "bag"}), (name, declaration.name(), attribute.name())
+            for attribute in Schema(name).attributes(declaration.name().upper().encode("ascii")) or ():
+                assert not (set(attribute.kinds[:-1]) & {"set", "bag"}), (name, declaration.name(), attribute.name)
 
 
-def test_the_schema_says_what_is_ordered() -> None:
-    shapes = equivalence._Shapes("IFC4")
-    attributes = dict(shapes.attributes(b"IFCPROPERTYSET"))
-    assert attributes["HasProperties"] == ("set",)
-    assert dict(shapes.attributes(b"IFCPOLYLINE"))["Points"] == ("list",)
-    assert dict(shapes.attributes(b"IFCCARTESIANPOINTLIST3D"))["CoordList"] == ("list", "list")
-    assert shapes.defined_type(b"IFCPROPERTYSETDEFINITIONSET") == ("set",)
-    assert shapes.defined_type(b"IFCLABEL") == ()
-    assert shapes.attributes(b"IFCNOSUCHTHING") == ()
-    assert shapes.defined_type(b"IFCNOSUCHTHING") == ()
+def attribute_of(schema: Schema, keyword: bytes, name: str) -> Any:
+    return next(attribute for attribute in schema.attributes(keyword) or () if attribute.name == name)
+
+
+def test_the_schema_says_what_an_attribute_holds() -> None:
+    schema = Schema("IFC4")
+    held = {
+        (b"IFCPROPERTYSET", "HasProperties"): (("set",), "entity"),
+        (b"IFCPOLYLINE", "Points"): (("list",), "entity"),
+        (b"IFCCARTESIANPOINTLIST3D", "CoordList"): (("list", "list"), "real"),
+        (b"IFCBSPLINESURFACE", "ControlPointsList"): (("list", "list"), "entity"),
+        (b"IFCTRIMMEDCURVE", "Trim1"): (("set",), "select"),
+        (b"IFCPROPERTYSINGLEVALUE", "NominalValue"): ((), "select"),
+        (b"IFCWALL", "PredefinedType"): ((), "enumeration"),
+        (b"IFCWALL", "Name"): ((), "string"),
+        (b"IFCSITE", "RefLatitude"): (("list",), "integer"),
+        (b"IFCBSPLINESURFACE", "UClosed"): ((), "logical"),
+        (b"IFCTRIMMEDCURVE", "SenseAgreement"): ((), "boolean"),
+        (b"IFCBLOBTEXTURE", "RasterCode"): ((), "binary"),
+    }
+    for (keyword, name), (kinds, leaf) in held.items():
+        attribute = attribute_of(schema, keyword, name)
+        assert (attribute.kinds, attribute.leaf) == (kinds, leaf), (keyword, name)
+    assert attribute_of(schema, b"IFCSIUNIT", "Dimensions").derived
+    assert not attribute_of(schema, b"IFCSIUNIT", "UnitType").derived
+    assert attribute_of(schema, b"IFCRELDEFINESBYPROPERTIES", "RelatingPropertyDefinition").relationship == (
+        "RELATING_PROPERTY_DEFINITION"
+    )
+    assert schema.defined_type(b"IFCPROPERTYSETDEFINITIONSET") == (("set",), "entity")
+    assert schema.defined_type(b"IFCLABEL") == ((), "string")
+    assert schema.defined_type(b"IFCLOGICAL") == ((), "logical")
+    assert schema.defined_type(b"IFCWALL") is None
+    assert schema.attributes(b"IFCNOSUCHTHING") is None
+    assert schema.attributes(b"IFCLABEL") is None
+    assert schema.defined_type(b"IFCNOSUCHTHING") is None
+    assert (
+        schema.chain(b"IFCWALL")[:2] == ("IfcWall", "IfcBuildingElement") and schema.chain(b"IFCWALL")[-1] == "IfcRoot"
+    )
+    assert schema.chain(b"IFCNOSUCHTHING") == ()
+
+
+def test_the_schema_says_what_refers_back() -> None:
+    schema = Schema("IFC4")
+    assert schema.refers_back(b"IFCRELDEFINESBYPROPERTIES", "RelatedObjects", b"IFCWALL") == ["IsDefinedBy"]
+    assert schema.refers_back(b"IFCRELASSOCIATESMATERIAL", "RelatedObjects", b"IFCWALL") == ["HasAssociations"]
+    assert schema.refers_back(b"IFCWALL", "Name", b"IFCWALL") == []
+    assert schema.refers_back(b"IFCPOLYLINE", "Points", b"IFCCARTESIANPOINT") == []
+    assert schema.refers_back(b"IFCNOSUCHTHING", "RelatedObjects", b"IFCWALL") == []
+    assert schema.refers_back(b"IFCRELDEFINESBYPROPERTIES", "RelatedObjects", b"IFCNOSUCHTHING") == []
+
+
+def test_no_class_has_two_attributes_of_one_relationship_type() -> None:
+    """The writer finds an attribute's references by the relationship's type, and an inverse attribute's relationships
+    are never read, so a forward and an inverse attribute of one class must not end up with one type."""
+    for name in ("IFC2X3", "IFC4", "IFC4X3_ADD2"):
+        schema = ifcopenshell_wrapper.schema_by_name(name)
+        for declaration in schema.declarations():
+            entity = declaration.as_entity()
+            if not entity:
+                continue
+            types = [relationship_type(attribute.name()) for attribute in entity.all_attributes()]
+            types += [relationship_type(inverse.name()) for inverse in entity.all_inverse_attributes()]
+            assert len(types) == len(set(types)), (name, declaration.name())
 
 
 def test_generated_geometry_is_compared_bit_for_bit(tmp_path: Path) -> None:
@@ -774,3 +829,33 @@ def test_the_module_can_be_run_as_a_process(tmp_path: Path, capsys: pytest.Captu
 
     assert main([str(MODEL), str(tmp_path / "missing.ifc")]) == 2
     assert "error" in json.loads(capsys.readouterr().err)
+
+
+def test_the_answer_stands_alone_on_stdout_whatever_the_kernel_writes() -> None:
+    """The geometry kernel writes to stdout from C++, which is what a write to the file descriptor stands in for."""
+    script = (
+        "import os, sys\n"
+        "from opencde.ifcgraph.equivalence import keep_stdout_for_the_answer\n"
+        "keep_stdout_for_the_answer()\n"
+        "os.write(1, b'noise from the kernel\\n')\n"
+        "sys.stdout.write('the answer\\n')\n"
+    )
+    done = subprocess.run(  # noqa: S603 - this very interpreter, on the text above
+        [sys.executable, "-c", script], capture_output=True, text=True, timeout=120, check=True
+    )
+    assert done.stdout.strip() == "the answer"
+    assert "noise from the kernel" in done.stderr
+
+
+def test_the_module_answers_in_a_process_of_its_own(tmp_path: Path) -> None:
+    written = tmp_path / "written.ifc"
+    written.write_bytes(renumbered_and_shuffled(ORIGINAL))
+    done = subprocess.run(  # noqa: S603 - this very interpreter, on files the test wrote
+        [sys.executable, "-m", "opencde.ifcgraph.equivalence", str(MODEL), str(written), "--geometry"],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    assert done.returncode == 0, done.stderr
+    assert json.loads(done.stdout)["same_model"] is True

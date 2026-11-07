@@ -42,6 +42,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("AuditEvent", "id"),
     ("IfcModel", "id"),
     ("IfcEntity", "id"),
+    ("StepBlock", "id"),
 )
 
 # Additional lookup and sort indexes.
