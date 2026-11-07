@@ -340,6 +340,7 @@ def _settings_payload(settings: Settings) -> dict[str, Any]:
             "max_entities": settings.ifcgraph_max_entities,
             "include_geometry": settings.ifcgraph_include_geometry,
             "lossless": settings.ifcgraph_lossless,
+            "validate_uploads": settings.ifcgraph_validate_uploads,
             "gtin_property_set": settings.ifcgraph_gtin_property_set,
             "gtin_property": settings.ifcgraph_gtin_property,
         },

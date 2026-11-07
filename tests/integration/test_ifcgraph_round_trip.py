@@ -331,22 +331,28 @@ def test_deleting_a_project_leaves_nothing_of_its_models(
     """Its entities reach further into the graph than deleting what hangs off a project does."""
     settings = settings_for(graph_target, tmp_path, ifcgraph_lossless=lossless, ifcgraph_include_geometry=as_nodes)
 
-    async def work() -> list[str]:
+    async def work() -> tuple[list[str], list[str]]:
         graph = make_graph(settings)
         storage = make_storage(settings)
         try:
             await apply_schema(graph)
             loaded = await seeding.seed(graph, storage=storage)
             await seeding.build_sample_graph(graph, storage, settings, loaded)
+            checks = await graph.run("MATCH (r:IfcValidation) RETURN r.state AS state")
             await ProjectRepository(graph).delete(loaded.projects["Building permit"])
             rows = await graph.run(
-                "MATCH (n) WHERE n:IfcEntity OR n:IfcModel OR n:StepBlock RETURN DISTINCT labels(n)[0] AS label"
+                """
+                MATCH (n) WHERE n:IfcEntity OR n:IfcModel OR n:StepBlock OR n:IfcValidation
+                RETURN DISTINCT labels(n)[0] AS label
+                """
             )
-            return [row["label"] for row in rows]
+            return [row["state"] for row in checks], [row["label"] for row in rows]
         finally:
             await graph.close()
 
-    assert asyncio.run(work()) == []
+    checks, left = asyncio.run(work())
+    assert checks == ["done"], "the sample model is checked against the IFC schema as an upload is"
+    assert left == []
 
 
 def test_the_command_line_writes_a_model_back_and_says_how_it_went(

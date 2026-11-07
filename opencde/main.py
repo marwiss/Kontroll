@@ -27,6 +27,7 @@ from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
 from opencde.documents import routes_api as documents_api
 from opencde.documents import routes_ui as documents_ui
+from opencde.documents import routes_validation as documents_validation
 from opencde.errors import install_error_handlers
 from opencde.etag import ETagMiddleware
 from opencde.foundation import routes as foundation_routes
@@ -73,6 +74,11 @@ OPENAPI_TAGS = [
     {
         "name": "Capabilities (extension)",
         "description": "Outside the OpenCDE specifications: which extensions and limits this server has.",
+    },
+    {
+        "name": "IFC validation (extension)",
+        "description": "Outside the OpenCDE specifications: the result of checking an uploaded IFC file against the IFC "
+        "schema. The version's metadata carries a summary and the address of this report.",
     },
 ]
 
@@ -187,6 +193,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(oauth2_routes.router)
     app.include_router(bcf_router.router)
     app.include_router(documents_api.router)
+    app.include_router(documents_validation.router)
     app.include_router(documents_ui.router)
     app.include_router(web_routes.router)
     app.include_router(account_routes.router)

@@ -30,6 +30,11 @@ def version_links(base: str, document_id: str, version_index: int) -> DocumentVe
     )
 
 
+def validation_report_url(base: str, document_id: str, version_index: int) -> str:
+    """Where the report of a version's check against the IFC schema is (an extension, ``routes_validation.py``)."""
+    return f"{base}/documents/{document_id}/versions/{version_index}/ifc-validation"
+
+
 def part_ranges(size: int, part_size: int) -> list[tuple[int, int]]:
     """Inclusive zero-based byte ranges covering ``size`` bytes in parts of at most ``part_size``."""
     if size <= 0 or part_size <= 0:

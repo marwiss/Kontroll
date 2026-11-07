@@ -35,6 +35,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("BcfDocument", "guid"),
     ("Document", "document_id"),
     ("DocumentVersion", "id"),
+    ("IfcValidation", "id"),
     ("UploadSession", "id"),
     ("UploadPart", "id"),
     ("SelectionSession", "id"),

@@ -1,11 +1,14 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Scheduling conversions and linking BCF components to model elements.
+"""Scheduling conversions and checks of uploads, and linking BCF components to model elements.
 
 ``IfcGraphService.schedule`` records an ``IfcModel`` node (state ``queued``),
 then converts in the background: the file is handed to the worker process
 (``.ifczip`` is unpacked first, with a size cap), the worker's records are
 imported, and the node ends in state ``done`` or ``failed`` with counts or an
-error. One conversion runs at a time.
+error. A file uploaded as a document version is also checked against the IFC
+schema (``validation.py``), with the result on an ``IfcValidation`` node below
+the version, which the Documents API shows (ADR 0011). One job runs at a time,
+the check of a file before its conversion.
 """
 
 from __future__ import annotations
@@ -26,6 +29,7 @@ from opencde.graph.graph import Graph
 from opencde.ids import new_id
 from opencde.ifcgraph.exporter import export_records
 from opencde.ifcgraph.importer import delete_blocks, delete_model, import_records
+from opencde.ifcgraph.validation import pack_report
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
@@ -63,10 +67,16 @@ class IfcGraphService:
         document_id: str | None = None,
         version_index: int | None = None,
         bcf_document_guid: str | None = None,
+        version_id: str | None = None,
     ) -> str | None:
-        """Queue a conversion for an uploaded IFC file; returns the model id, or None for other files."""
+        """Queue a conversion for an uploaded IFC file; returns the model id, or None for other files.
+
+        A document version (``version_id``) is checked against the IFC schema too, before it is converted.
+        """
         if not self.wants(file_name):
             return None
+        if version_id is not None and self.settings.ifcgraph_validate_uploads:
+            await self._queue_validation(version_id, storage_key, file_name)
         model_id = new_id()
         await self.graph.run(
             """
@@ -120,6 +130,25 @@ class IfcGraphService:
                 await self._set_state(row["id"], STATE_QUEUED)
             log.info("ifcgraph_resumed", model_id=row["id"])
             self._start(row["id"], row["storage_key"], row["file_name"])
+        if not self.settings.ifcgraph_validate_uploads:
+            return
+        rows = await self.graph.run(
+            """
+            MATCH (r:IfcValidation)
+            WHERE r.state = $queued OR (r.state = $running AND r.running_at < $given_up)
+            RETURN r.id AS id, r.storage_key AS storage_key, r.file_name AS file_name, r.state AS state
+            """,
+            queued=STATE_QUEUED,
+            running=STATE_RUNNING,
+            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
+        )
+        for row in rows:
+            if f"ifcvalidation-{row['id']}" in waiting_here:
+                continue
+            if row["state"] == STATE_RUNNING:
+                await self._set_validation(row["id"], STATE_QUEUED)
+            log.info("ifc_validation_resumed", validation_id=row["id"])
+            self._start_validation(row["id"], row["storage_key"], row["file_name"])
 
     async def shutdown(self) -> None:
         for task in list(self._tasks):
@@ -192,6 +221,89 @@ class IfcGraphService:
                 log.warning("ifcgraph_link_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:200])
                 linked = 0
             log.info("ifcgraph_imported", model_id=model_id, linked=linked, **counts)
+
+    # -- checking an upload against the IFC schema ------------------------------------------------
+
+    async def _queue_validation(self, version_id: str, storage_key: str, file_name: str) -> None:
+        validation_id = new_id()
+        rows = await self.graph.run(
+            """
+            MATCH (v:DocumentVersion {id: $version_id})
+            CREATE (v)-[:HAS_VALIDATION]->(r:IfcValidation {
+                id: $id, storage_key: $storage_key, file_name: $file_name, state: $state, created_at: $now
+            })
+            RETURN r.id AS id
+            """,
+            version_id=version_id,
+            id=validation_id,
+            storage_key=storage_key,
+            file_name=file_name,
+            state=STATE_QUEUED,
+            now=now_iso(),
+        )
+        if rows:
+            self._start_validation(validation_id, storage_key, file_name)
+
+    def _start_validation(self, validation_id: str, storage_key: str, file_name: str) -> None:
+        task = asyncio.create_task(
+            self._validate(validation_id, storage_key, file_name), name=f"ifcvalidation-{validation_id}"
+        )
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+
+    async def _set_validation(self, validation_id: str, state: str, **fields: Any) -> None:
+        await self.graph.run(
+            "MATCH (r:IfcValidation {id: $id}) SET r.state = $state, r += $fields",
+            id=validation_id,
+            state=state,
+            fields={**fields, f"{state}_at": now_iso()},
+        )
+
+    async def _validate(self, validation_id: str, storage_key: str, file_name: str) -> None:
+        """Check one upload; the issues may quote the file, so only their number is logged."""
+        async with self._lock:
+            rows = await self.graph.run(
+                """
+                MATCH (r:IfcValidation {id: $id, state: $queued})
+                SET r.state = $running, r.running_at = $now
+                RETURN r.id AS id
+                """,
+                id=validation_id,
+                queued=STATE_QUEUED,
+                running=STATE_RUNNING,
+                now=now_iso(),
+            )
+            if not rows:
+                return
+            try:
+                with tempfile.TemporaryDirectory(prefix="ifcvalidation-") as tmp:
+                    source = await asyncio.to_thread(self._prepare_input, storage_key, file_name, Path(tmp))
+                    command = [
+                        sys.executable,
+                        "-m",
+                        "opencde.ifcgraph.validation",
+                        str(source),
+                        "--report",
+                        "--memory-mb",
+                        str(self.settings.ifcgraph_memory_mb),
+                    ]
+                    report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
+            except Exception as exc:
+                log.warning("ifc_validation_failed", validation_id=validation_id, error=type(exc).__name__)
+                await self._set_validation(
+                    validation_id, STATE_FAILED, checked_at=now_iso(), error=f"{type(exc).__name__}: {exc}"[:300]
+                )
+                return
+            await self._set_validation(
+                validation_id,
+                STATE_DONE,
+                checked_at=now_iso(),
+                issue_count=int(report["issue_count"]),
+                truncated=bool(report["truncated"]),
+                ruleset=str(report["ruleset"]),
+                report=pack_report(report["issues"]),
+            )
+            log.info("ifc_validation_done", validation_id=validation_id, issues=int(report["issue_count"]))
 
     def _prepare_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
         """The IFC file to convert; an ``.ifczip`` is unpacked with a cap on the unpacked size."""

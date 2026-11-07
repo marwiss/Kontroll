@@ -34,6 +34,7 @@ from opencde.documents.sessions import (
     UploadSession,
     UploadSessionsDep,
 )
+from opencde.documents.validation import report as validation_report
 from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep
@@ -64,6 +65,7 @@ SELECT_PURPOSE = "documents-select"
 BROWSER_UPLOAD_PURPOSE = "documents-browser-upload"
 MAX_TITLE = 200
 MAX_VERSION_NUMBER = 50
+ISSUES_SHOWN = 100  # errors against the IFC schema listed on a version's page; the report has them all
 
 # Browser uploads from the selection page are multipart bodies, streamed by the form parser.
 BROWSER_UPLOAD_PATHS = (r"^/documents/1\.0/select-ui/[^/]+/upload$",)
@@ -487,6 +489,7 @@ async def select_ui_upload(
             file_name=file_name,
             document_id=record.document_id,
             version_index=record.version_index,
+            version_id=record.version_id,
         )
     return RedirectResponse(request.url.path.removesuffix("/upload"), status_code=303, headers=NO_STORE)
 
@@ -523,6 +526,12 @@ async def document_details(
             status_code=404,
         )
     versions = await documents.versions(user_id=web_user.user.id, document_id=record.document_id)
+    validation = await documents.validation(
+        user_id=web_user.user.id,
+        document_id=record.document_id,
+        version_index=record.version_index,
+        with_issues=True,
+    )
     return render(
         request,
         "documents/details.html",
@@ -531,6 +540,9 @@ async def document_details(
             web_user,
             record=record,
             versions=versions,
+            validation=validation,
+            validation_issues=validation.issues[:ISSUES_SHOWN] if validation else [],
+            validation_url=f"{request.url.path}/ifc-validation",
             download_url=f"{request.url.path}/download",
             dataspatium_link=dataspatium_link(
                 settings,
@@ -565,3 +577,35 @@ async def document_details_download(
     if record is None:
         raise HTTPException(404, "Document version not found")
     return file_response(storage, record.storage_key, media_type="application/octet-stream", filename=record.file_name)
+
+
+@router.get("/documents/{document_id}/versions/{version_index}/details/ifc-validation")
+async def document_details_validation(
+    request: Request,
+    document_id: DocumentId,
+    version_index: VersionIndex,
+    web_user: WebUserDep,
+    documents: DocumentsDep,
+) -> Response:
+    """The whole report of the check against the IFC schema, as the API gives it, for the signed-in member."""
+    if web_user is None:
+        return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
+    found = (
+        await documents.validation(
+            user_id=web_user.user.id,
+            document_id=normalize_guid(document_id),
+            version_index=version_index,
+            with_issues=True,
+        )
+        if is_uuid(document_id)
+        else None
+    )
+    if found is None:
+        raise HTTPException(404, "This version has not been checked against the IFC schema")
+    return Response(
+        validation_report(found).model_dump_json(exclude_none=True),
+        media_type="application/json",
+        headers={**NO_STORE, "Content-Disposition": 'attachment; filename="ifc-validation.json"'},
+    )

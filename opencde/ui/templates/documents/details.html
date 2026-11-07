@@ -12,12 +12,46 @@
     <dt>{{ t("docs.details.version_index") }}</dt><dd>{{ record.version_index }}</dd>
     <dt>SHA-256</dt><dd><code>{{ record.sha256 }}</code></dd>
     <dt>{{ t("docs.details.document_id") }}</dt><dd><code>{{ record.document_id }}</code></dd>
+    {% if validation %}
+    <dt>{{ t("docs.details.validation") }}</dt>
+    <dd>
+      {% if validation.status == "passed" %}{{ t("docs.details.validation_passed") }}
+      {% elif validation.status == "issues" %}{{ t("docs.details.validation_issues", count=validation.issue_count) }}
+      {% elif validation.status == "unknown" %}{{ t("docs.details.validation_unknown") }}
+      {% else %}{{ t("docs.details.validation_pending") }}{% endif %}
+      {% if validation.checked_at and validation.ruleset %}<br><span class="muted">{{ t("docs.details.validation_checked", date=validation.checked_at[:16]|replace("T", " "), ruleset=validation.ruleset) }}</span>{% endif %}
+    </dd>
+    {% endif %}
   </dl>
   <div class="cluster">
     <a class="btn btn--primary" href="{{ download_url }}">{{ t("docs.details.download") }}</a>
     {% if dataspatium_link %}<a class="btn btn--secondary" href="{{ dataspatium_link }}" rel="noopener">{{ t("common.open_in_dataspatium") }}</a>{% endif %}
   </div>
 </section>
+
+{% if validation and validation_issues %}
+<section class="card">
+  <h2>{{ t("docs.details.validation_issues_title") }}</h2>
+  <p class="card__lead">{{ t("docs.details.validation_kept") }}{% if validation.issue_count > validation_issues|length %} {{ t("docs.details.validation_shown", shown=validation_issues|length, count=validation.issue_count) }}{% endif %}</p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">{{ t("docs.details.validation_instance") }}</th><th scope="col">GlobalId</th><th scope="col">{{ t("docs.details.validation_message") }}</th></tr></thead>
+      <tbody>
+        {% for issue in validation_issues %}
+        <tr>
+          <td>{% if issue.step_id %}<code>#{{ issue.step_id }}</code>{% endif %}</td>
+          <td>{% if issue.global_id %}<code>{{ issue.global_id }}</code>{% endif %}</td>
+          <td><pre>{{ issue.message }}</pre></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="cluster">
+    <a class="btn btn--secondary" href="{{ validation_url }}">{{ t("docs.details.validation_download") }}</a>
+  </div>
+</section>
+{% endif %}
 
 <section class="card">
   <h2>{{ t("docs.details.all_versions") }}</h2>

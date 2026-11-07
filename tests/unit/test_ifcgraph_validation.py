@@ -11,7 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from opencde.ifcgraph.validation import compare_issues, main
+from opencde.ifcgraph import validation
+from opencde.ifcgraph.validation import compare_issues, main, pack_report, report_of, unpack_report
 from tests.conftest import FIXTURES_DIR
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -88,7 +89,62 @@ def test_counting_what_is_new() -> None:
     assert layout["new_count"] == 0, "the line of the file as it is written is no part of an issue"
 
 
+def test_a_report_packs_into_one_property_and_back() -> None:
+    issues = [
+        {
+            "kind": "schema",
+            "severity": "error",
+            "message": "å" * 900,
+            "step_id": 9,
+            "global_id": None,
+            "attribute": None,
+        }
+    ]
+    packed = pack_report(issues)
+    assert packed.isascii() and len(packed) < 900
+    assert unpack_report(packed) == issues
+    assert unpack_report(None) == [] and unpack_report("") == []
+
+
 pytest.importorskip("ifcopenshell", reason="the ifcgraph extra is not installed")
+
+
+def report(path: Path) -> dict:
+    arguments = [sys.executable, "-m", "opencde.ifcgraph.validation", str(path), "--report"]
+    done = subprocess.run(arguments, capture_output=True, text=True, timeout=300, check=False)  # noqa: S603 - this very interpreter
+    assert done.returncode in (0, 1), done.stderr
+    answer = json.loads(done.stdout)
+    assert done.returncode == (1 if answer["issue_count"] else 0)
+    return answer
+
+
+def test_the_report_of_an_upload_names_the_element_of_each_issue(tmp_path: Path) -> None:
+    """The check of an uploaded file: every issue, with its instance and, for a rooted entity, its GlobalId."""
+    path = tmp_path / "upload.ifc"
+    path.write_bytes(exchange(*replaced("'0KhR8hr7H8eewFRKm6V1bJ'", "'2iFPi1Pg90_94gtQu544_Z'")))
+    answer = report(path)
+    assert answer["issue_count"] == len(answer["issues"]) > 0 and answer["truncated"] is False
+    assert answer["ruleset"].startswith("IfcOpenShell ") and answer["ruleset"].endswith("schema and EXPRESS rules")
+    twice = [issue for issue in answer["issues"] if "IfcRoot.UR1" in issue["message"]]
+    assert twice, answer["issues"]
+    assert twice[0]["global_id"] == "2iFPi1Pg90_94gtQu544_Z" and twice[0]["step_id"] in (8, 9)
+    assert {issue["severity"] for issue in answer["issues"]} == {"error"}
+    assert report(MODEL) == {"ruleset": answer["ruleset"], "issue_count": 0, "truncated": False, "issues": []}
+
+
+def test_a_report_counts_every_issue_and_keeps_the_first(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "upload.ifc"
+    path.write_bytes(exchange(*(line.replace(".SOLIDWALL.", ".NOSUCHWALL.").replace("'p'", "6") for line in GOOD)))
+    monkeypatch.setattr(validation, "MAX_REPORTED", 1)
+    monkeypatch.setattr(validation, "MAX_MESSAGE", 20)
+    answer = report_of(path)
+    assert answer["issue_count"] >= 2 and answer["truncated"] is True
+    assert len(answer["issues"]) == 1 and len(answer["issues"][0]["message"]) <= 20
+
+
+def test_a_report_is_not_a_comparison() -> None:
+    with pytest.raises(SystemExit):
+        main([str(MODEL), "--report", "--against", str(MODEL)])
 
 
 def test_a_good_file_has_no_issues(tmp_path: Path) -> None:
