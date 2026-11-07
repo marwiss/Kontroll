@@ -336,6 +336,7 @@
   "admin.settings.check": "Check",
   "check.version": "Version",
   "check.environment": "Environment",
+  "check.apis": "APIs offered",
   "check.public_url": "Public URL",
   "check.graph": "Graph database",
   "check.schema": "Schema",

@@ -328,6 +328,7 @@ def _settings_payload(settings: Settings) -> dict[str, Any]:
     return {
         "public_url": settings.public_url,
         "environment": settings.environment,
+        "apis": list(settings.apis),
         "dynamic_client_registration": settings.dynamic_client_registration,
         "request_log": {
             "enabled": settings.request_log_enabled,
