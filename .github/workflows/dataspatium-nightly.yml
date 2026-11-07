@@ -20,7 +20,7 @@ env:
   UV_FROZEN: "1"
   # The Dataspatium release that pairs with this Kontroll: the same number (README, "Kontroll and Dataspatium").
   # By commit, because a release's tag goes away when the next release of its major number is out.
-  DATASPATIUM_REF: 60739d20979402166c6f2952970cf6b1794d592a # v2.6.0
+  DATASPATIUM_REF: eae6686dab85608ef7195ede06aac44b0f1a57ce # v2.7.0
   # Demo data only; the database lives for this job.
   SEED_PASSWORD: demo-password-for-ci-only
 
@@ -53,6 +53,8 @@ jobs:
         run: |
           uv run opencde init --dev
           printf 'OPENCDE_IFCGRAPH_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\nOPENCDE_GRAPH_QUERY_ENABLED=true\n' >> .env
+          # One run of the suite uses nearly all of the limit on signing in, and there are two.
+          echo 'OPENCDE_RATE_LIMIT_SIGN_IN=60/minute' >> .env
           docker compose -f compose.yaml -f compose.dev.yaml up -d --build
           for i in $(seq 1 60); do
             curl -fsS -o /dev/null http://127.0.0.1:8000/readyz && break  # no output: add-mask must start a line
@@ -95,6 +97,25 @@ jobs:
           # Only the summary counts: a suite that never ran, or ran nothing, must not pass as green.
           grep -E 'DATASPATIUM-TESTS: pass=[1-9][0-9]* fail=0$' suite.log
         env:
+          DATASPATIUM_CDE_URL: http://127.0.0.1:8000
+          DATASPATIUM_CDE_HELPER: http://127.0.0.1:8094
+          DATASPATIUM_CDE_CLIENT: ${{ env.CLIENT_ID }}
+          DATASPATIUM_CDE_USER: officer
+          DATASPATIUM_CDE_PROJECT: Building permit
+          DATASPATIUM_CDE_GRAPH: bolt://127.0.0.1:7697
+          DATASPATIUM_CDE_GRAPH_DB: neo4j
+          DATASPATIUM_CDE_GRAPH_USER: neo4j
+          DATASPATIUM_CDE_GRAPH_PASS: ${{ env.GRAPH_PASSWORD }}
+          DATASPATIUM_CDE_ADMIN_HELPER: http://127.0.0.1:8095
+      - name: Run the live suite through BCF API 2.1
+        # The same project, sign-in and checks, with the app speaking the older version of the API.
+        run: |
+          bash dataspatium/tools/run-tests.sh \
+            --url "http://127.0.0.1:8080/tests/index.html?only=opencde%20live" --browsers chromium --timeout 1200 \
+            | tee suite-bcf21.log
+          grep -E 'DATASPATIUM-TESTS: pass=[1-9][0-9]* fail=0$' suite-bcf21.log
+        env:
+          DATASPATIUM_CDE_BCF: "2.1"
           DATASPATIUM_CDE_URL: http://127.0.0.1:8000
           DATASPATIUM_CDE_HELPER: http://127.0.0.1:8094
           DATASPATIUM_CDE_CLIENT: ${{ env.CLIENT_ID }}

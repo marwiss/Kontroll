@@ -7,12 +7,12 @@ withdrawn (its commits remain) and its notes are folded into the one that
 stays. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.6.0 — 2026-11-06
+## 2.7.0 — 2026-11-07
 
-The release kept for 2.x. Works with Dataspatium 2.6.0. It contains 2.0.0,
-2.1.0, 2.2.0, 2.3.0, 2.4.0 and 2.5.0 of the last two days, withdrawn under the
-rule above together with their Dataspatium counterparts. Dataspatium speaks
-BCF API 3.0 in this release, and its half of BCF API 2.1 comes in 2.7.0.
+The release kept for 2.x. Works with Dataspatium 2.7.0, which also speaks BCF API 2.1, so
+that a server with 2.1 alone can be its source, and draws the IFC graph. It contains 2.0.0,
+2.1.0, 2.2.0, 2.3.0, 2.4.0, 2.5.0 and 2.6.0 of the last days, withdrawn under the rule above
+together with their Dataspatium counterparts.
 
 - BCF API 2.1 is served next to 3.0, under `/bcf/2.1`, on the same data, so that a client that implements only
   2.1 can connect. `GET /foundation/versions` and `GET /bcf/versions` list both versions, the newest first.
@@ -93,8 +93,8 @@ BCF API 3.0 in this release, and its half of BCF API 2.1 comes in 2.7.0.
   the starting server, which restarted the server and killed the seed without output.
 - The page that refuses an authorization request states its reason in the user's
   language, not only in English.
-- Dataspatium 2.4.0 brings IfcOpenShell into the browser, 2.5.0 adds IDS checking, and 2.6.0 shows downloads with
-  their progress. None of them needs anything new from the server.
+- Dataspatium 2.4.0 brings IfcOpenShell into the browser, 2.5.0 adds IDS checking, 2.6.0 shows downloads with their
+  progress, and 2.7.0 draws the IFC graph. Apart from BCF API 2.1 above, none of them needs anything new from the server.
 - `docs/dataspatium-coordination.md` now records what the two projects share and
   the owner's decisions, without planning.
 - The language cookie `opencde_lang` is `HttpOnly`, since the pages' scripts
