@@ -150,7 +150,8 @@ def test_an_upload_is_checked_against_the_projects_ids_documents(ifc_client: tup
     assert verdicts["The model has a door"] == "failed"
     found = [issue for issue in body["issues"] if issue["kind"] == "ids"]
     assert found and {issue["document_id"] for issue in found} == {ids["document_id"]}
-    assert {issue["global_id"] for issue in found} >= set(WALLS), "every wall lacks a fire rating"
+    assert {issue.get("global_id") for issue in found} >= set(WALLS), "every wall lacks a fire rating"
+    assert any("global_id" not in issue for issue in found), "the missing door is a finding of no element"
 
     page = client.get(model["links"]["document_details"]["url"], headers={"Accept-Language": "en"})
     assert page.status_code == 200 and "IDS check" in page.text and "Walls have a fire rating" in page.text
