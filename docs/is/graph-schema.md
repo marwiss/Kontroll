@@ -160,4 +160,4 @@ erDiagram
 | `IfcModel` | `id`, atriðaskráð `project_id` | `document_id`, `version_index` eða `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, tímastimplar | Eitt fyrir hverja innflutta skrá; `state` er `queued`, `running`, `done` eða `failed` |
 | `IfcEntity` + flokkamerkimiðar | `id` (`<líkansauðkenni>:<step-auðkenni>`), atriðaskráð `GlobalId`, `model_id` | `ifc_class`, `step_id`, hvert bókstaflegt IFC-eigindi með heiti | Vensl milli eininga eru nefnd eftir IFC-eigindinu (áfram og andhverft), skrifuð eins og hver venslagerð með hástöfum og undirstrikum: `IsDefinedBy` verður `IS_DEFINED_BY` |
 
-Sjá [ifcgraph.md](ifcgraph.md) um umbreytingarreglurnar og dæmafyrirspurnir.
+Sjá [ifc-lpg.md](ifc-lpg.md) um umbreytingarreglurnar og dæmafyrirspurnir.

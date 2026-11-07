@@ -61,7 +61,7 @@ Verkefni sem notandinn á ekki aðild að er ekki til fyrir hann (404).
 
 ## Frá sjónarhorni til líkansins
 
-Þegar [IFC-grafið](../ifcgraph.md) er virkt fær hver eining sem nefnir `GlobalId`
+Þegar [IFC-LPG](../ifc-lpg.md) er virkt fær hver eining sem nefnir `GlobalId`
 `SAME_AS`-tengsl við það stak í fullbúnum líkönum verkefnisins, einnig þegar líkanið er
 hlaðið upp síðar.
 

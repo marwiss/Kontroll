@@ -1,16 +1,20 @@
-# IFC-graafi
+# IFC-LPG
 
-Valinnainen IFC-graafimoduuli muuttaa lähetetyn IFC-mallin graafidataksi,
+Valinnainen IFC-LPG-moduuli muuttaa lähetetyn IFC-mallin graafidataksi,
 jotta BCF-viewpointin komponentit voidaan yhdistää rakennusosiin, joihin ne
 viittaavat, ja jotta mallista voidaan kysyä Cypherillä asioiden ja
 asiakirjojen rinnalla.
 
-Kytke se päälle asetuksella `OPENCDE_IFCGRAPH_ENABLED=true` ja asenna
-`ifcgraph`-lisäosa (`uv sync --extra ifcgraph`). Docker-kuva sisältää
+Kytke se päälle asetuksella `OPENCDE_IFC_LPG_ENABLED=true` ja asenna
+`ifc-lpg`-lisäosa (`uv sync --extra ifc-lpg`). Docker-kuva sisältää
 lisäosan oletuksena (`ARG OPENCDE_EXTRAS` Dockerfilessa), mikä yli
 kaksinkertaistaa sen koon (noin 680 MB vastaan 300 MB); rakenna
 `--build-arg OPENCDE_EXTRAS=` saadaksesi kevyemmän kuvan ilman
 IfcOpenShelliä, kun moduuli pysyy pois päältä.
+
+Ennen versiota 2.0.2 moduulin nimi oli IFC-graph. Sen asetusten nimet olivat
+`OPENCDE_IFCGRAPH_*` ja komennon `opencde ifcgraph`, ja molemmat toimivat yhä;
+palvelimen loki ja `opencde doctor` nimeävät vanhat asetukset, jotka se saa.
 
 ## Mitä lähetyksessä tapahtuu
 
@@ -21,9 +25,9 @@ IfcOpenShelliä, kun moduuli pysyy pois päältä.
    käynnistää muunnoksen taustalla, yhden kerrallaan.
 3. Erillinen työprosessi (`python -m opencde.ifcgraph.worker`) jäsentää
    tiedoston IfcOpenShellillä. Se toimii aikarajalla
-   (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minuuttia), osoiteavaruusrajalla
-   POSIX-järjestelmissä (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) ja entiteettien
-   ylärajalla (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Kaatuminen tai jumiutuminen
+   (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minuuttia), osoiteavaruusrajalla
+   POSIX-järjestelmissä (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) ja entiteettien
+   ylärajalla (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Kaatuminen tai jumiutuminen
    tappaa työprosessin, ei palvelinta. `.ifczip` puretaan lähetyksen
    kokorajan puitteissa.
 4. Tietueet tuodaan erissä `UNWIND … CREATE` -lauseilla (siirrettävä Cypher,
@@ -55,7 +59,7 @@ Käänteisistä attribuuteista tulee myös suhteita, joten molemmat suunnat
 luetaan luontevasti: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-arvot puretaan (`IfcLabel('3')` muuttuu `"3"`:ksi).
 
-Jätetään oletuksena pois (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Jätetään oletuksena pois (`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=false`):
 esitysalkiot, esitykset, profiilit, sijoitukset ja tyylit; ne ovat suurin osa
 mallista ja harvoin sitä, mitä CDE-kysely tarvitsee. `IfcOwnerHistory`
 säilytetään vain `IfcProject`-entiteetille.
@@ -98,10 +102,10 @@ kysele. Komentorivi luettelee ja karsii ne; asiakirjat ja niiden tiedostot
 säilyvät aina:
 
 ```sh
-uv run opencde ifcgraph list --project <projektin tunnus>
-uv run opencde ifcgraph prune                   # epäonnistuneet mallit sekä valmiit mallit, jotka saman asiakirjan
+uv run opencde ifc-lpg list --project <projektin tunnus>
+uv run opencde ifc-lpg prune                   # epäonnistuneet mallit sekä valmiit mallit, jotka saman asiakirjan
                                                 # uudempi valmis versio on korvannut
-uv run opencde ifcgraph prune --project <id> --all   # yhden projektin jokainen malli (esimerkiksi testipino)
+uv run opencde ifc-lpg prune --project <id> --all   # yhden projektin jokainen malli (esimerkiksi testipino)
 ```
 
 Jonossa olevia ja käynnissä olevia malleja ei karsita koskaan. Kyselyjen,
@@ -125,8 +129,8 @@ Kun viewpoint luodaan komponenttien kanssa, jokainen komponentti, jonka
 projektin jokaiselle olemassa olevalle komponentille, kun mallin tuonti
 valmistuu, joten myös ennen mallin lähettämistä tai sen muuntamisen aikana
 luodut viewpointit linkitetään. Jos rakennusosa kantaa määritettyä
-ominaisuutta (`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`), sen arvo kopioidaan komponenttiin
+ominaisuutta (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
+`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), sen arvo kopioidaan komponenttiin
 `gtin`-kenttänä. Tämä on vuoden 2023 tutkimusraportin käyttötapaus:
 tarkastus (BCF-asia), joka viittaa GTIN-koodilla tunnistettuihin
 rakennustuotteisiin.
@@ -167,7 +171,7 @@ on lueteltu tiedostossa [acceptance.md](../acceptance.md). Tuotantopalvelin
 ei julkaise Boltia; hallintarajapinnan graafikysely
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) antaa
 järjestelmänvalvojille lukevan Cypherin ilman porttia. Sovellus
-myös piirtää graafin korttiinsa IFC-graafi tuon kyselyn kautta tai Boltilla.
+myös piirtää graafin korttiinsa IFC-LPG tuon kyselyn kautta tai Boltilla.
 
 ## Rajat ja tila
 

@@ -6,7 +6,7 @@
 
 Kontroll er þjónn fyrir **OpenCDE-forritaskil** buildingSMART (Foundation API
 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), byggður á grafgagnagrunni, með
-vefstjórnun og valkvæðri IFC-grafeiningu sem tengir BCF-einingar við
+vefstjórnun og valkvæðri IFC-LPG-einingu sem tengir BCF-einingar við
 byggingarhlutana sem þær vísa á. Hann spratt upp úr rannsóknarfrumgerð frá
 2023 fyrir stafrænar eftirlitsáætlanir í sænskum byggingarleyfum og var
 endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
@@ -104,7 +104,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   Linux), eða Python 3.11 eða nýrra með [uv](https://docs.astral.sh/uv/) og
   eigin Neo4j 5.26- eða Memgraph 3.14-gagnagrunni.
 - Um 1 GB af minni fyrir gagnagrunnsgáminn (`NEO4J_HEAP` og `NEO4J_PAGECACHE`
-  í `.env`), meira með IFC-grafeiningunni.
+  í `.env`), meira með IFC-LPG-einingunni.
 - Staðbundið: gátt 8000 fyrir þjóninn og 7484/7697 fyrir gagnagrunninn, allar
   bundnar við `127.0.0.1`. Í rekstri: gáttir 80 og 443 aðgengilegar af
   internetinu og DNS-nafn fyrir þjóninn.
@@ -131,13 +131,13 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   `/.well-known/kontroll` sem segir biðlaranum hvaða viðbætur eru virkar,
   stöðugur `code` í hverju villusvari, beiðnaskrá til villuleitar í biðlurum
   (`/admin/requests`, `GET /admin/api/requests` með heimildinni `admin`) og
-  IFC-grafeiningin sem breytir upphöluðum IFC-líkönum í grafgögn tengd
+  IFC-LPG-einingin sem breytir upphöluðum IFC-líkönum í grafgögn tengd
   BCF-einingum.
 - **Biðlarasafn** í Python ([client/](../../client/), LGPL) með keyranlegum
   dæmum, auk Dockerfile, compose-yfirlaga og útgefinnar myndar fyrir hverja
   rekstraraðstæðu.
 - **Staða**: öll ellefu stig áætlunarinnar eru útfærð (forritaskilin þrjú,
-  stjórnunin, biðlarasafnið, uppsetning í rekstur, IFC-graf,
+  stjórnunin, biðlarasafnið, uppsetning í rekstur, IFC-LPG,
   samþykktargátlistinn og öryggisherðingin); framlagið til IfcOpenShell hefur
   ekki enn verið lagt fram (uppköst í [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) sýnir hvað frumgerðin frá 2023 gerði og
@@ -246,7 +246,7 @@ og það sem verkefnin tvö samræma er í
 - [docs/is/glossary.md](glossary.md): orðin sem skjölunin notar.
 - [docs/is/flows/](flows/): runurit fyrir OAuth2-, Documents API- og BCF-sjónarhornsferlin.
 - [docs/is/graph-schema.md](graph-schema.md): graflíkanið.
-- [docs/is/ifcgraph.md](ifcgraph.md): valkvæða IFC-grafeiningin og dæmi um Cypher-fyrirspurnir.
+- [docs/is/ifc-lpg.md](ifc-lpg.md): valkvæða IFC-LPG-einingin og dæmi um Cypher-fyrirspurnir.
 - [docs/is/ui-styleguide.md](ui-styleguide.md): reglur um síður þjónsins og merkið.
 - [docs/acceptance.md](../acceptance.md): gátlisti fyrir sjónræna samþykkt
   með óháðum biðlurum (Bonsai, ifc-lite, Dataspatium).
@@ -290,8 +290,8 @@ arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru h�
   fullan aðgang. Gáttin er lokuð nema stjórnandinn opni hana viljandi; lesandi
   graffyrirspurn stjórnunarforritaskilanna (`OPENCDE_GRAPH_QUERY_ENABLED`) gefur
   Cypher án gáttarinnar.
-- IFC-grafinnflutningurinn keyrir í sérstöku ferli með minnis- og tímamörkum
-  (`OPENCDE_IFCGRAPH_*`); mjög stórum líkönum er hafnað frekar en að skilja
+- IFC-LPG-innflutningurinn keyrir í sérstöku ferli með minnis- og tímamörkum
+  (`OPENCDE_IFC_LPG_*`); mjög stórum líkönum er hafnað frekar en að skilja
   þau eftir hálfinnflutt.
 - Vefsíðurnar þjóna stjórnendum og OAuth2- og Documents API-ferlunum;
   endanotendur vinna í biðlara eins og Dataspatium eða Bonsai.

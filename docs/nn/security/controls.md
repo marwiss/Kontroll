@@ -87,7 +87,7 @@ Kvar kontroll har minst éin automatisert test. "Suite" namngjev testmodulen.
 | Sidene ber den strenge CSP-en, ingen inline-kode; forbetringsskripta byggjer DOM berre med `textContent` | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (ingen konsollfeil) |
 | Tilgjenge: ingen alvorlege eller kritiske axe-core-brot på nokon adminside | WCAG 2.2 AA | `tests/ui/test_admin_browser.py` |
 
-## IFC-graf (etappe 9)
+## IFC-LPG (etappe 9)
 
 | Kontroll | Standard | Suite |
 |---|---|---|

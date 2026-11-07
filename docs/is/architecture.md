@@ -29,7 +29,7 @@ flowchart LR
 | Documents API | Upphleðsla og val á síðum í vafranum, útgáfur og lýsigögn | `opencde/documents/` |
 | Reikningar | Notendur, verkefni, aðild og hlutverk | `opencde/accounts/` |
 | Stjórnun | Síður og API fyrir stjórnendur, heilsufarsathuganir og beiðnaskráin | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-graf | Gerir upphlaðin líkön að hnútum og tengir sjónarhornseiningar við þá | `opencde/ifcgraph/` |
+| IFC-LPG | Gerir upphlaðin líkön að hnútum og tengir sjónarhornseiningar við þá | `opencde/ifcgraph/` |
 | Graflagið | Rekillinn, gagnagrunnsmállýskurnar tvær, skemað og það sem rennur út | `opencde/graph/` |
 | Síður | Sniðmát, stílar, skriftur og tungumálaskrárnar | `opencde/ui/` |
 
@@ -56,7 +56,7 @@ flowchart LR
 | Notendur, verkefni, mál, athugasemdir, sjónarhorn, lýsigögn skjala, biðlarar og endurskoðunarskráin | Grafgagnagrunnurinn | [Grafskema](graph-schema.md) |
 | Tókar, kóðar og biðlaraleyndarmál sem SHA-256-tætigildi; lykilorð sem Argon2id-tætigildi | Grafgagnagrunnurinn | [Öryggisvarnir](security/controls.md) |
 | Upphlaðnar skrár og myndir sjónarhorna, undir nöfnum sem þjónninn velur | Skráageymslan í `OPENCDE_DATA_DIR` | [Documents API-ferli](flows/documents.md) |
-| Líkön sem hnútar og tengsl | Grafgagnagrunnurinn | [IFC-graf](ifcgraph.md) |
+| Líkön sem hnútar og tengsl | Grafgagnagrunnurinn | [IFC-LPG](ifc-lpg.md) |
 | Eigin stillingar og leyndarmál þjónsins | `.env` eða `/run/secrets` | [Staðbundin prófun](deploy/local.md) |
 
 ## Vinna utan beiðna

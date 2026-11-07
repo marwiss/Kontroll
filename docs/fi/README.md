@@ -7,7 +7,7 @@
 Kontroll on palvelin buildingSMARTin **OpenCDE-rajapinnoille** (Foundation
 API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0). Se on rakennettu
 graafitietokannan päälle, siinä on selainpohjainen hallinta ja valinnainen
-IFC-graafimoduuli, joka yhdistää BCF-komponentit rakennusosiin, joihin ne
+IFC-LPG-moduuli, joka yhdistää BCF-komponentit rakennusosiin, joihin ne
 viittaavat. Se sai alkunsa vuoden 2023 tutkimusprototyypistä Ruotsin
 rakennuslupien digitaalisia tarkastussuunnitelmia varten ja kirjoitettiin
 uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
@@ -107,7 +107,7 @@ mikään ole auki ennen kuin se on määritetty.
   Linuxissa), tai Python 3.11 tai uudempi, [uv](https://docs.astral.sh/uv/) ja
   oma Neo4j 5.26- tai Memgraph 3.14 -tietokanta.
 - Noin 1 Gt muistia tietokantakontille (`NEO4J_HEAP` ja `NEO4J_PAGECACHE`
-  tiedostossa `.env`), enemmän IFC-graafimoduulin kanssa.
+  tiedostossa `.env`), enemmän IFC-LPG-moduulin kanssa.
 - Paikallisesti: portti 8000 palvelimelle ja 7484/7697 tietokannalle, kaikki
   sidottuina osoitteeseen `127.0.0.1`. Tuotannossa: portit 80 ja 443
   tavoitettavissa internetistä ja DNS-nimi palvelimelle.
@@ -138,13 +138,13 @@ mikään ole auki ennen kuin se on määritetty.
   kertoo asiakkaalle, mitkä laajennukset ovat päällä, pysyvä `code`
   jokaisessa virhevastauksessa, pyyntöloki asiakasohjelmien vianetsintään
   (`/admin/requests`, `GET /admin/api/requests` `admin`-oikeudella) ja
-  IFC-graafimoduuli, joka muuttaa lähetetyt IFC-mallit BCF-komponentteihin
+  IFC-LPG-moduuli, joka muuttaa lähetetyt IFC-mallit BCF-komponentteihin
   yhdistetyksi graafidataksi.
 - **Asiakaskirjasto** Pythonille ([client/](../../client/), LGPL) ajettavine
   esimerkkeineen sekä Dockerfile, compose-ylikerrokset ja julkaistu image
   jokaista käyttöönottoskenaariota varten.
 - **Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
-  rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-graafi,
+  rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-LPG,
   hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
   IfcOpenShelliin ei ole vielä ehdotettu (luonnokset kansiossa
   [docs/upstream/](../upstream/)). [docs/inventory.md](../inventory.md)
@@ -259,7 +259,7 @@ sovittavat yhteen, on tiedostossa
 - [docs/fi/glossary.md](glossary.md): dokumentaation käyttämät sanat.
 - [docs/fi/flows/](flows/): OAuth2-, Documents API- ja BCF-näkymäkulkujen sekvenssikaaviot.
 - [docs/fi/graph-schema.md](graph-schema.md): graafimalli.
-- [docs/fi/ifcgraph.md](ifcgraph.md): valinnainen IFC-graafimoduuli ja esimerkkejä Cypher-kyselyistä.
+- [docs/fi/ifc-lpg.md](ifc-lpg.md): valinnainen IFC-LPG-moduuli ja esimerkkejä Cypher-kyselyistä.
 - [docs/fi/ui-styleguide.md](ui-styleguide.md): palvelimen sivujen ja tunnuksen säännöt.
 - [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
   tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
@@ -306,7 +306,7 @@ IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
   sitä tarkoituksella; hallintarajapinnan lukeva graafikysely
   (`OPENCDE_GRAPH_QUERY_ENABLED`) antaa Cypherin ilman porttia.
 - IFC-graafin tuonti ajetaan erillisessä prosessissa muisti- ja aikarajoin
-  (`OPENCDE_IFCGRAPH_*`); hyvin suuret mallit hylätään sen sijaan, että ne
+  (`OPENCDE_IFC_LPG_*`); hyvin suuret mallit hylätään sen sijaan, että ne
   jäisivät puoliksi tuoduiksi.
 - Selainsivut palvelevat järjestelmänvalvojia sekä OAuth2- ja Documents API
   -kulkuja; loppukäyttäjät työskentelevät asiakasohjelmassa, kuten
