@@ -1708,6 +1708,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+ifc-lpg = [
+    { name = "ifcopenshell" },
+]
 ifcgraph = [
     { name = "ifcopenshell" },
 ]
@@ -1744,12 +1747,13 @@ ui = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.160" },
     { name = "httpx", specifier = ">=0.28" },
-    { name = "ifcopenshell", marker = "extra == 'ifcgraph'", specifier = ">=0.9.0" },
+    { name = "ifcopenshell", marker = "extra == 'ifc-lpg'", specifier = ">=0.9.0" },
     { name = "itsdangerous", specifier = ">=2.2" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "limits", specifier = ">=5.0" },
     { name = "neo4j", specifier = ">=6.4" },
     { name = "odata-query", specifier = ">=0.10" },
+    { name = "opencde-server", extras = ["ifc-lpg"], marker = "extra == 'ifcgraph'" },
     { name = "pwdlib", extras = ["argon2"], specifier = ">=0.3.1" },
     { name = "pydantic", specifier = ">=2.12" },
     { name = "pydantic-settings", specifier = ">=2.11" },
@@ -1761,7 +1765,7 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
     { name = "zxcvbn", specifier = ">=4.5" },
 ]
-provides-extras = ["ifcgraph", "redis"]
+provides-extras = ["ifc-lpg", "ifcgraph", "redis"]
 
 [package.metadata.requires-dev]
 dev = [

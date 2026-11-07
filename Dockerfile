@@ -8,10 +8,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 
-# Optional extras to install. The default includes the IFC-graph module (IfcOpenShell),
-# which OPENCDE_IFCGRAPH_ENABLED switches on at runtime; build with
+# Optional extras to install. The default includes the IFC-LPG module (IfcOpenShell),
+# which OPENCDE_IFC_LPG_ENABLED switches on at runtime; build with
 # `--build-arg OPENCDE_EXTRAS=` for a slimmer image without it.
-ARG OPENCDE_EXTRAS="--extra ifcgraph"
+ARG OPENCDE_EXTRAS="--extra ifc-lpg"
 
 # Dependencies first, so source changes do not invalidate this layer.
 COPY pyproject.toml uv.lock .python-version ./

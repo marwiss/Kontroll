@@ -43,8 +43,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# IFC-graph import (stage 9). Pulls in IfcOpenShell, which is large; off by default.
-ifcgraph = ["ifcopenshell>=0.9.0"]
+# IFC-LPG import (stage 9). Pulls in IfcOpenShell, which is large; off by default.
+ifc-lpg = ["ifcopenshell>=0.9.0"]
+ifcgraph = ["opencde-server[ifc-lpg]"]  # the extra's name before 2.0.2, so that builds that name it keep working
 # A shared store for the rate limits when several server processes run (ADR 0007).
 redis = ["redis>=5.0"]
 
