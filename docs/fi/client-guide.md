@@ -31,7 +31,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "2.6.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Kontroll OpenCDE server", "version": "2.7.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {

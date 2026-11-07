@@ -5,4 +5,4 @@ A buildingSMART OpenCDE server (Foundation API 1.0, BCF API 3.0, Documents
 API 1.0) with a graph database backend. See ``docs/`` for the architecture.
 """
 
-__version__ = "2.6.0"  # the same release numbers as Dataspatium: the same number means they work together
+__version__ = "2.7.0"  # the same release numbers as Dataspatium: the same number means they work together
