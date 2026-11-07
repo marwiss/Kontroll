@@ -52,7 +52,7 @@ jobs:
       - name: Start the server with demo data and a client for the app
         run: |
           uv run opencde init --dev
-          printf 'OPENCDE_IFCGRAPH_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\nOPENCDE_GRAPH_QUERY_ENABLED=true\n' >> .env
+          printf 'OPENCDE_IFC_LPG_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\nOPENCDE_GRAPH_QUERY_ENABLED=true\n' >> .env
           # One run of the suite uses nearly all of the limit on signing in, and there are two.
           echo 'OPENCDE_RATE_LIMIT_SIGN_IN=60/minute' >> .env
           docker compose -f compose.yaml -f compose.dev.yaml up -d --build

@@ -17,6 +17,7 @@ from opencde.admin.doctor import run_checks
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import GraphDep, SettingsDep, StorageDep
 from opencde.graph.driver import ping_within
+from opencde.settings import env_name
 from opencde.ui.templating import render
 
 router = APIRouter(prefix="/admin", include_in_schema=False)
@@ -189,7 +190,7 @@ async def audit_csv(
 async def settings_page(
     request: Request, admin: AdminDep, graph: GraphDep, settings: SettingsDep, storage: StorageDep
 ) -> Response:
-    values = [(name, getattr(settings, name)) for name in SAFE_SETTINGS]
+    values = [(env_name(name), getattr(settings, name)) for name in SAFE_SETTINGS]
     shown = [(name, value.value if hasattr(value, "value") else value) for name, value in values]
     return render(
         request,

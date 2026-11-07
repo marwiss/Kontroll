@@ -15,15 +15,59 @@ from __future__ import annotations
 
 import os
 import secrets
+from contextvars import ContextVar
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Self
 
 from limits import parse
-from pydantic import Field, SecretStr, ValidationInfo, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import AliasChoices, Field, PrivateAttr, SecretStr, ValidationInfo, field_validator, model_validator
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
 SECRETS_DIR = Path("/run/secrets")
+
+# The IFC-LPG module was the IFC-graph module before 2.0.2. Its settings are read by their new names first and by the
+# old ones still, so that a server keeps its configuration across the upgrade, and the old names in use are reported.
+IFC_PREFIX = "OPENCDE_IFC_LPG_"
+OLD_IFC_PREFIX = "OPENCDE_IFCGRAPH_"
+_IFC_FIELD = "ifcgraph_"
+_OLD_NAMES_SEEN: ContextVar[tuple[str, ...]] = ContextVar("old_setting_names", default=())
+
+
+def _ifc(name: str) -> AliasChoices:
+    """Where an IFC-LPG setting is read from: its own name, then the name it had before 2.0.2."""
+    return AliasChoices(IFC_PREFIX + name.upper(), OLD_IFC_PREFIX + name.upper())
+
+
+def env_name(field: str) -> str:
+    """The environment variable a setting is read from, as the documentation names it."""
+    if field.startswith(_IFC_FIELD):
+        return IFC_PREFIX + field.removeprefix(_IFC_FIELD).upper()
+    return "OPENCDE_" + field.upper()
+
+
+def _paths(value: object) -> list[Path]:
+    if isinstance(value, str | os.PathLike):
+        return [Path(value)]
+    if isinstance(value, list | tuple):
+        return [Path(item) for item in value if isinstance(item, str | os.PathLike)]
+    return []
+
+
+def _names_given(env_file: object, secrets_dir: object) -> set[str]:
+    """The names of the variables, env-file lines and secret files a server is given. Values are never read."""
+    names = {name.upper() for name in os.environ}
+    for path in _paths(env_file):
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+                key, sep, _ = line.strip().removeprefix("export ").partition("=")
+                if sep and key and not key.startswith("#"):
+                    names.add(key.strip().upper())
+    for folder in _paths(secrets_dir):
+        if folder.is_dir():
+            names.update(entry.name.upper() for entry in folder.iterdir())
+    return names
+
 
 RATE_LIMIT_STORES = ("memory://", "redis://", "rediss://")
 GRAPH_URI_SCHEMES = ("bolt://", "bolt+s://", "bolt+ssc://", "neo4j://", "neo4j+s://", "neo4j+ssc://")
@@ -82,7 +126,36 @@ class Settings(BaseSettings):
         secrets_dir=str(SECRETS_DIR) if SECRETS_DIR.is_dir() else None,
         extra="ignore",
         hide_input_in_errors=True,  # a refused value can be, or hold, a password
+        validate_by_name=True,  # a setting with other names (the IFC-LPG ones) is still given by its field's name
     )
+    _old_names: tuple[str, ...] = PrivateAttr(default=())
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """The usual sources. On the way, note the old names of renamed settings among what they are given."""
+        given = _names_given(
+            getattr(dotenv_settings, "env_file", None), getattr(file_secret_settings, "secrets_dir", None)
+        )
+        _OLD_NAMES_SEEN.set(tuple(sorted(name for name in given if name.startswith(OLD_IFC_PREFIX))))
+        return init_settings, env_settings, dotenv_settings, file_secret_settings
+
+    @model_validator(mode="after")
+    def _remember_old_names(self) -> Self:
+        self._old_names = _OLD_NAMES_SEEN.get()
+        _OLD_NAMES_SEEN.set(())
+        return self
+
+    @property
+    def renamed_settings(self) -> list[tuple[str, str]]:
+        """The old names this server is given for renamed settings, each with the name to use instead."""
+        return [(old, IFC_PREFIX + old.removeprefix(OLD_IFC_PREFIX)) for old in self._old_names]
 
     # --- deployment -------------------------------------------------------
     environment: Literal["development", "test", "production"] = Field(
@@ -233,17 +306,35 @@ class Settings(BaseSettings):
     server_assigned_id_prefix: str = Field("ISSUE-", description="Prefix of human-readable topic ids (BCF 3.2.9).")
 
     # --- optional modules -------------------------------------------------
+    # The IFC-LPG module: read as OPENCDE_IFC_LPG_*, and as OPENCDE_IFCGRAPH_* as before 2.0.2 (see `_ifc`).
     ifcgraph_enabled: bool = Field(
-        False, description="Convert uploaded IFC models to graph data (needs the ifcgraph extra)."
+        False,
+        validation_alias=_ifc("enabled"),
+        description="Convert uploaded IFC models to graph data (needs the ifc-lpg extra).",
     )
-    ifcgraph_timeout_seconds: int = Field(900, ge=10, description="Kill a conversion that takes longer.")
-    ifcgraph_memory_mb: int = Field(4096, ge=256, description="Address-space limit of the conversion worker (POSIX).")
-    ifcgraph_max_entities: int = Field(5_000_000, ge=1000, description="Refuse models with more entities.")
+    ifcgraph_timeout_seconds: int = Field(
+        900, ge=10, validation_alias=_ifc("timeout_seconds"), description="Kill a conversion that takes longer."
+    )
+    ifcgraph_memory_mb: int = Field(
+        4096,
+        ge=256,
+        validation_alias=_ifc("memory_mb"),
+        description="Address-space limit of the conversion worker (POSIX).",
+    )
+    ifcgraph_max_entities: int = Field(
+        5_000_000, ge=1000, validation_alias=_ifc("max_entities"), description="Refuse models with more entities."
+    )
     ifcgraph_include_geometry: bool = Field(
-        False, description="Also import representation items, profiles and placements (much larger graphs)."
+        False,
+        validation_alias=_ifc("include_geometry"),
+        description="Also import representation items, profiles and placements (much larger graphs).",
     )
-    ifcgraph_gtin_property_set: str = Field("Reuse", description="Property set holding the GTIN of an element.")
-    ifcgraph_gtin_property: str = Field("GTIN", description="Property within that set.")
+    ifcgraph_gtin_property_set: str = Field(
+        "Reuse", validation_alias=_ifc("gtin_property_set"), description="Property set holding the GTIN of an element."
+    )
+    ifcgraph_gtin_property: str = Field(
+        "GTIN", validation_alias=_ifc("gtin_property"), description="Property within that set."
+    )
 
     # --- logging ----------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"

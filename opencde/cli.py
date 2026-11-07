@@ -33,7 +33,8 @@ ifcgraph_app = typer.Typer(no_args_is_help=True, help="Inspect and prune the imp
 app.add_typer(user_app, name="user")
 app.add_typer(project_app, name="project")
 app.add_typer(client_app, name="client")
-app.add_typer(ifcgraph_app, name="ifcgraph")
+app.add_typer(ifcgraph_app, name="ifc-lpg")
+app.add_typer(ifcgraph_app, name="ifcgraph", hidden=True)  # its name before 2.0.2, so that scripts keep working
 
 T = TypeVar("T")
 
@@ -112,13 +113,13 @@ def _ask_for_values() -> tuple[str | None, list[str]]:
     """The public address, or None for this machine only, and the lines for .env that the answers add."""
     if not typer.confirm("Will other people use this server, over the internet?", default=False):
         if typer.confirm(
-            "Turn on what the quick start with Dataspatium uses (self-registration, request log, IFC graph)?",
+            "Turn on what the quick start with Dataspatium uses (self-registration, request log, IFC-LPG)?",
             default=True,
         ):
             return None, [
                 "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true",
                 "OPENCDE_REQUEST_LOG_ENABLED=true",
-                "OPENCDE_IFCGRAPH_ENABLED=true",
+                "OPENCDE_IFC_LPG_ENABLED=true",
             ]
         return None, []
     while True:
@@ -138,7 +139,7 @@ def _ask_for_values() -> tuple[str | None, list[str]]:
     ):
         extra.append("OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true")
     if typer.confirm("Turn uploaded IFC models into a graph?", default=False):
-        extra.append("OPENCDE_IFCGRAPH_ENABLED=true")
+        extra.append("OPENCDE_IFC_LPG_ENABLED=true")
     return url, extra
 
 

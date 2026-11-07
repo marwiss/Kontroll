@@ -27,7 +27,7 @@
       <thead><tr><th scope="col">{{ t("admin.settings.setting") }}</th><th scope="col">{{ t("admin.settings.value") }}</th></tr></thead>
       <tbody>
         {% for name, value in values %}
-        <tr><td><code>OPENCDE_{{ name|upper }}</code></td><td>{{ value }}</td></tr>
+        <tr><td><code>{{ name }}</code></td><td>{{ value }}</td></tr>
         {% endfor %}
       </tbody>
     </table>

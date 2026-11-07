@@ -13,7 +13,7 @@ the ``IfcProject``.
 
 The mapping follows Zhu, Wu and Lei, "IFC-graph for facilitating building
 information access and query", Automation in Construction 148 (2023), 104778,
-https://doi.org/10.1016/j.autcon.2023.104778; ``docs/ifcgraph.md`` says where
+https://doi.org/10.1016/j.autcon.2023.104778; ``docs/ifc-lpg.md`` says where
 this code differs from the article.
 """
 
@@ -77,7 +77,7 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
     try:
         import ifcopenshell
     except ImportError as exc:  # pragma: no cover - depends on the optional extra
-        raise ConversionError("IfcOpenShell is not installed; install the 'ifcgraph' extra") from exc
+        raise ConversionError("IfcOpenShell is not installed; install the 'ifc-lpg' extra") from exc
 
     model = ifcopenshell.open(str(path))
     schema = ifcopenshell.schema_by_name(model.schema)
