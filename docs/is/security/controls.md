@@ -88,7 +88,7 @@ prófunareininguna.
 | Síðurnar bera stranga CSP, engan innfelldan kóða; viðbótarskrifturnar byggja DOM aðeins með `textContent` | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (engar stjórnborðsvillur) |
 | Aðgengi: engin alvarleg eða krítísk axe-core-brot á nokkurri stjórnunarsíðu | WCAG 2.2 AA | `tests/ui/test_admin_browser.py` |
 
-## IFC-graf (áfangi 9)
+## IFC-LPG (áfangi 9)
 
 | Vörn | Staðall | Svíta |
 |---|---|---|

@@ -61,7 +61,7 @@ Projekti, jonka jäsen käyttäjä ei ole, ei ole hänelle olemassa (404).
 
 ## Näkymästä malliin
 
-Kun [IFC-graafi](../ifcgraph.md) on käytössä, jokainen komponentti, joka nimeää
+Kun [IFC-LPG](../ifc-lpg.md) on käytössä, jokainen komponentti, joka nimeää
 `GlobalId`-tunnuksen, saa `SAME_AS`-suhteen kyseiseen elementtiin projektin valmiissa
 malleissa, myös kun malli ladataan jälkeenpäin.
 

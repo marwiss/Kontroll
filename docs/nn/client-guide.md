@@ -191,12 +191,12 @@ Klienten din treng ein callback-URL som nettlesaren kan nå (ein
 loopback-lyttar for skrivebordsappar). Serveren kallar aldri den URL-en
 sjølv.
 
-Når IFC-grafmodulen er på, blir ei IFC-fil som blir lasta opp som versjon,
+Når IFC-LPG-modulen er på, blir ei IFC-fil som blir lasta opp som versjon,
 kontrollert mot IFC-skjemaet og, der tenaren har dei, ifc-gherkin-rules frå
 buildingSMART. Metadataa hennar har då `ifc_validation_status`
 og, når ho er kontrollert, dei andre `ifc_validation_*`-postane;
 `ifc_validation_report` er adressa til rapporten, ei utviding som svarar på det
-same tokenet. Sjå [ifcgraph.md](ifcgraph.md#kontroll-av-opplastingar-mot-ifc-skjemaet).
+same tokenet. Sjå [ifc-lpg.md](ifc-lpg.md#kontroll-av-opplastingar-mot-ifc-skjemaet).
 
 ## 5. Korrelere loggen din med loggen til serveren
 

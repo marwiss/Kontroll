@@ -195,12 +195,12 @@ Asiakkaasi tarvitsee callback-URLin, johon selain pääsee
 (loopback-kuuntelija työpöytäsovelluksille). Palvelin ei koskaan kutsu tuota
 URLia itse.
 
-Kun IFC-graafimoduuli on käytössä, versiona lähetetty IFC-tiedosto tarkistetaan
+Kun IFC-LPG-moduuli on käytössä, versiona lähetetty IFC-tiedosto tarkistetaan
 IFC-skeemaa ja, jos palvelimella on ne, buildingSMARTin ifc-gherkin-rules-sääntöjä
 vasten. Sen metatiedoissa on silloin `ifc_validation_status` ja
 tarkistuksen jälkeen muut `ifc_validation_*`-kohdat; `ifc_validation_report` on
 raportin osoite, laajennus, joka vastaa samalle tunnisteelle. Katso
-[ifcgraph.md](ifcgraph.md#lähetysten-tarkistus-ifc-skeemaa-vasten).
+[ifc-lpg.md](ifc-lpg.md#lähetysten-tarkistus-ifc-skeemaa-vasten).
 
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 

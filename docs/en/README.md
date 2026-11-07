@@ -6,7 +6,7 @@
 
 Kontroll is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
 BCF API 3.0 and 2.1, and Documents API 1.0), built on a graph database, with a web
-administration and an optional IFC-graph module that joins BCF components to
+administration and an optional IFC-LPG module that joins BCF components to
 the building elements they point at. It grew out of a 2023 research prototype
 for the digital inspection plans of Swedish building permits and was rewritten
 from scratch with security as the first requirement.
@@ -101,7 +101,7 @@ password, and nothing is open until it is configured.
   Linux), or Python 3.11 or later with [uv](https://docs.astral.sh/uv/) and a
   Neo4j 5.26 or Memgraph 3.14 database of your own.
 - About 1 GB of memory for the database container (`NEO4J_HEAP` and
-  `NEO4J_PAGECACHE` in `.env`), more with the IFC-graph module.
+  `NEO4J_PAGECACHE` in `.env`), more with the IFC-LPG module.
 - Locally: port 8000 for the server and 7484/7697 for the database, all bound
   to `127.0.0.1`. In production: ports 80 and 443 reachable from the internet
   and a DNS name for the server.
@@ -129,13 +129,13 @@ password, and nothing is open until it is configured.
   capabilities document at `/.well-known/kontroll` that tells a client which
   extensions are on, a stable `code` in every error body, a request log for
   debugging clients (`/admin/requests`, `GET /admin/api/requests` with the
-  `admin` scope), and the IFC-graph module that turns uploaded IFC models into
+  `admin` scope), and the IFC-LPG module that turns uploaded IFC models into
   graph data linked to BCF components.
 - **A client library** in Python ([client/](../../client/), LGPL) with runnable
   examples, and a Dockerfile, compose overlays and a published image for every
   deployment scenario.
 - **Status**: all eleven stages of the plan are implemented (the three APIs,
-  the administration, the client library, deployment, IFC-graph, the acceptance
+  the administration, the client library, deployment, IFC-LPG, the acceptance
   checklist and the security hardening); the contribution to IfcOpenShell has
   not been proposed yet (drafts in [docs/upstream/](../upstream/)).
   [docs/inventory.md](../inventory.md) records what the 2023 prototype did
@@ -246,7 +246,7 @@ coordinate is in
 - [docs/glossary.md](../glossary.md): the words the documentation uses.
 - [docs/flows/](../flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [docs/graph-schema.md](../graph-schema.md): the graph model.
-- [docs/ifcgraph.md](../ifcgraph.md): the optional IFC-graph module and example Cypher queries.
+- [docs/ifc-lpg.md](../ifc-lpg.md): the optional IFC-LPG module and example Cypher queries.
 - [docs/ui-styleguide.md](../ui-styleguide.md): rules for the server's pages and the mark.
 - [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
   independent clients (Bonsai, ifc-lite, Dataspatium).
@@ -290,8 +290,8 @@ CONTRIBUTING are kept in English.
   password. The port stays closed unless the administrator publishes it on
   purpose; the administration API's read-only graph query
   (`OPENCDE_GRAPH_QUERY_ENABLED`) gives Cypher without the port.
-- The IFC-graph import runs in a separate process with memory and time limits
-  (`OPENCDE_IFCGRAPH_*`); very large models are refused rather than left half
+- The IFC-LPG import runs in a separate process with memory and time limits
+  (`OPENCDE_IFC_LPG_*`); very large models are refused rather than left half
   imported.
 - The web pages serve administrators and the OAuth2 and Documents API flows;
   end users work in a client such as Dataspatium or Bonsai.

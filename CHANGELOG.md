@@ -11,24 +11,29 @@ the commit history.
 
 Toward 3.0.0, with Dataspatium.
 
+- The IFC-graph module is now IFC-LPG, as it will be in 2.0.2: its settings are `OPENCDE_IFC_LPG_*`, its command
+  `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
+  `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, and the log and `opencde doctor` name the old
+  settings a server is given. The administration API and the capabilities document keep their keys, except that
+  `raw` in `GET /admin/api/settings` names the settings by their new names.
 - An IFC model can be written back from the graph as a file that holds the same model, on Neo4j and on Memgraph:
-  `opencde ifcgraph export <model id> model.ifc`, with `--verify` to compare it with the upload. See
-  [docs/ifcgraph.md](docs/ifcgraph.md).
+  `opencde ifc-lpg export <model id> model.ifc`, with `--verify` to compare it with the upload. See
+  [docs/ifc-lpg.md](docs/ifc-lpg.md).
 - A model is converted in a new form by default. It has the same nodes, relationships and values as before, so queries
   keep working. Added to them are `position` on the relationships of forward attributes, `<attribute>__type` beside typed
   values and `<attribute>__step` for references to what is no node. Geometry is compressed text on `StepBlock` nodes, which
-  a query should not return whole. `OPENCDE_IFCGRAPH_LOSSLESS=false` gives the old form. Models already converted keep
+  a query should not return whole. `OPENCDE_IFC_LPG_LOSSLESS=false` gives the old form. Models already converted keep
   theirs, and cannot be written back until uploaded again.
 - A file written from the graph is validated against the IFC standard, and an issue the upload does not have ends the
-  command with an error. The `ifcgraph` extra now includes pytest, which IfcOpenShell's validator needs at run time.
+  command with an error. The `ifc-lpg` extra now includes pytest, which IfcOpenShell's validator needs at run time.
 - Every IFC file uploaded as a document version is checked against the IFC schema in the background, and the upload is
   never held back by it. The version's metadata says how it went (`ifc_validation_status`, `ifc_validation_issues`,
   `ifc_validation_checked_at`, `ifc_validation_ruleset`) and where the report is (`ifc_validation_report`). The report is
   an extension, `GET /documents/1.0/documents/{id}/versions/{index}/ifc-validation`, with up to 10,000 issues and the
-  GlobalId of each element. The version's page shows the first 100. `OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` turns it
+  GlobalId of each element. The version's page shows the first 100. `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` turns it
   off.
 - Uploads are also checked against buildingSMART's ifc-gherkin-rules, the rules of buildingSMART's validation service,
-  where `OPENCDE_IFCGRAPH_GHERKIN_ENV` names an environment for them. `python -m opencde.ifcgraph.gherkin_install` makes
+  where `OPENCDE_IFC_LPG_GHERKIN_ENV` names an environment for them. `python -m opencde.ifcgraph.gherkin_install` makes
   one from pinned downloads. The published image leaves them out; the image tagged `-gherkin`, such as `3.0.0-gherkin`
   or `latest-gherkin`, has them and is about 1.1 GB, as is an image built with `--build-arg OPENCDE_GHERKIN=1` or by
   docker compose with `OPENCDE_GHERKIN=1`. A finding is an issue of the kind `gherkin` with the rule's code in

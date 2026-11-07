@@ -61,7 +61,7 @@ A project the user is not a member of does not exist for them (404).
 
 ## From a viewpoint to the model
 
-With the [IFC graph](../ifcgraph.md) on, every component that names a `GlobalId`
+With the [IFC-LPG](../ifc-lpg.md) on, every component that names a `GlobalId`
 gets a `SAME_AS` relationship to that element in the project's finished models,
 also when the model is uploaded afterwards.
 

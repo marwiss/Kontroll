@@ -87,7 +87,7 @@ Varje kontroll har minst ett automatiskt test. "Svit" namnger testmodulen.
 | Sidorna bär den strikta CSP:n, ingen inline-kod; förbättringsskripten bygger DOM bara med `textContent` | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (inga konsolfel) |
 | Tillgänglighet: inga allvarliga eller kritiska axe-core-överträdelser på någon adminsida | WCAG 2.2 AA | `tests/ui/test_admin_browser.py` |
 
-## IFC-graf (etapp 9)
+## IFC-LPG (etapp 9)
 
 | Kontroll | Standard | Svit |
 |---|---|---|

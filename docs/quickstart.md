@@ -41,7 +41,7 @@ characters, letters and digits only.
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
 OPENCDE_REQUEST_LOG_ENABLED=true
-OPENCDE_IFCGRAPH_ENABLED=true
+OPENCDE_IFC_LPG_ENABLED=true
 ```
 
 | Line | What it does | Without it |
@@ -49,7 +49,7 @@ OPENCDE_IFCGRAPH_ENABLED=true
 | `OPENCDE_GRAPH_PASSWORD` | The password of the graph database | Shorter than 16 characters: the database does not start |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Lets Dataspatium register itself with the server | Step 3 stops, and the app asks for a client id |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Records the app's calls | The request log in step 5 stays empty |
-| `OPENCDE_IFCGRAPH_ENABLED` | Turns uploaded models into a graph | No graph in step 5 |
+| `OPENCDE_IFC_LPG_ENABLED` | Turns uploaded models into a graph | No graph in step 5 |
 
 These settings are for trying Kontroll on your own machine, not for a server that
 others use.
@@ -143,7 +143,7 @@ Signed in as `admin`, open <http://127.0.0.1:8000/admin>:
   as the card *Log* at the bottom of the source's view in *Import*, so a failing
   call can be found on both sides.
 
-The sample model is a graph already, since `OPENCDE_IFCGRAPH_ENABLED=true` was in
+The sample model is a graph already, since `OPENCDE_IFC_LPG_ENABLED=true` was in
 `.env` when you ran `opencde seed`. Neo4j Browser at <http://127.0.0.1:7484> (connect
 to `bolt://127.0.0.1:7697` as `neo4j` with the password from `.env`) answers this
 query with the wall linked to the viewpoint's component:

@@ -189,12 +189,12 @@ Din klient behöver en callback-URL som webbläsaren kan nå (en
 loopback-lyssnare för skrivbordsappar). Servern anropar aldrig den URL:en
 själv.
 
-När IFC-grafmodulen är på kontrolleras en IFC-fil som laddas upp som version mot
+När IFC-LPG-modulen är på kontrolleras en IFC-fil som laddas upp som version mot
 IFC-schemat och, där servern har dem, buildingSMARTs ifc-gherkin-rules.
 Dess metadata har då `ifc_validation_status` och, när den är
 kontrollerad, de andra `ifc_validation_*`-posterna; `ifc_validation_report` är
 adressen till rapporten, ett tillägg som svarar på samma token. Se
-[ifcgraph.md](ifcgraph.md#kontroll-av-uppladdningar-mot-ifc-schemat).
+[ifc-lpg.md](ifc-lpg.md#kontroll-av-uppladdningar-mot-ifc-schemat).
 
 ## 5. Korrelera din logg med serverns
 

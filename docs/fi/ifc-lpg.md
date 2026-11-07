@@ -1,16 +1,20 @@
-# IFC-graafi
+# IFC-LPG
 
-Valinnainen IFC-graafimoduuli muuttaa lähetetyn IFC-mallin graafidataksi,
+Valinnainen IFC-LPG-moduuli muuttaa lähetetyn IFC-mallin graafidataksi,
 jotta BCF-viewpointin komponentit voidaan yhdistää rakennusosiin, joihin ne
 viittaavat, ja jotta mallista voidaan kysyä Cypherillä asioiden ja
 asiakirjojen rinnalla.
 
-Kytke se päälle asetuksella `OPENCDE_IFCGRAPH_ENABLED=true` ja asenna
-`ifcgraph`-lisäosa (`uv sync --extra ifcgraph`). Docker-kuva sisältää
+Kytke se päälle asetuksella `OPENCDE_IFC_LPG_ENABLED=true` ja asenna
+`ifc-lpg`-lisäosa (`uv sync --extra ifc-lpg`). Docker-kuva sisältää
 lisäosan oletuksena (`ARG OPENCDE_EXTRAS` Dockerfilessa), mikä yli
 kaksinkertaistaa sen koon (noin 680 MB, buildingSMARTin säännöillä 1,1 Gt, vastaan 300 MB); rakenna
 `--build-arg OPENCDE_EXTRAS=` saadaksesi kevyemmän kuvan ilman
 IfcOpenShelliä, kun moduuli pysyy pois päältä.
+
+Ennen versiota 2.0.2 moduulin nimi oli IFC-graph. Sen asetusten nimet olivat
+`OPENCDE_IFCGRAPH_*` ja komennon `opencde ifcgraph`, ja molemmat toimivat yhä;
+palvelimen loki ja `opencde doctor` nimeävät vanhat asetukset, jotka se saa.
 
 ## Mitä lähetyksessä tapahtuu
 
@@ -21,9 +25,9 @@ IfcOpenShelliä, kun moduuli pysyy pois päältä.
    käynnistää muunnoksen taustalla, yhden kerrallaan.
 3. Erillinen työprosessi (`python -m opencde.ifcgraph.worker`) lukee
    tiedoston. Se toimii aikarajalla
-   (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minuuttia), osoiteavaruusrajalla
-   POSIX-järjestelmissä (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) ja entiteettien
-   ylärajalla (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Kaatuminen tai jumiutuminen
+   (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minuuttia), osoiteavaruusrajalla
+   POSIX-järjestelmissä (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) ja entiteettien
+   ylärajalla (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Kaatuminen tai jumiutuminen
    tappaa työprosessin, ei palvelinta. `.ifczip` puretaan lähetyksen
    kokorajan puitteissa.
 4. Tietueet tuodaan erissä `UNWIND … CREATE` -lauseilla (siirrettävä Cypher,
@@ -44,7 +48,7 @@ ja EXPRESS-skeeman säännöt. Tarkistus ajetaan taustalla ennen muunnosta
 erillisessä työprosessissa samoin rajoin. Se ei koskaan estä lähetystä: tiedosto
 tallennetaan sellaisenaan, löysi tarkistus mitä tahansa. BCF-projektidokumenttia
 ei tarkisteta, koska sillä ei ole metatietoja.
-`OPENCDE_IFCGRAPH_VALIDATE_UPLOADS=false` poistaa tarkistuksen käytöstä.
+`OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` poistaa tarkistuksen käytöstä.
 
 Tulos on version metatiedoissa, joita mikä tahansa Documents API -asiakas voi lukea:
 
@@ -110,7 +114,7 @@ sekuntia.
 
 ### buildingSMARTin ifc-gherkin-rules
 
-Kun `OPENCDE_IFCGRAPH_GHERKIN_ENV` osoittaa niille ympäristön, lähetykset
+Kun `OPENCDE_IFC_LPG_GHERKIN_ENV` osoittaa niille ympäristön, lähetykset
 tarkistetaan myös buildingSMARTin `ifc-gherkin-rules`-sääntöjä vasten:
 normatiivisia sääntöjä ja alan käytäntöjä, jotka buildingSMARTin
 validointipalvelu tarkistaa skeeman lisäksi ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
@@ -130,7 +134,7 @@ validointipalvelun tietokantaan.
 Julkaistusta levykuvasta ne puuttuvat, koska ne kasvattavat sitä noin 425 Mt.
 Levykuvassa, jonka tunniste päättyy `-gherkin`, kuten `latest-gherkin` tai
 `3.0.0-gherkin`, ympäristö on hakemistossa `/opt/gherkin`, ja
-`OPENCDE_IFCGRAPH_GHERKIN_ENV` osoittaa siihen, samoin levykuvassa, joka on
+`OPENCDE_IFC_LPG_GHERKIN_ENV` osoittaa siihen, samoin levykuvassa, joka on
 käännetty valinnalla `--build-arg OPENCDE_GHERKIN=1`. Docker composessa valinnan
 tekee `OPENCDE_IMAGE_TAG` tai `OPENCDE_GHERKIN=1` tiedostossa `.env`.
 
@@ -168,7 +172,7 @@ Käänteisistä attribuuteista tulee myös suhteita, joten molemmat suunnat
 luetaan luontevasti: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-arvot puretaan (`IfcLabel('3')` muuttuu `"3"`:ksi).
 
-Ei solmuja oletuksena (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Ei solmuja oletuksena (`OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=false`):
 esitysalkiot, esitykset, profiilit, sijoitukset ja tyylit; ne ovat suurin osa
 mallista ja harvoin sitä, mitä CDE-kysely tarvitsee, ja ne säilyvät graafissa
 tekstinä, kuten kohdassa Mallin kirjoittaminen takaisin. `IfcOwnerHistory` on
@@ -211,15 +215,15 @@ instanssit samoilla tunnuksilla ja samat arvot samassa järjestyksessä, siis my
 sijaintitieto.
 
 ```sh
-uv run opencde ifcgraph export <mallin tunnus> model.ifc            # kirjoita tiedosto ja validoi se
-uv run opencde ifcgraph export <mallin tunnus> model.ifc --verify   # ja vertaa sitä lähetettyyn
+uv run opencde ifc-lpg export <mallin tunnus> model.ifc            # kirjoita tiedosto ja validoi se
+uv run opencde ifc-lpg export <mallin tunnus> model.ifc --verify   # ja vertaa sitä lähetettyyn
 ```
 
 Solmut ovat ne, joita kyselyt tarvitsevat. Se, minkä ne jättävät pois, kirjoitetaan
 STEP-muotoon ja pakataan tekstiksi `StepBlock`-solmuihin, jotka riippuvat
 `IfcModel`-solmussa: se on graafissa, mutta Cypherin ulottumattomissa, eikä sitä voi
 muuttaa siellä. Se ei voi olla tuotteiden ominaisuuksia, koska suuri osa siitä on
-tuotteiden yhteistä. Asetuksella `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` jokaisesta
+tuotteiden yhteistä. Asetuksella `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` jokaisesta
 instanssista tulee sen sijaan solmu, moninkertaisella koolla ja tuontiajalla; kyselyt
 kestivät suunnilleen yhtä kauan [mittauksissa](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
@@ -258,7 +262,7 @@ raportissa nimettynä. Valinnalla `--geometry` myös jokaisen tuotteen verkko ra
 ja niitä verrataan bitti bitiltä. Mitkä tahansa kaksi tiedostoa voi verrata komennolla
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
-Asetuksella `OPENCDE_IFCGRAPH_LOSSLESS=false` malli muunnetaan kuten ennen versiota
+Asetuksella `OPENCDE_IFC_LPG_LOSSLESS=false` malli muunnetaan kuten ennen versiota
 3.0.0: se luetaan IfcOpenShellillä, ja se, mikä ei ole solmuja, jätetään kokonaan pois.
 Tällaista mallia, kuten aiemman version muuntamaakaan, ei voi kirjoittaa takaisin.
 
@@ -270,10 +274,10 @@ kysele. Komentorivi luettelee ja karsii ne; asiakirjat ja niiden tiedostot
 säilyvät aina:
 
 ```sh
-uv run opencde ifcgraph list --project <projektin tunnus>
-uv run opencde ifcgraph prune                   # epäonnistuneet mallit sekä valmiit mallit, jotka saman asiakirjan
+uv run opencde ifc-lpg list --project <projektin tunnus>
+uv run opencde ifc-lpg prune                   # epäonnistuneet mallit sekä valmiit mallit, jotka saman asiakirjan
                                                 # uudempi valmis versio on korvannut
-uv run opencde ifcgraph prune --project <id> --all   # yhden projektin jokainen malli (esimerkiksi testipino)
+uv run opencde ifc-lpg prune --project <id> --all   # yhden projektin jokainen malli (esimerkiksi testipino)
 ```
 
 Jonossa olevia ja käynnissä olevia malleja ei karsita koskaan. Kyselyjen,
@@ -297,8 +301,8 @@ Kun viewpoint luodaan komponenttien kanssa, jokainen komponentti, jonka
 projektin jokaiselle olemassa olevalle komponentille, kun mallin tuonti
 valmistuu, joten myös ennen mallin lähettämistä tai sen muuntamisen aikana
 luodut viewpointit linkitetään. Jos rakennusosa kantaa määritettyä
-ominaisuutta (`OPENCDE_IFCGRAPH_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFCGRAPH_GTIN_PROPERTY=GTIN`), sen arvo kopioidaan komponenttiin
+ominaisuutta (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
+`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), sen arvo kopioidaan komponenttiin
 `gtin`-kenttänä. Tämä on vuoden 2023 tutkimusraportin käyttötapaus:
 tarkastus (BCF-asia), joka viittaa GTIN-koodilla tunnistettuihin
 rakennustuotteisiin.
@@ -339,7 +343,7 @@ on lueteltu tiedostossa [acceptance.md](../acceptance.md). Tuotantopalvelin
 ei julkaise Boltia; hallintarajapinnan graafikysely
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) antaa
 järjestelmänvalvojille lukevan Cypherin ilman porttia. Sovellus
-myös piirtää graafin korttiinsa IFC-graafi tuon kyselyn kautta tai Boltilla.
+myös piirtää graafin korttiinsa IFC-LPG tuon kyselyn kautta tai Boltilla.
 
 ## Rajat ja tila
 

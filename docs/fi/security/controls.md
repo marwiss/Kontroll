@@ -88,7 +88,7 @@ testimoduulin.
 | Sivut kantavat tiukan CSP:n, ei inline-koodia; parannusskriptit rakentavat DOMin vain `textContent`-kutsuilla | OWASP ASVS 14.4 | `test_admin_pages_need_the_admin_role`, `tests/ui` (ei konsolivirheitä) |
 | Saavutettavuus: ei vakavia tai kriittisiä axe-core-rikkomuksia millään hallintasivulla | WCAG 2.2 AA | `tests/ui/test_admin_browser.py` |
 
-## IFC-graafi (vaihe 9)
+## IFC-LPG (vaihe 9)
 
 | Kontrolli | Standardi | Sarja |
 |---|---|---|

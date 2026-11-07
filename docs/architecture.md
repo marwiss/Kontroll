@@ -29,7 +29,7 @@ flowchart LR
 | Documents API | Upload and selection through pages in the browser, versions and metadata | `opencde/documents/` |
 | Accounts | Users, projects, memberships and roles | `opencde/accounts/` |
 | Administration | Pages and an API for administrators, health checks and the request log | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC graph | Turns uploaded models into nodes and links viewpoint components to them | `opencde/ifcgraph/` |
+| IFC-LPG | Turns uploaded models into nodes and links viewpoint components to them | `opencde/ifcgraph/` |
 | Graph layer | The driver, the two database dialects, the schema and what expires | `opencde/graph/` |
 | Pages | Templates, styles, scripts and the language catalogues | `opencde/ui/` |
 
@@ -56,7 +56,7 @@ flowchart LR
 | Users, projects, topics, comments, viewpoints, document metadata, clients and the audit log | Graph database | [Graph schema](graph-schema.md) |
 | Tokens, codes and client secrets, as SHA-256 hashes; passwords, as Argon2id hashes | Graph database | [Security controls](security/controls.md) |
 | Uploaded files and viewpoint images, under names the server chooses | File storage in `OPENCDE_DATA_DIR` | [Documents API flows](flows/documents.md) |
-| Models as nodes and relationships | Graph database | [IFC graph](ifcgraph.md) |
+| Models as nodes and relationships | Graph database | [IFC-LPG](ifc-lpg.md) |
 | The server's own settings and secrets | `.env` or `/run/secrets` | [Local test](deploy/local.md) |
 
 ## Work outside requests
