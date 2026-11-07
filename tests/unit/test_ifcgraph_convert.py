@@ -11,7 +11,7 @@ import pytest
 from opencde.ifcgraph.worker import main as worker_main
 from tests.conftest import FIXTURES_DIR
 
-pytest.importorskip("ifcopenshell", reason="the ifcgraph extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
 
 from opencde.ifcgraph.convert import convert
 

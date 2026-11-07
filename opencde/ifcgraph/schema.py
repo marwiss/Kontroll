@@ -76,7 +76,7 @@ class Schema:
         try:
             from ifcopenshell import ifcopenshell_wrapper
         except ImportError as exc:  # pragma: no cover - depends on the optional extra
-            raise StepError("IfcOpenShell is not installed; install the 'ifcgraph' extra") from exc
+            raise StepError("IfcOpenShell is not installed; install the 'ifc-lpg' extra") from exc
         try:
             self._schema: Any = ifcopenshell_wrapper.schema_by_name(name)
         except RuntimeError as exc:

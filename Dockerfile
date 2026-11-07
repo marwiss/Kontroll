@@ -8,10 +8,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 
-# Optional extras to install. The default includes the IFC-graph module (IfcOpenShell),
-# which OPENCDE_IFCGRAPH_ENABLED switches on at runtime; build with
+# Optional extras to install. The default includes the IFC-LPG module (IfcOpenShell),
+# which OPENCDE_IFC_LPG_ENABLED switches on at runtime; build with
 # `--build-arg OPENCDE_EXTRAS=` for a slimmer image without it.
-ARG OPENCDE_EXTRAS="--extra ifcgraph"
+ARG OPENCDE_EXTRAS="--extra ifc-lpg"
 
 # Dependencies first, so source changes do not invalidate this layer.
 COPY pyproject.toml uv.lock .python-version ./
@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # buildingSMART's ifc-gherkin-rules, in an environment of their own with IfcOpenShell 0.8.6 (ADR 0012), made from
 # pinned downloads checked against their SHA-256. They add about 425 MB, so they are left out unless the image is built
-# with `--build-arg OPENCDE_GHERKIN=1`, as the published image tagged `-gherkin` is. Only with the IFC-graph module.
+# with `--build-arg OPENCDE_GHERKIN=1`, as the published image tagged `-gherkin` is. Only with the IFC-LPG module.
 ARG OPENCDE_GHERKIN=0
 RUN --mount=type=cache,target=/root/.cache/uv \
     mkdir -p /opt/gherkin \
@@ -54,7 +54,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     OPENCDE_DATA_DIR=/data \
-    OPENCDE_IFCGRAPH_GHERKIN_ENV=/opt/gherkin
+    OPENCDE_IFC_LPG_GHERKIN_ENV=/opt/gherkin
 USER opencde
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \

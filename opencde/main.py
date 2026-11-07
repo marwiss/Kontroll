@@ -116,6 +116,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             graph_dialect=settings.graph_dialect.value,
             graph_database=settings.database_name,
         )
+        for old, new in settings.renamed_settings:  # names only: a setting's value can be a secret
+            log.warning("setting_renamed", old=old, new=new)
         if startup_wait_seconds > 0:
             await wait_for_graph(app.state.graph, startup_wait_seconds)
             await apply_schema(app.state.graph)

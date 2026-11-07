@@ -2,7 +2,7 @@
 """Convert an IFC file into node and edge records (runs inside the worker process).
 
 Two forms come out of here. :func:`convert_lossless` is the default, and a file can be written back from what it gives.
-:func:`convert` is the ordinary form, ``OPENCDE_IFCGRAPH_LOSSLESS=false``, which the rest of this text is about, and whose
+:func:`convert` is the ordinary form, ``OPENCDE_IFC_LPG_LOSSLESS=false``, which the rest of this text is about, and whose
 nodes, relationships and values are all in the other one too.
 
 Every entity becomes a node labelled with its class and all its supertypes
@@ -17,7 +17,7 @@ the ``IfcProject``.
 
 The mapping follows Zhu, Wu and Lei, "IFC-graph for facilitating building
 information access and query", Automation in Construction 148 (2023), 104778,
-https://doi.org/10.1016/j.autcon.2023.104778; ``docs/ifcgraph.md`` says where
+https://doi.org/10.1016/j.autcon.2023.104778; ``docs/ifc-lpg.md`` says where
 this code differs from the article.
 """
 
@@ -86,7 +86,7 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
     try:
         import ifcopenshell
     except ImportError as exc:  # pragma: no cover - depends on the optional extra
-        raise ConversionError("IfcOpenShell is not installed; install the 'ifcgraph' extra") from exc
+        raise ConversionError("IfcOpenShell is not installed; install the 'ifc-lpg' extra") from exc
 
     model = ifcopenshell.open(str(path))
     schema = ifcopenshell.schema_by_name(model.schema)

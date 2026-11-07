@@ -64,7 +64,7 @@ async def export_records(graph: Graph, model_id: str, out: Path) -> int:
         raise NotExportable(f"the model is {model['state']}, not done")
     if not model["lossless"]:
         raise NotExportable(
-            "the model was converted without OPENCDE_IFCGRAPH_LOSSLESS, so the graph does not hold it all"
+            "the model was converted without OPENCDE_IFC_LPG_LOSSLESS, so the graph does not hold it all"
         )
     blocks = await graph.run(
         """
