@@ -166,7 +166,7 @@ live-køyringane er lista i [acceptance.md](../acceptance.md). Ein
 produksjonsserver publiserer ikkje Bolt; grafspørjinga i
 administrasjons-API-et (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) gjev administratorar lesande Cypher
-utan porten. Frå versjon 2.7.0 teiknar appen òg grafen, i kortet
+utan porten. Appen teiknar òg grafen, i kortet
 IFC-graf, gjennom den spørjinga eller over Bolt.
 
 ## Grenser og status

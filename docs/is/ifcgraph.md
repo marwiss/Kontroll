@@ -159,7 +159,7 @@ fyrirspurnirnar eru í skjölun Dataspatium (`docs/grafer.md`), og lifandi
 keyrslurnar eru taldar upp í [acceptance.md](../acceptance.md).
 Framleiðsluþjónn birtir ekki Bolt; graffyrirspurn stjórnunarforritaskilanna
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gefur
-stjórnendum lesandi Cypher án gáttarinnar. Frá útgáfu 2.7.0 teiknar forritið líka grafið, í
+stjórnendum lesandi Cypher án gáttarinnar. Forritið teiknar líka grafið, í
 spjaldinu IFC-graf, í gegnum þá fyrirspurn eða yfir Bolt.
 
 ## Takmörk og staða

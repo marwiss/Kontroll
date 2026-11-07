@@ -142,7 +142,10 @@ changes, every README says which Dataspatium this Kontroll works with, and
 Kontroll's release workflow builds the image and the SBOM on a tag. Only the
 latest release per major number is kept: the next release removes the previous
 release and its tag, the commits stay, and `CHANGELOG.md` folds the notes
-together.
+together. When a new major number begins, the last release of the old one is made
+again as X.0.0, by a commit that sets the number, with a branch `release-X` at it, on
+the owner's word. No history is rewritten. Dataspatium's 1.0.0 and both projects'
+2.0.0 came about this way.
 
 ### The checklist of a joint release
 
@@ -205,7 +208,7 @@ is described in two halves, cross-linked in each language:
 ## The administration API
 
 `/admin/api/` is a JSON administration API in the shape of the resource list
-Dataspatium wrote for its 2.2.0 (read: overview, users, projects, clients,
+Dataspatium wrote (read: overview, users, projects, clients,
 sessions, audit, settings, health; write: users, projects and members, clients
 and secrets, sessions; dangerous actions behind a fresh sign-in; one-time values
 returned once). `docs/client-guide.md` §7 documents it and
@@ -246,7 +249,7 @@ returned once). `docs/client-guide.md` §7 documents it and
 ## BCF API 2.1
 
 The owner decided on 2026-11-06 that a client that implements only 2.1 must be able to connect, and that Dataspatium
-and the Python client speak 2.1 too, so that it is tried from both ends. It belongs to the joint release 2.7.0. The
+and the Python client speak 2.1 too, so that it is tried from both ends. The
 reasoning is in [ADR 0008](adr/0008-bcf-api-2-1-next-to-3-0.md). This is what the server promises, everything under
 `/bcf/2.1` unless it says otherwise, and on the same data as 3.0.
 
@@ -273,7 +276,7 @@ reasoning is in [ADR 0008](adr/0008-bcf-api-2-1-next-to-3-0.md). This is what th
 | Events | The same addresses, without the `stage_*` types and with `reply_to_comment_updated` and `reply_to_comment_removed`. An event with no action left in a version is not listed in it, so the counts can differ between the versions |
 | Errors | The same body and codes as 3.0 |
 
-A client may also do what Dataspatium does from 2.7.0, and the server takes it: fall back to `GET /bcf/versions` when
+A client may also do what Dataspatium does, and the server takes it: fall back to `GET /bcf/versions` when
 `/foundation/versions` gives no readable answer at all, not only on a 404, since a server may have CORS headers on its APIs
 alone; sign in without a `scope`, which gives the default scopes; and take the address from `api_base_url`.
 
