@@ -23,6 +23,24 @@ MAX_NAME = 200
 MAX_LIST_ITEMS = 200
 MAX_ITEM_LENGTH = 100
 
+# What a project owns: the relationships that deleting it follows, and no others. CREATED_BY and UPLOADED_BY lead to
+# users, and from a user MEMBER_OF leads to every project the user is in. RELATED_TO, SAME_AS and CONCERNS point at what
+# need not be this project's alone. A new kind of node below a project needs its relationship here.
+OWNED_RELATIONSHIPS = (
+    "HAS_EXTENSIONS",
+    "HAS_TOPIC",
+    "HAS_EVENT",
+    "HAS_COMMENT",
+    "HAS_VIEWPOINT",
+    "HAS_COMPONENT",
+    "HAS_BITMAP",
+    "HAS_FILE",
+    "HAS_DOCUMENT_REFERENCE",
+    "HAS_DOCUMENT",
+    "HAS_VERSION",
+    "HAS_MODEL",
+)
+
 EXTENSION_LISTS = (
     "topic_type",
     "topic_status",
@@ -151,7 +169,7 @@ class ProjectRepository:
         return _project(row["project"])
 
     async def delete(self, project_id: str) -> bool:
-        """Delete the project and everything hanging off it (topics, documents metadata, sessions).
+        """Delete the project and what it owns (``OWNED_RELATIONSHIPS``): topics, documents and their metadata.
 
         Its IFC models go first, in batches of their own: the entities of a model reach far beyond the few steps
         the query below follows, and they are too many for one transaction.
@@ -166,16 +184,32 @@ class ProjectRepository:
             counters = await tx.counters(
                 """
                 MATCH (p:Project {project_id: $id})
-                OPTIONAL MATCH (p)-[*1..4]->(child)
+                OPTIONAL MATCH path = (p)-[*1..4]->(child)
+                WHERE all(r IN relationships(path) WHERE type(r) IN $owned)
                 WITH p, collect(DISTINCT child) AS children
                 FOREACH (c IN children | DETACH DELETE c)
                 DETACH DELETE p
                 """,
                 id=project_id,
+                owned=list(OWNED_RELATIONSHIPS),
             )
             return counters.nodes_deleted
 
         return await self.graph.write(work) > 0
+
+    async def storage_keys(self, project_id: str) -> list[str]:
+        """Every stored file the project owns, so that deleting the project frees the disk too."""
+        rows = await self.graph.run(
+            """
+            MATCH path = (:Project {project_id: $id})-[*1..4]->(n)
+            WHERE all(r IN relationships(path) WHERE type(r) IN $owned)
+              AND (n.storage_key IS NOT NULL OR n.snippet_storage_key IS NOT NULL)
+            RETURN DISTINCT coalesce(n.storage_key, n.snippet_storage_key) AS key
+            """,
+            id=project_id,
+            owned=list(OWNED_RELATIONSHIPS),
+        )
+        return [row["key"] for row in rows if row["key"]]
 
     # -- members ----------------------------------------------------------------
 
