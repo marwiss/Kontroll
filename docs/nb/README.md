@@ -186,7 +186,7 @@ klient.
 Kontroll (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (en dataapp som kjører helt i nettleseren) er utviklet for å virke sammen som
 server og klient, og samme utgivelsesnummer på begge betyr at de virker
-sammen: Dataspatium 2.0.0 virker med Kontroll 2.0.0
+sammen: Dataspatium 2.0.1 virker med Kontroll 2.0.1
 ([hurtigstart](quickstart.md)). Dataspatium legger til
 en Kontroll-server som kilde: appen oppdager API-ene gjennom
 `/foundation/versions`, logger inn med OAuth2 authorization code og PKCE og
