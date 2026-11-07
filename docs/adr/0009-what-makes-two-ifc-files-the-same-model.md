@@ -69,9 +69,8 @@ The round trip has a test that can fail. That is shown, not assumed: `tests/unit
 row of the research's table of changes. A throwaway run that breaks the code on purpose in 57 places is now caught at
 every one. The first such run let 18 through, which led to more tests and to one check removed as redundant.
 
-IfcOpenShell cannot carry every file through unchanged, so a file with one of those values will fail the round trip's
-test even if the graph is perfect. Two of the 26 samples are such files, from Tekla and from Archicad. The writer has to
-meet those files some other way, or say which they are.
+IfcOpenShell cannot carry every file through unchanged. Two of the samples are such files, from Tekla and from Archicad,
+and a round trip through it would fail this test on them however good the graph is. ADR 0010 says what follows from that.
 
 A check takes seconds: 224,496 instances and 19 MB in about 10 s, single-threaded. Nothing larger has been run, and
 memory grows with the number of instances, so a model of millions needs measuring first. The check is meant for tests

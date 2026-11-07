@@ -83,7 +83,57 @@ Hún er frábrugðin greininni á þennan hátt:
   viðbætur hér.
 
 Röð í listum glatast líka hér, eins og greinin bendir á um sitt eigið graf: vensl
-segja ekki hvar í lista markmið þeirra stóð.
+segja ekki hvar í lista markmið þeirra stóð. Formið undir Að
+skrifa líkan til baka heldur henni.
+
+## Að skrifa líkan til baka
+
+Með `OPENCDE_IFCGRAPH_LOSSLESS=true` er líkani umbreytt þannig að grafið rúmi það
+allt og hægt sé að skrifa skrána til baka úr grafinu: sömu tilvik með sömu auðkenni
+og sömu gildi í sömu röð, og þar með sömu landfræðilegu upplýsingar. Þetta er
+sjálfgefið af. Líkan sem var umbreytt án þessa heldur sínu formi og er ekki hægt að
+skrifa til baka.
+
+```sh
+uv run opencde ifcgraph export <líkansauðkenni> model.ifc            # skrifa skrána
+uv run opencde ifcgraph export <líkansauðkenni> model.ifc --verify   # og bera hana saman við þá sem var hlaðið upp
+```
+
+Hnútarnir eru áfram þeir sömu og í venjulega forminu, með sömu eiginleika og vensl, svo
+að fyrirspurnirnar á þessari síðu virka á bæði. Það sem það form sleppir er skrifað út
+sem STEP og þjappað í texta á `StepBlock`-hnúta sem hanga á `IfcModel`: það er í
+grafinu en utan seilingar Cypher. Það getur ekki verið eiginleikar vörunna, því að
+stór hluti þess er sameiginlegur með þeim. Með
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
+margfaldri stærð og innflutningstíma; fyrirspurnir tóku álíka langan tíma í
+[mælingunum](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+
+Skráin er skrifuð úr því sem grafið rúmar, ekki afrituð, svo að eiginleiki eða vensl
+sem breytt er í grafinu sjást í henni; því sem er í blokk er ekki hægt að breyta þannig.
+Ekkert athugar hvort breytt líkan sé enn gilt. Útflutningur stöðvast ef blokk vantar.
+Þetta bætist við það sem venjulega formið hefur:
+
+| Í skránni | Í grafinu |
+|---|---|
+| Tilvísun | Vensl með `position`, `[röð, dálkur]` í lista af listum; andhverf vensl hafa það ekki |
+| Tagað gildi, `IFCLABEL('3')` | `NominalValue: "3"`, og `NominalValue__type: "IFCLABEL"` við hliðina |
+| Listi af listum af tölum | JSON-texti |
+| Það sem hefur ekkert einfalt form, eins og listi af töguðum gildum | Merkt JSON, með `$json` sem tag |
+| Hausinn | `ifc_header` á `IfcModel` |
+| Tilvik í blokk | Texti í `StepBlock`; það sem vísar á það geymir auðkenni þess í merktu JSON |
+
+Þetta form er ekki lesið með IfcOpenShell, sem hér leggur aðeins til skemað. Það
+breytir sumum gildum við lestur (`.NULLENUM.` verður `$`, og `($,$)` verður `()`), og
+skrár frá Tekla og Archicad hafa slík gildi. Því les vinnsluferlið skrána sjálft og
+hafnar því sem það getur ekki lesið.
+[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) segir hvers vegna.
+
+`--verify` spyr hvort skrárnar tvær rúmi sama líkan, samkvæmt skilgreiningunni í
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): eitt á móti einu,
+gildi fyrir gildi og án vikmarka, með staðsetningu nefnda í skýrslunni. Með
+`--geometry` er möskvi hverrar vöru líka byggður og þeir bornir saman bita fyrir bita.
+Hvaða tvær skrár sem er má bera saman með
+`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
 ## Umhirða
 
@@ -167,7 +217,9 @@ spjaldinu IFC-graf, í gegnum þá fyrirspurn eða yfir Bolt.
 - Ein umbreyting í einu; stór líkön fara í biðröð. Sýnilíkanið (248 einingar)
   er flutt inn á um einni sekúndu; 200 MB arkitektalíkan tekur mínútur.
 - `IfcModel`-hnúturinn ber `state`, `entities`, `relationships`, `skipped`,
-  `schema`, `ifc_project_guid`, tímastimpla og `error`. Stjórnendur geta
+  `lossless`, `schema`, `ifc_project_guid`, tímastimpla og `error`. Stjórnendur geta
   skoðað hann í Neo4j Browser eða Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Að eyða verkefni eyðir einingum líkana þess með því.
+- Líkan kemur eins til baka úr báðum gagnagrunnum upp að 224.496 tilvikum og 19 MB, í hverju
+  formi sem var mælt. Ekkert stærra hefur verið prófað.

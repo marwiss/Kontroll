@@ -94,6 +94,7 @@ testimoduulin.
 |---|---|---|
 | IFC-jäsennys ajetaan erillisessä työprosessissa aikarajalla, muistirajalla (POSIX) ja entiteettiylärajalla; kaatuminen tai jumiutuminen kaataa mallin, ei palvelinta | OWASP ASVS 12.4 | `test_ifcgraph_convert::test_geometry_can_be_included_and_limits_are_enforced`, `test_ifcgraph` |
 | `.ifczip` puretaan vain, kun se sisältää tasan yhden `.ifc`-tiedoston, ja purettuihin tavuihin sovelletaan lähetyksen kokorajaa | Zip-pommi | `service._prepare_input` |
+| Vertailu ja häviötön muunnos lukevat tiedostot omalla lukijallaan: se hylkää sen, mitä se ei osaa lukea, sen kaavat eivät voi perääntyä, ja sisäkkäisyys on rajattu | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Muuntimen nimiöt ja suhdetyypit validoidaan tunnisteina ennen kuin ne saavuttavat Cypherin; kaikki muu on parametri | OWASP API8 | `importer._safe`, `test_ifcgraph` |
 | Muunnosvirheet kirjataan `IfcModel`-solmuun ja lokiin ilman tiedoston sisältöä | OWASP ASVS 7.1 | `test_ifcgraph` |
 

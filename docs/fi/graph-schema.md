@@ -154,13 +154,15 @@ erDiagram
 erDiagram
     Project ||--o{ IfcModel : HAS_MODEL
     IfcModel ||--o| IfcEntity : HAS_PROJECT
+    IfcModel ||--o{ StepBlock : HAS_STEP_BLOCK
     IfcEntity }o--o{ IfcEntity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
     Component }o--o| IfcEntity : SAME_AS
 ```
 
 | Nimiö | Avain | Ominaisuudet | Huomautukset |
 |---|---|---|---|
-| `IfcModel` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
+| `IfcModel` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `ifc_header`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
 | `IfcEntity` + luokkanimiöt | `id` (`<mallin tunnus>:<step-tunnus>`), indeksoitu `GlobalId`, `model_id` | `ifc_class`, `step_id`, jokainen literaali IFC-attribuutti nimellään | Entiteettien väliset suhteet nimetään IFC-attribuutin mukaan (eteen- ja käänteissuuntaan), kirjoitettuina kuten jokainen suhdetyyppi isoin kirjaimin ja alaviivoin: `IsDefinedBy` muuttuu `IS_DEFINED_BY`:ksi |
+| `StepBlock` | `id` (`<mallin tunnus>:<ensimmäinen step-tunnus>`) | `first_step`, `instances`, `text` | Asetuksella `OPENCDE_IFCGRAPH_LOSSLESS` muunnetun mallin instanssit, jotka eivät ole solmuja: kirjoitettu STEP-muotoon tunnusjärjestyksessä ja pakattu. Älä palauta solmua kokonaisena kyselyssä `text`-kentän vuoksi |
 
 Katso [ifcgraph.md](ifcgraph.md) muunnossäännöt ja esimerkkikyselyt.

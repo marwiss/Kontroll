@@ -88,7 +88,57 @@ Se eroaa artikkelista seuraavasti:
   lisätty tässä.
 
 Luetteloiden järjestys katoaa myös tässä, kuten artikkeli huomauttaa omasta
-graafistaan: suhde ei kerro, missä kohdassa luetteloa sen kohde oli.
+graafistaan: suhde ei kerro, missä kohdassa luetteloa sen kohde oli. Kohdan Mallin
+kirjoittaminen takaisin muoto säilyttää sen.
+
+## Mallin kirjoittaminen takaisin
+
+Asetuksella `OPENCDE_IFCGRAPH_LOSSLESS=true` malli muunnetaan niin, että graafi
+sisältää sen kokonaan ja tiedosto voidaan kirjoittaa takaisin graafista: samat
+instanssit samoilla tunnuksilla ja samat arvot samassa järjestyksessä, siis myös
+sama sijaintitieto. Se on oletuksena pois päältä. Ilman asetusta muunnettu malli
+säilyttää muotonsa, eikä sitä voi kirjoittaa takaisin.
+
+```sh
+uv run opencde ifcgraph export <mallin tunnus> model.ifc            # kirjoita tiedosto
+uv run opencde ifcgraph export <mallin tunnus> model.ifc --verify   # ja vertaa sitä lähetettyyn
+```
+
+Solmut pysyvät tavallisen muodon solmuina samoine ominaisuuksineen ja suhteineen, joten
+tämän sivun kyselyt toimivat molemmissa. Se, minkä tuo muoto jättää pois, kirjoitetaan
+STEP-muotoon ja pakataan tekstiksi `StepBlock`-solmuihin, jotka riippuvat `IfcModel`-solmussa:
+se on graafissa, mutta Cypherin ulottumattomissa. Se ei voi olla tuotteiden
+ominaisuuksia, koska suuri osa siitä on tuotteiden yhteistä. Asetuksella
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` jokaisesta instanssista tulee sen sijaan solmu,
+moninkertaisella koolla ja tuontiajalla; kyselyt kestivät suunnilleen yhtä kauan
+[mittauksissa](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+
+Tiedosto kirjoitetaan siitä, mitä graafi sisältää, eikä sitä kopioida, joten graafissa
+muutettu ominaisuus tai suhde näkyy siinä; lohkossa olevaa ei voi muuttaa näin. Mikään
+ei tarkista, että muutettu malli on yhä kelvollinen. Vienti keskeytyy, jos lohko puuttuu.
+Näitä tulee lisää siihen, mitä tavallisessa muodossa on:
+
+| Tiedostossa | Graafissa |
+|---|---|
+| Viittaus | Suhde, jolla on `position`, luetteloiden luettelossa `[rivi, sarake]`; käänteisillä suhteilla sitä ei ole |
+| Tyypitetty arvo, `IFCLABEL('3')` | `NominalValue: "3"` ja sen vieressä `NominalValue__type: "IFCLABEL"` |
+| Lukujen luetteloiden luettelo | JSON-tekstiä |
+| Se, millä ei ole yksinkertaista muotoa, kuten tyypitettyjen arvojen luettelo | Merkittyä JSONia, tyyppinä `$json` |
+| Otsake | `ifc_header` solmussa `IfcModel` |
+| Lohkossa oleva instanssi | Tekstiä `StepBlock`-solmussa; siihen viittaavalla on sen tunnus merkityssä JSONissa |
+
+Tätä muotoa ei lueta IfcOpenShellillä, josta tässä otetaan vain skeema. Se muuttaa
+joitakin arvoja lukiessaan (`.NULLENUM.` muuttuu `$`:ksi ja `($,$)` `()`:ksi), ja
+Teklan ja Archicadin tiedostoissa niitä on. Siksi työprosessi lukee tiedoston itse
+ja hylkää sen, mitä se ei osaa lukea.
+[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) kertoo miksi.
+
+`--verify` kysyy, sisältävätkö kaksi tiedostoa saman mallin määritelmän
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md) mukaan: yksi yhteen,
+arvo arvolta ja ilman toleranssia, sijaintitieto raportissa nimettynä. Valinnalla
+`--geometry` myös jokaisen tuotteen verkko rakennetaan, ja niitä verrataan bitti bitiltä.
+Mitkä tahansa kaksi tiedostoa voi verrata komennolla
+`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
 
 ## Ylläpito
 
@@ -175,8 +225,10 @@ myös piirtää graafin korttiinsa IFC-graafi tuon kyselyn kautta tai Boltilla.
   entiteettiä) tuodaan noin sekunnissa; 200 MB:n arkkitehtimalli vie
   minuutteja.
 - `IfcModel`-solmu kantaa kentät `state`, `entities`, `relationships`,
-  `skipped`, `schema`, `ifc_project_guid`, aikaleimat ja `error`.
+  `skipped`, `lossless`, `schema`, `ifc_project_guid`, aikaleimat ja `error`.
   Järjestelmänvalvojat voivat tarkastella sitä Neo4j Browserissa tai
   Memgraph Labissa:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Projektin poisto poistaa sen mallien entiteetit samalla.
+- Malli palautuu identtisenä molemmista tietokannoista 224 496 instanssiin ja 19 megatavuun
+  asti kaikissa mitatuissa muodoissa. Suurempia ei ole kokeiltu.

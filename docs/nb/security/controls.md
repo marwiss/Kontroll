@@ -93,6 +93,7 @@ Hver kontroll har minst én automatisert test. "Suite" navngir testmodulen.
 |---|---|---|
 | IFC-parsing kjører i en separat arbeidsprosess med tidsgrense, minnegrense (POSIX) og entitetstak; et krasj eller en henging feller modellen, ikke serveren | OWASP ASVS 12.4 | `test_ifcgraph_convert::test_geometry_can_be_included_and_limits_are_enforced`, `test_ifcgraph` |
 | `.ifczip` pakkes ut bare når den inneholder nøyaktig én `.ifc`, med opplastingens størrelsestak på de utpakkede bytene | Zip-bombe | `service._prepare_input` |
+| Sammenligningen og den tapsfrie konverteringen leser filer med sin egen leser: det den ikke kan lese, avviser den, mønstrene kan ikke gå tilbake, og nøstingen er begrenset | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Etiketter og relasjonstyper fra konvertereren valideres som identifikatorer før de når Cypher; alt annet er en parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
 | Konverteringsfeil registreres på `IfcModel`-noden og logges uten filens innhold | OWASP ASVS 7.1 | `test_ifcgraph` |
 

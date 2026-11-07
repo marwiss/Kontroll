@@ -93,6 +93,7 @@ Every control has at least one automated test. "Suite" names the test module.
 |---|---|---|
 | IFC parsing runs in a separate worker process with a time limit, a memory limit (POSIX) and an entity cap; a crash or hang fails the model, not the server | OWASP ASVS 12.4 | `test_ifcgraph_convert::test_geometry_can_be_included_and_limits_are_enforced`, `test_ifcgraph` |
 | `.ifczip` is unpacked only when it holds exactly one `.ifc`, with the upload size cap on the unpacked bytes | Zip bomb | `service._prepare_input` |
+| The comparison and the lossless conversion read files with a reader of their own: what it cannot read it refuses, its patterns cannot backtrack, and nesting is limited | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Labels and relationship types from the converter are validated as identifiers before they reach Cypher; everything else is a parameter | OWASP API8 | `importer._safe`, `test_ifcgraph` |
 | Conversion failures are recorded on the `IfcModel` node and logged without the file's content | OWASP ASVS 7.1 | `test_ifcgraph` |
 

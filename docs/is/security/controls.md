@@ -94,6 +94,7 @@ prófunareininguna.
 |---|---|---|
 | IFC-þáttun keyrir í sérstöku vinnuferli með tímamörkum, minnismörkum (POSIX) og einingahámarki; hrun eða frysting fellir líkanið, ekki þjóninn | OWASP ASVS 12.4 | `test_ifcgraph_convert::test_geometry_can_be_included_and_limits_are_enforced`, `test_ifcgraph` |
 | `.ifczip` er aðeins pakkað upp þegar hún geymir nákvæmlega eina `.ifc`, með stærðarþaki upphalsins á útpökkuðu bætin | Zip-sprengja | `service._prepare_input` |
+| Samanburðurinn og taplausa umbreytingin lesa skrár með eigin lesara: hann hafnar því sem hann getur ekki lesið, mynstur hans geta ekki bakkað, og hreiðrun er takmörkuð | OWASP ASVS 5.1 | `test_ifcgraph_step` |
 | Merkimiðar og venslagerðir úr umbreytinum eru sannreynd sem auðkenni áður en þau ná Cypher; allt annað er stiki | OWASP API8 | `importer._safe`, `test_ifcgraph` |
 | Umbreytingarbilanir skráðar á `IfcModel`-hnútinn og í atvikaskrá án innihalds skrárinnar | OWASP ASVS 7.1 | `test_ifcgraph` |
 
