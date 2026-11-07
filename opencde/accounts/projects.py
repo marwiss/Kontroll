@@ -9,6 +9,7 @@ not stored: it is the project's members at the time of the request.
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from typing import Any
 
@@ -17,6 +18,7 @@ from opencde.accounts.users import PUBLIC_FIELDS, AccountError, User, _user
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.importer import delete_model
+from opencde.storage import LocalStorage
 from opencde.timeutil import now_iso
 
 MAX_NAME = 200
@@ -197,6 +199,15 @@ class ProjectRepository:
             return counters.nodes_deleted
 
         return await self.graph.write(work) > 0
+
+    async def delete_with_files(self, project_id: str, storage: LocalStorage) -> bool:
+        """``delete``, and the stored files the project owned, so that deleting it frees the disk too."""
+        keys = await self.storage_keys(project_id)
+        deleted = await self.delete(project_id)
+        for key in keys:
+            with contextlib.suppress(ValueError):  # a key the storage refuses was never one it wrote
+                storage.delete(key)
+        return deleted
 
     async def storage_keys(self, project_id: str) -> list[str]:
         """Every stored file the project owns, so that deleting the project frees the disk too."""
