@@ -24,6 +24,7 @@ inte bunden till något enskilt program.
 - [Kontroll och Dataspatium](#kontroll-och-dataspatium)
 - [Lär dig mer](#lär-dig-mer)
 - [Begränsningar i korthet](#begränsningar-i-korthet)
+- [Mot 3.0.0](#mot-300)
 - [Fel och förslag](#fel-och-förslag)
 - [Utveckling](#utveckling)
 - [Licens](#licens)
@@ -303,6 +304,78 @@ hålls på engelska.
 - Ingen extern granskning ännu. OAuch- och testssl-körningarna i
   [docs/sv/security/pentest-howto.md](docs/sv/security/pentest-howto.md) är
   operatörens steg före en produktionsdriftsättning.
+
+## Mot 3.0.0
+
+3.0.0 är nästa utgåva, gjord tillsammans med Dataspatium 3.0.0, och som varje
+huvudnummer får den en enda utgåva, som ges ut igen när serien växer. Den gör
+IFC-grafen till en modell som kan redigeras och versionshanteras i databasen,
+med Dataspatium som klienten som redigerar den och visar dess versioner. De
+officiella OpenCDE-API:erna förblir som buildingSMART definierar dem; det
+3.0.0 lägger till är tillägg till dem, under egna namn. Det här avsnittet säger
+vad som är byggt, vad som är beslutat och vad som bara är föreslaget, för den,
+människa eller AI-agent, som för en del av det vidare. Besluten finns i
+[docs/adr](docs/adr), arbetssätten i [CONTRIBUTING.md](CONTRIBUTING.md) och
+IFC-grafen i [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
+
+### Byggt på main, inte släppt
+
+- **En IFC-graf utan förlust.** En uppladdad IFC-fil blir en graf med etiketter
+  och egenskaper som samma fil kan skrivas tillbaka från, med samma instanser,
+  STEP-id, värden och ordning, i Neo4j och Memgraph. Rundresan är biblioteket
+  [IFC-LPG](https://github.com/marwiss/IFC-LPG), som Kontroll tar från en
+  bestämd commit (ADR 0009, 0010 och 0014).
+- **Varje IFC-uppladdning kontrolleras**, i bakgrunden och utan att hållas
+  tillbaka: mot IFC-schemat och dess EXPRESS-regler, mot buildingSMARTs
+  ifc-gherkin-rules där de är installerade, och mot projektets IDS-dokument
+  (ADR 0011, 0012 och 0015).
+
+### Beslutat
+
+- **Redigering av modeller i Native IFC.** Create är uppladdningen. Read är
+  frågor genom API:et, som antalet rum, en byggnads area eller en väggs
+  material: namngivna frågor med parametrar för medlemmar, och fri Cypher bara
+  för administratörer. Update är en ändring som en klient föreslår genom
+  API:et och som prövas innan den förs in. Delete tar bort valda delar av
+  grafen: en entitet, en byggnad eller ett projekt. Export skriver STEP
+  tillbaka, som nu.
+- **Versionshistorik i databasen, inte i git**, i samma anda som Bruno Postles
+  [ifcmerge](https://github.com/brunopostle/ifcmerge): vad som ändrades, vem
+  som föreslog det och vem som godkände det. Datan måste hålla sig till IFC,
+  ifc-gherkin-rules och projektets IDS, vid import och efter varje ändring.
+- **BIM-snippets som en fungerande demonstration.** En föreslagen ändring
+  färdas som `bim_snippet` i ett BCF 3.0-ärende, med ett publicerat schema
+  bakom dess `reference_schema`, så att ändringen, diskussionen och beslutet
+  finns på ett ställe. Ingen programvara tillämpar en snippet i dag, och
+  buildingSMARTs outgivna utvecklingsgrenar har strukit dem; Kontroll bygger
+  dem för att visa hur de skulle kunna fungera. En snippet pekar ut det den
+  ändrar med STEP-id, eller med GlobalId och en sökväg därifrån. STEP-id når
+  alltid en instans; GlobalId och sökväg nådde 98 till 100 procent av
+  instanserna i 28 provfiler, med steg bakåt genom inversa attribut.
+- **Tillägg, inte nya versioner av API:erna.** BCF-ärenden med `bim_snippet`,
+  Documents API:ts metadata och versioner och kapabilitetsdokumentet bär det
+  3.0.0 lägger till, beskrivet av en egen OpenAPI.
+- **Krocktest på båda ställena**: på servern med IfcOpenShells IfcClash och i
+  Dataspatium med dess egen kärna i JavaScript.
+- **Administration av ett projekt av dess projektansvarige**, som inte behöver
+  vara serveradministratör, och team med ansvar utöver projektrollerna.
+
+### Föreslaget, inte beslutat
+
+- **Hur en version lagras.** Varje godkänd version en nod med sin förälder,
+  författare, godkännare och ändringar per STEP-id och attribut; grafen håller
+  huvudversionen; en version lagrad som sin ändring, med en hel fil, som
+  `.ifczip`, bara när en version publiceras, och vilken version som helst
+  skriven på begäran; två ändringar sammanfogade attribut för attribut, som
+  ifcmerge gör; en ändring förd in när filen som skrivs från den inte har
+  någon anmärkning som versionen före den saknade.
+- **Vem som får ändra vad.** Först projektrollerna, där `editor` föreslår och
+  `manager` godkänner, sedan ansvarsregler som pekar ut en del av modellen med
+  IDS-urval, som klass, egenskap, klassificering eller våning, som ISO 19650:s
+  ansvariga team gör.
+- **Snippetens detaljer.** Hur en sökväg skrivs, och om en ändring av en
+  instans som flera delar ändrar den för alla eller ger den ändrade en egen
+  kopia.
 
 ## Fel och förslag
 
