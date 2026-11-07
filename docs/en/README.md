@@ -24,6 +24,7 @@ is not tied to any one application.
 - [Kontroll and Dataspatium](#kontroll-and-dataspatium)
 - [Learn more](#learn-more)
 - [Limitations in brief](#limitations-in-brief)
+- [Toward 3.0.0](#toward-300)
 - [Bugs and suggestions](#bugs-and-suggestions)
 - [Development](#development)
 - [Licence](#licence)
@@ -300,6 +301,77 @@ CONTRIBUTING are kept in English.
 - No external audit yet. The OAuch and testssl runs described in
   [docs/security/pentest-howto.md](../security/pentest-howto.md) are the
   operator's steps before a production deployment.
+
+## Toward 3.0.0
+
+3.0.0 is the next release, made with Dataspatium 3.0.0, and like every major
+number it will have one release, given out again as the series grows. It turns
+the IFC graph into a model that can be edited and versioned in the database,
+with Dataspatium as the client that edits it and shows its versions. The
+official OpenCDE APIs stay as buildingSMART defines them; what 3.0.0 adds are
+extensions to them, under their own names. This section says what is built,
+what is decided and what is only proposed, for anyone, person or AI agent, who
+takes a part of it further. The decisions are in [docs/adr](../adr), the
+conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
+[docs/ifc-lpg.md](../ifc-lpg.md).
+
+### Built on main, not released
+
+- **An IFC graph without loss.** An uploaded IFC file becomes a labelled
+  property graph that the same file can be written back from, with the same
+  instances, STEP ids, values and order, on Neo4j and Memgraph alike. The round
+  trip is the library [IFC-LPG](https://github.com/marwiss/IFC-LPG), which
+  Kontroll takes from a fixed commit (ADR 0009, 0010 and 0014).
+- **Every IFC upload is checked**, in the background and without holding it
+  back: against the IFC schema and its EXPRESS rules, against buildingSMART's
+  ifc-gherkin-rules where they are installed, and against the IDS documents of
+  its project (ADR 0011, 0012 and 0015).
+
+### Decided
+
+- **Editing models in Native IFC.** Create is the upload. Read is questions
+  through the API, such as the number of rooms, a building's area or a wall's
+  material: named queries with parameters for members, and free Cypher for
+  administrators only. Update is a change that a client proposes through the
+  API, checked before it is taken in. Delete removes chosen parts of the graph:
+  an entity, a building or a project. Export writes STEP back, as now.
+- **Version history in the database, not in git**, in the spirit of Bruno
+  Postle's [ifcmerge](https://github.com/brunopostle/ifcmerge): what changed,
+  who proposed it and who approved it. The data must keep to IFC, the
+  ifc-gherkin-rules and the project's IDS, at import and after every change.
+- **BIM snippets as a working demonstration.** A proposed change travels as the
+  `bim_snippet` of a BCF 3.0 topic, with a published schema behind its
+  `reference_schema`, so that the change, its discussion and its decision are
+  in one place. No software applies a snippet today, and buildingSMART's
+  unreleased development branches have dropped them; Kontroll builds them to
+  show how they could work. A snippet names what it changes by STEP id, or by
+  GlobalId and a path from it. The STEP id always reaches an instance; GlobalId
+  and path reached 98 to 100 per cent of the instances in 28 sample files, with
+  steps back through inverse attributes.
+- **Extensions, not new versions of the APIs.** BCF topics with `bim_snippet`,
+  the Documents API's metadata and versions and the capabilities document carry
+  what 3.0.0 adds, described by their own OpenAPI.
+- **Clash detection in both places**: on the server with IfcOpenShell's
+  IfcClash, and in Dataspatium with its own JavaScript core.
+- **Administration of a project by its manager**, who need not be a server
+  administrator, and teams with responsibilities beyond the project roles.
+
+### Proposed, not decided
+
+- **How a version is kept.** Each approved version a node with its parent,
+  author, approver and changes per STEP id and attribute; the graph holding the
+  main version; a version stored as its change, with a whole file, as
+  `.ifczip`, only when a version is published, and any version written on
+  request; two changes merged attribute by attribute, as ifcmerge does; a
+  change taken in when the file written from it has no issue that the version
+  before it lacked.
+- **Who may change what.** First the project roles, with `editor` proposing and
+  `manager` approving, then responsibility rules that name a part of the model
+  with IDS selectors, such as class, property, classification or storey, as
+  ISO 19650's task teams do.
+- **The snippet's details.** How a path is written, and whether a change to an
+  instance that several share changes it for all of them or gives the changed
+  one a copy of its own.
 
 ## Bugs and suggestions
 

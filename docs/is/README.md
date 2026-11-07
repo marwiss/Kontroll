@@ -24,6 +24,7 @@ bundinn við eitt tiltekið forrit.
 - [Kontroll og Dataspatium](#kontroll-og-dataspatium)
 - [Lærðu meira](#lærðu-meira)
 - [Takmarkanir í stuttu máli](#takmarkanir-í-stuttu-máli)
+- [Í átt að 3.0.0](#í-átt-að-300)
 - [Villur og tillögur](#villur-og-tillögur)
 - [Þróun](#þróun)
 - [Leyfi](#leyfi)
@@ -300,6 +301,79 @@ arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru h�
 - Engin ytri úttekt enn. OAuch- og testssl-keyrslurnar í
   [docs/is/security/pentest-howto.md](security/pentest-howto.md) eru skref
   rekstraraðilans fyrir uppsetningu í rekstur.
+
+## Í átt að 3.0.0
+
+3.0.0 er næsta útgáfa, gerð með Dataspatium 3.0.0, og eins og hvert aðalnúmer
+fær hún eina útgáfu, sem er gefin út aftur eftir því sem röðin vex. Hún gerir
+IFC-grafið að líkani sem hægt er að breyta og halda útgáfusögu fyrir í
+gagnagrunninum, með Dataspatium sem biðlarann sem breytir því og sýnir
+útgáfurnar. Opinberu OpenCDE-forritaskilin haldast eins og buildingSMART
+skilgreinir þau; það sem 3.0.0 bætir við eru viðbætur við þau undir eigin
+heitum. Þessi hluti segir hvað er smíðað, hvað er ákveðið og hvað er aðeins
+lagt til, fyrir þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af
+því lengra. Ákvarðanirnar eru í [docs/adr](../adr), vinnureglurnar í
+[CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafið í
+[docs/is/ifc-lpg.md](ifc-lpg.md).
+
+### Smíðað á main, ekki gefið út
+
+- **IFC-graf án taps.** Upphlaðin IFC-skrá verður graf með merkjum og eigindum
+  sem hægt er að skrifa sömu skrá til baka úr, með sömu tilvikum,
+  STEP-auðkennum, gildum og röð, í Neo4j og Memgraph. Hringferðin er safnið
+  [IFC-LPG](https://github.com/marwiss/IFC-LPG), sem Kontroll sækir úr fastri
+  útgáfu (commit) (ADR 0009, 0010 og 0014).
+- **Hvert IFC-upphal er prófað** í bakgrunni án þess að halda því aftur: gegn
+  IFC-skemanu og EXPRESS-reglum þess, gegn ifc-gherkin-rules frá buildingSMART
+  þar sem þær eru settar upp, og gegn IDS-skjölum verkefnisins (ADR 0011, 0012
+  og 0015).
+
+### Ákveðið
+
+- **Breytingar á líkönum í Native IFC.** Create er upphalið. Read er
+  spurningar gegnum forritaskilin, svo sem fjöldi herbergja, flatarmál byggingar
+  eða efni veggjar: nefndar fyrirspurnir með færibreytum fyrir meðlimi, og frjáls
+  Cypher aðeins fyrir stjórnendur. Update er breyting sem biðlari leggur til
+  gegnum forritaskilin og er prófuð áður en hún er tekin inn. Delete fjarlægir
+  valda hluta grafsins: einingu, byggingu eða verkefni. Export skrifar STEP til
+  baka, eins og nú.
+- **Útgáfusaga í gagnagrunninum, ekki í git**, í anda
+  [ifcmerge](https://github.com/brunopostle/ifcmerge) eftir Bruno Postle: hvað
+  breyttist, hver lagði það til og hver samþykkti það. Gögnin verða að fylgja
+  IFC, ifc-gherkin-rules og IDS verkefnisins, við innflutning og eftir hverja
+  breytingu.
+- **BIM-snippets sem virk sýnikennsla.** Tillaga að breytingu ferðast sem
+  `bim_snippet` í BCF 3.0-máli, með birtu skema á bak við `reference_schema`,
+  svo að breytingin, umræðan og ákvörðunin séu á einum stað. Enginn hugbúnaður
+  beitir snippet í dag, og óútgefnar þróunargreinar buildingSMART hafa fellt þær
+  niður; Kontroll smíðar þær til að sýna hvernig þær gætu virkað. Snippet bendir
+  á það sem hún breytir með STEP-auðkenni, eða með GlobalId og slóð þaðan.
+  STEP-auðkennið nær alltaf til tilviks; GlobalId og slóð náðu til 98 til 100
+  prósenta tilvikanna í 28 prófunarskrám, með skrefum til baka gegnum andhverfar
+  eigindir.
+- **Viðbætur, ekki nýjar útgáfur forritaskilanna.** BCF-mál með `bim_snippet`,
+  lýsigögn og útgáfur Documents API og getuskjalið bera það sem 3.0.0 bætir við,
+  lýst með eigin OpenAPI.
+- **Árekstrarprófun á báðum stöðum**: á þjóninum með IfcClash frá IfcOpenShell
+  og í Dataspatium með eigin kjarna í JavaScript.
+- **Stjórnun verkefnis af verkefnisstjóra þess**, sem þarf ekki að vera
+  stjórnandi þjónsins, og teymi með ábyrgð umfram hlutverk verkefnisins.
+
+### Lagt til, ekki ákveðið
+
+- **Hvernig útgáfa er geymd.** Hver samþykkt útgáfa hnútur með foreldri,
+  höfundi, samþykkjanda og breytingum eftir STEP-auðkenni og eigind; grafið
+  geymir aðalútgáfuna; útgáfa geymd sem breyting sín, með heilli skrá, sem
+  `.ifczip`, aðeins þegar útgáfa er birt, og hvaða útgáfa sem er skrifuð eftir
+  beiðni; tvær breytingar sameinaðar eigind fyrir eigind, eins og ifcmerge gerir;
+  breyting tekin inn þegar skráin sem skrifuð er úr henni hefur enga athugasemd
+  sem útgáfan á undan hafði ekki.
+- **Hver má breyta hverju.** Fyrst hlutverk verkefnisins, þar sem `editor`
+  leggur til og `manager` samþykkir, síðan ábyrgðarreglur sem benda á hluta
+  líkansins með IDS-vali, svo sem flokki, eigind, flokkun eða hæð, eins og
+  ábyrgðarteymi ISO 19650 gera.
+- **Smáatriði snippets.** Hvernig slóð er skrifuð, og hvort breyting á tilviki
+  sem fleiri deila breyti því fyrir öll eða gefi því breytta eigið afrit.
 
 ## Villur og tillögur
 

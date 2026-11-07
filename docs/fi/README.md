@@ -25,6 +25,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 - [Kontroll ja Dataspatium](#kontroll-ja-dataspatium)
 - [Lue lisää](#lue-lisää)
 - [Rajoitukset lyhyesti](#rajoitukset-lyhyesti)
+- [Kohti versiota 3.0.0](#kohti-versiota-300)
 - [Virheet ja ehdotukset](#virheet-ja-ehdotukset)
 - [Kehitys](#kehitys)
 - [Lisenssi](#lisenssi)
@@ -316,6 +317,84 @@ IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
 - Ulkoista auditointia ei ole vielä tehty. Tiedostossa
   [docs/fi/security/pentest-howto.md](security/pentest-howto.md) kuvatut
   OAuch- ja testssl-ajot ovat ylläpitäjän askeleet ennen tuotantokäyttöönottoa.
+
+## Kohti versiota 3.0.0
+
+3.0.0 on seuraava julkaisu, joka tehdään yhdessä Dataspatium 3.0.0:n kanssa, ja
+kuten jokaisella pääversiolla sillä on yksi julkaisu, joka julkaistaan
+uudelleen sarjan kasvaessa. Se tekee IFC-graafista mallin, jota voi muokata ja
+jonka versioita voi hallita tietokannassa, ja Dataspatium on asiakas, joka
+muokkaa sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat pysyvät
+sellaisina kuin buildingSMART ne määrittelee; se, mitä 3.0.0 lisää, on niiden
+laajennuksia omilla nimillään. Tämä osio kertoo, mikä on rakennettu, mikä on
+päätetty ja mikä vain ehdotettu, sille, ihmiselle tai tekoälyagentille, joka
+vie osan siitä eteenpäin. Päätökset ovat kansiossa [docs/adr](../adr),
+käytännöt tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi
+sivulla [docs/fi/ifc-lpg.md](ifc-lpg.md).
+
+### Rakennettu mainiin, ei julkaistu
+
+- **IFC-graafi ilman häviötä.** Lähetetystä IFC-tiedostosta tulee
+  ominaisuusgraafi, josta sama tiedosto voidaan kirjoittaa takaisin samoin
+  instanssein, STEP-tunnistein, arvoin ja samassa järjestyksessä, sekä Neo4j:ssä
+  että Memgraphissa. Edestakainen muunnos on kirjasto
+  [IFC-LPG](https://github.com/marwiss/IFC-LPG), jonka Kontroll hakee tietystä
+  commitista (ADR 0009, 0010 ja 0014).
+- **Jokainen IFC-lähetys tarkistetaan** taustalla sitä pidättelemättä:
+  IFC-skeemaa ja sen EXPRESS-sääntöjä vasten, buildingSMARTin
+  ifc-gherkin-rules-sääntöjä vasten, kun ne on asennettu, ja projektin
+  IDS-asiakirjoja vasten (ADR 0011, 0012 ja 0015).
+
+### Päätetty
+
+- **Mallien muokkaus Native IFC:nä.** Create on lähetys. Read on kysymyksiä
+  rajapinnan kautta, kuten huoneiden määrä, rakennuksen pinta-ala tai seinän
+  materiaali: nimettyjä kyselyitä parametrein jäsenille ja vapaa Cypher vain
+  ylläpitäjille. Update on muutos, jonka asiakas ehdottaa rajapinnan kautta ja
+  joka tarkistetaan ennen kuin se otetaan mukaan. Delete poistaa valittuja
+  graafin osia: entiteetin, rakennuksen tai projektin. Export kirjoittaa STEPin
+  takaisin kuten nyt.
+- **Versiohistoria tietokannassa, ei gitissä**, Bruno Postlen
+  [ifcmergen](https://github.com/brunopostle/ifcmerge) hengessä: mikä muuttui,
+  kuka ehdotti sitä ja kuka hyväksyi sen. Tietojen on noudatettava IFC:tä,
+  ifc-gherkin-rules-sääntöjä ja projektin IDS:ää tuonnissa ja jokaisen
+  muutoksen jälkeen.
+- **BIM-snippetit toimivana esittelynä.** Ehdotettu muutos kulkee BCF 3.0
+  -asian `bim_snippet`-kenttänä, ja sen `reference_schema` viittaa
+  julkaistuun skeemaan, jotta muutos, sen käsittely ja päätös ovat yhdessä
+  paikassa. Mikään ohjelmisto ei vielä sovella snippetiä, ja buildingSMARTin
+  julkaisemattomat kehityshaarat ovat poistaneet ne; Kontroll rakentaa ne
+  näyttääkseen, miten ne voisivat toimia. Snippet osoittaa muuttamansa kohteen
+  STEP-tunnisteella tai GlobalId:llä ja siitä lähtevällä polulla.
+  STEP-tunniste tavoittaa aina instanssin; GlobalId ja polku tavoittivat 98–100
+  prosenttia instansseista 28 esimerkkitiedostossa, kun polku sai kulkea
+  taaksepäin käänteisten attribuuttien kautta.
+- **Laajennuksia, ei rajapintojen uusia versioita.** BCF-asiat, joissa on
+  `bim_snippet`, Documents API:n metatiedot ja versiot sekä
+  ominaisuusdokumentti kantavat sen, mitä 3.0.0 lisää, ja niitä kuvaa oma
+  OpenAPI.
+- **Törmäystarkistus molemmissa paikoissa**: palvelimella IfcOpenShellin
+  IfcClashilla ja Dataspatiumissa sen omalla JavaScript-ytimellä.
+- **Projektin hallinta sen projektipäällikön toimesta**, jonka ei tarvitse olla
+  palvelimen ylläpitäjä, sekä tiimit, joilla on vastuita projektirooleja
+  laajemmin.
+
+### Ehdotettu, ei päätetty
+
+- **Miten versio tallennetaan.** Jokainen hyväksytty versio solmuna, jolla on
+  vanhempi, tekijä, hyväksyjä ja muutokset STEP-tunnisteittain ja
+  attribuuteittain; graafi pitää pääversiota; versio tallennettuna muutoksena,
+  ja kokonainen tiedosto `.ifczip`-muodossa vain versiota julkaistaessa, ja mikä
+  tahansa versio kirjoitettuna pyynnöstä; kaksi muutosta yhdistettynä attribuutti
+  kerrallaan kuten ifcmerge tekee; muutos otettuna mukaan, kun siitä
+  kirjoitetussa tiedostossa ei ole huomautusta, jota edellisessä versiossa ei
+  ollut.
+- **Kuka saa muuttaa mitä.** Ensin projektiroolit, joissa `editor` ehdottaa ja
+  `manager` hyväksyy, sitten vastuusäännöt, jotka osoittavat mallin osan
+  IDS-valinnoilla, kuten luokalla, ominaisuudella, luokittelulla tai
+  kerroksella, kuten ISO 19650:n tehtäväryhmät.
+- **Snippetin yksityiskohdat.** Miten polku kirjoitetaan, ja muuttaako usean
+  jakaman instanssin muutos sen kaikille vai saako muutettu oman kopion.
 
 ## Virheet ja ehdotukset
 
