@@ -2,6 +2,8 @@ name: Release
 
 # A tag v* builds the multi-arch image, scans it, publishes it to GHCR with an
 # SBOM, and creates a GitHub release carrying the SBOM and the scan report.
+# The image with buildingSMART's rules, tagged -gherkin, is built, scanned and
+# published the same way; both are scanned before either is published.
 
 on:
   push:
@@ -40,6 +42,17 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
+      # The same image with buildingSMART's ifc-gherkin-rules (ADR 0012), for those who choose them: 3.0.0-gherkin.
+      - id: meta-gherkin
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: |
+            suffix=-gherkin,onlatest=true
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
 
       # Build for the host platform first so the image can be scanned before anything is published.
       - name: Build for scanning
@@ -71,6 +84,25 @@ jobs:
           format: spdx-json
           output-file: sbom.spdx.json
           upload-artifact: false
+      - name: Build with buildingSMART's rules for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          build-args: OPENCDE_GHERKIN=1
+          tags: ${{ env.IMAGE }}:scan-gherkin
+          cache-from: |
+            type=gha
+            type=gha,scope=gherkin
+          cache-to: type=gha,mode=max,scope=gherkin
+      - name: Trivy on the image with the rules (fail on fixable HIGH and CRITICAL vulnerabilities)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:scan-gherkin
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
 
       - name: Publish multi-arch image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -84,6 +116,21 @@ jobs:
           sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Publish multi-arch image with buildingSMART's rules
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: OPENCDE_GHERKIN=1
+          tags: ${{ steps.meta-gherkin.outputs.tags }}
+          labels: ${{ steps.meta-gherkin.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          cache-from: |
+            type=gha
+            type=gha,scope=gherkin
+          cache-to: type=gha,mode=max,scope=gherkin
 
       # The runner's own gh CLI creates the release (zizmor: no third-party action needed for this).
       - name: GitHub release with SBOM and scan report

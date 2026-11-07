@@ -25,6 +25,17 @@ COPY README.md LICENSE ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev ${OPENCDE_EXTRAS}
 
+# buildingSMART's ifc-gherkin-rules, in an environment of their own with IfcOpenShell 0.8.6 (ADR 0012), made from
+# pinned downloads checked against their SHA-256. They add about 425 MB, so they are left out unless the image is built
+# with `--build-arg OPENCDE_GHERKIN=1`, as the published image tagged `-gherkin` is. Only with the IFC-graph module.
+ARG OPENCDE_GHERKIN=0
+RUN --mount=type=cache,target=/root/.cache/uv \
+    mkdir -p /opt/gherkin \
+    && if [ "$OPENCDE_GHERKIN" = "1" ] && /app/.venv/bin/python -c "import ifcopenshell" 2>/dev/null; then \
+         /app/.venv/bin/python -m opencde.ifcgraph.gherkin_install /opt/gherkin \
+         && /opt/gherkin/venv/bin/python -m compileall -q /opt/gherkin/run; \
+       fi
+
 
 FROM python:3.13-slim-trixie AS runtime
 # Apply the distribution's security updates and remove pip: the runtime needs no
@@ -37,10 +48,13 @@ RUN apt-get update && apt-get -y upgrade --no-install-recommends && rm -rf /var/
     && mkdir -p /data && chown opencde:opencde /data
 WORKDIR /app
 COPY --from=builder --chown=opencde:opencde /app /app
+# Owned by root, so that the server can run the rules but not change them. Empty when they were left out.
+COPY --from=builder /opt/gherkin /opt/gherkin
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    OPENCDE_DATA_DIR=/data
+    OPENCDE_DATA_DIR=/data \
+    OPENCDE_IFCGRAPH_GHERKIN_ENV=/opt/gherkin
 USER opencde
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \

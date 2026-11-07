@@ -164,9 +164,10 @@ format = "ruff format ."
 typecheck = "ty check opencde client/opencde_client"
 test = "pytest"
 ui = "pytest -m ui"  # needs `uv sync --group ui` and `uv run playwright install chromium`
-security = ["lint", "_bandit", "_audit"]
+security = ["lint", "_bandit", "_audit", "_audit_gherkin"]
 _bandit = "bandit -q -r opencde client/opencde_client -c pyproject.toml"
 _audit = "pip-audit --skip-editable"  # our own workspace packages are not on PyPI
+_audit_gherkin = "pip-audit -r opencde/ifcgraph/gherkin-requirements.txt --disable-pip"  # the rules' own environment
 
 [tool.bandit]
 exclude_dirs = ["tests", "client/tests"]

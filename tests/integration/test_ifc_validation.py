@@ -1,8 +1,10 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Checking uploads against the IFC schema: the result in a version's metadata, its report, and who may read it."""
+"""Checking uploads against the IFC schema and buildingSMART's rules: the result in a version's metadata, its report,
+and who may read it."""
 
 from __future__ import annotations
 
+import os
 import time
 from collections.abc import Iterator
 from typing import Any
@@ -31,6 +33,8 @@ pytest.importorskip("ifcopenshell", reason="the ifcgraph extra is not installed"
 
 MODEL = FIXTURES_DIR / "three_walls_gtin.ifc"
 WALLS = ("1Xezbq735AdBO_4DerG66G", "3eT96F_cnDsOufCEsotwtp")
+# An environment made with `python -m opencde.ifcgraph.gherkin_install`, for the test with buildingSMART's rules.
+GHERKIN_ENV = os.environ.get("OPENCDE_TEST_GHERKIN_ENV", "")
 
 
 def settings_for(graph_target: GraphTarget, tmp_path: Any, **extra: Any) -> Any:
@@ -118,11 +122,40 @@ def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tupl
 
     page = client.get(twice["links"]["document_details"]["url"], headers={"Accept-Language": "en"})
     assert page.status_code == 200
-    assert "Errors against the IFC schema" in page.text and WALLS[0] in page.text and "IfcRoot.UR1" in page.text
-    assert "No errors against the IFC schema" in client.get(good["links"]["document_details"]["url"]).text
+    assert "Findings: " in page.text and WALLS[0] in page.text and "IfcRoot.UR1" in page.text
+    assert "No findings" in client.get(good["links"]["document_details"]["url"]).text
     download = client.get(twice["links"]["document_details"]["url"] + "/ifc-validation")
     assert download.headers["content-disposition"].startswith("attachment")
     assert download.json() == body
+
+
+@pytest.mark.skipif(not GHERKIN_ENV, reason="OPENCDE_TEST_GHERKIN_ENV names no environment for ifc-gherkin-rules")
+def test_the_gherkin_rules_add_their_findings(graph_target: GraphTarget, clean_database: None, tmp_path: Any) -> None:
+    settings = settings_for(graph_target, tmp_path, ifcgraph_gherkin_env=GHERKIN_ENV)
+    world = build_world(settings)
+    head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)
+    orphan = head + b"#99999=IFCCARTESIANPOINT((1.,2.,3.));\n" + b"ENDSEC;" + tail  # a point nothing refers to
+    with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
+        editor = login_as(client, world, "editor")
+        web_sign_in(client, world, "editor")
+        version = upload(client, world, editor, "orphan.ifc", orphan)
+        entries = checked(client, editor, version)
+        assert entries["ifc_validation_status"] == ["warnings"], "IFC106 only warns, as buildingSMART holds it"
+        assert entries["ifc_validation_issues"] == ["1"]
+        schema, rules = entries["ifc_validation_ruleset"]
+        assert schema.startswith("IfcOpenShell ") and rules.startswith("ifc-gherkin-rules ")
+        body = client.get(entries["ifc_validation_report"][0], headers=editor.headers).json()
+        assert [check["name"] for check in body["checks"]] == ["schema", "gherkin"]
+        assert body["error_count"] == 0 and body["checks"][1]["state"] == "done"
+        [finding] = body["issues"]
+        assert (finding["kind"], finding["rule"], finding["severity"], finding["step_id"]) == (
+            "gherkin",
+            "IFC106",
+            "warning",
+            99999,
+        )
+        page = client.get(version["links"]["document_details"]["url"], headers={"Accept-Language": "en"}).text
+        assert "Findings: 1, only warnings" in page and "IFC106" in page and "ifc-gherkin-rules " in page
 
 
 def test_a_text_file_is_not_checked(ifc_client: tuple[TestClient, World]) -> None:

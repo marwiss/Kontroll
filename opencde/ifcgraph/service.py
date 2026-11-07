@@ -28,8 +28,9 @@ from fastapi import Depends, Request
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
 from opencde.ifcgraph.exporter import export_records
+from opencde.ifcgraph.gherkin_install import MANIFEST
 from opencde.ifcgraph.importer import delete_blocks, delete_model, import_records
-from opencde.ifcgraph.validation import pack_report
+from opencde.ifcgraph.validation import MAX_REPORTED, pack_report
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
@@ -42,6 +43,14 @@ STATE_RUNNING = "running"
 STATE_DONE = "done"
 STATE_FAILED = "failed"
 IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
+
+
+def _ruleset_of(env: Path) -> str:
+    """The name the installer gave the rules in ``env``, also when the rules could not be run there."""
+    try:
+        return str(json.loads((env / MANIFEST).read_text(encoding="utf-8"))["ruleset"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return "ifc-gherkin-rules"
 
 
 class IfcGraphService:
@@ -288,22 +297,94 @@ class IfcGraphService:
                         str(self.settings.ifcgraph_memory_mb),
                     ]
                     report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
+                    gherkin = await self._gherkin(source)
             except Exception as exc:
                 log.warning("ifc_validation_failed", validation_id=validation_id, error=type(exc).__name__)
                 await self._set_validation(
                     validation_id, STATE_FAILED, checked_at=now_iso(), error=f"{type(exc).__name__}: {exc}"[:300]
                 )
                 return
+            checks: list[dict[str, Any]] = [
+                {
+                    "name": "schema",
+                    "state": STATE_DONE,
+                    "ruleset": str(report["ruleset"]),
+                    "issue_count": int(report["issue_count"]),
+                }
+            ]
+            issues = list(report["issues"])
+            total = int(report["issue_count"])
+            errors = int(report.get("error_count", total))
+            truncated = bool(report["truncated"])
+            if gherkin is not None:
+                checks.append(gherkin["check"])
+                issues += gherkin["issues"]
+                total += int(gherkin["check"]["issue_count"])
+                errors += int(gherkin["error_count"])
+                truncated = truncated or bool(gherkin["truncated"])
+            if len(issues) > MAX_REPORTED:
+                issues, truncated = issues[:MAX_REPORTED], True
             await self._set_validation(
                 validation_id,
                 STATE_DONE,
                 checked_at=now_iso(),
-                issue_count=int(report["issue_count"]),
-                truncated=bool(report["truncated"]),
-                ruleset=str(report["ruleset"]),
-                report=pack_report(report["issues"]),
+                issue_count=total,
+                error_count=errors,
+                truncated=truncated,
+                ruleset="; ".join(check["ruleset"] for check in checks if check["state"] == STATE_DONE),
+                checks=json.dumps(checks),
+                report=pack_report(issues),
             )
-            log.info("ifc_validation_done", validation_id=validation_id, issues=int(report["issue_count"]))
+            log.info("ifc_validation_done", validation_id=validation_id, issues=total)
+
+    def _gherkin_env(self) -> Path | None:
+        """The environment ifc-gherkin-rules run in, if one is configured and installed (ADR 0012)."""
+        configured = self.settings.ifcgraph_gherkin_env
+        if not configured:
+            return None
+        env = Path(configured)
+        return env if (env / MANIFEST).is_file() else None
+
+    async def _gherkin(self, source: Path) -> dict[str, Any] | None:
+        """buildingSMART's ifc-gherkin-rules on the file. If they cannot be run, the schema's check stands alone."""
+        env = self._gherkin_env()
+        if env is None:
+            return None
+        timeout = self.settings.ifcgraph_timeout_seconds
+        command = [
+            sys.executable,
+            "-m",
+            "opencde.ifcgraph.gherkin",
+            str(source),
+            "--env",
+            str(env),
+            "--memory-mb",
+            str(self.settings.ifcgraph_memory_mb),
+            "--timeout-seconds",
+            str(max(timeout - 30, timeout // 2)),  # the rules' own limit comes first, so behave is stopped too
+        ]
+        try:
+            report = json.loads(await self._in_a_process(command, "the gherkin rules", answers=(0, 1)))
+        except Exception as exc:
+            log.warning("ifc_gherkin_failed", error=type(exc).__name__)
+            return {
+                "check": {"name": "gherkin", "state": STATE_FAILED, "ruleset": _ruleset_of(env), "issue_count": 0},
+                "issues": [],
+                "error_count": 0,
+                "truncated": False,
+            }
+        return {
+            "check": {
+                "name": "gherkin",
+                "state": STATE_DONE,
+                "ruleset": str(report["ruleset"]),
+                "issue_count": int(report["issue_count"]),
+                "rules_not_run": report["rules_not_run"],
+            },
+            "issues": report["issues"],
+            "error_count": int(report["error_count"]),
+            "truncated": bool(report["truncated"]),
+        }
 
     def _prepare_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
         """The IFC file to convert; an ``.ifczip`` is unpacked with a cap on the unpacked size."""

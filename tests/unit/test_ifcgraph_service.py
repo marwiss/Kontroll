@@ -86,6 +86,98 @@ async def test_a_check_that_fails_logs_what_failed_and_nothing_of_the_file(
     assert graph.writes[-1][1]["state"] == "failed", "the version says it could not be checked"
 
 
+SCHEMA_ANSWER = {
+    "ruleset": "IfcOpenShell 0.9.0 (IFC4)",
+    "issue_count": 1,
+    "error_count": 1,
+    "truncated": False,
+    "issues": [{"kind": "schema", "severity": "error", "message": LINE, "step_id": 9}],
+}
+
+
+def with_rules(tmp_path: Path, service: IfcGraphService) -> None:
+    """An installed environment for ifc-gherkin-rules, as far as the service looks (ADR 0012)."""
+    env = tmp_path / "gherkin"
+    env.mkdir()
+    (env / "manifest.json").write_text(json.dumps({"ruleset": "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"}))
+    service.settings = make_settings(tmp_path, ifcgraph_enabled=True, ifcgraph_gherkin_env=str(env))
+
+
+async def test_the_rules_findings_join_the_schemas_in_one_report(
+    tmp_path: Path, checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    with_rules(tmp_path, service)
+    found = {"kind": "gherkin", "rule": "IFC106", "severity": "warning", "message": LINE, "step_id": 99}
+    not_run = [{"rule": "GEM004", "error": "FileNotFoundError"}]
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        if command[2] == "opencde.ifcgraph.gherkin":
+            assert command[command.index("--env") + 1] == str(tmp_path / "gherkin") and answers == (0, 1)
+            ruleset = "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"
+            reply = {"ruleset": ruleset, "issue_count": 1, "error_count": 0, "truncated": False, "issues": [found]}
+            return json.dumps({**reply, "rules_not_run": not_run})
+        return json.dumps(SCHEMA_ANSWER)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-4", "documents/x", "model.ifc")
+
+    fields = graph.writes[-1][1]["fields"]
+    assert fields["issue_count"] == 2 and fields["error_count"] == 1 and fields["truncated"] is False
+    assert fields["ruleset"] == "IfcOpenShell 0.9.0 (IFC4); ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"
+    assert [check["name"] for check in json.loads(fields["checks"])] == ["schema", "gherkin"]
+    assert json.loads(fields["checks"])[1]["rules_not_run"] == not_run
+    assert unpack_report(fields["report"]) == [SCHEMA_ANSWER["issues"][0], found]
+    assert log.events == [("ifc_validation_done", {"validation_id": "check-4", "issues": 2})]
+
+
+async def test_when_the_rules_cannot_run_the_schemas_check_stands(
+    tmp_path: Path, checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    with_rules(tmp_path, service)
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        if command[2] == "opencde.ifcgraph.gherkin":
+            raise RuntimeError(f"behave stopped at {LINE}")
+        return json.dumps(SCHEMA_ANSWER)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-5", "documents/x", "model.ifc")
+
+    stored = graph.writes[-1][1]
+    assert stored["state"] == "done" and stored["fields"]["issue_count"] == 1 and stored["fields"]["error_count"] == 1
+    assert stored["fields"]["ruleset"] == "IfcOpenShell 0.9.0 (IFC4)", "only the rule sets that ran"
+    gherkin = json.loads(stored["fields"]["checks"])[1]
+    assert gherkin == {
+        "name": "gherkin",
+        "state": "failed",
+        "ruleset": "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
+        "issue_count": 0,
+    }
+    assert log.events == [
+        ("ifc_gherkin_failed", {"error": "RuntimeError"}),
+        ("ifc_validation_done", {"validation_id": "check-5", "issues": 1}),
+    ]
+
+
+async def test_rules_that_are_configured_but_not_installed_are_left_out(
+    tmp_path: Path, checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, _ = checking
+    service.settings = make_settings(tmp_path, ifcgraph_enabled=True, ifcgraph_gherkin_env=str(tmp_path / "none"))
+    commands: list[list[str]] = []
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        commands.append(command)
+        return json.dumps(SCHEMA_ANSWER)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-6", "documents/x", "model.ifc")
+    assert [command[2] for command in commands] == ["opencde.ifcgraph.validation"]
+    assert [check["name"] for check in json.loads(graph.writes[-1][1]["fields"]["checks"])] == ["schema"]
+
+
 async def test_a_check_another_process_has_taken_is_left_alone(
     checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
 ) -> None:

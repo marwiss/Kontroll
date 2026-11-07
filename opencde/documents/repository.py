@@ -170,8 +170,9 @@ class DocumentRepository:
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                   -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_VALIDATION]->(r:IfcValidation)
-            RETURN r.state AS state, r.issue_count AS issue_count, r.truncated AS truncated, r.checked_at AS checked_at,
-                   r.ruleset AS ruleset, CASE WHEN $with_issues THEN r.report ELSE null END AS report
+            RETURN r.state AS state, r.issue_count AS issue_count, r.error_count AS error_count,
+                   r.truncated AS truncated, r.checked_at AS checked_at, r.ruleset AS ruleset, r.checks AS checks,
+                   CASE WHEN $with_issues THEN r.report ELSE null END AS report
             ORDER BY r.created_at DESC LIMIT 1
             """,
             user_id=user_id,
@@ -184,10 +185,12 @@ class DocumentRepository:
         return Validation(
             state=str(row["state"]),
             issue_count=None if row["issue_count"] is None else int(row["issue_count"]),
+            error_count=None if row["error_count"] is None else int(row["error_count"]),
             truncated=bool(row["truncated"]),
             checked_at=row["checked_at"],
             ruleset=row["ruleset"],
             issues=unpack_report(row["report"]),
+            checks=json.loads(row["checks"]) if row["checks"] else [],
         )
 
     async def create_version(

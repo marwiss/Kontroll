@@ -38,7 +38,10 @@ services:
 
   api:
     image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-latest}
-    build: .
+    build:
+      context: .
+      args:
+        OPENCDE_GHERKIN: ${OPENCDE_GHERKIN:-0}  # 1 builds in buildingSMART's ifc-gherkin-rules (ADR 0012)
     restart: unless-stopped
     depends_on:
       graph:

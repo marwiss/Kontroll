@@ -251,6 +251,11 @@ class Settings(BaseSettings):
         description="Check every IFC file uploaded as a document version against the IFC schema, and show the result "
         "in the version's metadata.",
     )
+    ifcgraph_gherkin_env: str = Field(
+        "",
+        description="Folder of the environment buildingSMART's ifc-gherkin-rules run in, made by "
+        "`python -m opencde.ifcgraph.gherkin_install`; uploads are then checked against them too. Empty leaves them out.",
+    )
     ifcgraph_gtin_property_set: str = Field("Reuse", description="Property set holding the GTIN of an element.")
     ifcgraph_gtin_property: str = Field("GTIN", description="Property within that set.")
 
