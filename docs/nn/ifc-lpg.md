@@ -16,6 +16,13 @@ Fram til november 2026 heitte modulen IFC-graph. Innstillingane heitte `OPENCDE_
 og kommandoen `opencde ifcgraph`, og begge verkar framleis; loggen til tenaren
 og `opencde doctor` nemner dei gamle innstillingane han får.
 
+Konverteringa, skrivinga av ei fil og kontrollane kjem frå biblioteket
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), som Kontroll installerer frå
+repoet ved ein fast commit, og som har ein README som skildrar korleis ein modell
+blir lagra i grafen. Den eigne prosessen til tenaren bruker den delen som ikkje
+treng IfcOpenShell; ekstrapakken `ifc-lpg` legg til arbeidsprosessane som gjer
+det.
+
 ## Kva som skjer ved opplasting
 
 1. Ei Documents API-opplasting blir fullført (eller ei fil blir lasta opp frå
@@ -23,7 +30,7 @@ og `opencde doctor` nemner dei gamle innstillingane han får.
    eller `.ifczip`-namn.
 2. Serveren opprettar ein `IfcModel`-node (tilstand `queued`) knytt til
    prosjektet og startar ei konvertering i bakgrunnen, éi om gongen.
-3. Ein separat arbeidsprosess (`python -m opencde.ifcgraph.worker`) les
+3. Ein separat arbeidsprosess (`python -m ifc_lpg.worker`) les
    fila. Han køyrer med ei tidsgrense
    (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minutt), ei adresseromsgrense på
    POSIX (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) og eit tak for talet på
@@ -124,10 +131,10 @@ regelsettet gir det utfallet testane ventar for kvar einaste ei.
 
 Reglane får eit eige miljø, fordi ein av hjelpefunksjonane deira ikkje verkar
 med IfcOpenShell 0.9, som Kontroll bruker.
-`python -m opencde.ifcgraph.gherkin_install <mappe>` lagar det av fastlåste
+`python -m ifc_lpg.gherkin_install <mappe>` lagar det av fastlåste
 nedlastingar, kvar kontrollert mot SHA-256-en sin: regelsettet ved ein bestemd
 commit, bygget av IfcOpenShell 0.8.6 for plattforma og Python-pakkane med
-hashane sine. To små filer frå Kontroll erstattar Django-delane til regelsettet,
+hashane sine. To små filer frå IFC-LPG erstattar Django-delane til regelsettet,
 som berre skriv resultat til databasen til valideringstenesta.
 Det publiserte imaget slepper dei, sidan dei legg til om lag 425 MB. Imaget med
 taggen `-gherkin`, som `latest-gherkin` eller `3.0.0-gherkin`, har miljøet i
@@ -256,7 +263,7 @@ avviser det han ikkje kan lese. [ADR 0010](../adr/0010-a-lossless-graph-reads-an
 [ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ein til ein, verdi for verdi og utan toleranse, med georeferansen
 namngjeven i rapporten. Med `--geometry` blir òg meshen til kvart produkt bygd, og dei
 blir samanlikna bit for bit. To vilkårlege filer kan samanliknast med
-`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+`python -m ifc_lpg.equivalence first.ifc second.ifc`.
 
 Med `OPENCDE_IFC_LPG_LOSSLESS=false` blir ein modell konvertert som før 3.0.0: han blir
 lesen med IfcOpenShell, og det som ikkje er nodar, blir utelate heilt. Ein slik modell,

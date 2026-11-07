@@ -2,6 +2,9 @@
 
 Status: accepted (2026-11-07)
 
+*The code this records moved to the library [IFC-LPG](https://github.com/marwiss/IFC-LPG) on 2026-11-07 (ADR 0014). The paths
+below are those of the time: `opencde/ifcgraph/<module>.py` is `ifc_lpg/<module>.py` there.*
+
 ## Context
 
 The file a model is written back as comes from what the graph holds, so a property or a relationship changed in the graph

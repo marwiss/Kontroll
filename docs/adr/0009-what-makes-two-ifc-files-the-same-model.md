@@ -2,6 +2,9 @@
 
 Status: accepted (2026-11-07)
 
+*The code this records moved to the library [IFC-LPG](https://github.com/marwiss/IFC-LPG) on 2026-11-07 (ADR 0014). The paths
+below are those of the time: `opencde/ifcgraph/<module>.py` is `ifc_lpg/<module>.py` there.*
+
 ## Context
 
 The owner wants a round trip: an IFC file becomes an IFC graph in the database, and the graph becomes a file again that

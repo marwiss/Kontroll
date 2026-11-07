@@ -165,7 +165,7 @@ keeps its mapping and writes it anew; [ifc-lpg.md](ifc-lpg.md) says where it dif
 | Relationships named after attributes, inverse attributes included, `IfcOwnerHistory` skipped | done (owner history kept for the `IfcProject` only); the types are written in upper case with underscores like every relationship in the graph (`IS_DEFINED_BY`) | 9, 11 |
 | Synchronous py2neo `merge` during upload (hours for a normal model) | done: separate worker process with time, memory and entity limits, batched `UNWIND … CREATE`, status on the `IfcModel` node | 9 |
 | `SAME_AS` from viewpoint components to `IfcProduct`, GTIN copied from property set `Reuse` | done; linked when a viewpoint is created and again for every existing component when a model finishes importing; property set and property configurable; `files_information` shows the `IfcProject` guid | 9, 11 |
-| Writing a model back to a file | no | new: the default form from 3.0.0 (`OPENCDE_IFCGRAPH_LOSSLESS`), `opencde ifcgraph export` with validation against IFC, `python -m opencde.ifcgraph.equivalence`; ADR 0009, 0010, 0011 | 3.0.0 |
+| Writing a model back to a file | no | new: the default form from 3.0.0 (`OPENCDE_IFCGRAPH_LOSSLESS`), `opencde ifcgraph export` with validation against IFC, `python -m ifc_lpg.equivalence`; ADR 0009, 0010, 0011 | 3.0.0 |
 | Housekeeping of imported models | no | new: `opencde ifcgraph list` and `opencde ifcgraph prune` (failed and superseded models, or a whole project); documents and files stay | 11 |
 
 ## 8. Web pages

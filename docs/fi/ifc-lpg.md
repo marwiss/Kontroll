@@ -16,6 +16,12 @@ Marraskuuhun 2026 asti moduulin nimi oli IFC-graph. Sen asetusten nimet olivat
 `OPENCDE_IFCGRAPH_*` ja komennon `opencde ifcgraph`, ja molemmat toimivat yhä;
 palvelimen loki ja `opencde doctor` nimeävät vanhat asetukset, jotka se saa.
 
+Muunnos, tiedoston kirjoittaminen ja tarkistukset tulevat kirjastosta
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), jonka Kontroll asentaa sen
+repositoriosta tietystä commitista ja jonka README kertoo, miten malli
+tallennetaan graafiin. Palvelimen oma prosessi käyttää osaa, joka ei tarvitse
+IfcOpenShelliä; `ifc-lpg`-lisäosa lisää työprosessit, jotka tarvitsevat sitä.
+
 ## Mitä lähetyksessä tapahtuu
 
 1. Documents API -lähetys valmistuu (tai tiedosto lähetetään valintasivulta,
@@ -23,7 +29,7 @@ palvelimen loki ja `opencde doctor` nimeävät vanhat asetukset, jotka se saa.
    `.ifczip`.
 2. Palvelin luo projektiin liitetyn `IfcModel`-solmun (tila `queued`) ja
    käynnistää muunnoksen taustalla, yhden kerrallaan.
-3. Erillinen työprosessi (`python -m opencde.ifcgraph.worker`) lukee
+3. Erillinen työprosessi (`python -m ifc_lpg.worker`) lukee
    tiedoston. Se toimii aikarajalla
    (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 minuuttia), osoiteavaruusrajalla
    POSIX-järjestelmissä (`OPENCDE_IFC_LPG_MEMORY_MB`, 4 GiB) ja entiteettien
@@ -125,10 +131,10 @@ testitiedostolla tämä antaa jokaiselle sen tuloksen, jota sen testit odottavat
 
 Säännöt saavat oman ympäristönsä, koska yksi niiden apufunktioista ei toimi
 IfcOpenShell 0.9:n kanssa, jota Kontroll käyttää.
-`python -m opencde.ifcgraph.gherkin_install <kansio>` tekee sen lukituista
+`python -m ifc_lpg.gherkin_install <kansio>` tekee sen lukituista
 latauksista, joista jokainen tarkistetaan SHA-256-tiivistettään vasten:
 sääntökokoelma tietyssä commitissa, IfcOpenShellin 0.8.6-käännös alustalle ja
-Python-paketit tiivisteineen. Kaksi Kontrollin omaa pientä tiedostoa korvaa
+Python-paketit tiivisteineen. Kaksi IFC-LPG:n omaa pientä tiedostoa korvaa
 sääntökokoelman Django-osat, jotka vain kirjoittavat tulokset
 validointipalvelun tietokantaan.
 Julkaistusta levykuvasta ne puuttuvat, koska ne kasvattavat sitä noin 425 Mt.
@@ -260,7 +266,7 @@ hylkää sen, mitä se ei osaa lukea. [ADR 0010](../adr/0010-a-lossless-graph-re
 [ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md) mukaan: yksi yhteen, arvo arvolta ja ilman toleranssia, sijaintitieto
 raportissa nimettynä. Valinnalla `--geometry` myös jokaisen tuotteen verkko rakennetaan,
 ja niitä verrataan bitti bitiltä. Mitkä tahansa kaksi tiedostoa voi verrata komennolla
-`python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+`python -m ifc_lpg.equivalence first.ifc second.ifc`.
 
 Asetuksella `OPENCDE_IFC_LPG_LOSSLESS=false` malli muunnetaan kuten ennen versiota
 3.0.0: se luetaan IfcOpenShellillä, ja se, mikä ei ole solmuja, jätetään kokonaan pois.

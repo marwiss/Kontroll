@@ -2,6 +2,9 @@
 
 Status: accepted (2026-11-07)
 
+*The code this records moved to the library [IFC-LPG](https://github.com/marwiss/IFC-LPG) on 2026-11-07 (ADR 0014). The paths
+below are those of the time: `opencde/ifcgraph/<module>.py` is `ifc_lpg/<module>.py` there.*
+
 ## Context
 
 The owner wants a model written back from the graph as a file that builds the same model, and expects that geometry
