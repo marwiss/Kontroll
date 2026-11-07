@@ -19,8 +19,8 @@ modulen held fram med å vere av.
    eller `.ifczip`-namn.
 2. Serveren opprettar ein `IfcModel`-node (tilstand `queued`) knytt til
    prosjektet og startar ei konvertering i bakgrunnen, éi om gongen.
-3. Ein separat arbeidsprosess (`python -m opencde.ifcgraph.worker`) parsar
-   fila med IfcOpenShell. Han køyrer med ei tidsgrense
+3. Ein separat arbeidsprosess (`python -m opencde.ifcgraph.worker`) les
+   fila. Han køyrer med ei tidsgrense
    (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minutt), ei adresseromsgrense på
    POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) og eit tak for talet på
    entitetar (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Eit krasj eller ei henging
@@ -55,10 +55,11 @@ Inverse attributt blir òg relasjonar, så begge retningane les naturleg:
 `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-verdiar blir pakka ut (`IfcLabel('3')` blir `"3"`).
 
-Utelate som standard (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Ingen nodar som standard (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
 representasjonselement, representasjonar, profilar, plasseringar og stilar;
-dei utgjer det meste av ein modell og er sjeldan det ei CDE-spørjing treng.
-`IfcOwnerHistory` blir halden på berre for `IfcProject`.
+dei utgjer det meste av ein modell og er sjeldan det ei CDE-spørjing treng, og dei
+blir haldne på som tekst i grafen, jf. Skrive ein modell tilbake. `IfcOwnerHistory`
+er ein node berre for `IfcProject`.
 
 ## Kvar metoden kjem frå
 
@@ -75,7 +76,7 @@ fritt tilgjengeleg under CC BY 4.0.
 
 Ho skil seg frå artikkelen på desse punkta:
 
-- Geometri blir utelaten dersom ho ikkje blir etterspurd. Artikkelen konverterer
+- Geometri blir ikkje nodar dersom det ikkje blir etterspurt. Artikkelen konverterer
   alt og nemner storleiken på grafen som ei avgrensing.
 - Postane blir skrivne i puljar med `CREATE` frå ein eigen prosess. Artikkelen
   slår saman kvar node og relasjon, noko som søkjer etter duplikat i grafen og går
@@ -87,57 +88,65 @@ Ho skil seg frå artikkelen på desse punkta:
 - Relasjonstypane blir skrivne med store bokstavar, og `SAME_AS` og kopien av GTIN
   er tillegg her.
 
-Rekkjefølgja i lister går tapt òg her, slik artikkelen peikar på om sin eigen graf:
-ein relasjon seier ikkje kvar i ei liste målet stod. Forma under
-Skrive ein modell tilbake held på ho.
+Artikkelen peikar på at grafen hans mistar rekkjefølgja i lister, sidan ein relasjon
+ikkje seier kvar i ei liste målet stod. Her seier `position` det.
 
 ## Skrive ein modell tilbake
 
-Med `OPENCDE_IFCGRAPH_LOSSLESS=true` blir ein modell konvertert slik at grafen
-rommar heile han, og fila kan skrivast tilbake frå grafen: dei same instansane med
-dei same id-ane og dei same verdiane i same rekkjefølgje, og dermed òg den same
-geografiske informasjonen. Det er slått av som standard. Ein modell som er konvertert
-utan det, held på forma si og kan ikkje skrivast tilbake.
+Grafen rommar heile modellen, og fila kan skrivast tilbake frå han: dei same instansane
+med dei same id-ane og dei same verdiane i same rekkjefølgje, og dermed òg den same
+geografiske informasjonen.
 
 ```sh
-uv run opencde ifcgraph export <modell-id> model.ifc            # skriv fila
+uv run opencde ifcgraph export <modell-id> model.ifc            # skriv fila og valider ho
 uv run opencde ifcgraph export <modell-id> model.ifc --verify   # og samanlikn ho med den opplasta
 ```
 
-Nodane blir verande den vanlege forma sine, med dei same eigenskapane og relasjonane,
-så spørjingane på denne sida verkar på begge. Det den forma utelèt, blir skrive ut som
-STEP og komprimert til tekst på `StepBlock`-nodar som heng på `IfcModel`: det er i
-grafen, men utanfor rekkjevidda til Cypher. Det kan ikkje vere eigenskapar på
+Nodane er dei spørjingar treng. Det dei utelèt, blir skrive ut som STEP og komprimert
+til tekst på `StepBlock`-nodar som heng på `IfcModel`: det er i grafen, men utanfor
+rekkjevidda til Cypher, og det kan ikkje endrast der. Det kan ikkje vere eigenskapar på
 produkta, sidan mykje av det blir delt mellom dei. Med
-`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` blir kvar instans ein node i staden, til
-fleire gonger storleiken og importtida; spørjingar tok omtrent like lang tid i
+`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` blir kvar instans ein node i staden, til fleire
+gonger storleiken og importtida; spørjingar tok omtrent like lang tid i
 [målingane](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
-
-Fila blir skriven frå det grafen rommar og blir ikkje kopiert, så ein eigenskap eller
-ein relasjon som blir endra i grafen, syner i ho; det som ligg i ei blokk, kan ikkje
-endrast slik. Ingenting kontrollerer at ein endra modell framleis er gyldig. Ein
-eksport stoppar om ei blokk manglar. Dette kjem i tillegg til det den vanlege forma har:
 
 | I fila | I grafen |
 |---|---|
 | Ein referanse | Ein relasjon med `position`, `[rad, kolonne]` i ei liste av lister; inverse relasjonar har ingen |
+| Ein referanse til ein instans i ei blokk | Id-en hans, som i `Representation__step: 1234` |
 | Ein typa verdi, `IFCLABEL('3')` | `NominalValue: "3"`, og `NominalValue__type: "IFCLABEL"` ved sida av |
 | Ei liste av lister av tal | JSON-tekst |
 | Det som manglar enkel form, som ei liste av typa verdiar | Merkt JSON, med `$json` som type |
 | Headeren | `ifc_header` på `IfcModel` |
-| Ein instans i ei blokk | Tekst i ei `StepBlock`; det som refererer til han, har id-en hans i merkt JSON |
+| Ein instans i ei blokk | Tekst i ei `StepBlock` |
 
-Denne forma blir ikkje lesen med IfcOpenShell, som her berre står for skjemaet. Det
-endrar nokre verdiar ved lesing (`.NULLENUM.` blir `$`, og `($,$)` blir `()`), og
-filer frå Tekla og Archicad har slike. Difor les arbeidsprosessen fila sjølv og
-avviser det han ikkje kan lese.
-[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) seier kvifor.
+Fila blir skriven frå det grafen rommar og blir ikkje kopiert, så ein eigenskap eller ein
+relasjon som blir endra i grafen, syner i ho. Ein grafdatabase har ikkje noko skjema å
+halde ei endring opp mot, så fila blir validert mot IFC-standarden med validatoren til
+IfcOpenShell: typen og talet på attributt, enumerasjonar, inverse attributt, GlobalId og
+reglane i EXPRESS-skjemaet. Filer i bruk bryt ofte alt ein regel, så det som tel, er ei
+merknad den opplasta fila ikkje har. Kommandoen viser ho då og sluttar med ein feil.
+`--no-validate` hoppar over dette. Ein eksport stoppar òg om ei blokk manglar.
+
+Prosjektmedlemmer får filer gjennom Documents API, og det finst inga anna vegen ut av
+serveren. Ei skriven fil som skal erstatte ein modell, blir lasta opp som ein ny versjon
+av dokumentet sitt, noko som òg konverterer henne.
+
+Denne forma blir ikkje lesen med IfcOpenShell, som her berre står for skjemaet.
+IfcOpenShell endrar nokre verdiar ved lesing (`.NULLENUM.` blir `$`, og `($,$)` blir
+`()`), og filer frå Tekla og Archicad har slike. Difor les arbeidsprosessen fila sjølv og
+avviser det han ikkje kan lese. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) seier kvifor, og
+[ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) korleis ei fil blir validert.
 
 `--verify` spør om dei to filene rommar den same modellen, etter definisjonen i
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ein til ein,
-verdi for verdi og utan toleranse, med georeferansen namngjeven i rapporten. Med
-`--geometry` blir òg meshen til kvart produkt bygd, og dei blir samanlikna bit for bit. To vilkårlege filer kan samanliknast med
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ein til ein, verdi for verdi og utan toleranse, med georeferansen
+namngjeven i rapporten. Med `--geometry` blir òg meshen til kvart produkt bygd, og dei
+blir samanlikna bit for bit. To vilkårlege filer kan samanliknast med
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+
+Med `OPENCDE_IFCGRAPH_LOSSLESS=false` blir ein modell konvertert som før 3.0.0: han blir
+lesen med IfcOpenShell, og det som ikkje er nodar, blir utelate heilt. Ein slik modell,
+i likskap med ein som er konvertert av ein tidlegare versjon, kan ikkje skrivast tilbake.
 
 ## Opprydding
 

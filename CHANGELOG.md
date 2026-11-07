@@ -11,11 +11,16 @@ the commit history.
 
 Toward 3.0.0, with Dataspatium.
 
-- An IFC model can be written back from the graph as a file that holds the same model, on Neo4j and on Memgraph.
-  Turn it on with `OPENCDE_IFCGRAPH_LOSSLESS=true`; `opencde ifcgraph export <model id> model.ifc --verify` writes the
-  file and compares it with the upload. A model converted this way has the nodes of the ordinary form, with its geometry
-  as compressed text in `StepBlock` nodes, and `position` on the relationships of forward attributes. The ordinary
-  form does not change, and stays the default. See [docs/ifcgraph.md](docs/ifcgraph.md).
+- An IFC model can be written back from the graph as a file that holds the same model, on Neo4j and on Memgraph:
+  `opencde ifcgraph export <model id> model.ifc`, with `--verify` to compare it with the upload. See
+  [docs/ifcgraph.md](docs/ifcgraph.md).
+- A model is converted in a new form by default. It has the same nodes, relationships and values as before, so queries
+  keep working. Added to them are `position` on the relationships of forward attributes, `<attribute>__type` beside typed
+  values and `<attribute>__step` for references to what is no node. Geometry is compressed text on `StepBlock` nodes, which
+  a query should not return whole. `OPENCDE_IFCGRAPH_LOSSLESS=false` gives the old form. Models already converted keep
+  theirs, and cannot be written back until uploaded again.
+- A file written from the graph is validated against the IFC standard, and an issue the upload does not have ends the
+  command with an error. The `ifcgraph` extra now includes pytest, which IfcOpenShell's validator needs at run time.
 - `python -m opencde.ifcgraph.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
 - `GET /admin/api/settings` has `ifcgraph.lossless`.
 - Deleting a project now deletes all the entities of its IFC models. Those more than a few steps from the project stayed

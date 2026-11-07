@@ -16,8 +16,7 @@ fyrir grennri mynd án IfcOpenShell þegar einingin er áfram óvirk.
    BCF-verkefnisskjal er póstað) með `.ifc`- eða `.ifczip`-heiti.
 2. Þjónninn býr til `IfcModel`-hnút (staða `queued`) tengdan verkefninu og
    hefur umbreytingu í bakgrunni, eina í einu.
-3. Sérstakt vinnuferli (`python -m opencde.ifcgraph.worker`) þáttar skrána
-   með IfcOpenShell. Það keyrir með tímamörkum
+3. Sérstakt vinnuferli (`python -m opencde.ifcgraph.worker`) les skrána. Það keyrir með tímamörkum
    (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 mínútur), vistfangarýmismörkum á
    POSIX (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) og hámarki eininga
    (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Hrun eða frysting drepur vinnuferlið,
@@ -50,10 +49,11 @@ Andhverf eigindi verða líka vensl, svo báðar áttir lesist eðlilega:
 `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-gildi eru tekin úr umbúðum (`IfcLabel('3')` verður `"3"`).
 
-Sleppt sjálfgefið (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Engir hnútar sjálfgefið (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
 framsetningaratriði, framsetningar, snið, staðsetningar og stílar; þau eru
-meirihluti líkans og sjaldan það sem CDE-fyrirspurn þarf. `IfcOwnerHistory`
-er aðeins haldið fyrir `IfcProject`.
+meirihluti líkans og sjaldan það sem CDE-fyrirspurn þarf, og þau eru geymd sem
+texti í grafinu, sjá Að skrifa líkan til baka. `IfcOwnerHistory` er aðeins hnútur
+fyrir `IfcProject`.
 
 ## Hvaðan aðferðin kemur
 
@@ -70,7 +70,7 @@ information access and query". *Automation in Construction* 148 (2023), 104778.
 
 Hún er frábrugðin greininni á þennan hátt:
 
-- Rúmfræði er sleppt nema beðið sé um hana. Greinin umbreytir öllu og nefnir
+- Rúmfræði verður ekki að hnútum nema beðið sé um það. Greinin umbreytir öllu og nefnir
   stærð grafsins sem takmörkun.
 - Færslur eru skrifaðar í lotum með `CREATE` úr sérstöku ferli. Greinin sameinar
   hvern hnút og hver vensl, sem leitar að tvítekningum í grafinu og hægir á sér
@@ -82,58 +82,64 @@ Hún er frábrugðin greininni á þennan hátt:
 - Venslagerðir eru skrifaðar með hástöfum, og `SAME_AS` og afrit af GTIN eru
   viðbætur hér.
 
-Röð í listum glatast líka hér, eins og greinin bendir á um sitt eigið graf: vensl
-segja ekki hvar í lista markmið þeirra stóð. Formið undir Að
-skrifa líkan til baka heldur henni.
+Greinin bendir á að graf hennar glati röð í listum, því að vensl segja ekki hvar í
+lista markmið þeirra stóð. Hér segir `position` það.
 
 ## Að skrifa líkan til baka
 
-Með `OPENCDE_IFCGRAPH_LOSSLESS=true` er líkani umbreytt þannig að grafið rúmi það
-allt og hægt sé að skrifa skrána til baka úr grafinu: sömu tilvik með sömu auðkenni
-og sömu gildi í sömu röð, og þar með sömu landfræðilegu upplýsingar. Þetta er
-sjálfgefið af. Líkan sem var umbreytt án þessa heldur sínu formi og er ekki hægt að
-skrifa til baka.
+Grafið rúmar allt líkanið og hægt er að skrifa skrána til baka úr því: sömu tilvik með
+sömu auðkenni og sömu gildi í sömu röð, og þar með sömu landfræðilegu upplýsingar.
 
 ```sh
-uv run opencde ifcgraph export <líkansauðkenni> model.ifc            # skrifa skrána
+uv run opencde ifcgraph export <líkansauðkenni> model.ifc            # skrifa skrána og sannprófa hana
 uv run opencde ifcgraph export <líkansauðkenni> model.ifc --verify   # og bera hana saman við þá sem var hlaðið upp
 ```
 
-Hnútarnir eru áfram þeir sömu og í venjulega forminu, með sömu eiginleika og vensl, svo
-að fyrirspurnirnar á þessari síðu virka á bæði. Það sem það form sleppir er skrifað út
-sem STEP og þjappað í texta á `StepBlock`-hnúta sem hanga á `IfcModel`: það er í
-grafinu en utan seilingar Cypher. Það getur ekki verið eiginleikar vörunna, því að
-stór hluti þess er sameiginlegur með þeim. Með
+Hnútarnir eru þeir sem fyrirspurnir þurfa. Það sem þeir sleppa er skrifað út sem STEP og
+þjappað í texta á `StepBlock`-hnúta sem hanga á `IfcModel`: það er í grafinu en utan
+seilingar Cypher, og því er ekki hægt að breyta þar. Það getur ekki verið eiginleikar
+vörunna, því að stór hluti þess er sameiginlegur með þeim. Með
 `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
 margfaldri stærð og innflutningstíma; fyrirspurnir tóku álíka langan tíma í
 [mælingunum](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
-Skráin er skrifuð úr því sem grafið rúmar, ekki afrituð, svo að eiginleiki eða vensl
-sem breytt er í grafinu sjást í henni; því sem er í blokk er ekki hægt að breyta þannig.
-Ekkert athugar hvort breytt líkan sé enn gilt. Útflutningur stöðvast ef blokk vantar.
-Þetta bætist við það sem venjulega formið hefur:
-
 | Í skránni | Í grafinu |
 |---|---|
 | Tilvísun | Vensl með `position`, `[röð, dálkur]` í lista af listum; andhverf vensl hafa það ekki |
+| Tilvísun í tilvik í blokk | Auðkenni þess, eins og í `Representation__step: 1234` |
 | Tagað gildi, `IFCLABEL('3')` | `NominalValue: "3"`, og `NominalValue__type: "IFCLABEL"` við hliðina |
 | Listi af listum af tölum | JSON-texti |
 | Það sem hefur ekkert einfalt form, eins og listi af töguðum gildum | Merkt JSON, með `$json` sem tag |
 | Hausinn | `ifc_header` á `IfcModel` |
-| Tilvik í blokk | Texti í `StepBlock`; það sem vísar á það geymir auðkenni þess í merktu JSON |
+| Tilvik í blokk | Texti í `StepBlock` |
 
-Þetta form er ekki lesið með IfcOpenShell, sem hér leggur aðeins til skemað. Það
-breytir sumum gildum við lestur (`.NULLENUM.` verður `$`, og `($,$)` verður `()`), og
-skrár frá Tekla og Archicad hafa slík gildi. Því les vinnsluferlið skrána sjálft og
-hafnar því sem það getur ekki lesið.
-[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) segir hvers vegna.
+Skráin er skrifuð úr því sem grafið rúmar, ekki afrituð, svo að eiginleiki eða vensl sem
+breytt er í grafinu sjást í henni. Grafgagnagrunnur hefur ekkert skema til að bera breytingu
+saman við, svo að skráin er sannprófuð gegn IFC-staðlinum með sannprófara IfcOpenShell: tag
+og fjöldi eiginda, upptalningar, andhverf eigindi, GlobalId og reglur EXPRESS-skemans. Skrár í
+notkun brjóta oft þegar einhverja reglu, svo að það sem gildir er athugasemd sem skráin sem var
+hlaðið upp hefur ekki. Skipunin birtir hana þá og endar með villu. `--no-validate` sleppir þessu.
+Útflutningur stöðvast líka ef blokk vantar.
+
+Verkefnismeðlimir fá skrár í gegnum Documents API og engin önnur leið er út úr þjóninum.
+Skrifuð skrá sem á að koma í stað líkans er hlaðið upp sem nýrri útgáfu af skjali sínu, sem
+umbreytir henni líka.
+
+Þetta form er ekki lesið með IfcOpenShell, sem hér leggur aðeins til skemað. IfcOpenShell
+breytir sumum gildum við lestur (`.NULLENUM.` verður `$`, og `($,$)` verður `()`), og skrár
+frá Tekla og Archicad hafa slík gildi. Því les vinnsluferlið skrána sjálft og hafnar því sem
+það getur ekki lesið. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) segir hvers vegna og [ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) hvernig
+skrá er sannprófuð.
 
 `--verify` spyr hvort skrárnar tvær rúmi sama líkan, samkvæmt skilgreiningunni í
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): eitt á móti einu,
-gildi fyrir gildi og án vikmarka, með staðsetningu nefnda í skýrslunni. Með
-`--geometry` er möskvi hverrar vöru líka byggður og þeir bornir saman bita fyrir bita.
-Hvaða tvær skrár sem er má bera saman með
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): eitt á móti einu, gildi fyrir gildi og án vikmarka, með staðsetningu
+nefnda í skýrslunni. Með `--geometry` er möskvi hverrar vöru líka byggður og þeir bornir saman
+bita fyrir bita. Hvaða tvær skrár sem er má bera saman með
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+
+Með `OPENCDE_IFCGRAPH_LOSSLESS=false` er líkani umbreytt eins og fyrir 3.0.0: það er lesið með
+IfcOpenShell og því sem ekki eru hnútar er sleppt alveg. Slíkt líkan, eins og líkan sem fyrri
+útgáfa umbreytti, er ekki hægt að skrifa til baka.
 
 ## Umhirða
 

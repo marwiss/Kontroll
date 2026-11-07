@@ -19,8 +19,8 @@ IfcOpenShelliä, kun moduuli pysyy pois päältä.
    `.ifczip`.
 2. Palvelin luo projektiin liitetyn `IfcModel`-solmun (tila `queued`) ja
    käynnistää muunnoksen taustalla, yhden kerrallaan.
-3. Erillinen työprosessi (`python -m opencde.ifcgraph.worker`) jäsentää
-   tiedoston IfcOpenShellillä. Se toimii aikarajalla
+3. Erillinen työprosessi (`python -m opencde.ifcgraph.worker`) lukee
+   tiedoston. Se toimii aikarajalla
    (`OPENCDE_IFCGRAPH_TIMEOUT_SECONDS`, 15 minuuttia), osoiteavaruusrajalla
    POSIX-järjestelmissä (`OPENCDE_IFCGRAPH_MEMORY_MB`, 4 GiB) ja entiteettien
    ylärajalla (`OPENCDE_IFCGRAPH_MAX_ENTITIES`). Kaatuminen tai jumiutuminen
@@ -55,10 +55,11 @@ Käänteisistä attribuuteista tulee myös suhteita, joten molemmat suunnat
 luetaan luontevasti: `(:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)`.
 Select-arvot puretaan (`IfcLabel('3')` muuttuu `"3"`:ksi).
 
-Jätetään oletuksena pois (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
+Ei solmuja oletuksena (`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=false`):
 esitysalkiot, esitykset, profiilit, sijoitukset ja tyylit; ne ovat suurin osa
-mallista ja harvoin sitä, mitä CDE-kysely tarvitsee. `IfcOwnerHistory`
-säilytetään vain `IfcProject`-entiteetille.
+mallista ja harvoin sitä, mitä CDE-kysely tarvitsee, ja ne säilyvät graafissa
+tekstinä, kuten kohdassa Mallin kirjoittaminen takaisin. `IfcOwnerHistory` on
+solmu vain `IfcProject`-entiteetille.
 
 ## Mistä menetelmä on peräisin
 
@@ -75,7 +76,7 @@ avoimesti saatavilla CC BY 4.0 -lisenssillä.
 
 Se eroaa artikkelista seuraavasti:
 
-- Geometria jätetään pois, ellei sitä pyydetä. Artikkeli muuntaa kaiken ja
+- Geometriasta ei tule solmuja, ellei sitä pyydetä. Artikkeli muuntaa kaiken ja
   mainitsee graafin koon rajoituksena.
 - Tietueet kirjoitetaan erissä `CREATE`-komennolla erillisestä prosessista.
   Artikkeli yhdistää jokaisen solmun ja suhteen, mikä etsii graafista
@@ -87,58 +88,66 @@ Se eroaa artikkelista seuraavasti:
 - Suhdetyypit kirjoitetaan isoin kirjaimin, ja `SAME_AS` sekä GTIN-kopio on
   lisätty tässä.
 
-Luetteloiden järjestys katoaa myös tässä, kuten artikkeli huomauttaa omasta
-graafistaan: suhde ei kerro, missä kohdassa luetteloa sen kohde oli. Kohdan Mallin
-kirjoittaminen takaisin muoto säilyttää sen.
+Artikkeli huomauttaa, että sen graafi kadottaa luetteloiden järjestyksen, koska
+suhde ei kerro, missä kohdassa luetteloa sen kohde oli. Tässä sen kertoo `position`.
 
 ## Mallin kirjoittaminen takaisin
 
-Asetuksella `OPENCDE_IFCGRAPH_LOSSLESS=true` malli muunnetaan niin, että graafi
-sisältää sen kokonaan ja tiedosto voidaan kirjoittaa takaisin graafista: samat
-instanssit samoilla tunnuksilla ja samat arvot samassa järjestyksessä, siis myös
-sama sijaintitieto. Se on oletuksena pois päältä. Ilman asetusta muunnettu malli
-säilyttää muotonsa, eikä sitä voi kirjoittaa takaisin.
+Graafi sisältää koko mallin, ja tiedosto voidaan kirjoittaa siitä takaisin: samat
+instanssit samoilla tunnuksilla ja samat arvot samassa järjestyksessä, siis myös sama
+sijaintitieto.
 
 ```sh
-uv run opencde ifcgraph export <mallin tunnus> model.ifc            # kirjoita tiedosto
+uv run opencde ifcgraph export <mallin tunnus> model.ifc            # kirjoita tiedosto ja validoi se
 uv run opencde ifcgraph export <mallin tunnus> model.ifc --verify   # ja vertaa sitä lähetettyyn
 ```
 
-Solmut pysyvät tavallisen muodon solmuina samoine ominaisuuksineen ja suhteineen, joten
-tämän sivun kyselyt toimivat molemmissa. Se, minkä tuo muoto jättää pois, kirjoitetaan
-STEP-muotoon ja pakataan tekstiksi `StepBlock`-solmuihin, jotka riippuvat `IfcModel`-solmussa:
-se on graafissa, mutta Cypherin ulottumattomissa. Se ei voi olla tuotteiden
-ominaisuuksia, koska suuri osa siitä on tuotteiden yhteistä. Asetuksella
-`OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` jokaisesta instanssista tulee sen sijaan solmu,
-moninkertaisella koolla ja tuontiajalla; kyselyt kestivät suunnilleen yhtä kauan
-[mittauksissa](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
-
-Tiedosto kirjoitetaan siitä, mitä graafi sisältää, eikä sitä kopioida, joten graafissa
-muutettu ominaisuus tai suhde näkyy siinä; lohkossa olevaa ei voi muuttaa näin. Mikään
-ei tarkista, että muutettu malli on yhä kelvollinen. Vienti keskeytyy, jos lohko puuttuu.
-Näitä tulee lisää siihen, mitä tavallisessa muodossa on:
+Solmut ovat ne, joita kyselyt tarvitsevat. Se, minkä ne jättävät pois, kirjoitetaan
+STEP-muotoon ja pakataan tekstiksi `StepBlock`-solmuihin, jotka riippuvat
+`IfcModel`-solmussa: se on graafissa, mutta Cypherin ulottumattomissa, eikä sitä voi
+muuttaa siellä. Se ei voi olla tuotteiden ominaisuuksia, koska suuri osa siitä on
+tuotteiden yhteistä. Asetuksella `OPENCDE_IFCGRAPH_INCLUDE_GEOMETRY=true` jokaisesta
+instanssista tulee sen sijaan solmu, moninkertaisella koolla ja tuontiajalla; kyselyt
+kestivät suunnilleen yhtä kauan [mittauksissa](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
 
 | Tiedostossa | Graafissa |
 |---|---|
 | Viittaus | Suhde, jolla on `position`, luetteloiden luettelossa `[rivi, sarake]`; käänteisillä suhteilla sitä ei ole |
+| Viittaus lohkossa olevaan instanssiin | Sen tunnus, kuten `Representation__step: 1234` |
 | Tyypitetty arvo, `IFCLABEL('3')` | `NominalValue: "3"` ja sen vieressä `NominalValue__type: "IFCLABEL"` |
 | Lukujen luetteloiden luettelo | JSON-tekstiä |
 | Se, millä ei ole yksinkertaista muotoa, kuten tyypitettyjen arvojen luettelo | Merkittyä JSONia, tyyppinä `$json` |
 | Otsake | `ifc_header` solmussa `IfcModel` |
-| Lohkossa oleva instanssi | Tekstiä `StepBlock`-solmussa; siihen viittaavalla on sen tunnus merkityssä JSONissa |
+| Lohkossa oleva instanssi | Tekstiä `StepBlock`-solmussa |
 
-Tätä muotoa ei lueta IfcOpenShellillä, josta tässä otetaan vain skeema. Se muuttaa
-joitakin arvoja lukiessaan (`.NULLENUM.` muuttuu `$`:ksi ja `($,$)` `()`:ksi), ja
-Teklan ja Archicadin tiedostoissa niitä on. Siksi työprosessi lukee tiedoston itse
-ja hylkää sen, mitä se ei osaa lukea.
-[ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) kertoo miksi.
+Tiedosto kirjoitetaan siitä, mitä graafi sisältää, eikä sitä kopioida, joten graafissa
+muutettu ominaisuus tai suhde näkyy siinä. Graafitietokannassa ei ole skeemaa, johon
+muutosta voisi verrata, joten tiedosto validoidaan IFC-standardia vasten IfcOpenShellin
+validaattorilla: attribuuttien tyyppi ja määrä, luetellut arvot, käänteiset attribuutit,
+GlobalId ja EXPRESS-skeeman säännöt. Käytössä olevat tiedostot rikkovat usein jo jotakin
+sääntöä, joten merkitystä on huomautuksella, jota lähetetyssä tiedostossa ei ole. Komento
+luettelee sen silloin ja päättyy virheeseen. `--no-validate` jättää tämän pois. Vienti
+keskeytyy myös, jos lohko puuttuu.
+
+Projektin jäsenet saavat tiedostot Documents API:n kautta, eikä palvelimelta ole muuta
+tietä ulos. Kirjoitettu tiedosto, jonka on määrä korvata malli, lähetetään asiakirjansa
+uutena versiona, jolloin se myös muunnetaan.
+
+Tätä muotoa ei lueta IfcOpenShellillä, josta tässä otetaan vain skeema. IfcOpenShell
+muuttaa joitakin arvoja lukiessaan (`.NULLENUM.` muuttuu `$`:ksi ja `($,$)` `()`:ksi), ja
+Teklan ja Archicadin tiedostoissa niitä on. Siksi työprosessi lukee tiedoston itse ja
+hylkää sen, mitä se ei osaa lukea. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) kertoo miksi ja
+[ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) miten tiedosto validoidaan.
 
 `--verify` kysyy, sisältävätkö kaksi tiedostoa saman mallin määritelmän
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md) mukaan: yksi yhteen,
-arvo arvolta ja ilman toleranssia, sijaintitieto raportissa nimettynä. Valinnalla
-`--geometry` myös jokaisen tuotteen verkko rakennetaan, ja niitä verrataan bitti bitiltä.
-Mitkä tahansa kaksi tiedostoa voi verrata komennolla
+[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md) mukaan: yksi yhteen, arvo arvolta ja ilman toleranssia, sijaintitieto
+raportissa nimettynä. Valinnalla `--geometry` myös jokaisen tuotteen verkko rakennetaan,
+ja niitä verrataan bitti bitiltä. Mitkä tahansa kaksi tiedostoa voi verrata komennolla
 `python -m opencde.ifcgraph.equivalence first.ifc second.ifc`.
+
+Asetuksella `OPENCDE_IFCGRAPH_LOSSLESS=false` malli muunnetaan kuten ennen versiota
+3.0.0: se luetaan IfcOpenShellillä, ja se, mikä ei ole solmuja, jätetään kokonaan pois.
+Tällaista mallia, kuten aiemman version muuntamaakaan, ei voi kirjoittaa takaisin.
 
 ## Ylläpito
 
