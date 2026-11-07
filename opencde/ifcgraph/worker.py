@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 
-def _limit_memory(megabytes: int) -> None:
+def limit_memory(megabytes: int) -> None:
     try:
         resource: Any = importlib.import_module("resource")  # POSIX only
     except ImportError:  # Windows
@@ -38,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--include-geometry", action="store_true")
     args = parser.parse_args(argv)
     if args.memory_mb:
-        _limit_memory(args.memory_mb)
+        limit_memory(args.memory_mb)
 
     from opencde.ifcgraph.convert import ConversionError, write_jsonl
 
