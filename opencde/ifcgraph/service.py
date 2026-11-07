@@ -23,7 +23,8 @@ from fastapi import Depends, Request
 
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
-from opencde.ifcgraph.importer import delete_model, import_records
+from opencde.ifcgraph.exporter import export_records
+from opencde.ifcgraph.importer import delete_blocks, delete_model, import_records
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
@@ -180,6 +181,8 @@ class IfcGraphService:
                 entities=counts["nodes"],
                 relationships=counts["relationships"],
                 skipped=header.get("skipped", 0),
+                lossless=header.get("lossless", False),
+                ifc_header=header.get("ifc_header"),
             )
             # Viewpoints created before the model finished (or before it was uploaded) get their links now.
             try:
@@ -226,6 +229,12 @@ class IfcGraphService:
         ]
         if self.settings.ifcgraph_include_geometry:
             command.append("--include-geometry")
+        if self.settings.ifcgraph_lossless:
+            command.append("--lossless")
+        return json.loads((await self._in_a_process(command, "conversion")).strip().splitlines()[-1])
+
+    async def _in_a_process(self, command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        """Run a worker with the time limit. Returns what it wrote to stdout, for an exit code that is an answer."""
         process = await asyncio.create_subprocess_exec(
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
@@ -236,14 +245,59 @@ class IfcGraphService:
         except TimeoutError:
             process.kill()
             await process.wait()
-            raise RuntimeError(f"conversion exceeded {self.settings.ifcgraph_timeout_seconds} s") from None
-        if process.returncode != 0:
+            raise RuntimeError(f"{what} exceeded {self.settings.ifcgraph_timeout_seconds} s") from None
+        if process.returncode not in answers:
             message = stderr.decode("utf-8", "replace").strip().splitlines()
             detail = message[-1] if message else f"exit code {process.returncode}"
             with contextlib.suppress(ValueError):
                 detail = json.loads(detail).get("error", detail)
             raise RuntimeError(detail)
-        return json.loads(stdout.decode("utf-8").strip().splitlines()[-1])
+        return stdout.decode("utf-8")
+
+    # -- writing a model back ------------------------------------------------------------------------
+
+    async def export(self, model_id: str, target: Path) -> int:
+        """Write a model back as an IFC file from what the graph holds. Returns the number of instances."""
+        with tempfile.TemporaryDirectory(prefix="ifcgraph-") as tmp:
+            records = Path(tmp) / "records.jsonl"
+            instances = await export_records(self.graph, model_id, records)
+            await self._in_a_process(
+                [
+                    sys.executable,
+                    "-m",
+                    "opencde.ifcgraph.writer",
+                    str(records),
+                    str(target),
+                    "--memory-mb",
+                    str(self.settings.ifcgraph_memory_mb),
+                ],
+                "writing the file",
+            )
+        return instances
+
+    async def compare_with_upload(self, model_id: str, written: Path, *, geometry: bool = False) -> dict[str, Any]:
+        """Whether a file holds the same model as the one the model was converted from (``equivalence.py``)."""
+        rows = await self.graph.run(
+            "MATCH (m:IfcModel {id: $id}) RETURN m.storage_key AS storage_key, m.file_name AS file_name", id=model_id
+        )
+        if not rows:
+            raise ValueError("there is no such model")
+        with tempfile.TemporaryDirectory(prefix="ifcgraph-") as tmp:
+            source = await asyncio.to_thread(
+                self._prepare_input, rows[0]["storage_key"], rows[0]["file_name"], Path(tmp)
+            )
+            command = [
+                sys.executable,
+                "-m",
+                "opencde.ifcgraph.equivalence",
+                str(source),
+                str(written),
+                "--memory-mb",
+                str(self.settings.ifcgraph_memory_mb),
+            ]
+            if geometry:
+                command.append("--geometry")
+            return json.loads(await self._in_a_process(command, "the comparison", answers=(0, 1)))
 
     # -- linking BCF components ----------------------------------------------------------------------
 
@@ -306,6 +360,7 @@ _LINK_TAIL = """
 
 async def delete_model_entities(graph: Graph, model_id: str) -> None:
     """Remove a model's entities but keep the ``IfcModel`` node (so a failure stays visible)."""
+    await delete_blocks(graph, model_id)
     while True:
         rows = await graph.run(
             "MATCH (n:IfcEntity {model_id: $model_id}) WITH n LIMIT 2000 DETACH DELETE n RETURN count(*) AS n",

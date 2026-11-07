@@ -26,6 +26,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from opencde.ifcgraph.lossless import encode_block, encode_header, encode_instance
+from opencde.ifcgraph.schema import Schema
+from opencde.ifcgraph.step import StepError, StepFile, statement_text
+
 GEOMETRY_ROOTS = (
     "IfcRepresentationItem",
     "IfcRepresentation",
@@ -40,6 +44,7 @@ GEOMETRY_ROOTS = (
     "IfcPresentationItem",
 )
 _IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+BLOCK_BYTES = 256 * 1024  # before compression; what a read of one instance's geometry would have to unpack
 
 
 @dataclass
@@ -181,11 +186,127 @@ def convert(path: Path, *, include_geometry: bool = False, max_entities: int = 5
     yield from edges
 
 
-def write_jsonl(path: Path, out: Path, **options: Any) -> dict[str, Any]:
-    """Run :func:`convert` and write the records to ``out``; returns the header record."""
+def convert_lossless(
+    path: Path, *, include_geometry: bool = False, max_entities: int = 5_000_000
+) -> Iterator[dict[str, Any]]:
+    """Yield the records of a graph a file can be written back from: nothing the file says is left out.
+
+    It reads the file itself and uses IfcOpenShell only for the schema, because IfcOpenShell's reading changes some
+    values (``step.py``) and its API cannot make all of them (``IFCPROPERTYSETDEFINITIONSET`` ends the process). See
+    ``lossless.py`` for where each value goes, and ADR 0010. Inverse attributes are here for the queries' sake; they
+    are worked out from the schema, and the writer does not read them.
+
+    The nodes are those of the ordinary form, with the rest in blocks, unless geometry is asked to be nodes too. An
+    owner history is linked from its project alone in both, since every ``IfcRoot`` usually shares it, and an edge from
+    each of them would make that one node the centre of the graph.
+    """
+    try:
+        file = StepFile(path.read_bytes())
+        if len(file) > max_entities:
+            raise ConversionError(f"the model has more than {max_entities} entities")
+        schema = Schema(file.schema)
+        keywords = {step: file.keyword_of(step) for step in file.ids()}
+        project = next((step for step, keyword in keywords.items() if keyword == b"IFCPROJECT"), None)
+        project_history = _second_parameter(file, project)
+    except StepError as exc:
+        raise ConversionError(str(exc)) from exc
+
+    classes = set(keywords.values())
+    geometry_classes = {keyword for keyword in classes if set(schema.chain(keyword)) & set(GEOMETRY_ROOTS)}
+    history_classes = {keyword for keyword in classes if "IfcOwnerHistory" in schema.chain(keyword)}
+    histories = {step for step, keyword in keywords.items() if keyword in history_classes}
+    in_blocks: set[int] = set()
+    if not include_geometry:
+        in_blocks = {step for step, keyword in keywords.items() if keyword in geometry_classes}
+        in_blocks |= histories - {project_history}
+    nodes = keywords.keys() - in_blocks
+    targets = nodes - histories
+    project_targets = targets | ({project_history} & nodes)
+
+    summary = Summary(schema=file.schema, skipped=len(in_blocks))
+    references: list[tuple[int, str, Any, int]] = []
+    try:
+        for step, keyword, parameters in file:
+            if step in in_blocks:
+                continue
+            known = project_targets if step == project else targets
+            properties, found = encode_instance(keyword, parameters, schema, known)
+            chain = schema.chain(keyword)
+            class_name = chain[0] if chain else keyword.decode("ascii")
+            references.extend((step, attribute, position, target) for attribute, position, target in found)
+            summary.entities += 1
+            summary.classes[class_name] = summary.classes.get(class_name, 0) + 1
+            if step == project:
+                summary.ifc_project_guid = properties.get("GlobalId")
+            yield {
+                "t": "n",
+                "step": step,
+                "labels": [name for name in chain if _IDENTIFIER.match(name)],
+                "props": {"ifc_class": class_name, **properties},
+            }
+        yield from _blocks(file, sorted(in_blocks))
+    except StepError as exc:
+        raise ConversionError(str(exc)) from exc
+    inverses: dict[tuple[int, str, int], None] = {}
+    for step, attribute, _position, target in references:
+        for inverse in schema.refers_back(keywords[step], attribute, keywords[target]):
+            inverses[(target, inverse, step)] = None
+    summary.relationships = len(references) + len(inverses)
+    yield {
+        "t": "h",
+        "schema": summary.schema,
+        "entities": summary.entities,
+        "relationships": summary.relationships,
+        "skipped": summary.skipped,
+        "ifc_project_guid": summary.ifc_project_guid,
+        "classes": summary.classes,
+        "lossless": True,
+        "ifc_header": encode_header(file.header_values),
+    }
+    for step, attribute, position, target in references:
+        yield {"t": "e", "a": step, "b": target, "type": attribute, "position": position}
+    for target, inverse, step in inverses:
+        yield {"t": "e", "a": target, "b": step, "type": inverse}
+
+
+def _second_parameter(file: StepFile, project: int | None) -> int | None:
+    """The owner history of a project: its second attribute, if that is a reference at all."""
+    if project is None:
+        return None
+    parameters = file[project][1]
+    value = parameters[1] if len(parameters) > 1 else None
+    return value if isinstance(value, int) else None
+
+
+def _blocks(file: StepFile, steps: list[int]) -> Iterator[dict[str, Any]]:
+    """The instances that are no nodes, as blocks of text in order of id."""
+    lines: list[bytes] = []
+    size = 0
+    first = 0
+
+    def block() -> dict[str, Any]:
+        return {"t": "g", "first": first, "instances": len(lines), "text": encode_block(b"".join(lines))}
+
+    for step in steps:
+        keyword, parameters = file[step]
+        line = b"#%d=%s;\n" % (step, statement_text(keyword, parameters))
+        if not lines:
+            first = step
+        lines.append(line)
+        size += len(line)
+        if size >= BLOCK_BYTES:
+            yield block()
+            lines, size = [], 0
+    if lines:
+        yield block()
+
+
+def write_jsonl(path: Path, out: Path, *, lossless: bool = False, **options: Any) -> dict[str, Any]:
+    """Run a conversion and write the records to ``out``; returns the header record."""
     header: dict[str, Any] = {}
+    records = convert_lossless(path, **options) if lossless else convert(path, **options)
     with out.open("w", encoding="utf-8") as handle:
-        for record in convert(path, **options):
+        for record in records:
             if record["t"] == "h":
                 header = record
             handle.write(json.dumps(record) + "\n")

@@ -1,10 +1,13 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Read an ISO 10303-21 exchange file, without IfcOpenShell.
+"""Read and write an ISO 10303-21 exchange file, without IfcOpenShell.
 
 The comparison of two IFC files in ``equivalence.py`` has to see what a file says, and IfcOpenShell does not always
 tell. It reads ``.5`` in a list of REALs as nothing, drops bytes above 0x7F from strings and leaves out complex
 instances, all without an error, so a loss on the way out could go unseen if it also did the reading. This reader is
 small and strict: what it cannot read it refuses.
+
+The writer is the reader's inverse, for a round trip through the graph that has to carry what IfcOpenShell would change.
+It writes a REAL in the shortest form that reads back as the same double, and a string in escapes.
 
 A value is one of these:
 
@@ -19,10 +22,11 @@ A value is one of these:
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
-from typing import Any
+from collections.abc import Iterable, Iterator
+from typing import Any, BinaryIO
 
 MAX_NESTING = 32
+MAX_INSTANCE_ID = 2**63 - 1
 _BYTE_ORDER_MARK = b"\xef\xbb\xbf"
 _NEWLINE = b"\n"
 
@@ -59,7 +63,10 @@ _HASH, _OPEN, _QUOTE, _BINARY, _DOT = 0x23, 0x28, 0x27, 0x22, 0x2E
 _NUMBER_START = frozenset(b"+-0123456789")
 _KEYWORD_START = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_!")
 _ALONE = frozenset((b"$", b"*"))
+_KEYWORD = re.compile(rb"\s*+(!?[A-Za-z_][A-Za-z0-9_]*+)")
 _ASCII = bytes(range(0x80))
+_NEEDS_ESCAPE = re.compile(r"[^\x20-\x7e]+|['\\]")
+_LAST_BMP = 0xFFFF
 
 
 class StepError(ValueError):
@@ -103,8 +110,18 @@ def _string(token: bytes) -> bytes:
         # cannot come to equal a string that says the same in escapes.
         return b"x%d:%s" % (len(inner), inner)
     if b"\\" in inner:
-        inner = _decoded(inner).encode("utf-8", "surrogatepass")
+        return string_atom(_decoded(inner))
     return b"s%d:%s" % (len(inner), inner)
+
+
+def string_atom(text: str) -> bytes:
+    """The canonical form of a string."""
+    encoded = text.encode("utf-8", "surrogatepass")
+    return b"s%d:%s" % (len(encoded), encoded)
+
+
+def string_of_atom(atom: bytes) -> str:
+    return atom.split(b":", 1)[1].decode("utf-8", "surrogatepass")
 
 
 def _number(token: bytes) -> bytes:
@@ -114,6 +131,17 @@ def _number(token: bytes) -> bytes:
         return b"i%d" % int(token)
     except ValueError as exc:  # more digits than Python reads
         raise StepError("a number cannot be read") from exc
+
+
+def _instance_id(digits: bytes) -> int:
+    """An id, which has to fit where the databases keep it. The zeros in front of one carry no meaning."""
+    try:
+        step_id = int(digits)
+    except ValueError as exc:  # more digits than Python reads
+        raise StepError("an instance id cannot be read") from exc
+    if step_id > MAX_INSTANCE_ID:
+        raise StepError(f"the instance id {digits[:40]!r} is too large")
+    return step_id
 
 
 def _parameters(tokens: list[bytes], index: int, depth: int) -> tuple[list[Any], int]:
@@ -130,7 +158,7 @@ def _parameters(tokens: list[bytes], index: int, depth: int) -> tuple[list[Any],
         if first in _NUMBER_START:
             items.append(_number(token))
         elif first == _HASH:
-            items.append(int(token[1:]))
+            items.append(_instance_id(token[1:]))
         elif first == _QUOTE:
             items.append(_string(token))
         elif first == _OPEN:
@@ -204,6 +232,79 @@ def exact_text(value: Any) -> bytes:
     return b"%s(%s)" % (value[0], b",".join([exact_text(item) for item in value[1]]))
 
 
+def _real_text(value: float) -> bytes:
+    if value in (float("inf"), float("-inf")):  # what a REAL beyond a double's range was read as, and reads as again
+        return b"1.E+999" if value > 0 else b"-1.E+999"
+    mantissa, _e, exponent = repr(value).partition("e")
+    if "." not in mantissa:
+        mantissa += "."
+    elif mantissa.endswith(".0"):
+        mantissa = mantissa[:-1]
+    return f"{mantissa}E{exponent}".encode("ascii") if exponent else mantissa.encode("ascii")
+
+
+def _escaped(match: re.Match[str]) -> str:
+    found = match.group(0)
+    if found == "'":
+        return "''"
+    if found == "\\":
+        return "\\\\"
+    if max(found) <= chr(_LAST_BMP):
+        return f"\\X2\\{found.encode('utf-16-be', 'surrogatepass').hex().upper()}\\X0\\"
+    return f"\\X4\\{found.encode('utf-32-be', 'surrogatepass').hex().upper()}\\X0\\"
+
+
+def value_text(value: Any) -> bytes:
+    """A value as an exchange file writes it."""
+    if isinstance(value, int):
+        return b"#%d" % value
+    if isinstance(value, list):
+        return b"(%s)" % b",".join([value_text(item) for item in value])
+    if isinstance(value, tuple):
+        return b"%s(%s)" % (value[0], b",".join([value_text(item) for item in value[1]]))
+    first = value[:1]
+    if first == b"r":
+        return _real_text(float.fromhex(value[1:].decode("ascii")))
+    if first == b"i":
+        return value[1:]
+    if first == b"s":
+        return b"'%s'" % _NEEDS_ESCAPE.sub(_escaped, string_of_atom(value)).encode("ascii")
+    if first == b"x":
+        return b"'%s'" % value.split(b":", 1)[1].replace(b"'", b"''")
+    return value
+
+
+def statement_text(keyword: bytes, parameters: list[Any]) -> bytes:
+    """A keyword and its parameters as a file writes them; a complex instance has no commas between its parts."""
+    if keyword[:1] == b"(":
+        return b"(%s)" % b"".join([value_text(part) for part in parameters])
+    return b"%s(%s)" % (keyword, b",".join([value_text(item) for item in parameters]))
+
+
+def write_exchange(out: BinaryIO, header: Iterable[tuple[bytes, list[Any]]], instances: Iterable[bytes]) -> None:
+    """Write a whole file. ``instances`` are finished lines, ``#id=...;``, in the order they should have."""
+    out.write(b"ISO-10303-21;\nHEADER;\n")
+    for keyword, parameters in header:
+        out.write(b"%s;\n" % statement_text(keyword, parameters))
+    out.write(b"ENDSEC;\nDATA;\n")
+    for line in instances:
+        out.write(line)
+    out.write(b"ENDSEC;\nEND-ISO-10303-21;\n")
+
+
+def statements_of(text: bytes) -> Iterator[tuple[int, bytes]]:
+    """The instances in a run of ``#id=...;`` lines, with what ends each: a raw string can hold a line break."""
+    position = 0
+    while position < len(text):
+        match = _STATEMENT.match(text, position)
+        if match is None or match.group(1) is None:
+            raise StepError("a block of instances holds something else")
+        yield int(match.group(1)), text[position : match.end()].lstrip()
+        position = match.end()
+        if text[position : position + 1] == _NEWLINE:
+            position += 1
+
+
 def _schema_name(parameters: list[Any]) -> str:
     names = parameters[0] if parameters else None
     if isinstance(names, list) and len(names) == 1 and isinstance(names[0], bytes) and names[0][:1] == b"s":
@@ -217,6 +318,7 @@ class StepFile:
     def __init__(self, data: bytes) -> None:
         self.data = data
         self.header: dict[bytes, bytes] = {}
+        self.header_values: list[tuple[bytes, list[Any]]] = []
         self.schema = ""
         self._spans: dict[int, tuple[int, int]] = {}
         self._scan()
@@ -246,6 +348,7 @@ class StepFile:
                 break
             keyword, parameters = parse_statement(body)
             self.header[keyword] = b",".join([exact_text(item) for item in parameters])
+            self.header_values.append((keyword, parameters))
             if keyword == b"FILE_SCHEMA":
                 self.schema = _schema_name(parameters)
         position = self._word(position, b"DATA")
@@ -258,7 +361,7 @@ class StepFile:
                 if match.group(2).strip() != b"ENDSEC":
                     raise StepError(f"line {self.data.count(_NEWLINE, 0, match.start()) + 1} is not an instance")
                 break
-            step_id = int(number)
+            step_id = _instance_id(number)
             if step_id in spans:
                 raise StepError(f"instance #{step_id} is defined twice")
             spans[step_id] = match.span(2)
@@ -282,6 +385,12 @@ class StepFile:
 
     def ids(self) -> list[int]:
         return list(self._spans)
+
+    def keyword_of(self, step_id: int) -> bytes:
+        """An instance's keyword, without parsing it where that can be helped."""
+        start, end = self._spans[step_id]
+        match = _KEYWORD.match(self.data, start, end)
+        return match.group(1).upper() if match else self[step_id][0]
 
     def text_of(self, step_id: int, limit: int = 200) -> str:
         """How the instance is written, for a report."""

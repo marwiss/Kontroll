@@ -27,6 +27,7 @@ from opencde.timeutil import now_iso
 
 FORMAT = 1
 BATCH = 1000
+MAX_BATCH_BYTES = 16 * 1024 * 1024
 _NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _KEY_PROPS = sorted({prop for _, prop in UNIQUE})
 _KEY_PROJECTION = "{" + ", ".join(f".{prop}" for prop in _KEY_PROPS) + "}"
@@ -201,14 +202,17 @@ async def restore(graph: Graph, storage: LocalStorage, source_dir: Path) -> Mani
     manifest = read_manifest(source_dir)
 
     groups: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    pending_bytes = 0
     with gzip.open(source_dir / "nodes.jsonl.gz", "rt", encoding="utf-8") as handle:
         for line in handle:
             record = json.loads(line)
             labels = tuple(_safe(label) for label in record["labels"])
             groups.setdefault(labels, []).append(record["props"])
-            if sum(len(rows) for rows in groups.values()) >= BATCH:
+            pending_bytes += len(line)  # a block of an IFC model's geometry is a lot of text in one node
+            if sum(len(rows) for rows in groups.values()) >= BATCH or pending_bytes >= MAX_BATCH_BYTES:
                 await _create_nodes(graph, groups)
                 groups = {}
+                pending_bytes = 0
     await _create_nodes(graph, groups)
 
     rel_groups: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = {}
