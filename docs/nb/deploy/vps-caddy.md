@@ -43,7 +43,7 @@ brukerne og OAuth2-klientene programmene dine trenger.
 | Oppgave | Kommando |
 |---|---|
 | Oppdater til nyeste image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
-| Lås en versjon | `OPENCDE_IMAGE_TAG=2.0.2` i `.env` (taggene følger GitHub-utgivelsene) |
+| Lås en versjon | `OPENCDE_IMAGE_TAG=2.0.0` i `.env` (taggene følger GitHub-utgivelsene) |
 | Tilby bare noen API-er | `OPENCDE_APIS=["bcf-2.1"]` i `.env` for en server for bare BCF API 2.1, `["documents"]` for en dokumentserver; alle tre som standard |
 | Logger | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-linjer) |
 | Helse | `https://cde.example.org/readyz`; siden Innstillinger i administrasjonen |
