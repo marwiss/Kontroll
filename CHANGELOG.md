@@ -25,6 +25,10 @@ Toward 3.0.0, with Dataspatium.
 - `GET /admin/api/settings` has `ifcgraph.lossless`.
 - Deleting a project now deletes all the entities of its IFC models. Those more than a few steps from the project stayed
   behind before, though the documentation said otherwise.
+- Deleting a project deletes only what the project owns. It followed every relationship from the project, so it also
+  deleted each user who had created a topic, comment or viewpoint or uploaded a document in it, then the other projects
+  those users were members of, and the topics and documents directly in those. The administration's list of files to
+  remove followed the same paths, so it could delete files of other projects. Version 2.0.0 has this fault.
 
 ## 2.0.0 — 2026-11-07
 
