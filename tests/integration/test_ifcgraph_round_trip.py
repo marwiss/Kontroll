@@ -500,6 +500,7 @@ def test_a_model_that_does_not_hold_it_all_is_not_written(
 
     async def work() -> list[str]:
         graph = make_graph(settings)
+        service = IfcGraphService(graph, make_storage(settings), settings)
         messages = []
         try:
             await apply_schema(graph)
@@ -507,13 +508,13 @@ def test_a_model_that_does_not_hold_it_all_is_not_written(
             await graph.run("CREATE (:IfcModel {id: 'running', state: 'running', lossless: true})")
             for model_id in ("ordinary", "running", "missing"):
                 with pytest.raises(NotExportable) as caught:
-                    await export_records(graph, model_id, tmp_path / "out.jsonl")
+                    await service.export(model_id, tmp_path / "out.ifc")
                 messages.append(str(caught.value))
         finally:
             await graph.close()
         return messages
 
     ordinary, running, missing = asyncio.run(work())
-    assert "OPENCDE_IFC_LPG_LOSSLESS" in ordinary
-    assert "running" in running
+    assert "OPENCDE_IFC_LPG_LOSSLESS" in ordinary, "Kontroll names its setting"
+    assert "running" in running and "OPENCDE_" not in running
     assert "no such model" in missing
