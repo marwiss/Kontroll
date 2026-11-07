@@ -20,7 +20,7 @@ import pytest
 
 from tests.conftest import FIXTURES_DIR
 
-pytest.importorskip("ifcopenshell", reason="the ifcgraph extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
 
 import ifcopenshell
 from ifcopenshell import ifcopenshell_wrapper

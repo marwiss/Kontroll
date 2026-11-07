@@ -41,7 +41,7 @@ from opencde.auth.tokens import Principal
 from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, StorageDep, UsersDep, client_ip
 from opencde.graph.driver import ping_within
 from opencde.graph.graph import Graph
-from opencde.settings import Settings
+from opencde.settings import Settings, env_name
 from opencde.web.sessions import WebSessionsDep
 
 router = APIRouter(prefix="/admin/api", tags=["Administration (extension)"])
@@ -312,7 +312,7 @@ def _settings_payload(settings: Settings) -> dict[str, Any]:
     raw: dict[str, Any] = {}
     for name in SAFE_SETTINGS:
         value = getattr(settings, name)
-        raw[f"OPENCDE_{name.upper()}"] = value.value if hasattr(value, "value") else value
+        raw[env_name(name)] = value.value if hasattr(value, "value") else value
     modules = [
         name
         for name, enabled in (

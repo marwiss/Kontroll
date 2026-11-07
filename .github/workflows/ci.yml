@@ -26,8 +26,8 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
-      # The optional ifcgraph extra is installed so the type checker sees the real ifcopenshell module.
-      - run: uv sync --extra ifcgraph
+      # The optional ifc-lpg extra is installed so the type checker sees the real ifcopenshell module.
+      - run: uv sync --extra ifc-lpg
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run ty check opencde client/opencde_client
@@ -60,7 +60,7 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
-      - run: uv sync --extra ifcgraph
+      - run: uv sync --extra ifc-lpg
       # These need IfcOpenShell and no database. The test job above has no IfcOpenShell, so it skips them.
       - run: uv run pytest -q tests/unit/test_ifcgraph_convert.py tests/unit/test_ifcgraph_equivalence.py tests/unit/test_ifcgraph_lossless.py tests/unit/test_ifcgraph_validation.py tests/unit/test_ifcgraph_gherkin.py
       # buildingSMART's ifc-gherkin-rules in an environment of their own, as the image has them (ADR 0012).
@@ -69,7 +69,7 @@ jobs:
         env:
           OPENCDE_TEST_GHERKIN_ENV: ${{ runner.temp }}/gherkin
       # IfcOpenShell's EXPRESS rules import pytest at run time. The image has it from the extra alone, without the dev group.
-      - run: uv run --no-dev --extra ifcgraph python -m opencde.ifcgraph.validation tests/fixtures/three_walls_gtin.ifc
+      - run: uv run --no-dev --extra ifc-lpg python -m opencde.ifcgraph.validation tests/fixtures/three_walls_gtin.ifc
 
   ui:
     name: Browser tests (Playwright, axe-core)

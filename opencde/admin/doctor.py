@@ -146,6 +146,9 @@ async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) ->
         checks.append(
             Check("storage", False, "storage_failed", {"path": str(storage.root), "error": type(exc).__name__})
         )
+    if settings.renamed_settings:  # the old names still work, so this is a reminder rather than a fault
+        names = ", ".join(f"{old} → {new}" for old, new in settings.renamed_settings)
+        checks.append(Check("renamed_settings", True, "renamed_settings", {"names": names}))
     checks.append(Check("secret_key", len(settings.secret_key.get_secret_value()) >= 32, "secret_key"))
     checks.append(
         Check(

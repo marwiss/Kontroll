@@ -67,9 +67,9 @@ def test_the_extra_holds_what_the_validator_needs() -> None:
     """The EXPRESS rules import ``_pytest``, which IfcOpenShell does not declare. In the tests it is there anyway, which
     is why this looks at what a production install gets: the image is built with the extra and without the dev group."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    extra = project["project"]["optional-dependencies"]["ifcgraph"]
+    extra = project["project"]["optional-dependencies"]["ifc-lpg"]
     assert any(requirement.startswith("pytest") for requirement in extra)
-    assert '"--extra ifcgraph"' in (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert '"--extra ifc-lpg"' in (ROOT / "Dockerfile").read_text(encoding="utf-8")
 
 
 def test_counting_what_is_new() -> None:
@@ -106,7 +106,7 @@ def test_a_report_packs_into_one_property_and_back() -> None:
     assert unpack_report(None) == [] and unpack_report("") == []
 
 
-pytest.importorskip("ifcopenshell", reason="the ifcgraph extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
 
 
 def report(path: Path) -> dict:
