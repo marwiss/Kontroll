@@ -21,6 +21,12 @@ library in [client/](../client/) does all of this; the examples in
 }
 ```
 
+A server can be set to offer only some of these (`OPENCDE_APIS`). Then the lists
+hold only what it offers, and an API it does not offer answers 404. A server for
+BCF API 2.1 alone has no Foundation API: a client finds it through `GET
+/bcf/versions` and signs in through `GET /bcf/2.1/auth`. A document server
+offers the Foundation API and the Documents API, and no BCF.
+
 ### The capabilities document (extension)
 
 Beyond the specifications, `GET /.well-known/kontroll` (no authentication,
