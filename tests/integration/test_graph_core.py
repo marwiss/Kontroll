@@ -13,10 +13,12 @@ from opencde.accounts.roles import Role
 from opencde.accounts.users import AccountError, UserRepository
 from opencde.admin.doctor import schema_check
 from opencde.auth.clients import ClientError, ClientRepository
+from opencde.documents.repository import DocumentRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.dialect import NEO4J
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
+from opencde.ids import new_id
 from opencde.seed import (
     SAMPLE_MODEL,
     SEED_COMMENT_GUID,
@@ -118,6 +120,61 @@ async def test_users_projects_and_roles(graph: Graph) -> None:
     assert await projects.all() == []
 
 
+async def test_deleting_a_project_keeps_its_people_and_their_other_projects(graph: Graph) -> None:
+    """Topics and versions point at the users who made them, and users at all their projects.
+
+    So deleting a project follows only what the project owns: the people in it, the other projects they are in and
+    the files of those projects stay.
+    """
+    users = UserRepository(graph)
+    projects = ProjectRepository(graph)
+    documents = DocumentRepository(graph)
+    alice = await users.create("alice@example.test", "a-long-and-strong-passphrase")
+    doomed = await projects.create("Doomed")
+    kept = await projects.create("Kept")
+    document_ids = {}
+    for project in (doomed, kept):
+        await projects.set_member(project.project_id, alice.id, Role.EDITOR)
+        version = await documents.create_version(
+            project_id=project.project_id,
+            document_id=None,
+            title="Plan",
+            version_number="1",
+            file_name="plan.pdf",
+            size_in_bytes=1,
+            sha256="0" * 64,
+            storage_key=f"documents/{project.project_id}",
+            author=alice.username,
+            metadata=[],
+        )
+        document_ids[project.project_id] = version.document_id
+        await graph.run(
+            """
+            MATCH (p:Project {project_id: $project_id}), (u:User {id: $user_id})
+            CREATE (p)-[:HAS_TOPIC]->(:Topic {guid: $guid, snippet_storage_key: $snippet})-[:CREATED_BY]->(u)
+            """,
+            project_id=project.project_id,
+            user_id=alice.id,
+            guid=new_id(),
+            snippet=f"snippets/{project.project_id}.bin",
+        )
+
+    keys = sorted(await projects.storage_keys(doomed.project_id))  # what the administration deletes from the disk
+    assert await projects.delete(doomed.project_id) is True
+
+    assert await users.get(alice.id) is not None
+    assert await users.memberships(alice.id) == [(kept.project_id, "Kept", Role.EDITOR)]
+    assert await documents.latest(user_id=alice.id, document_id=document_ids[kept.project_id]) is not None
+    rows = await graph.run(
+        "MATCH (:Project {project_id: $id})-[:HAS_TOPIC]->(t:Topic)-[:CREATED_BY]->(:User) RETURN count(t) AS n",
+        id=kept.project_id,
+    )
+    assert rows[0]["n"] == 1
+    rows = await graph.run("MATCH (n) WHERE n:Document OR n:DocumentVersion OR n:Topic RETURN count(n) AS n")
+    assert rows[0]["n"] == 3, "the deleted project's document, version and topic are gone, the kept one's are not"
+    assert keys == [f"documents/{doomed.project_id}", f"snippets/{doomed.project_id}.bin"]
+
+
 async def test_clients_secrets_and_redirects(graph: Graph) -> None:
     clients = ClientRepository(graph)
     confidential, secret = await clients.create("Server app", ["https://app.example.test/cb"], public=False)
@@ -181,3 +238,23 @@ async def test_seed_only_fills_an_empty_database(graph: Graph, tmp_path: Path) -
     assert stored.read_bytes() == SAMPLE_MODEL.read_bytes()
     with pytest.raises(SeedError):
         await seed(graph, storage=storage)
+
+
+async def test_deleting_the_sample_project_takes_what_it_owns_and_nothing_else(graph: Graph, tmp_path: Path) -> None:
+    result = await seed(graph, storage=LocalStorage(tmp_path / "storage"), shared_password="demo-passphrase-for-tests")
+    projects = ProjectRepository(graph)
+    users = UserRepository(graph)
+    doomed, kept = result.projects["Building permit"], result.projects["Demolition permit"]
+    assert await projects.storage_keys(doomed), "the sample model is a stored file of the project"
+    assert await projects.storage_keys(kept) == []
+
+    assert await projects.delete(doomed) is True
+
+    rows = await graph.run("MATCH (n) UNWIND labels(n) AS label RETURN label, count(*) AS n")
+    counts = {row["label"]: int(row["n"]) for row in rows}
+    assert counts["User"] == 5 and counts["Project"] == 1
+    owned = ("Topic", "Event", "Comment", "Viewpoint", "Component", "Bitmap", "FileRef", "DocumentReference")
+    assert [label for label in (*owned, "Document", "DocumentVersion", "BcfDocument") if label in counts] == []
+    officer = await users.get_by_username("officer")
+    assert officer is not None
+    assert [project_id for project_id, _, _ in await users.memberships(officer.id)] == [kept]
