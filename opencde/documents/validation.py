@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.documents.schemas import DocumentMetadataEntry
 
-Status = Literal["pending", "passed", "issues", "unknown"]
+Status = Literal["pending", "passed", "warnings", "issues", "unknown"]
 
 
 @dataclass(frozen=True)
@@ -25,16 +25,41 @@ class Validation:
 
     state: str
     issue_count: int | None = None
+    error_count: int | None = None
     truncated: bool = False
     checked_at: str | None = None
     ruleset: str | None = None
     issues: list[dict[str, Any]] = field(default_factory=list)
+    checks: list[dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def rulesets(self) -> list[str]:
+        """What the file was checked with, one entry per check that ran: the schema and, where installed, the rules."""
+        if self.checks:
+            return [str(check["ruleset"]) for check in self.checks if check.get("state") == "done"]
+        return [self.ruleset] if self.ruleset else []
+
+    @property
+    def failed_checks(self) -> list[str]:
+        """What could not check the file at all, while another check did."""
+        return [str(check["ruleset"]) for check in self.checks if check.get("state") == "failed"]
+
+    @property
+    def rules_not_run(self) -> list[str]:
+        """The gherkin rules that raised an exception on the file, so that their verdict is unknown."""
+        return sorted({str(rule["rule"]) for check in self.checks for rule in check.get("rules_not_run", [])})
 
     @property
     def status(self) -> Status:
-        """``pending`` until checked, ``unknown`` when the check could not be made."""
+        """``pending`` until checked, ``unknown`` when the check could not be made.
+
+        ``warnings`` when every issue is a warning, as buildingSMART's validation service holds such a file valid: the
+        IFC schema has only errors, while some of the gherkin rules (industry practice) only warn.
+        """
         if self.state == "done":
-            return "issues" if self.issue_count else "passed"
+            if not self.issue_count:
+                return "passed"
+            return "warnings" if self.error_count == 0 else "issues"
         if self.state == "failed":
             return "unknown"
         return "pending"
@@ -43,7 +68,7 @@ class Validation:
 def metadata_entries(validation: Validation, report_url: str) -> list[DocumentMetadataEntry]:
     """The entries of the version's metadata (Documents API ``DocumentMetadataEntry``)."""
     entries = [DocumentMetadataEntry(name="ifc_validation_status", value=[validation.status], data_type="string")]
-    if validation.status in ("passed", "issues"):
+    if validation.status in ("passed", "warnings", "issues"):
         entries.append(
             DocumentMetadataEntry(
                 name="ifc_validation_issues", value=[str(validation.issue_count or 0)], data_type="integer32"
@@ -55,9 +80,9 @@ def metadata_entries(validation: Validation, report_url: str) -> list[DocumentMe
                 name="ifc_validation_checked_at", value=[validation.checked_at], data_type="date-time"
             )
         )
-    if validation.ruleset:
+    if validation.rulesets:
         entries.append(
-            DocumentMetadataEntry(name="ifc_validation_ruleset", value=[validation.ruleset], data_type="string")
+            DocumentMetadataEntry(name="ifc_validation_ruleset", value=validation.rulesets, data_type="string")
         )
     entries.append(DocumentMetadataEntry(name="ifc_validation_report", value=[report_url], data_type="url"))
     return entries
@@ -69,7 +94,11 @@ class _Report(BaseModel):
 
 
 class IfcValidationIssue(_Report):
-    kind: str = Field(description="What found it: `schema`, `entity_rule`, `simpletype_rule` or `global_rule`.")
+    kind: str = Field(
+        description="What found it: `schema`, `entity_rule`, `simpletype_rule` or `global_rule` of the IFC schema, "
+        "or `gherkin` for one of buildingSMART's ifc-gherkin-rules."
+    )
+    rule: str | None = Field(None, description="The code of the gherkin rule, as in `GRP001`.")
     severity: str = Field(description="`error` or `warning`.")
     message: str = Field(description="The validator's words, which may quote the file; at most 1,000 characters.")
     step_id: int | None = Field(None, description="The number of the instance in the file, as in `#123`.")
@@ -77,14 +106,32 @@ class IfcValidationIssue(_Report):
     attribute: str | None = Field(None, description="The attribute the issue is about, when the validator says.")
 
 
+class IfcValidationRuleNotRun(_Report):
+    rule: str = Field(description="The code of the gherkin rule.")
+    error: str = Field(description="What it raised, by type.")
+
+
+class IfcValidationCheck(_Report):
+    name: str = Field(description="`schema` or `gherkin`.")
+    state: Literal["done", "failed"] = Field(description="`failed` when the check could not be made at all.")
+    ruleset: str = Field(description="What the check ran, and which version of it.")
+    issue_count: int = Field(description="How many issues this check found.")
+    rules_not_run: list[IfcValidationRuleNotRun] = Field(
+        default_factory=list, description="Rules that raised an exception, so their verdict is unknown."
+    )
+
+
 class IfcValidationReport(_Report):
     status: Status = Field(
-        description="`pending`, `passed`, `issues`, or `unknown` when the file could not be checked."
+        description="`pending`, `passed`, `warnings` when every issue is a warning, `issues` when one or more is an "
+        "error, or `unknown` when the file could not be checked."
     )
     checked_at: str | None = Field(None, description="When the file was checked, ISO 8601 in UTC.")
     ruleset: str | None = Field(None, description="What the file was checked with, and which version of it.")
     issue_count: int | None = Field(None, description="How many issues the file has, all of them.")
+    error_count: int | None = Field(None, description="How many of the issues are errors; the rest are warnings.")
     truncated: bool = Field(False, description="True when the file has more issues than are listed (10,000).")
+    checks: list[IfcValidationCheck] = Field(default_factory=list, description="Each check on its own.")
     issues: list[IfcValidationIssue] = Field(default_factory=list)
 
 
@@ -94,6 +141,8 @@ def report(validation: Validation) -> IfcValidationReport:
         checked_at=validation.checked_at,
         ruleset=validation.ruleset,
         issue_count=validation.issue_count,
+        error_count=validation.error_count,
         truncated=validation.truncated,
+        checks=[IfcValidationCheck.model_validate(check) for check in validation.checks],
         issues=[IfcValidationIssue.model_validate(issue) for issue in validation.issues],
     )

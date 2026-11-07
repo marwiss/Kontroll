@@ -1,0 +1,10 @@
+# This file was generated with the assistance of an AI coding tool.
+# Kontroll runs buildingSMART's ifc-gherkin-rules without Django (ADR 0012). The installer writes this file over the
+# rule set's validation_results.py.
+#
+# The rule set imports its result codes and its outcome record from this module. Upstream, it sets up Django to take
+# the codes from the Validation Service's database models; the same codes and the record exist as plain Python in the
+# data model's dataclass_compat.py, which is what this module hands on.
+from ifc_validation_models.dataclass_compat import OutcomeSeverity, ValidationOutcome, ValidationOutcomeCode
+
+__all__ = ["OutcomeSeverity", "ValidationOutcome", "ValidationOutcomeCode"]

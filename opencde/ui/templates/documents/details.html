@@ -16,10 +16,13 @@
     <dt>{{ t("docs.details.validation") }}</dt>
     <dd>
       {% if validation.status == "passed" %}{{ t("docs.details.validation_passed") }}
-      {% elif validation.status == "issues" %}{{ t("docs.details.validation_issues", count=validation.issue_count) }}
+      {% elif validation.status == "warnings" %}{{ t("docs.details.validation_warnings", count=validation.issue_count) }}
+      {% elif validation.status == "issues" %}{{ t("docs.details.validation_issues", count=validation.issue_count, errors=validation.error_count if validation.error_count is not none else validation.issue_count) }}
       {% elif validation.status == "unknown" %}{{ t("docs.details.validation_unknown") }}
       {% else %}{{ t("docs.details.validation_pending") }}{% endif %}
-      {% if validation.checked_at and validation.ruleset %}<br><span class="muted">{{ t("docs.details.validation_checked", date=validation.checked_at[:16]|replace("T", " "), ruleset=validation.ruleset) }}</span>{% endif %}
+      {% if validation.checked_at and validation.rulesets %}<br><span class="muted">{{ t("docs.details.validation_checked", date=validation.checked_at[:16]|replace("T", " "), ruleset=validation.rulesets|join("; ")) }}</span>{% endif %}
+      {% for ruleset in validation.failed_checks %}<br><span class="muted">{{ t("docs.details.validation_check_failed", ruleset=ruleset) }}</span>{% endfor %}
+      {% if validation.rules_not_run %}<br><span class="muted">{{ t("docs.details.validation_not_run", rules=validation.rules_not_run|join(", ")) }}</span>{% endif %}
     </dd>
     {% endif %}
   </dl>
@@ -35,10 +38,12 @@
   <p class="card__lead">{{ t("docs.details.validation_kept") }}{% if validation.issue_count > validation_issues|length %} {{ t("docs.details.validation_shown", shown=validation_issues|length, count=validation.issue_count) }}{% endif %}</p>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th scope="col">{{ t("docs.details.validation_instance") }}</th><th scope="col">GlobalId</th><th scope="col">{{ t("docs.details.validation_message") }}</th></tr></thead>
+      <thead><tr><th scope="col">{{ t("docs.details.validation_rule") }}</th><th scope="col">{{ t("docs.details.validation_severity") }}</th><th scope="col">{{ t("docs.details.validation_instance") }}</th><th scope="col">GlobalId</th><th scope="col">{{ t("docs.details.validation_message") }}</th></tr></thead>
       <tbody>
         {% for issue in validation_issues %}
         <tr>
+          <td>{% if issue.kind == "gherkin" and issue.rule %}<code>{{ issue.rule }}</code>{% else %}{{ t("docs.details.validation_schema") }}{% endif %}</td>
+          <td>{% if issue.severity == "warning" %}{{ t("docs.details.validation_warning") }}{% else %}{{ t("docs.details.validation_error") }}{% endif %}</td>
           <td>{% if issue.step_id %}<code>#{{ issue.step_id }}</code>{% endif %}</td>
           <td>{% if issue.global_id %}<code>{{ issue.global_id }}</code>{% endif %}</td>
           <td><pre>{{ issue.message }}</pre></td>

@@ -129,7 +129,14 @@ def test_the_report_of_an_upload_names_the_element_of_each_issue(tmp_path: Path)
     assert twice, answer["issues"]
     assert twice[0]["global_id"] == "2iFPi1Pg90_94gtQu544_Z" and twice[0]["step_id"] in (8, 9)
     assert {issue["severity"] for issue in answer["issues"]} == {"error"}
-    assert report(MODEL) == {"ruleset": answer["ruleset"], "issue_count": 0, "truncated": False, "issues": []}
+    assert answer["error_count"] == answer["issue_count"], "the schema has only errors, never warnings"
+    assert report(MODEL) == {
+        "ruleset": answer["ruleset"],
+        "issue_count": 0,
+        "error_count": 0,
+        "truncated": False,
+        "issues": [],
+    }
 
 
 def test_a_report_counts_every_issue_and_keeps_the_first(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

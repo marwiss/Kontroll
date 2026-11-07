@@ -120,6 +120,7 @@ def report_of(path: Path) -> dict[str, Any]:
     return {
         "ruleset": ruleset,
         "issue_count": len(statements),
+        "error_count": sum(1 for statement in statements if str(statement.get("level") or "error") == "error"),
         "truncated": len(statements) > MAX_REPORTED,
         "issues": issues,
     }
