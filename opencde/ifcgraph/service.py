@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, Request
-from ifc_lpg.exporter import export_records
+from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
 from ifc_lpg.importer import delete_blocks, delete_model, import_records
 from ifc_lpg.validation import MAX_REPORTED, pack_report
@@ -544,10 +544,23 @@ class IfcGraphService:
     # -- writing a model back ------------------------------------------------------------------------
 
     async def export(self, model_id: str, target: Path) -> int:
-        """Write a model back as an IFC file from what the graph holds. Returns the number of instances."""
+        """Write a model back as an IFC file from what the graph holds. Returns the number of instances.
+
+        A model converted without the lossless form cannot be written back, and the error then names the setting."""
         with tempfile.TemporaryDirectory(prefix="ifcgraph-") as tmp:
             records = Path(tmp) / "records.jsonl"
-            instances = await export_records(self.graph, model_id, records)
+            try:
+                instances = await export_records(self.graph, model_id, records)
+            except NotExportable as exc:
+                rows = await self.graph.run(
+                    "MATCH (m:IfcModel {id: $id}) RETURN m.state AS state, m.lossless AS lossless", id=model_id
+                )
+                if rows and rows[0]["state"] == STATE_DONE and not rows[0]["lossless"]:
+                    raise NotExportable(
+                        f"{exc}: it was converted with OPENCDE_IFC_LPG_LOSSLESS=false or before 3.0.0, and can be "
+                        "written back once it is uploaded again"
+                    ) from None
+                raise
             await self._in_a_process(
                 [
                     sys.executable,
