@@ -2,7 +2,9 @@
 
 <img src="../../opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE server
+# Dataregium OpenCDE server
+
+*Dataregium was called Kontroll until 8 November 2026, and the texts below still use that name.*
 
 Kontroll is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
 BCF API 3.0 and 2.1, and Documents API 1.0), built on a graph database, with a web
@@ -38,8 +40,8 @@ is not tied to any one application.
    every release):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Configure.** Copy `.env.example` to `.env` and set `OPENCDE_GRAPH_PASSWORD`

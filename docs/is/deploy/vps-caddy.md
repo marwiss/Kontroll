@@ -8,7 +8,7 @@ opnar. Caddy sækir og endurnýjar TLS-skírteinið; API-ið, gagnagrunnurinn og
 ## 1. Undirbúa
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git /opt/kontroll
+git clone https://github.com/marwiss/Dataregium.git /opt/kontroll
 cd /opt/kontroll
 uv run opencde init --public-url https://cde.example.org
 ```

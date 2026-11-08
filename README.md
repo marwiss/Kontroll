@@ -2,7 +2,9 @@
 
 <img src="opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE-server
+# Dataregium OpenCDE-server
+
+*Dataregium hette Kontroll fram till den 8 november 2026, och texterna nedan använder ännu det namnet.*
 
 Kontroll är en server för buildingSMARTs **OpenCDE-API:er** (Foundation API
 1.0, BCF API 3.0 och 2.1 samt Documents API 1.0), byggd på en grafdatabas, med
@@ -38,8 +40,8 @@ inte bunden till något enskilt program.
    vid varje utgåva):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Konfigurera.** Kopiera `.env.example` till `.env` och sätt

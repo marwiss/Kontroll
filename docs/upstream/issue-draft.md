@@ -48,7 +48,7 @@ IFC graph for digital inspection plans).
 Python 3.11 or newer (the project's baseline), `uv`, `ruff`, `ty`. Dependencies
 and their versions are listed in the repository's `pyproject.toml`.
 
-The code lives today in <https://github.com/marwiss/Kontroll> (branch `main`).
+The code lives today in <https://github.com/marwiss/Dataregium> (branch `main`).
 
 ## Licensing
 

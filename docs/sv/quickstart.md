@@ -13,7 +13,7 @@ finns i Dataspatiums repo; de två hålls identiska.
   compose-tillägget på Linux. Det måste vara igång: `docker version` svarar för både
   klient och server.
 - Git, eller källkods-ZIP:en från Kontrolls
-  [senaste utgåva](https://github.com/marwiss/Kontroll/releases/latest) i stället för
+  [senaste utgåva](https://github.com/marwiss/Dataregium/releases/latest) i stället för
   `git clone` nedan.
 - Python 3, som en liten lokal webbserver.
 - Microsoft Edge, Google Chrome eller Firefox.
@@ -25,8 +25,8 @@ Har du provat Kontroll på den här datorn förut, börja med
 ## 1. Starta Kontroll
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 cp .env.example .env
 ```
 
