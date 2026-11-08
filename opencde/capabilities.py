@@ -22,6 +22,8 @@ from opencde import __version__
 from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
+from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
+from opencde.ifcgraph.queries import QUERIES
 from opencde.settings import Settings
 
 router = APIRouter(tags=["Capabilities (extension)"])
@@ -64,6 +66,16 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 "scope": "admin",
             },
             "ifcgraph": {"enabled": settings.ifcgraph_enabled, "bolt": settings.graph_public_bolt_url or None},
+            "ifc_queries": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries",
+                    "names": list(QUERIES),
+                    "max_rows": QUERIES_MAX_ROWS,
+                }
+                if settings.ifcgraph_enabled and settings.offers("documents")
+                else {"enabled": False}
+            ),
             "graph_query": (
                 {
                     "enabled": True,
