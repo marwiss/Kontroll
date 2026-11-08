@@ -14,7 +14,7 @@ identtisinä.
   Linuxissa. Sen on oltava käynnissä: `docker version` vastaa sekä asiakkaan että
   palvelimen osalta.
 - Git tai lähdekoodi-ZIP Kontrollin
-  [uusimmasta julkaisusta](https://github.com/marwiss/Kontroll/releases/latest)
+  [uusimmasta julkaisusta](https://github.com/marwiss/Dataregium/releases/latest)
   alla olevan `git clone` -komennon sijaan.
 - Python 3 pienenä paikallisena web-palvelimena.
 - Microsoft Edge, Google Chrome tai Firefox.
@@ -26,8 +26,8 @@ Jos olet kokeillut Kontrollia tällä koneella aiemmin, aloita kohdasta
 ## 1. Käynnistä Kontroll
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 cp .env.example .env
 ```
 

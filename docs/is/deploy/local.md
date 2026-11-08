@@ -10,8 +10,8 @@ Allt keyrir í Docker á tölvunni þinni; ekkert er aðgengilegt að utan.
 ## Skref
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 uv run opencde init --dev                                 # skrifar .env með nýjum leyndarmálum
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed

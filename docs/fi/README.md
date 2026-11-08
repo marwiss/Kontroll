@@ -2,7 +2,9 @@
 
 <img src="../../opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE-palvelin
+# Dataregium OpenCDE-palvelin
+
+*Dataregiumin nimi oli Kontroll 8. marraskuuta 2026 asti, ja alla olevat tekstit käyttävät vielä sitä nimeä.*
 
 Kontroll on palvelin buildingSMARTin **OpenCDE-rajapinnoille** (Foundation
 API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0). Se on rakennettu
@@ -39,8 +41,8 @@ palvelin ei ole sidottu yhteen sovellukseen.
    SBOM:n kanssa jokaisessa julkaisussa):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Määritä.** Kopioi `.env.example` tiedostoksi `.env` ja aseta

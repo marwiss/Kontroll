@@ -11,7 +11,7 @@ import httpx
 from opencde_client.auth import TokenSet
 from opencde_client.errors import ApiError, AuthError
 
-USER_AGENT = "opencde-client/0.1 (+https://github.com/marwiss/Kontroll)"
+USER_AGENT = "opencde-client/0.1 (+https://github.com/marwiss/Dataregium)"
 Refresher = Callable[[TokenSet], TokenSet]
 
 

@@ -10,8 +10,8 @@ Kaikki toimii Dockerissa omalla koneellasi; mihinkään ei pääse ulkopuolelta.
 ## Vaiheet
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 uv run opencde init --dev                                 # kirjoittaa .env-tiedoston uusilla salaisuuksilla
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed

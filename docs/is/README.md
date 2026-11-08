@@ -2,7 +2,9 @@
 
 <img src="../../opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE-þjónn
+# Dataregium OpenCDE-þjónn
+
+*Dataregium hét Kontroll til 8. nóvember 2026, og textarnir hér á eftir nota enn það nafn.*
 
 Kontroll er þjónn fyrir **OpenCDE-forritaskil** buildingSMART (Foundation API
 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), byggður á grafgagnagrunni, með
@@ -38,8 +40,8 @@ bundinn við eitt tiltekið forrit.
    SBOM við hverja útgáfu):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Stilla.** Afritaðu `.env.example` í `.env` og settu

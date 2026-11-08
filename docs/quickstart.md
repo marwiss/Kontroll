@@ -14,7 +14,7 @@ two are kept identical.
   plugin on Linux. It must be running: `docker version` answers for both client
   and server.
 - Git, or the source code ZIP from Kontroll's
-  [latest release](https://github.com/marwiss/Kontroll/releases/latest) in place
+  [latest release](https://github.com/marwiss/Dataregium/releases/latest) in place
   of `git clone` below.
 - Python 3, as a small local web server.
 - Microsoft Edge, Google Chrome or Firefox.
@@ -26,8 +26,8 @@ If you have tried Kontroll on this machine before, begin with
 ## 1. Start Kontroll
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 cp .env.example .env
 ```
 

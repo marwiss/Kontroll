@@ -12,7 +12,7 @@ samme side findes i Dataspatiums repo; de to holdes identiske.
 - Docker: Docker Desktop på Windows og macOS, Docker Engine med compose-tilføjelsen
   på Linux. Det skal køre: `docker version` svarer for både klient og server.
 - Git, eller kildekode-ZIP'en fra Kontrolls
-  [seneste udgivelse](https://github.com/marwiss/Kontroll/releases/latest) i stedet
+  [seneste udgivelse](https://github.com/marwiss/Dataregium/releases/latest) i stedet
   for `git clone` nedenfor.
 - Python 3, som en lille lokal webserver.
 - Microsoft Edge, Google Chrome eller Firefox.
@@ -24,8 +24,8 @@ Har du prøvet Kontroll på denne computer før, så begynd med
 ## 1. Start Kontroll
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 cp .env.example .env
 ```
 

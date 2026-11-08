@@ -10,8 +10,8 @@ Everything runs in Docker on your machine; nothing is reachable from outside.
 ## Steps
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 uv run opencde init --dev                                 # writes .env with fresh secrets
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed

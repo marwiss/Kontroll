@@ -59,7 +59,7 @@ Server implementation of the buildingSMART OpenCDE APIs:
 * **BCF API 2.1**: the same on the same data, for clients that know nothing newer.
 * **Documents API 1.0**: document selection, download, upload and version queries.
 
-Data lives in a graph database (Neo4j or Memgraph). Source: https://github.com/marwiss/Kontroll
+Data lives in a graph database (Neo4j or Memgraph). Source: https://github.com/marwiss/Dataregium
 """
 
 OPENAPI_TAGS = [

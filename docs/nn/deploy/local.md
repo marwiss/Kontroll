@@ -10,8 +10,8 @@ Alt køyrer i Docker på maskina di; ingenting kan nåast utanfrå.
 ## Steg
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 uv run opencde init --dev                                 # skriv .env med nye løyndomar
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
