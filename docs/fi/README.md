@@ -25,7 +25,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 - [Kontroll ja Dataspatium](#kontroll-ja-dataspatium)
 - [Lue lisää](#lue-lisää)
 - [Rajoitukset lyhyesti](#rajoitukset-lyhyesti)
-- [Kohti versiota 3.0.0](#kohti-versiota-300)
+- [Seuraavaksi 3-sarjassa](#seuraavaksi-3-sarjassa)
 - [Virheet ja ehdotukset](#virheet-ja-ehdotukset)
 - [Kehitys](#kehitys)
 - [Lisenssi](#lisenssi)
@@ -140,7 +140,10 @@ mikään ole auki ennen kuin se on määritetty.
   jokaisessa virhevastauksessa, pyyntöloki asiakasohjelmien vianetsintään
   (`/admin/requests`, `GET /admin/api/requests` `admin`-oikeudella) ja
   IFC-LPG-moduuli, joka muuttaa lähetetyt IFC-mallit BCF-komponentteihin
-  yhdistetyksi graafidataksi.
+  yhdistetyksi graafidataksi. Versiosta 3.0.0 alkaen graafi on häviötön ja
+  voidaan kirjoittaa takaisin tiedostoksi, jokainen lähetys tarkistetaan
+  IFC-skeemaa, buildingSMARTin sääntöjä ja projektin IDS:ää vasten, ja
+  jäsenet esittävät sille nimettyjä kyselyitä.
 - **Asiakaskirjasto** Pythonille ([client/](../../client/), LGPL) ajettavine
   esimerkkeineen sekä Dockerfile, compose-ylikerrokset ja julkaistu image
   jokaista käyttöönottoskenaariota varten.
@@ -195,7 +198,7 @@ ajettu. Jos kokeilet jotakin asiakasta, kerro, miten kävi, kohdassa
 Kontroll (palvelin) ja [Dataspatium](https://github.com/marwiss/Dataspatium)
 (kokonaan selaimessa toimiva datasovellus) on kehitetty toimimaan yhdessä
 palvelimena ja asiakkaana, ja sama julkaisunumero molemmissa tarkoittaa, että
-ne toimivat yhdessä: Dataspatium 2.0.0 toimii Kontroll 2.0.0:n kanssa
+ne toimivat yhdessä: Dataspatium 3.0.0 toimii Kontroll 3.0.0:n kanssa
 ([pika-aloitus](quickstart.md)).
 Dataspatium lisää Kontroll-palvelimen lähteeksi: sovellus löytää rajapinnat
 osoitteesta `/foundation/versions`, kirjautuu OAuth2 authorization code
@@ -318,44 +321,29 @@ IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
   [docs/fi/security/pentest-howto.md](security/pentest-howto.md) kuvatut
   OAuch- ja testssl-ajot ovat ylläpitäjän askeleet ennen tuotantokäyttöönottoa.
 
-## Kohti versiota 3.0.0
+## Seuraavaksi 3-sarjassa
 
-3.0.0 on seuraava julkaisu, joka tehdään yhdessä Dataspatium 3.0.0:n kanssa, ja
-kuten jokaisella pääversiolla sillä on yksi julkaisu, joka julkaistaan
-uudelleen sarjan kasvaessa. Se tekee IFC-graafista mallin, jota voi muokata ja
-jonka versioita voi hallita tietokannassa, ja Dataspatium on asiakas, joka
-muokkaa sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat pysyvät
-sellaisina kuin buildingSMART ne määrittelee; se, mitä 3.0.0 lisää, on niiden
-laajennuksia omilla nimillään. Tämä osio kertoo, mikä on rakennettu, mikä on
-päätetty ja mikä vain ehdotettu, sille, ihmiselle tai tekoälyagentille, joka
-vie osan siitä eteenpäin. Päätökset ovat kansiossa [docs/adr](../adr),
-käytännöt tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi
-sivulla [docs/fi/ifc-lpg.md](ifc-lpg.md).
-
-### Rakennettu mainiin, ei julkaistu
-
-- **IFC-graafi ilman häviötä.** Lähetetystä IFC-tiedostosta tulee
-  ominaisuusgraafi, josta sama tiedosto voidaan kirjoittaa takaisin samoin
-  instanssein, STEP-tunnistein, arvoin ja samassa järjestyksessä, sekä Neo4j:ssä
-  että Memgraphissa. Edestakainen muunnos on kirjasto
-  [IFC-LPG](https://github.com/marwiss/IFC-LPG), jonka Kontroll hakee tietystä
-  commitista (ADR 0009, 0010 ja 0014).
-- **Jokainen IFC-lähetys tarkistetaan** taustalla sitä pidättelemättä:
-  IFC-skeemaa ja sen EXPRESS-sääntöjä vasten, buildingSMARTin
-  ifc-gherkin-rules-sääntöjä vasten, kun ne on asennettu, ja projektin
-  IDS-asiakirjoja vasten (ADR 0011, 0012 ja 0015).
-- **Nimetyt kyselyt jäsenille.** Jäsen esittää version mallille kysymyksiä
-  nimeltä Documents API:n kautta: elementtien määrä luokittain, kerrokset, tilat
-  ja niiden pinta-alat, elementtien materiaalit tai ominaisuuden arvo. Vapaa
-  Cypher jää ylläpitäjille (ADR 0016).
+3.0.0 on 3-sarjan ensimmäinen julkaisu, tehty yhdessä Dataspatium 3.0.0:n
+kanssa: IFC-graafi häviöttömänä mallina, jokaisen lähetyksen tarkistus ja
+nimetyt kyselyt, kuten [Mitä voit tehdä](#mitä-voit-tehdä) kertoo. Kuten
+jokaisella pääversiolla, sarjalla on yksi julkaisu, joka julkaistaan uudelleen
+sarjan kasvaessa. Seuraavaksi graafista tulee malli, jota voi muokata ja jonka
+versioita voi hallita tietokannassa, ja Dataspatium on asiakas, joka muokkaa
+sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat pysyvät sellaisina
+kuin buildingSMART ne määrittelee; se, mitä sarja lisää, on niiden laajennuksia
+omilla nimillään. Tämä osio kertoo, mikä on päätetty ja mikä vain ehdotettu,
+sille, ihmiselle tai tekoälyagentille, joka vie osan siitä eteenpäin. Päätökset
+ovat kansiossa [docs/adr](../adr), käytännöt tiedostossa
+[CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
+[docs/fi/ifc-lpg.md](ifc-lpg.md).
 
 ### Päätetty
 
-- **Mallien muokkaus Native IFC:nä.** Create on lähetys ja Read yllä olevat
-  nimetyt kyselyt. Update on muutos, jonka asiakas ehdottaa rajapinnan kautta ja
-  joka tarkistetaan ennen kuin se otetaan mukaan. Delete poistaa valittuja
-  graafin osia: entiteetin, rakennuksen tai projektin. Export kirjoittaa STEPin
-  takaisin kuten nyt.
+- **Mallien muokkaus Native IFC:nä.** Create on lähetys ja Read nimetyt
+  kyselyt, molemmat versiossa 3.0.0. Update on muutos, jonka asiakas ehdottaa
+  rajapinnan kautta ja joka tarkistetaan ennen kuin se otetaan mukaan. Delete
+  poistaa valittuja graafin osia: entiteetin, rakennuksen tai projektin. Export
+  kirjoittaa STEPin takaisin kuten nyt.
 - **Versiohistoria tietokannassa, ei gitissä**, Bruno Postlen
   [ifcmergen](https://github.com/brunopostle/ifcmerge) hengessä: mikä muuttui,
   kuka ehdotti sitä ja kuka hyväksyi sen. Tietojen on noudatettava IFC:tä,
@@ -373,7 +361,7 @@ sivulla [docs/fi/ifc-lpg.md](ifc-lpg.md).
   taaksepäin käänteisten attribuuttien kautta.
 - **Laajennuksia, ei rajapintojen uusia versioita.** BCF-asiat, joissa on
   `bim_snippet`, Documents API:n metatiedot ja versiot sekä
-  ominaisuusdokumentti kantavat sen, mitä 3.0.0 lisää, ja niitä kuvaa oma
+  ominaisuusdokumentti kantavat sen, mitä sarja lisää, ja niitä kuvaa oma
   OpenAPI.
 - **Törmäystarkistus molemmissa paikoissa**: palvelimella IfcOpenShellin
   IfcClashilla ja Dataspatiumissa sen omalla JavaScript-ytimellä.

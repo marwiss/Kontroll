@@ -24,7 +24,7 @@ ikkje er bunden til eitt bestemt program.
 - [Kontroll og Dataspatium](#kontroll-og-dataspatium)
 - [Lær meir](#lær-meir)
 - [Avgrensingar i korte trekk](#avgrensingar-i-korte-trekk)
-- [Mot 3.0.0](#mot-300)
+- [Det neste i 3-serien](#det-neste-i-3-serien)
 - [Feil og framlegg](#feil-og-framlegg)
 - [Utvikling](#utvikling)
 - [Lisens](#lisens)
@@ -133,7 +133,10 @@ databasepassord, og ingenting er ope før det er konfigurert.
   tillegg som er slått på, ein stabil `code` i kvar feilkropp, ein
   førespurnadslogg for feilsøking av klientar (`/admin/requests`,
   `GET /admin/api/requests` med scopet `admin`), og IFC-LPG-modulen som gjer
-  opplasta IFC-modellar til grafdata knytte til BCF-komponentar.
+  opplasta IFC-modellar til grafdata knytte til BCF-komponentar. Sidan 3.0.0
+  er grafen tapsfri og kan skrivast tilbake som fil, kvar opplasting blir
+  kontrollert mot IFC-skjemaet, reglane frå buildingSMART og IDS-en til
+  prosjektet, og medlemmer stiller han namngjevne spørjingar.
 - **Eit klientbibliotek** i Python ([client/](../../client/), LGPL) med
   køyrbare døme, og dessutan Dockerfile, compose-overlegg og eit publisert
   image for kvart utrullingsscenario.
@@ -186,7 +189,7 @@ ein klient.
 Kontroll (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (ein dataapp som køyrer heilt i nettlesaren) er utvikla for å verke saman som
 server og klient, og same utgjevingsnummer på begge tyder at dei verkar
-saman: Dataspatium 2.0.0 verkar med Kontroll 2.0.0
+saman: Dataspatium 3.0.0 verkar med Kontroll 3.0.0
 ([snøggstart](quickstart.md)). Dataspatium legg til ein
 Kontroll-server som kjelde: appen oppdagar API-ane gjennom
 `/foundation/versions`, loggar inn med OAuth2 authorization code og PKCE og
@@ -303,44 +306,29 @@ haldne på engelsk.
   [docs/nn/security/pentest-howto.md](security/pentest-howto.md) er stega
   operatøren tek før ei produksjonsutrulling.
 
-## Mot 3.0.0
+## Det neste i 3-serien
 
-3.0.0 er neste utgåve, laga saman med Dataspatium 3.0.0, og som kvart
-hovudnummer får ho éi utgåve, som blir gjeven ut på nytt etter kvart som serien
-veks. Ho gjer IFC-grafen til ein modell som kan redigerast og
-versjonshandterast i databasen, med Dataspatium som klienten som redigerer han
-og viser versjonane. Dei offisielle OpenCDE-API-a blir verande slik
-buildingSMART definerer dei; det 3.0.0 legg til, er utvidingar av dei under
-eigne namn. Denne delen seier kva som er bygd, kva som er avgjort, og kva som
-berre er føreslått, for den, menneske eller AI-agent, som fører ein del av det
-vidare. Avgjerdene står i [docs/adr](../adr), arbeidsmåtane i
+3.0.0 er den første utgåva i 3-serien, laga saman med Dataspatium 3.0.0:
+IFC-grafen som ein tapsfri modell, kontrollen av kvar opplasting og dei
+namngjevne spørjingane, slik [Kva du kan gjere](#kva-du-kan-gjere) skildrar.
+Som kvart hovudnummer har serien éi utgåve, som blir gjeven ut på nytt etter
+kvart som ho veks. Det som følgjer, gjer grafen til ein modell som kan
+redigerast og versjonshandterast i databasen, med Dataspatium som klienten som
+redigerer han og viser versjonane. Dei offisielle OpenCDE-API-a blir verande
+slik buildingSMART definerer dei; det serien legg til, er utvidingar av dei
+under eigne namn. Denne delen seier kva som er avgjort, og kva som berre er
+føreslått, for den, menneske eller AI-agent, som fører ein del av det vidare.
+Avgjerdene står i [docs/adr](../adr), arbeidsmåtane i
 [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
 [docs/nn/ifc-lpg.md](ifc-lpg.md).
-
-### Bygd på main, ikkje gjeven ut
-
-- **Ein IFC-graf utan tap.** Ei opplasta IFC-fil blir ein graf med etikettar og
-  eigenskapar som den same fila kan skrivast tilbake frå, med dei same
-  instansane, STEP-ida, verdiane og den same rekkjefølgja, i Neo4j og Memgraph.
-  Rundturen er biblioteket [IFC-LPG](https://github.com/marwiss/IFC-LPG), som
-  Kontroll hentar frå ein fast commit (ADR 0009, 0010 og 0014).
-- **Kvar IFC-opplasting blir kontrollert** i bakgrunnen utan å bli halden att:
-  mot IFC-skjemaet og EXPRESS-reglane, mot ifc-gherkin-rules frå buildingSMART
-  der dei er installerte, og mot IDS-dokumenta til prosjektet (ADR 0011, 0012
-  og 0015).
-- **Namngjevne spørjingar for medlemmer.** Eit medlem stiller spørsmål til
-  modellen i ein versjon ved namn gjennom Documents API: talet på element av
-  kvar klasse, etasjane, romma og arealet deira, materiala til elementa eller
-  verdien av ein eigenskap. Fri Cypher blir verande hos administratorane
-  (ADR 0016).
 
 ### Avgjort
 
 - **Redigering av modellar i Native IFC.** Create er opplastinga og Read dei
-  namngjevne spørjingane ovanfor. Update er ei endring som ein klient føreslår
-  gjennom API-et, og som blir prøvd før ho blir ført inn. Delete fjernar valde
-  delar av grafen: ein entitet, ein bygning eller eit prosjekt. Export skriv
-  STEP tilbake, som no.
+  namngjevne spørjingane, begge i 3.0.0. Update er ei endring som ein klient
+  føreslår gjennom API-et, og som blir prøvd før ho blir ført inn. Delete
+  fjernar valde delar av grafen: ein entitet, ein bygning eller eit prosjekt.
+  Export skriv STEP tilbake, som no.
 - **Versjonshistorikk i databasen, ikkje i git**, i same ånd som
   [ifcmerge](https://github.com/brunopostle/ifcmerge) av Bruno Postle: kva som
   vart endra, kven som føreslo det, og kven som godkjende det. Dataa må halde
@@ -357,7 +345,7 @@ vidare. Avgjerdene står i [docs/adr](../adr), arbeidsmåtane i
   prøvefiler, med steg tilbake gjennom inverse attributt.
 - **Utvidingar, ikkje nye versjonar av API-a.** BCF-saker med `bim_snippet`,
   metadataa og versjonane i Documents API og kapabilitetsdokumentet ber det
-  3.0.0 legg til, skildra av ein eigen OpenAPI.
+  serien legg til, skildra av ein eigen OpenAPI.
 - **Kollisjonskontroll begge stader**: på serveren med IfcClash frå IfcOpenShell
   og i Dataspatium med den eigne kjernen i JavaScript.
 - **Administrasjon av eit prosjekt av prosjektleiaren**, som ikkje treng vere

@@ -24,7 +24,7 @@ is not tied to any one application.
 - [Kontroll and Dataspatium](#kontroll-and-dataspatium)
 - [Learn more](#learn-more)
 - [Limitations in brief](#limitations-in-brief)
-- [Toward 3.0.0](#toward-300)
+- [Next in the 3 series](#next-in-the-3-series)
 - [Bugs and suggestions](#bugs-and-suggestions)
 - [Development](#development)
 - [Licence](#licence)
@@ -131,7 +131,10 @@ password, and nothing is open until it is configured.
   extensions are on, a stable `code` in every error body, a request log for
   debugging clients (`/admin/requests`, `GET /admin/api/requests` with the
   `admin` scope), and the IFC-LPG module that turns uploaded IFC models into
-  graph data linked to BCF components.
+  graph data linked to BCF components. Since 3.0.0 the graph is lossless and
+  can be written back as a file, every upload is checked against the IFC
+  schema, buildingSMART's rules and the project's IDS, and members ask it
+  named queries.
 - **A client library** in Python ([client/](../../client/), LGPL) with runnable
   examples, and a Dockerfile, compose overlays and a published image for every
   deployment scenario.
@@ -184,7 +187,7 @@ who build a client.
 Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
 (a data app that runs entirely in the browser) are developed to work together
 as server and client, and the same release number on both means they work
-together: Dataspatium 2.0.0 works with Kontroll 2.0.0 ([quick start](../quickstart.md)).
+together: Dataspatium 3.0.0 works with Kontroll 3.0.0 ([quick start](../quickstart.md)).
 Dataspatium adds a
 Kontroll server as a source: it discovers the APIs through
 `/foundation/versions`, signs in with OAuth2 authorization code and PKCE and
@@ -302,41 +305,27 @@ CONTRIBUTING are kept in English.
   [docs/security/pentest-howto.md](../security/pentest-howto.md) are the
   operator's steps before a production deployment.
 
-## Toward 3.0.0
+## Next in the 3 series
 
-3.0.0 is the next release, made with Dataspatium 3.0.0, and like every major
-number it will have one release, given out again as the series grows. It turns
-the IFC graph into a model that can be edited and versioned in the database,
+3.0.0 is the first release of the 3 series, made with Dataspatium 3.0.0: the
+IFC graph as a lossless model, the checks of every upload and the named
+queries, as [What you can do](#what-you-can-do) describes. Like every major
+number, the series has one release, given out again as it grows. What follows
+turns the graph into a model that can be edited and versioned in the database,
 with Dataspatium as the client that edits it and shows its versions. The
-official OpenCDE APIs stay as buildingSMART defines them; what 3.0.0 adds are
-extensions to them, under their own names. This section says what is built,
-what is decided and what is only proposed, for anyone, person or AI agent, who
-takes a part of it further. The decisions are in [docs/adr](../adr), the
-conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
+official OpenCDE APIs stay as buildingSMART defines them; what the series adds
+are extensions to them, under their own names. This section says what is
+decided and what is only proposed, for anyone, person or AI agent, who takes a
+part of it further. The decisions are in [docs/adr](../adr), the conventions in
+[CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
 [docs/ifc-lpg.md](../ifc-lpg.md).
-
-### Built on main, not released
-
-- **An IFC graph without loss.** An uploaded IFC file becomes a labelled
-  property graph that the same file can be written back from, with the same
-  instances, STEP ids, values and order, on Neo4j and Memgraph alike. The round
-  trip is the library [IFC-LPG](https://github.com/marwiss/IFC-LPG), which
-  Kontroll takes from a fixed commit (ADR 0009, 0010 and 0014).
-- **Every IFC upload is checked**, in the background and without holding it
-  back: against the IFC schema and its EXPRESS rules, against buildingSMART's
-  ifc-gherkin-rules where they are installed, and against the IDS documents of
-  its project (ADR 0011, 0012 and 0015).
-- **Named queries for members.** A member asks a version's model questions by
-  name through the Documents API: the number of elements of each class, the
-  storeys, the spaces and their areas, the materials of the elements, or the
-  value of a property. Free Cypher stays with administrators (ADR 0016).
 
 ### Decided
 
 - **Editing models in Native IFC.** Create is the upload and Read the named
-  queries above. Update is a change that a client proposes through the API,
-  checked before it is taken in. Delete removes chosen parts of the graph: an
-  entity, a building or a project. Export writes STEP back, as now.
+  queries, both in 3.0.0. Update is a change that a client proposes through the
+  API, checked before it is taken in. Delete removes chosen parts of the graph:
+  an entity, a building or a project. Export writes STEP back, as now.
 - **Version history in the database, not in git**, in the spirit of Bruno
   Postle's [ifcmerge](https://github.com/brunopostle/ifcmerge): what changed,
   who proposed it and who approved it. The data must keep to IFC, the
@@ -352,7 +341,7 @@ conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
   steps back through inverse attributes.
 - **Extensions, not new versions of the APIs.** BCF topics with `bim_snippet`,
   the Documents API's metadata and versions and the capabilities document carry
-  what 3.0.0 adds, described by their own OpenAPI.
+  what the series adds, described by their own OpenAPI.
 - **Clash detection in both places**: on the server with IfcOpenShell's
   IfcClash, and in Dataspatium with its own JavaScript core.
 - **Administration of a project by its manager**, who need not be a server
