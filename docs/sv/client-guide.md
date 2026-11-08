@@ -45,6 +45,7 @@ anpassar sig i stället för att prova sig fram:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -201,6 +202,11 @@ Dess metadata har då `ifc_validation_status` och, när den är
 kontrollerad, de andra `ifc_validation_*`-posterna; `ifc_validation_report` är
 adressen till rapporten, ett tillägg som svarar på samma token. Se
 [ifc-lpg.md](ifc-lpg.md#kontroll-av-uppladdningar-mot-ifc-schemat).
+
+En version som rymmer en IFC-modell kan också få namngivna frågor, som dess
+våningar, rummens area eller en egenskaps värde. Det är ett tillägg som svarar
+på samma token och som kapabilitetsdokumentet annonserar i `ifc_queries`. Se
+[ifc-lpg.md](ifc-lpg.md#namngivna-frågor).
 
 ## 5. Korrelera din logg med serverns
 

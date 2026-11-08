@@ -327,16 +327,18 @@ lagt til, fyrir þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af
   IFC-skemanu og EXPRESS-reglum þess, gegn ifc-gherkin-rules frá buildingSMART
   þar sem þær eru settar upp, og gegn IDS-skjölum verkefnisins (ADR 0011, 0012
   og 0015).
+- **Nefndar fyrirspurnir fyrir meðlimi.** Meðlimur spyr líkan útgáfu spurninga
+  eftir nafni gegnum Documents API: fjöldi eininga af hverjum flokki, hæðirnar,
+  rýmin og flatarmál þeirra, efni eininganna eða gildi eiginleika. Frjáls
+  Cypher er áfram hjá stjórnendum (ADR 0016).
 
 ### Ákveðið
 
-- **Breytingar á líkönum í Native IFC.** Create er upphalið. Read er
-  spurningar gegnum forritaskilin, svo sem fjöldi herbergja, flatarmál byggingar
-  eða efni veggjar: nefndar fyrirspurnir með færibreytum fyrir meðlimi, og frjáls
-  Cypher aðeins fyrir stjórnendur. Update er breyting sem biðlari leggur til
-  gegnum forritaskilin og er prófuð áður en hún er tekin inn. Delete fjarlægir
-  valda hluta grafsins: einingu, byggingu eða verkefni. Export skrifar STEP til
-  baka, eins og nú.
+- **Breytingar á líkönum í Native IFC.** Create er upphalið og Read nefndu
+  fyrirspurnirnar hér að ofan. Update er breyting sem biðlari leggur til gegnum
+  forritaskilin og er prófuð áður en hún er tekin inn. Delete fjarlægir valda
+  hluta grafsins: einingu, byggingu eða verkefni. Export skrifar STEP til baka,
+  eins og nú.
 - **Útgáfusaga í gagnagrunninum, ekki í git**, í anda
   [ifcmerge](https://github.com/brunopostle/ifcmerge) eftir Bruno Postle: hvað
   breyttist, hver lagði það til og hver samþykkti það. Gögnin verða að fylgja

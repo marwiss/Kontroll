@@ -326,15 +326,17 @@ conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
   back: against the IFC schema and its EXPRESS rules, against buildingSMART's
   ifc-gherkin-rules where they are installed, and against the IDS documents of
   its project (ADR 0011, 0012 and 0015).
+- **Named queries for members.** A member asks a version's model questions by
+  name through the Documents API: the number of elements of each class, the
+  storeys, the spaces and their areas, the materials of the elements, or the
+  value of a property. Free Cypher stays with administrators (ADR 0016).
 
 ### Decided
 
-- **Editing models in Native IFC.** Create is the upload. Read is questions
-  through the API, such as the number of rooms, a building's area or a wall's
-  material: named queries with parameters for members, and free Cypher for
-  administrators only. Update is a change that a client proposes through the
-  API, checked before it is taken in. Delete removes chosen parts of the graph:
-  an entity, a building or a project. Export writes STEP back, as now.
+- **Editing models in Native IFC.** Create is the upload and Read the named
+  queries above. Update is a change that a client proposes through the API,
+  checked before it is taken in. Delete removes chosen parts of the graph: an
+  entity, a building or a project. Export writes STEP back, as now.
 - **Version history in the database, not in git**, in the spirit of Bruno
   Postle's [ifcmerge](https://github.com/brunopostle/ifcmerge): what changed,
   who proposed it and who approved it. The data must keep to IFC, the

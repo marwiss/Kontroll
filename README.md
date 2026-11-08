@@ -329,13 +329,15 @@ IFC-grafen i [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
   tillbaka: mot IFC-schemat och dess EXPRESS-regler, mot buildingSMARTs
   ifc-gherkin-rules där de är installerade, och mot projektets IDS-dokument
   (ADR 0011, 0012 och 0015).
+- **Namngivna frågor för medlemmar.** En medlem ställer frågor till en versions
+  modell med namn genom Documents API: antalet element av varje klass,
+  våningarna, rummen och deras area, elementens material eller en egenskaps
+  värde. Fri Cypher förblir administratörernas (ADR 0016).
 
 ### Beslutat
 
-- **Redigering av modeller i Native IFC.** Create är uppladdningen. Read är
-  frågor genom API:et, som antalet rum, en byggnads area eller en väggs
-  material: namngivna frågor med parametrar för medlemmar, och fri Cypher bara
-  för administratörer. Update är en ändring som en klient föreslår genom
+- **Redigering av modeller i Native IFC.** Create är uppladdningen och Read de
+  namngivna frågorna ovan. Update är en ändring som en klient föreslår genom
   API:et och som prövas innan den förs in. Delete tar bort valda delar av
   grafen: en entitet, en byggnad eller ett projekt. Export skriver STEP
   tillbaka, som nu.

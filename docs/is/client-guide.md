@@ -46,6 +46,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -199,6 +200,11 @@ buildingSMART. Lýsigögn hennar hafa þá `ifc_validation_status` og, þegar
 hún hefur verið prófuð, hinar `ifc_validation_*`-færslurnar;
 `ifc_validation_report` er slóð skýrslunnar, viðbót sem svarar sama tóka. Sjá
 [ifc-lpg.md](ifc-lpg.md#prófun-upphalaðra-skráa-gagnvart-ifc-skemanu).
+
+Útgáfu sem geymir IFC-líkan má líka spyrja nefndra fyrirspurna, svo sem um
+hæðir hennar, flatarmál rýma eða gildi eiginleika. Það er viðbót sem svarar
+sama tóka og getuskjalið kynnir í `ifc_queries`. Sjá
+[ifc-lpg.md](ifc-lpg.md#nefndar-fyrirspurnir).
 
 ## 5. Að tengja atvikaskrá þína við þjónsins
 

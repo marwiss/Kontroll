@@ -45,6 +45,7 @@ en klient tilpasser seg i stedet for å prøve seg fram:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -199,6 +200,11 @@ Metadataene har da `ifc_validation_status` og, når den er
 kontrollert, de andre `ifc_validation_*`-postene; `ifc_validation_report` er
 adressen til rapporten, en utvidelse som svarer på samme token. Se
 [ifc-lpg.md](ifc-lpg.md#kontroll-av-opplastinger-mot-ifc-skjemaet).
+
+En versjon som rommer en IFC-modell, kan også få navngitte spørringer, som
+etasjene, arealet av rommene eller verdien av en egenskap. Det er en utvidelse
+som svarer på det samme tokenet, og som kapabilitetsdokumentet kunngjør i
+`ifc_queries`. Se [ifc-lpg.md](ifc-lpg.md#navngitte-spørringer).
 
 ## 5. Korrelere loggen din med serverens
 

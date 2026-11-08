@@ -345,6 +345,46 @@ BCF-þjónustan `files_information` sýnir `IfcProject`-guid innfluttra líkana
 sem `ifc_project`, sem gerir biðlurum kleift að fylla inn skrárnar í haus
 málsins.
 
+## Nefndar fyrirspurnir
+
+Meðlimur verkefnis spyr líkan útgáfu spurninga eftir nafni, með sama
+bearer-tóka og fyrir Documents API; frjáls Cypher er áfram hjá stjórnendum
+([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` telur
+upp fyrirspurnirnar með færibreytum og dálkum og segir í `model_state` hve
+langt umbreyting líkansins er komin. `GET …/ifc-queries/{name}` ber eina
+fram, með færibreyturnar í fyrirspurnarstrengnum, og svarar með dálkunum og
+röðunum, hver röð listi í röð dálkanna:
+
+```http
+GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&property=GTIN
+```
+
+```json
+{"name": "property", "columns": ["global_id", "class", "name", "value", "type"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "3", "IFCLABEL"]],
+ "truncated": false}
+```
+
+| Fyrirspurn | Færibreytur | Hverju hún svarar |
+|---|---|---|
+| `element-classes` | | Hve margar einingar líkanið hefur af hverjum flokki |
+| `elements` | `class` | Einingar flokks, með rýmisskipaninni sem hver er í |
+| `storeys` | | Hæðirnar, hæðarkóti þeirra og hve margar einingar og rými hver hefur |
+| `spaces` | | Rýmin, hæð þeirra og nettó- og brúttógólfflötur þeirra |
+| `areas` | | Nettógólfflötur rýma hverrar hæðar, lagður saman |
+| `materials` | `class` | Efni hverrar einingar: eigið, eða laga hennar, lista eða efnisþátta |
+| `property` | `pset`, `property`, `class` | Gildi eins eiginleika á hverjum hlut sem hefur hann, með IFC-gerð hans |
+
+`class` nefnir IFC-flokk, svo sem `IfcWall`, og tekur undirflokka hans með:
+áskilin fyrir `elements`, valfrjáls fyrir hinar. Svar hefur mest 10.000 raðir,
+og `truncated` segir þegar þær voru fleiri; fyrirspurn er stöðvuð eftir 10
+sekúndur. Hver fyrirspurn hefst hjá meðlimnum og nær líkaninu gegnum
+verkefnið, les aðeins og tekur gildi sín sem færibreytur. Útgáfa án líkans,
+eða sem notandinn má ekki sjá, svarar 404, og útgáfa þar sem enn er verið að
+umbreyta líkaninu svarar 409. Getuskjalið kynnir fyrirspurnirnar í
+`ifc_queries`.
+
 ## Fyrirspurnir frá Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), vafrabiðlarinn sem er

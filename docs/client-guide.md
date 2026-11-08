@@ -45,6 +45,7 @@ of probing:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -194,6 +195,11 @@ ifc-gherkin-rules. Its metadata then carries `ifc_validation_status` and,
 once checked, the other `ifc_validation_*` entries; `ifc_validation_report` is
 the address of the report, an extension that answers to the same token. See
 [ifc-lpg.md](ifc-lpg.md#checking-uploads-against-the-ifc-schema).
+
+A version that holds an IFC model can also be asked named queries, such as its
+storeys, the areas of its spaces or the value of a property: an extension that
+answers to the same token, and that the capabilities document announces in
+`ifc_queries`. See [ifc-lpg.md](ifc-lpg.md#named-queries).
 
 ## 5. Correlating your log with the server's
 
