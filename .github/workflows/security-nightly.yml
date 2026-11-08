@@ -26,11 +26,14 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
-      - run: uv sync
+      # The IFC-LPG module and buildingSMART's rules too, as the integration job runs them on Neo4j.
+      - run: uv sync --extra ifc-lpg
+      - run: uv run python -m ifc_lpg.gherkin_install "$RUNNER_TEMP/gherkin"
       - run: uv run pytest -q -m "integration or e2e"
         env:
           OPENCDE_TEST_MEMGRAPH: "1"
           OPENCDE_SCHEMATHESIS_EXAMPLES: "50"
+          OPENCDE_TEST_GHERKIN_ENV: ${{ runner.temp }}/gherkin
 
   zap-signed-in:
     name: OWASP ZAP signed in (API and administration)
