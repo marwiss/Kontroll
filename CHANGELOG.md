@@ -8,19 +8,13 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## Unreleased
+## 3.0.0 — 2026-11-08
 
-Toward 3.0.0, with Dataspatium.
+The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
+and the IDS documents of its project, named queries for members, and IFC-LPG as a library. Works
+with Dataspatium 3.0.0.
 
-- As in 2.0.0, a server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
-  without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
-  The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
-  API that is not offered answers 404. All three are offered by default.
-- The IFC-graph module is now IFC-LPG, as in 2.0.0: its settings are `OPENCDE_IFC_LPG_*`, its command
-  `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
-  `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, and the log and `opencde doctor` name the old
-  settings a server is given. The administration API and the capabilities document keep their keys, except that
-  `raw` in `GET /admin/api/settings` names the settings by their new names.
 - An IFC model can be written back from the graph as a file that holds the same model, on Neo4j and on Memgraph:
   `opencde ifc-lpg export <model id> model.ifc`, with `--verify` to compare it with the upload. See
   [docs/ifc-lpg.md](docs/ifc-lpg.md).

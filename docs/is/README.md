@@ -24,7 +24,7 @@ bundinn við eitt tiltekið forrit.
 - [Kontroll og Dataspatium](#kontroll-og-dataspatium)
 - [Lærðu meira](#lærðu-meira)
 - [Takmarkanir í stuttu máli](#takmarkanir-í-stuttu-máli)
-- [Í átt að 3.0.0](#í-átt-að-300)
+- [Næst í 3-röðinni](#næst-í-3-röðinni)
 - [Villur og tillögur](#villur-og-tillögur)
 - [Þróun](#þróun)
 - [Leyfi](#leyfi)
@@ -133,7 +133,9 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   stöðugur `code` í hverju villusvari, beiðnaskrá til villuleitar í biðlurum
   (`/admin/requests`, `GET /admin/api/requests` með heimildinni `admin`) og
   IFC-LPG-einingin sem breytir upphöluðum IFC-líkönum í grafgögn tengd
-  BCF-einingum.
+  BCF-einingum. Frá 3.0.0 er grafið taplaust og hægt að skrifa það til baka
+  sem skrá, hvert upphal er prófað gegn IFC-skemanu, reglum buildingSMART og
+  IDS verkefnisins, og meðlimir spyrja það nefndra fyrirspurna.
 - **Biðlarasafn** í Python ([client/](../../client/), LGPL) með keyranlegum
   dæmum, auk Dockerfile, compose-yfirlaga og útgefinnar myndar fyrir hverja
   rekstraraðstæðu.
@@ -185,7 +187,7 @@ segðu frá hvernig gekk undir [Villur og tillögur](#villur-og-tillögur). Þeg
 Kontroll (þjónninn) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (gagnaforrit sem keyrir alfarið í vafranum) eru þróuð til að vinna saman sem
 þjónn og biðlari, og sama útgáfunúmer á báðum þýðir að þau vinna saman:
-Dataspatium 2.0.0 vinnur með Kontroll 2.0.0 ([fljótleg byrjun](quickstart.md)).
+Dataspatium 3.0.0 vinnur með Kontroll 3.0.0 ([fljótleg byrjun](quickstart.md)).
 Dataspatium bætir Kontroll-þjóni
 við sem uppsprettu: forritið uppgötvar forritaskilin um `/foundation/versions`,
 skráir sig inn með OAuth2 authorization code og PKCE og skráir sig sjálft sem
@@ -302,43 +304,29 @@ arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru h�
   [docs/is/security/pentest-howto.md](security/pentest-howto.md) eru skref
   rekstraraðilans fyrir uppsetningu í rekstur.
 
-## Í átt að 3.0.0
+## Næst í 3-röðinni
 
-3.0.0 er næsta útgáfa, gerð með Dataspatium 3.0.0, og eins og hvert aðalnúmer
-fær hún eina útgáfu, sem er gefin út aftur eftir því sem röðin vex. Hún gerir
-IFC-grafið að líkani sem hægt er að breyta og halda útgáfusögu fyrir í
+3.0.0 er fyrsta útgáfa 3-raðarinnar, gerð með Dataspatium 3.0.0: IFC-grafið
+sem taplaust líkan, prófun hvers upphals og nefndu fyrirspurnirnar, eins og
+[Hvað þú getur gert](#hvað-þú-getur-gert) lýsir. Eins og hvert aðalnúmer hefur
+röðin eina útgáfu, sem er gefin út aftur eftir því sem hún vex. Það sem fylgir
+gerir grafið að líkani sem hægt er að breyta og halda útgáfusögu fyrir í
 gagnagrunninum, með Dataspatium sem biðlarann sem breytir því og sýnir
 útgáfurnar. Opinberu OpenCDE-forritaskilin haldast eins og buildingSMART
-skilgreinir þau; það sem 3.0.0 bætir við eru viðbætur við þau undir eigin
-heitum. Þessi hluti segir hvað er smíðað, hvað er ákveðið og hvað er aðeins
-lagt til, fyrir þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af
-því lengra. Ákvarðanirnar eru í [docs/adr](../adr), vinnureglurnar í
+skilgreinir þau; það sem röðin bætir við eru viðbætur við þau undir eigin
+heitum. Þessi hluti segir hvað er ákveðið og hvað er aðeins lagt til, fyrir
+þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af því lengra.
+Ákvarðanirnar eru í [docs/adr](../adr), vinnureglurnar í
 [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafið í
 [docs/is/ifc-lpg.md](ifc-lpg.md).
-
-### Smíðað á main, ekki gefið út
-
-- **IFC-graf án taps.** Upphlaðin IFC-skrá verður graf með merkjum og eigindum
-  sem hægt er að skrifa sömu skrá til baka úr, með sömu tilvikum,
-  STEP-auðkennum, gildum og röð, í Neo4j og Memgraph. Hringferðin er safnið
-  [IFC-LPG](https://github.com/marwiss/IFC-LPG), sem Kontroll sækir úr fastri
-  útgáfu (commit) (ADR 0009, 0010 og 0014).
-- **Hvert IFC-upphal er prófað** í bakgrunni án þess að halda því aftur: gegn
-  IFC-skemanu og EXPRESS-reglum þess, gegn ifc-gherkin-rules frá buildingSMART
-  þar sem þær eru settar upp, og gegn IDS-skjölum verkefnisins (ADR 0011, 0012
-  og 0015).
-- **Nefndar fyrirspurnir fyrir meðlimi.** Meðlimur spyr líkan útgáfu spurninga
-  eftir nafni gegnum Documents API: fjöldi eininga af hverjum flokki, hæðirnar,
-  rýmin og flatarmál þeirra, efni eininganna eða gildi eiginleika. Frjáls
-  Cypher er áfram hjá stjórnendum (ADR 0016).
 
 ### Ákveðið
 
 - **Breytingar á líkönum í Native IFC.** Create er upphalið og Read nefndu
-  fyrirspurnirnar hér að ofan. Update er breyting sem biðlari leggur til gegnum
-  forritaskilin og er prófuð áður en hún er tekin inn. Delete fjarlægir valda
-  hluta grafsins: einingu, byggingu eða verkefni. Export skrifar STEP til baka,
-  eins og nú.
+  fyrirspurnirnar, hvort tveggja í 3.0.0. Update er breyting sem biðlari leggur
+  til gegnum forritaskilin og er prófuð áður en hún er tekin inn. Delete
+  fjarlægir valda hluta grafsins: einingu, byggingu eða verkefni. Export
+  skrifar STEP til baka, eins og nú.
 - **Útgáfusaga í gagnagrunninum, ekki í git**, í anda
   [ifcmerge](https://github.com/brunopostle/ifcmerge) eftir Bruno Postle: hvað
   breyttist, hver lagði það til og hver samþykkti það. Gögnin verða að fylgja
@@ -354,7 +342,7 @@ lagt til, fyrir þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af
   prósenta tilvikanna í 28 prófunarskrám, með skrefum til baka gegnum andhverfar
   eigindir.
 - **Viðbætur, ekki nýjar útgáfur forritaskilanna.** BCF-mál með `bim_snippet`,
-  lýsigögn og útgáfur Documents API og getuskjalið bera það sem 3.0.0 bætir við,
+  lýsigögn og útgáfur Documents API og getuskjalið bera það sem röðin bætir við,
   lýst með eigin OpenAPI.
 - **Árekstrarprófun á báðum stöðum**: á þjóninum með IfcClash frá IfcOpenShell
   og í Dataspatium með eigin kjarna í JavaScript.
