@@ -17,6 +17,7 @@ from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import Session
 from tests.integration.test_ifc_validation import settings_for, upload
+from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = pytest.mark.integration
 pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
@@ -65,6 +66,7 @@ def test_a_member_asks_the_walls_their_classes_storey_materials_and_gtin(
 ) -> None:
     client, world = query_client
     editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")  # the upload page asks for a browser session
     walls = upload(client, world, editor, "three_walls_gtin.ifc", (FIXTURES_DIR / "three_walls_gtin.ifc").read_bytes())
     listed = converted(client, editor, walls)
     assert listed["model_state"] == "done" and [query["name"] for query in listed["queries"]] == list(QUERIES)
@@ -87,6 +89,7 @@ def test_a_member_asks_the_walls_their_classes_storey_materials_and_gtin(
 def test_spaces_and_the_area_of_their_storey(query_client: tuple[TestClient, World]) -> None:
     client, world = query_client
     editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")  # the upload page asks for a browser session
     model = upload(client, world, editor, "two_spaces.ifc", (FIXTURES_DIR / "two_spaces.ifc").read_bytes())
     assert converted(client, editor, model)["model_state"] == "done"
 
@@ -103,6 +106,7 @@ def test_spaces_and_the_area_of_their_storey(query_client: tuple[TestClient, Wor
 def test_only_a_member_may_ask_and_only_what_is_named(query_client: tuple[TestClient, World]) -> None:
     client, world = query_client
     editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")  # the upload page asks for a browser session
     walls = upload(client, world, editor, "three_walls_gtin.ifc", (FIXTURES_DIR / "three_walls_gtin.ifc").read_bytes())
     notes = upload(client, world, editor, "notes.txt", b"not a model")
     converted(client, editor, walls)
