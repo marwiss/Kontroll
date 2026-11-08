@@ -169,11 +169,11 @@ format = "ruff format ."
 typecheck = "ty check opencde client/opencde_client"
 test = "pytest"
 ui = "pytest -m ui"  # needs `uv sync --group ui` and `uv run playwright install chromium`
-security = ["lint", "_bandit", "_audit", "_audit_gherkin"]
+security = ["lint", "_bandit", "_audit", "audit-gherkin"]
 _bandit = "bandit -q -r opencde client/opencde_client -c pyproject.toml"
 _audit = "pip-audit --skip-editable"  # our own workspace packages are not on PyPI
 # The rules' own environment, from the requirements that come with IFC-LPG.
-_audit_gherkin = { cmd = "pip-audit -r \"${GHERKIN_REQUIREMENTS}\" --disable-pip", uses = { GHERKIN_REQUIREMENTS = "_gherkin_requirements" } }
+audit-gherkin = { help = "pip-audit the environment of buildingSMART's rules", cmd = "pip-audit -r \"${GHERKIN_REQUIREMENTS}\" --disable-pip", uses = { GHERKIN_REQUIREMENTS = "_gherkin_requirements" } }
 _gherkin_requirements = { expr = "(ifc_lpg.gherkin_install.HERE / 'gherkin-requirements.txt').as_posix()", imports = ["ifc_lpg", "ifc_lpg.gherkin_install"] }
 
 [tool.bandit]
