@@ -21,7 +21,14 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert body["bcf_versions"] == ["3.0", "2.1"]
     assert body["scopes"] == ["profile", "bcf", "documents", "admin"]
     extensions = body["extensions"]
-    assert set(extensions) == {"dynamic_client_registration", "request_log", "admin_api", "ifcgraph", "graph_query"}
+    assert set(extensions) == {
+        "dynamic_client_registration",
+        "request_log",
+        "admin_api",
+        "ifcgraph",
+        "ifc_queries",
+        "graph_query",
+    }
     assert extensions["dynamic_client_registration"] == {
         "enabled": False,
         "public_clients": True,
@@ -33,6 +40,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["request_log"] == {"enabled": False, "retention_hours": 72, "url": "/admin/api/requests"}
     assert extensions["admin_api"] == {"enabled": True, "version": 1, "url": "/admin/api", "scope": "admin"}
     assert extensions["ifcgraph"] == {"enabled": False, "bolt": None}
+    assert extensions["ifc_queries"] == {"enabled": False}, "the queries need the IFC-LPG module"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0
@@ -78,3 +86,20 @@ def test_the_graph_query_is_announced_with_its_limits_when_on(tmp_path: Path) ->
         }
         refused = client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"})
         assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
+
+
+def test_the_named_queries_are_announced_with_the_module(tmp_path: Path) -> None:
+    from opencde.ifcgraph.queries import MAX_ROWS, QUERIES
+
+    with TestClient(create_app(make_settings(tmp_path, ifcgraph_enabled=True), startup_wait_seconds=0)) as client:
+        announced = client.get("/.well-known/kontroll").json()["extensions"]["ifc_queries"]
+        assert announced == {
+            "enabled": True,
+            "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries",
+            "names": list(QUERIES),
+            "max_rows": MAX_ROWS,
+        }
+        refused = client.get(f"/documents/1.0/documents/{'0' * 32}/versions/1/ifc-queries")
+        assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
+    with TestClient(create_app(make_settings(tmp_path, apis=["bcf-2.1"]), startup_wait_seconds=0)) as client:
+        assert client.get("/.well-known/kontroll").json()["extensions"]["ifc_queries"] == {"enabled": False}
