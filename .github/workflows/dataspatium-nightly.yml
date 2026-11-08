@@ -20,7 +20,7 @@ env:
   UV_FROZEN: "1"
   # The Dataspatium release that pairs with this Kontroll: the same number (README, "Kontroll and Dataspatium").
   # By commit, because a release's tag goes away when the next release of its major number is out.
-  DATASPATIUM_REF: 205e5c92c9e305d98c9da62ddfdf5caf8ec9fa18 # v2.0.0
+  DATASPATIUM_REF: 008cc34d138fea2fc66a07cfebbc868b2d6841ff # v3.0.0
   # Demo data only; the database lives for this job.
   SEED_PASSWORD: demo-password-for-ci-only
 
