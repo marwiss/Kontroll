@@ -37,7 +37,7 @@ integration tests on Neo4j and Memgraph.
 
 **pip-audit audits what it can.** It cannot audit a package that is not on PyPI, and lists `ifc-lpg` as skipped. The
 packages IFC-LPG brings are Kontroll's dependencies and are audited as such. The requirements of buildingSMART's rules
-come with IFC-LPG and are audited from where it is installed (`poe _audit_gherkin`).
+come with IFC-LPG and are audited from where it is installed (`poe audit-gherkin`).
 
 ## Consequences
 
