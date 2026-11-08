@@ -354,6 +354,46 @@ BCF-tjänsten `files_information` visar importerade modellers
 `IfcProject`-guid som `ifc_project`, vilket låter klienter fylla i filerna i
 ärendets huvud.
 
+## Namngivna frågor
+
+En medlem i ett projekt ställer frågor till en versions modell med namn, med
+samma bearer-token som för Documents API; fri Cypher förblir administratörernas
+([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` listar
+frågorna med deras parametrar och kolumner och säger i `model_state` hur långt
+konverteringen av modellen har kommit. `GET …/ifc-queries/{name}` ställer en
+fråga, med parametrarna i frågesträngen, och svarar med kolumnerna och raderna,
+varje rad en lista i kolumnernas ordning:
+
+```http
+GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&property=GTIN
+```
+
+```json
+{"name": "property", "columns": ["global_id", "class", "name", "value", "type"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "3", "IFCLABEL"]],
+ "truncated": false}
+```
+
+| Fråga | Parametrar | Vad den svarar på |
+|---|---|---|
+| `element-classes` | | Hur många element modellen har av varje klass |
+| `elements` | `class` | Elementen av en klass, med den rumsliga struktur som innehåller vart och ett |
+| `storeys` | | Våningarna, deras nivå och hur många element och rum var och en rymmer |
+| `spaces` | | Rummen, deras våning och deras netto- och bruttogolvarea |
+| `areas` | | Nettogolvarean för varje vånings rum, summerad |
+| `materials` | `class` | Varje elements material: ett eget, eller dess skikts, listas eller beståndsdelars |
+| `property` | `pset`, `property`, `class` | Värdet av en egenskap på varje objekt som har den, med dess IFC-typ |
+
+`class` namnger en IFC-klass, till exempel `IfcWall`, och tar med sig dess
+underklasser: obligatorisk för `elements`, valfri för de andra. Ett svar rymmer
+högst 10 000 rader, och `truncated` säger när det fanns fler; en fråga avbryts
+efter 10 sekunder. Varje fråga börjar vid medlemmen och når modellen genom
+projektet, läser bara och tar sina värden som parametrar. En version utan
+modell, eller en som användaren inte får se, svarar 404, och en vars modell
+fortfarande konverteras svarar 409. Kapabilitetsdokumentet annonserar frågorna
+i `ifc_queries`.
+
 ## Fråga från Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), webbläsarklienten som

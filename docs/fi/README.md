@@ -344,13 +344,15 @@ sivulla [docs/fi/ifc-lpg.md](ifc-lpg.md).
   IFC-skeemaa ja sen EXPRESS-sääntöjä vasten, buildingSMARTin
   ifc-gherkin-rules-sääntöjä vasten, kun ne on asennettu, ja projektin
   IDS-asiakirjoja vasten (ADR 0011, 0012 ja 0015).
+- **Nimetyt kyselyt jäsenille.** Jäsen esittää version mallille kysymyksiä
+  nimeltä Documents API:n kautta: elementtien määrä luokittain, kerrokset, tilat
+  ja niiden pinta-alat, elementtien materiaalit tai ominaisuuden arvo. Vapaa
+  Cypher jää ylläpitäjille (ADR 0016).
 
 ### Päätetty
 
-- **Mallien muokkaus Native IFC:nä.** Create on lähetys. Read on kysymyksiä
-  rajapinnan kautta, kuten huoneiden määrä, rakennuksen pinta-ala tai seinän
-  materiaali: nimettyjä kyselyitä parametrein jäsenille ja vapaa Cypher vain
-  ylläpitäjille. Update on muutos, jonka asiakas ehdottaa rajapinnan kautta ja
+- **Mallien muokkaus Native IFC:nä.** Create on lähetys ja Read yllä olevat
+  nimetyt kyselyt. Update on muutos, jonka asiakas ehdottaa rajapinnan kautta ja
   joka tarkistetaan ennen kuin se otetaan mukaan. Delete poistaa valittuja
   graafin osia: entiteetin, rakennuksen tai projektin. Export kirjoittaa STEPin
   takaisin kuten nyt.

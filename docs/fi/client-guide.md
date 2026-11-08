@@ -47,6 +47,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -208,6 +209,11 @@ vasten. Sen metatiedoissa on silloin `ifc_validation_status` ja
 tarkistuksen jälkeen muut `ifc_validation_*`-kohdat; `ifc_validation_report` on
 raportin osoite, laajennus, joka vastaa samalle tunnisteelle. Katso
 [ifc-lpg.md](ifc-lpg.md#lähetysten-tarkistus-ifc-skeemaa-vasten).
+
+IFC-mallin sisältävältä versiolta voi myös kysyä nimettyjä kyselyitä, kuten sen
+kerrokset, tilojen pinta-alat tai ominaisuuden arvon. Se on laajennus, joka
+vastaa samalle tunnisteelle ja jonka ominaisuusdokumentti ilmoittaa kentässä
+`ifc_queries`. Katso [ifc-lpg.md](ifc-lpg.md#nimetyt-kyselyt).
 
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 

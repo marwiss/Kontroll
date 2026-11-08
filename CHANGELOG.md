@@ -50,6 +50,12 @@ Toward 3.0.0, with Dataspatium.
   error, with its document in `document_id`. The check `ids` lists the documents used and every specification with
   its verdict, and the version's page shows them in a table. An IDS that cannot be read, such as one with a DTD, is
   listed under `rules_not_run`. See [ADR 0015](docs/adr/0015-uploads-are-checked-against-the-projects-ids-documents.md).
+- A member of a project can ask a version's IFC graph named queries, through an extension of the Documents
+  API: `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` lists them and `…/ifc-queries/{name}`
+  asks one, with its parameters in the query string. The seven are `element-classes`, `elements`, `storeys`,
+  `spaces`, `areas`, `materials` and `property`. An answer has columns and rows, at most 10,000, and the
+  capabilities document announces the queries in `ifc_queries`. See
+  [ADR 0016](docs/adr/0016-members-ask-the-ifc-graph-named-queries.md).
 - `python -m ifc_lpg.equivalence first.ifc second.ifc` says whether two IFC files hold the same model.
 - `GET /admin/api/settings` has `ifcgraph.lossless` and `ifcgraph.validate_uploads`.
 - The round trip and the checks of the IFC-LPG module are the library [IFC-LPG](https://github.com/marwiss/IFC-LPG),

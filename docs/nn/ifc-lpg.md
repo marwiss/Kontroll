@@ -354,6 +354,46 @@ BCF-tenesta `files_information` viser `IfcProject`-guid-en til importerte
 modellar som `ifc_project`, som lèt klientar fylle inn filene i hovudet til
 saka.
 
+## Namngjevne spørjingar
+
+Eit medlem av eit prosjekt stiller spørsmål til modellen i ein versjon ved
+namn, med det same bearer-tokenet som for Documents API; fri Cypher blir
+verande hos administratorane ([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` viser
+spørjingane med parametrar og kolonnar og seier i `model_state` kor langt
+konverteringa av modellen har kome. `GET …/ifc-queries/{name}` stiller éi,
+med parametrane i spørjestrengen, og svarar med kolonnane og radene, kvar rad
+ei liste i rekkjefølgja til kolonnane:
+
+```http
+GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&property=GTIN
+```
+
+```json
+{"name": "property", "columns": ["global_id", "class", "name", "value", "type"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "3", "IFCLABEL"]],
+ "truncated": false}
+```
+
+| Spørjing | Parametrar | Kva ho svarar på |
+|---|---|---|
+| `element-classes` | | Kor mange element modellen har av kvar klasse |
+| `elements` | `class` | Elementa av ein klasse, med den romlege strukturen som inneheld kvart |
+| `storeys` | | Etasjane, nivået deira og kor mange element og rom kvar rommar |
+| `spaces` | | Romma, etasjen deira og netto- og bruttogolvarealet deira |
+| `areas` | | Nettogolvarealet til romma i kvar etasje, lagt saman |
+| `materials` | `class` | Materiala til kvart element: eit eige, eller laga, lista eller bestanddelane sine |
+| `property` | `pset`, `property`, `class` | Verdien av éin eigenskap på kvart objekt som har han, med IFC-typen |
+
+`class` namngjev ein IFC-klasse, til dømes `IfcWall`, og tek med seg
+underklassane: påkravd for `elements`, valfri for dei andre. Eit svar rommar
+høgst 10 000 rader, og `truncated` seier når det var fleire; ei spørjing blir
+stoppa etter 10 sekund. Kvar spørjing byrjar ved medlemmen og når modellen
+gjennom prosjektet, les berre og tek verdiane sine som parametrar. Ein versjon
+utan modell, eller ein som brukaren ikkje får sjå, svarar 404, og ein der
+modellen framleis blir konvertert, svarar 409. Kapabilitetsdokumentet kunngjer
+spørjingane i `ifc_queries`.
+
 ## Spørjingar frå Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), nettlesarklienten som

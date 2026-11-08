@@ -347,6 +347,46 @@ RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 The BCF `files_information` service shows the `IfcProject` guid of imported
 models as `ifc_project`, which lets clients fill in the topic header's files.
 
+## Named queries
+
+A member of a project asks a version's model questions by name, with the same
+bearer token as the Documents API; free Cypher stays with administrators
+([ADR 0016](adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` lists the
+queries with their parameters and columns, and says in `model_state` how far
+the model's conversion has come. `GET …/ifc-queries/{name}` asks one, with its
+parameters in the query string, and answers with the columns and the rows, each
+row a list in the order of the columns:
+
+```http
+GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&property=GTIN
+```
+
+```json
+{"name": "property", "columns": ["global_id", "class", "name", "value", "type"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "3", "IFCLABEL"]],
+ "truncated": false}
+```
+
+| Query | Parameters | What it answers |
+|---|---|---|
+| `element-classes` | | How many elements the model has of each class |
+| `elements` | `class` | The elements of a class, with the spatial structure that contains each |
+| `storeys` | | The storeys, their elevation, and how many elements and spaces each holds |
+| `spaces` | | The spaces, their storey, and their net and gross floor areas |
+| `areas` | | The net floor area of each storey's spaces, added up |
+| `materials` | `class` | The materials of each element: its own, or those of its layers, list or constituents |
+| `property` | `pset`, `property`, `class` | The value of one property on every object that has it, with its IFC type |
+
+`class` names an IFC class, such as `IfcWall`, and takes its subclasses with
+it: required for `elements`, optional for the others. An answer holds at most
+10,000 rows, and `truncated` says when there were more; a query stops after 10
+seconds. Every query starts at the member and reaches the model through the
+project, only reads, and takes its values as parameters. A version without a
+model, or one the user may not see, answers 404, and one whose model is still
+being converted answers 409. The capabilities document announces the queries in
+`ifc_queries`.
+
 ## Querying from Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), the browser client

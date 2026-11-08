@@ -358,6 +358,46 @@ BCF-palvelu `files_information` näyttää tuotujen mallien `IfcProject`-guidin
 `ifc_project`-kenttänä, minkä avulla asiakkaat voivat täyttää asian
 otsakkeen tiedostot.
 
+## Nimetyt kyselyt
+
+Projektin jäsen esittää version mallille kysymyksiä nimeltä, samalla
+bearer-tunnisteella kuin Documents API:lle; vapaa Cypher jää ylläpitäjille
+([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` luettelee
+kyselyt parametreineen ja sarakkeineen ja kertoo kentässä `model_state`, kuinka
+pitkällä mallin muunnos on. `GET …/ifc-queries/{name}` esittää yhden kyselyn,
+parametrit kyselymerkkijonossa, ja vastaa sarakkeilla ja riveillä, joista
+kukin on lista sarakkeiden järjestyksessä:
+
+```http
+GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&property=GTIN
+```
+
+```json
+{"name": "property", "columns": ["global_id", "class", "name", "value", "type"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "3", "IFCLABEL"]],
+ "truncated": false}
+```
+
+| Kysely | Parametrit | Mihin se vastaa |
+|---|---|---|
+| `element-classes` | | Kuinka monta elementtiä mallissa on kustakin luokasta |
+| `elements` | `class` | Luokan elementit ja kunkin sisältävä tilarakenne |
+| `storeys` | | Kerrokset, niiden korkeus ja kuinka monta elementtiä ja tilaa kussakin on |
+| `spaces` | | Tilat, niiden kerros sekä niiden netto- ja bruttopinta-ala |
+| `areas` | | Kunkin kerroksen tilojen nettopinta-ala yhteenlaskettuna |
+| `materials` | `class` | Kunkin elementin materiaalit: oma tai sen kerrosten, luettelon tai osien |
+| `property` | `pset`, `property`, `class` | Yhden ominaisuuden arvo jokaisessa kohteessa, jolla se on, IFC-tyyppeineen |
+
+`class` nimeää IFC-luokan, kuten `IfcWall`, ja ottaa mukaan sen aliluokat:
+pakollinen kyselylle `elements`, valinnainen muille. Vastauksessa on enintään
+10 000 riviä, ja `truncated` kertoo, kun niitä oli enemmän; kysely keskeytetään
+10 sekunnin jälkeen. Jokainen kysely alkaa jäsenestä ja tavoittaa mallin
+projektin kautta, vain lukee ja ottaa arvonsa parametreina. Versio, jolla ei
+ole mallia tai jota käyttäjä ei saa nähdä, vastaa 404, ja versio, jonka mallia
+vielä muunnetaan, vastaa 409. Ominaisuusdokumentti ilmoittaa kyselyt kentässä
+`ifc_queries`.
+
 ## Kyselyt Dataspatiumista
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), tämän palvelimen

@@ -330,16 +330,18 @@ Beslutningene står i [docs/adr](../adr), arbeidsmåtene i
 - **Hver IFC-opplasting kontrolleres** i bakgrunnen uten å bli holdt igjen:
   mot IFC-skjemaet og EXPRESS-reglene, mot buildingSMARTs ifc-gherkin-rules der
   de er installert, og mot prosjektets IDS-dokumenter (ADR 0011, 0012 og 0015).
+- **Navngitte spørringer for medlemmer.** Et medlem stiller spørsmål til en
+  versjons modell ved navn gjennom Documents API: antall elementer av hver
+  klasse, etasjene, rommene og arealet deres, elementenes materialer eller
+  verdien av en egenskap. Fri Cypher forblir administratorenes (ADR 0016).
 
 ### Besluttet
 
-- **Redigering av modeller i Native IFC.** Create er opplastingen. Read er
-  spørsmål gjennom API-et, som antall rom, en bygnings areal eller en veggs
-  materiale: navngitte spørringer med parametere for medlemmer, og fri Cypher
-  bare for administratorer. Update er en endring som en klient foreslår gjennom
-  API-et, og som prøves før den føres inn. Delete fjerner valgte deler av
-  grafen: en entitet, en bygning eller et prosjekt. Export skriver STEP tilbake,
-  som nå.
+- **Redigering av modeller i Native IFC.** Create er opplastingen og Read de
+  navngitte spørringene over. Update er en endring som en klient foreslår
+  gjennom API-et, og som prøves før den føres inn. Delete fjerner valgte deler
+  av grafen: en entitet, en bygning eller et prosjekt. Export skriver STEP
+  tilbake, som nå.
 - **Versjonshistorikk i databasen, ikke i git**, i samme ånd som Bruno Postles
   [ifcmerge](https://github.com/brunopostle/ifcmerge): hva som ble endret, hvem
   som foreslo det, og hvem som godkjente det. Dataene må holde seg til IFC,

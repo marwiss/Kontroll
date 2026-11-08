@@ -352,6 +352,46 @@ BCF-tjenesten `files_information` viser importerede modellers
 `IfcProject`-guid som `ifc_project`, hvilket lader klienter udfylde filerne i
 sagens hoved.
 
+## Navngivne forespørgsler
+
+Et medlem af et projekt stiller spørgsmål til en versions model ved navn, med
+det samme bearer-token som til Documents API; fri Cypher forbliver
+administratorernes ([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` viser
+forespørgslerne med deres parametre og kolonner og siger i `model_state`, hvor
+langt konverteringen af modellen er kommet. `GET …/ifc-queries/{name}` stiller
+én, med parametrene i forespørgselsstrengen, og svarer med kolonnerne og
+rækkerne, hver række en liste i kolonnernes rækkefølge:
+
+```http
+GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&property=GTIN
+```
+
+```json
+{"name": "property", "columns": ["global_id", "class", "name", "value", "type"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "3", "IFCLABEL"]],
+ "truncated": false}
+```
+
+| Forespørgsel | Parametre | Hvad den svarer på |
+|---|---|---|
+| `element-classes` | | Hvor mange elementer modellen har af hver klasse |
+| `elements` | `class` | Elementerne af en klasse med den rumlige struktur, der indeholder hvert |
+| `storeys` | | Etagerne, deres kote, og hvor mange elementer og rum hver rummer |
+| `spaces` | | Rummene, deres etage og deres netto- og bruttoetageareal |
+| `areas` | | Nettoetagearealet af hver etages rum, lagt sammen |
+| `materials` | `class` | Hvert elements materialer: et eget eller dets lags, listes eller bestanddeles |
+| `property` | `pset`, `property`, `class` | Værdien af én egenskab på hvert objekt, der har den, med dens IFC-type |
+
+`class` navngiver en IFC-klasse, for eksempel `IfcWall`, og tager dens
+underklasser med: påkrævet for `elements`, valgfri for de andre. Et svar rummer
+højst 10.000 rækker, og `truncated` siger, når der var flere; en forespørgsel
+stoppes efter 10 sekunder. Hver forespørgsel begynder ved medlemmet og når
+modellen gennem projektet, læser kun og tager sine værdier som parametre. En
+version uden model, eller en som brugeren ikke må se, svarer 404, og en hvis
+model stadig konverteres, svarer 409. Kapabilitetsdokumentet annoncerer
+forespørgslerne i `ifc_queries`.
+
 ## Forespørgsler fra Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), browserklienten, der
