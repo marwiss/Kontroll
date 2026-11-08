@@ -100,7 +100,7 @@ jobs:
       - name: pip-audit (known vulnerabilities in locked dependencies)
         run: uv run pip-audit --skip-editable
       - name: pip-audit (the environment of buildingSMART's rules, from the requirements in IFC-LPG)
-        run: uv run poe _audit_gherkin
+        run: uv run poe audit-gherkin
       - name: gitleaks (secrets in the repository)
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
