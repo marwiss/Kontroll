@@ -1,30 +1,32 @@
-# Coordinating Kontroll and Dataspatium
+# Coordinating Dataregium and Dataspatium
 
-Kontroll (this server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (this server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
 (the browser app) are developed to work together. This page records what the
 two projects share, the interfaces and practices they agreed on, and the
 decisions the owner took. The counterpart on the app side is its
-`docs/utveckling.md` ("Prov mot Kontroll") and the release notes.
+`docs/utveckling.md` ("Prov mot Dataregium") and the release notes.
 
 ## Overview
 
 | Area | State |
 |---|---|
-| Protocol | Dataspatium talks to Kontroll through the three OpenCDE APIs, plus marked extensions: the capabilities document, the administration API with the request log and the graph query, and Cypher over Bolt against the IFC graph when the operator publishes the port |
+| Protocol | Dataspatium talks to Dataregium through the three OpenCDE APIs, plus marked extensions: the capabilities document, the administration API with the request log and the graph query, and Cypher over Bolt against the IFC graph when the operator publishes the port |
 | Sign-in | OAuth2 authorization code with PKCE as a public client; self-registration through RFC 7591 (`token_endpoint_auth_method: "none"`) when the server allows it; one registration per installation, unused registrations expire |
 | Correlation | `X-Request-ID` on every call from the app, echoed by the server and kept in its request log |
-| Testing | Dataspatium's live suite runs against Kontroll's development stack, on the owner's machine and in the nightly pair job; results and server findings are recorded in [acceptance.md](acceptance.md) |
-| Documentation | A shared section "Kontroll and Dataspatium" in both READMEs, each in seven languages (English, Swedish, Danish, Norwegian Bokmål and Nynorsk, Finnish, Icelandic), and cross-references from the guides on both sides |
-| Branding | Sibling marks: Dataspatium's stacked sheets (D) and Kontroll's connected nodes, same plate, stroke and margins |
+| Testing | Dataspatium's live suite runs against Dataregium's development stack, on the owner's machine and in the nightly pair job; results and server findings are recorded in [acceptance.md](acceptance.md) |
+| Documentation | A shared section "Dataregium and Dataspatium" in both READMEs, each in seven languages (English, Swedish, Danish, Norwegian Bokmål and Nynorsk, Finnish, Icelandic), and cross-references from the guides on both sides |
+| Branding | Sibling marks: Dataspatium's stacked sheets (D) and Dataregium's connected nodes, same plate, stroke and margins |
 | Working agreements | Announce heavy local runs to the other session; non-release commits in Dataspatium from this project; no git operations in the other checkout; findings reported with request ids |
 
 ## The capabilities document
 
-Dataspatium does not have to guess which extensions a Kontroll server offers.
-`GET /.well-known/kontroll` (outside the specifications, no auth) lists the
+Dataspatium does not have to guess which extensions a Dataregium server offers.
+`GET /.well-known/dataregium` (outside the specifications, no auth) lists the
 server version, the enabled extensions and their versions, the retention of the
 request log, whether Bolt is published, and the registration policy. Dataspatium
 shows this in its source settings and switches features on and off by it.
+`/.well-known/kontroll`, the path from before the rename of 2026-11-08, answers
+the same and stays as an alias.
 
 Shape (unauthenticated, CORS as for the API, cacheable for five minutes,
 never a secret; `bolt` appears only when the operator states a published Bolt
@@ -34,7 +36,7 @@ comes from `OPENCDE_DATASPATIUM_URL`; the administration API is mounted by
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Dataregium OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
@@ -57,7 +59,7 @@ Clients treat unknown keys as absent.
 ## Which app registered
 
 RFC 7591 lets a client send `software_id` and `software_version`. Dataspatium
-sends them when it registers; Kontroll stores them on the `Client` node, echoes
+sends them when it registers; Dataregium stores them on the `Client` node, echoes
 them in the registration response and shows them on the clients page and in
 `opencde client list`, so the operator can tell app versions apart when
 debugging.
@@ -90,21 +92,21 @@ topic, viewpoint, document, version, client, scope, request id …), whose sourc
 is Dataspatium's `presets/i18n-shared.json`, means that a user moving between the
 app and the server's pages meets the same words.
 
-In Kontroll the pages exist in the seven languages, and so does the documentation
+In Dataregium the pages exist in the seven languages, and so does the documentation
 (English under `docs/`, the others under `docs/<lang>/`; the project logs, the
 ADRs and the upstream drafts stay in English, and `tests/unit/test_docs.py` keeps
-the translations in step with the source). Dataspatium's links to Kontroll's pages
+the translations in step with the source). Dataspatium's links to Dataregium's pages
 go to `docs/<lang>/`.
 
 ## One look
 
 The owner decided that one look applies to both products and that it is
-Dataspatium's: the same font (Inter, self-hosted in Kontroll under the SIL
+Dataspatium's: the same font (Inter, self-hosted in Dataregium under the SIL
 Open Font License), type scale, weights, 4 px spacing scale, radii, shadows,
 light and dark colours, status colours, control sizes (32 px buttons and
 fields, 44 px touch targets below 760 px) and component looks. As the
-copyright holder of Dataspatium the owner permitted Kontroll to use that
-design despite the different licences, so Kontroll's `tokens.css` carries
+copyright holder of Dataspatium the owner permitted Dataregium to use that
+design despite the different licences, so Dataregium's `tokens.css` carries
 Dataspatium's tokens with the same `--dm-*` names, and `base.css` and
 `components.css` express Dataspatium's components (`dm-button`, `.dm-field`,
 `dm-badge`, `dm-table`, `.dm-list-item`, `dialog.dm-dialog`, `.dm-toast`) on
@@ -112,7 +114,7 @@ the server's plain HTML classes. Dataspatium's style rules apply too: one
 primary button per view, danger actions confirmed in a dialog, tabular
 numbers, dates as `YYYY-MM-DD` and times as `HH:MM`, keyboard reachability,
 reduced motion respected. The source of the design stays Dataspatium; when
-its tokens change, Kontroll's follow.
+its tokens change, Dataregium's follow.
 
 ## Error codes
 
@@ -122,7 +124,7 @@ app translates the codes. There is no second error format.
 
 ## Test data
 
-Kontroll's seed stores `tests/fixtures/three_walls_gtin.ifc` (three walls with
+Dataregium's seed stores `tests/fixtures/three_walls_gtin.ifc` (three walls with
 `Reuse`/`GTIN` 1–3 and known GlobalIds) as a document and creates a topic,
 viewpoint and comment with fixed ids (`docs/client-guide.md` §7, inventory §9),
 so runs against the seed know what to expect.
@@ -136,10 +138,10 @@ app's route `#/inhamta/opencde?server=…&project=…&document=…&version=…`.
 ## Releases
 
 The two projects take the same release numbers in lockstep (decision C): every
-Dataspatium release gets a Kontroll release with the same number the same day,
+Dataspatium release gets a Dataregium release with the same number the same day,
 even when the server change is small. `CHANGELOG.md` lists the client-visible
-changes, every README says which Dataspatium this Kontroll works with, and
-Kontroll's release workflow builds the image and the SBOM on a tag. Only the
+changes, every README says which Dataspatium this Dataregium works with, and
+Dataregium's release workflow builds the image and the SBOM on a tag. Only the
 latest release per major number is kept: the next release removes the previous
 release and its tag, the commits stay, and `CHANGELOG.md` folds the notes
 together. When a new major number begins, the last release of the old one is made
@@ -182,13 +184,13 @@ tests nothing fails.
 
 `docs/quickstart.md` here and `docs/snabbstart.md` there are the same text in
 seven languages, apart from the links and the line that names the other
-repository: install Kontroll locally, serve Dataspatium, register the app, open
+repository: install Dataregium locally, serve Dataspatium, register the app, open
 the demo project, create an issue from the 3D view, see it in the server's audit
 and request logs.
 
 ## Specification quirks
 
-Kontroll's inventory records where the OpenCDE specifications are silent or
+Dataregium's inventory records where the OpenCDE specifications are silent or
 inconsistent and what the server does. Dataspatium meets the same questions
 from the client side (file names, `ifc_project`, display fields, event
 actions). Both sides report to one list, in inventory §10 with the client's view
@@ -280,7 +282,7 @@ A client may also do what Dataspatium does, and the server takes it: fall back t
 `/foundation/versions` gives no readable answer at all, not only on a 404, since a server may have CORS headers on its APIs
 alone; sign in without a `scope`, which gives the default scopes; and take the address from `api_base_url`.
 
-Outside 2.1 itself, `GET /.well-known/kontroll` has `bcf_versions: ["3.0", "2.1"]`, and `apis.bcf` goes on saying `3.0`.
+Outside 2.1 itself, `GET /.well-known/dataregium` has `bcf_versions: ["3.0", "2.1"]`, and `apis.bcf` goes on saying `3.0`.
 The administration API's clients have `pkce_optional`, in its answers and in `POST` and `PATCH /admin/api/clients`.
 
 ## Decisions by the owner
@@ -297,22 +299,22 @@ All four were taken on 2026-11-05.
   refuses a published address without TLS. The community editions of Neo4j and
   Memgraph have no read-only database users, so an open port gives full access to
   whoever holds the database password; the deployment guide says so.
-- **B. Licences and bundling**: Kontroll stays AGPL-3.0-or-later and Dataspatium
+- **B. Licences and bundling**: Dataregium stays AGPL-3.0-or-later and Dataspatium
   PolyForm Strict. Nothing stops them from working together over the network.
   There is no one-command install of both: users of either product download and
   install the other separately, so both READMEs and the joint quick start explain
-  how to get the other one. Kontroll never bundles Dataspatium; Dataspatium may
-  bundle or download Kontroll (the AGPL allows redistribution with source), which
+  how to get the other one. Dataregium never bundles Dataspatium; Dataspatium may
+  bundle or download Dataregium (the AGPL allows redistribution with source), which
   is that project's choice. The owner, who holds the copyright of both projects,
-  gave two permissions: Kontroll may use Dataspatium's design (the tokens are
-  carried over as they are, under Kontroll's licence), and Dataspatium may use all
-  of Kontroll's own code and resources under its licence (the quick start and the
+  gave two permissions: Dataregium may use Dataspatium's design (the tokens are
+  carried over as they are, under Dataregium's licence), and Dataspatium may use all
+  of Dataregium's own code and resources under its licence (the quick start and the
   sample model move over verbatim). Third-party material (specification files, the
   Inter font, dependencies) keeps its own terms. Both repositories say so:
   `CONTRIBUTING.md` here, `docs/licenser.md` there.
 - **C. Release numbers**: Dataspatium's release history was consolidated to one
   release per major number, with the other releases and tags removed and the
-  history untouched. Kontroll takes **the same release numbers as Dataspatium**, in
+  history untouched. Dataregium takes **the same release numbers as Dataspatium**, in
   lockstep, starting at `v2.0.0`, and mirrors the rule of one release per major
   number. The same number means the two work together. The owner's acceptance runs
   and the OAuch/testssl runs are the gate for a production deployment, not for a

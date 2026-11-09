@@ -53,8 +53,8 @@ redis = ["redis>=5.0"]
 opencde = "opencde.cli:app"
 
 [project.urls]
-Source = "https://github.com/marwiss/Kontroll"
-Issues = "https://github.com/marwiss/Kontroll/issues"
+Source = "https://github.com/marwiss/Dataregium"
+Issues = "https://github.com/marwiss/Dataregium/issues"
 
 [dependency-groups]
 dev = [

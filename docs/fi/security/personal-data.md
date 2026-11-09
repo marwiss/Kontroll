@@ -1,9 +1,9 @@
 # Henkilötiedot ja säilytysajat
 
-Mitä Kontroll-palvelin tallentaa ihmisistä, kuinka kauan ja kuka sen näkee.
+Mitä Dataregium-palvelin tallentaa ihmisistä, kuinka kauan ja kuka sen näkee.
 Tämä on palvelimen puolikas sivusta, joka jaetaan Dataspatiumin kanssa;
 sovelluksen puolikas (mitä se säilyttää selaimessa ja mitä se lähettää) on
-Dataspatiumin dokumentaatiossa. Se, joka ylläpitää Kontrollia muille, on
+Dataspatiumin dokumentaatiossa. Se, joka ylläpitää Dataregiumia muille, on
 näiden tietojen rekisterinpitäjä; tämä sivu antaa faktat omiin selosteisiin.
 
 ## Mitä tallennetaan
@@ -40,7 +40,7 @@ tai ei ylläpitäjän valinnan mukaan ([deploy/backup.md](../deploy/backup.md)).
   osoitteessa `/account` ja voi perua ne.
 - Kukaan ei näe salasanoja, salaisuuksia tai tokeneita: palvelin tallentaa
   vain tiivisteet ja näyttää uuden salaisuuden kerran, luotaessa.
-- Kuka tahansa voi lukea osoitteet `/.well-known/kontroll`,
+- Kuka tahansa voi lukea osoitteet `/.well-known/dataregium`,
   `/foundation/versions`, `/foundation/1.0/auth` ja `/healthz`; ne sisältävät
   asetuksia, eivät koskaan ihmisiä.
 

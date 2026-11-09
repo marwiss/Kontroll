@@ -22,7 +22,7 @@ birtu gáttina aðeins þegar biðlari þarf Bolt sjálft.
   Vafrabiðlarar eins og Dataspatium þurfa skírteini sem vafrinn treystir, svo
   sjálfundirrituð skírteini virka ekki fyrir þá.
 - **Tilkynnt biðlurum.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` er birt í getuskjalinu
-  (`/.well-known/kontroll`, `extensions.ifcgraph.bolt`), þar sem Dataspatium
+  (`/.well-known/dataregium`, `extensions.ifcgraph.bolt`), þar sem Dataspatium
   les hana, og sýnd á síðunni Stillingar í stjórnuninni. Láttu hana vera tóma
   meðan gáttin er lokuð.
 
@@ -69,7 +69,7 @@ Opnaðu eldvegginn fyrir gáttina aðeins fyrir þau vistföng sem þurfa hana
 (skrifstofunet, VPN), aldrei fyrir allan heiminn. Athugaðu niðurstöðuna:
 
 ```sh
-curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
+curl -s https://cde.example.org/.well-known/dataregium | grep -o '"bolt":"[^"]*"'
 ```
 
 Grafsýn Dataspatium, Neo4j Browser (`bolt+s://cde.example.org:7687`) og

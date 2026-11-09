@@ -73,7 +73,7 @@ def test_graph_uri_scheme_is_checked() -> None:
 def test_database_name_follows_dialect() -> None:
     assert _settings(environment="development").database_name == "neo4j"
     assert _settings(environment="development", graph_dialect=GraphDialect.MEMGRAPH).database_name == "memgraph"
-    assert _settings(environment="development", graph_database="kontroll").database_name == "kontroll"
+    assert _settings(environment="development", graph_database="dataregium").database_name == "dataregium"
 
 
 def test_upload_part_cannot_exceed_upload_limit() -> None:

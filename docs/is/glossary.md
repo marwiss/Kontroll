@@ -62,6 +62,6 @@ verkefni eru sömu orð og í Dataspatium.
 |---|---|
 | Stafli | Gámarnir sem mynda keyrandi þjón: API, gagnagrunnurinn og í rekstri milliþjónninn og öryggisafritunin |
 | Seed | `opencde seed`, sem hleður sýnigögnum í tóman gagnagrunn |
-| Capabilities | `/.well-known/kontroll`, sem segir hvað þessi þjónn hefur virkjað |
+| Capabilities | `/.well-known/dataregium`, sem segir hvað þessi þjónn hefur virkjað |
 | Beiðnaskrá | Valfrjáls skrá yfir beiðnirnar sem þjónninn hefur svarað |
 | Endurskoðunarskrá | Skráin yfir hver hefur skráð sig inn og breytt hverju |

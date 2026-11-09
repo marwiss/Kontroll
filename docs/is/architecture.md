@@ -1,6 +1,6 @@
 # Högun
 
-Kontroll er einn vefþjónn fyrir framan einn grafgagnagrunn. Þessi síða sýnir hvernig
+Dataregium er einn vefþjónn fyrir framan einn grafgagnagrunn. Þessi síða sýnir hvernig
 hlutarnir tengjast, hvað gerist við beiðni og hvar allt er í kóðanum. Lestu hana ef
 þú vilt reka þjóninn af öryggi, breyta honum eða byggja ofan á hann. Orðin eru
 útskýrð í [orðasafninu](glossary.md).
@@ -11,7 +11,7 @@ hlutarnir tengjast, hvað gerist við beiðni og hvar allt er í kóðanum. Lest
 flowchart LR
     apps["Biðlarar: Dataspatium, BIM-verkfæri, skriftur"] -- "HTTPS: Foundation, BCF, Documents" --> api
     people["Vafri: innskráning, upphleðsla, stjórnun"] -- "HTTPS: síður" --> api
-    subgraph kontroll ["Kontroll"]
+    subgraph dataregium ["Dataregium"]
         api["Vefþjónn"]
         worker["Umbreytingarferli"]
         api -- "ræsir" --> worker

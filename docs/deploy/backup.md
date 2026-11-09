@@ -36,9 +36,11 @@ volume somewhere else (another host, object storage); a backup on the same disk
 as the data is only half a backup:
 
 ```sh
-docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
-  tar czf /out/kontroll-backups.tgz -C /backups .
+docker run --rm -v dataregium_backups:/backups -v "$PWD":/out alpine \
+  tar czf /out/dataregium-backups.tgz -C /backups .
 ```
+
+An installation that kept the old project name has the volume as `kontroll_backups`.
 
 To restore on a fresh host, start the stack, copy a backup folder into the
 `api` container (or mount it) and run

@@ -45,7 +45,7 @@ def query(client: TestClient, headers: dict[str, str], cypher: str, params: dict
 def test_administrators_read_the_graph_as_json(client: TestClient, world: World, settings: Settings) -> None:
     admin = login_with_scope(client, world, "admin", "profile admin")
     h = admin.headers
-    announced = client.get("/.well-known/kontroll").json()["extensions"]["graph_query"]
+    announced = client.get("/.well-known/dataregium").json()["extensions"]["graph_query"]
     assert announced == {"enabled": True, "url": "/admin/api/graph/query", "max_rows": 3, "timeout_seconds": 1.0}
 
     answer = query(

@@ -1,9 +1,9 @@
 # Personuppgifter och lagringstid
 
-Vad en Kontroll-server lagrar om personer, hur länge, och vem som kan se
+Vad en Dataregium-server lagrar om personer, hur länge, och vem som kan se
 det. Det här är serverns halva av en sida som delas med Dataspatium; appens
 halva (vad den sparar i webbläsaren och vad den skickar) finns i Dataspatiums
-dokumentation. Den som driver Kontroll åt andra är personuppgiftsansvarig för
+dokumentation. Den som driver Dataregium åt andra är personuppgiftsansvarig för
 dessa uppgifter; sidan ger fakta för de egna anteckningarna.
 
 ## Vad som lagras
@@ -41,7 +41,7 @@ allt ovan utom serverloggarna, krypterade eller inte efter operatörens val
   `/account` och kan återkalla dem.
 - Ingen ser lösenord, hemligheter eller tokens: servern lagrar bara hashar
   och visar en ny hemlighet en gång, när den skapas.
-- Vem som helst kan läsa `/.well-known/kontroll`, `/foundation/versions`,
+- Vem som helst kan läsa `/.well-known/dataregium`, `/foundation/versions`,
   `/foundation/1.0/auth` och `/healthz`; de innehåller konfiguration, aldrig
   personer.
 

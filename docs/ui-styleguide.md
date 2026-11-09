@@ -11,7 +11,7 @@ normative for new pages (ADR 0004).
    dialogs, copy buttons).
 2. **One source of design, and it is Dataspatium's.** The owner decided that
    the server's pages and the Dataspatium app share one look, based on
-   Dataspatium's, and as Dataspatium's copyright holder permitted Kontroll to
+   Dataspatium's, and as Dataspatium's copyright holder permitted Dataregium to
    use that design despite the different licences (2026-11-05). Colours,
    type, spacing and radii come from `opencde/ui/static/css/tokens.css`,
    which carries Dataspatium's tokens with their `--dm-*` names; components
@@ -80,7 +80,7 @@ are the same, `--dm-*`, so that a value can be compared line by line:
 
 The components map onto Dataspatium's like this:
 
-| Kontroll class | Dataspatium component | Look |
+| Dataregium class | Dataspatium component | Look |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` with `variant` and `size` | 32 px (26 px small), radius 6 px, 13 px medium text; primary filled accent; danger red text, red on hover |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, input border, focus ring inside; textareas monospace |
@@ -103,7 +103,7 @@ focus ring; no animation beyond short transitions, none at all under
 ## Mark
 
 The server's mark is the sibling of Dataspatium's: where Dataspatium shows
-three stacked sheets, Kontroll shows three connected nodes (a graph): hollow
+three stacked sheets, Dataregium shows three connected nodes (a graph): hollow
 rings of radius 2.6, one at the middle left joined by two lines to the two at
 the right, white on the same blue plate `#2b6cb0` with corner radius 7 in a
 32-unit square, everything at the same stroke width 2.2. The white ink keeps

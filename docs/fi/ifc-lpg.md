@@ -164,7 +164,7 @@ otsakkeen tiedostot.
 kanssa kehitettävä selainasiakas, ajaa Cypheriä tätä graafia vasten
 Neo4j-lähteensä kautta Boltilla (WebSocket Bolt-portissa), kun ylläpitäjä
 avaa tietokannan, kuten kehityspäällyste tekee osoitteessa `127.0.0.1:7697`.
-Sen Kontroll-työtila käyttää yllä olevia malleja (mallit, luokat,
+Sen Dataregium-työtila käyttää yllä olevia malleja (mallit, luokat,
 komponentit `SAME_AS`-suhteen kautta, uusin valmis malli asiakirjaa kohti);
 kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/grafer.md`), ja live-ajot
 on lueteltu tiedostossa [acceptance.md](../acceptance.md). Tuotantopalvelin

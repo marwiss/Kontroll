@@ -2,9 +2,11 @@
 
 <img src="../../opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE server
+# Dataregium OpenCDE server
 
-Kontroll is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
+*Dataregium was called Kontroll until 8 November 2026.*
+
+Dataregium is a server for the buildingSMART **OpenCDE APIs** (Foundation API 1.0,
 BCF API 3.0 and 2.1, and Documents API 1.0), built on a graph database, with a web
 administration and an optional IFC-LPG module that joins BCF components to
 the building elements they point at. It grew out of a 2023 research prototype
@@ -13,7 +15,7 @@ from scratch with security as the first requirement.
 Clients that follow the specifications should be able to connect, so the server
 is not tied to any one application.
 
-![The administration overview of a Kontroll server: counts of users, projects, clients, topics and documents, the database status and the latest audit events](../images/admin-overview.png)
+![The administration overview of a Dataregium server: counts of users, projects, clients, topics and documents, the database status and the latest audit events](../images/admin-overview.png)
 
 **Contents**
 
@@ -21,7 +23,7 @@ is not tied to any one application.
 - [Requirements](#requirements)
 - [What you can do](#what-you-can-do)
 - [The OpenCDE APIs and their clients](#the-opencde-apis-and-their-clients)
-- [Kontroll and Dataspatium](#kontroll-and-dataspatium)
+- [Dataregium and Dataspatium](#dataregium-and-dataspatium)
 - [Learn more](#learn-more)
 - [Limitations in brief](#limitations-in-brief)
 - [Bugs and suggestions](#bugs-and-suggestions)
@@ -37,8 +39,8 @@ is not tied to any one application.
    every release):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Configure.** Copy `.env.example` to `.env` and set `OPENCDE_GRAPH_PASSWORD`
@@ -58,7 +60,7 @@ is not tied to any one application.
    Sign in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
 6. **Connect a client.** Register your application under *Clients* (or let it
    register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
-   it at `http://127.0.0.1:8000`; [Dataspatium](#kontroll-and-dataspatium) and
+   it at `http://127.0.0.1:8000`; [Dataspatium](#dataregium-and-dataspatium) and
    the Python library in [client/](../../client/) are ready-made clients.
    To sign in from Dataspatium, follow the [quick start](../quickstart.md): it
    covers every setting needed and what to do if something goes wrong.
@@ -126,7 +128,7 @@ password, and nothing is open until it is configured.
   user has `/account` for their own password, applications and sessions. The
   CLI (`uv run opencde --help`) does the same from a terminal.
 - **Extensions outside the specifications**, each marked as such: a
-  capabilities document at `/.well-known/kontroll` that tells a client which
+  capabilities document at `/.well-known/dataregium` that tells a client which
   extensions are on, a stable `code` in every error body, a request log for
   debugging clients (`/admin/requests`, `GET /admin/api/requests` with the
   `admin` scope), and the IFC-LPG module that turns uploaded IFC models into
@@ -151,7 +153,7 @@ password, and nothing is open until it is configured.
 OpenCDE is buildingSMART International's family of open web APIs for a common data
 environment, the place where a project shares its models, documents and issues. A
 client and a server that follow the same specifications can work together, whoever
-built them. Kontroll implements all three:
+built them. Dataregium implements all three:
 
 | API | What it is for | Specification |
 |---|---|---|
@@ -178,14 +180,14 @@ client, tell us how it went under [Bugs and suggestions](#bugs-and-suggestions).
 specification disagree, the specification decides. [docs/client-guide.md](../client-guide.md) is for those
 who build a client.
 
-## Kontroll and Dataspatium
+## Dataregium and Dataspatium
 
-Kontroll (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
 (a data app that runs entirely in the browser) are developed to work together
 as server and client, and the same release number on both means they work
-together: Dataspatium 2.0.0 works with Kontroll 2.0.0 ([quick start](../quickstart.md)).
+together: Dataspatium 2.0.0 works with Dataregium 2.0.0 ([quick start](../quickstart.md)).
 Dataspatium adds a
-Kontroll server as a source: it discovers the APIs through
+Dataregium server as a source: it discovers the APIs through
 `/foundation/versions`, signs in with OAuth2 authorization code and PKCE and
 registers itself as a public client when dynamic registration is on, lists the
 project's models and documents, reads and writes BCF issues with comments and
@@ -208,7 +210,7 @@ flowchart LR
         log["The log in the app"]
         admin["The card Administration"]
     end
-    subgraph server ["Kontroll, the server"]
+    subgraph server ["Dataregium, the server"]
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
@@ -237,7 +239,7 @@ coordinate is in
 
 ## Learn more
 
-- [docs/quickstart.md](../quickstart.md): Kontroll and Dataspatium together
+- [docs/quickstart.md](../quickstart.md): Dataregium and Dataspatium together
   in twenty minutes, from an empty machine to an issue created in the 3D view.
 - [docs/client-guide.md](../client-guide.md) and [docs/examples/](../examples/):
   how to build a client, the capabilities document, the error codes, and
@@ -251,7 +253,7 @@ coordinate is in
 - [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
   independent clients (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): what
-  Kontroll and Dataspatium share, and the owner's decisions.
+  Dataregium and Dataspatium share, and the owner's decisions.
 - [docs/inventory.md](../inventory.md): functional inventory of the 2023
   prototype and status in the rewrite, plus notes on specification quirks.
 - [docs/adr/](../adr/): architecture decision records (graph backend,
@@ -304,7 +306,7 @@ CONTRIBUTING are kept in English.
 ## Bugs and suggestions
 
 Report bugs and wishes as *Issues* here on GitHub. Say which server version
-you run (the `version` of `/.well-known/kontroll` or `/healthz`), which client
+you run (the `version` of `/.well-known/dataregium` or `/healthz`), which client
 you used and the `X-Request-ID` of a failing call; the request log and your
 client's log share it. Attach no personal data and no secrets. How changes are
 taken in is in [CONTRIBUTING.md](../../CONTRIBUTING.md). For a security

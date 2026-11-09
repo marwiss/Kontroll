@@ -158,7 +158,7 @@ models as `ifc_project`, which lets clients fill in the topic header's files.
 developed together with this server, runs Cypher against this graph through
 its Neo4j source over Bolt (WebSocket on the Bolt port) when the operator
 exposes the database, as the development overlay does on `127.0.0.1:7697`.
-Its Kontroll workspace uses the patterns above (models, classes, components
+Its Dataregium workspace uses the patterns above (models, classes, components
 through `SAME_AS`, the latest finished model per document); the queries live in
 Dataspatium's documentation (`docs/grafer.md`), and the live runs are listed
 in [acceptance.md](acceptance.md). A production server does not publish Bolt;

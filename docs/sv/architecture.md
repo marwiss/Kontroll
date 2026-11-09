@@ -1,6 +1,6 @@
 # Arkitektur
 
-Kontroll är en webbserver framför en grafdatabas. Den här sidan visar hur delarna
+Dataregium är en webbserver framför en grafdatabas. Den här sidan visar hur delarna
 hänger ihop, vad som händer med ett anrop och var allt finns i koden. Läs den om
 du vill driva servern med trygghet, ändra den eller bygga vidare på den. Orden
 förklaras i [ordlistan](glossary.md).
@@ -11,7 +11,7 @@ förklaras i [ordlistan](glossary.md).
 flowchart LR
     apps["Klienter: Dataspatium, BIM-verktyg, skript"] -- "HTTPS: Foundation, BCF, Documents" --> api
     people["Webbläsare: inloggning, uppladdning, administration"] -- "HTTPS: sidor" --> api
-    subgraph kontroll ["Kontroll"]
+    subgraph dataregium ["Dataregium"]
         api["Webbserver"]
         worker["Konverteringsprocess"]
         api -- "startar" --> worker

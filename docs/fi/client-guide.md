@@ -31,14 +31,14 @@ Documents API:n mutta ei BCF:ää.
 
 ### Kyvykkyysasiakirja (laajennus)
 
-Spesifikaatioiden lisäksi `GET /.well-known/kontroll` (ei todennusta, CORS
+Spesifikaatioiden lisäksi `GET /.well-known/dataregium` (ei todennusta, CORS
 kuten rajapinnalle, välimuistitettava viideksi minuutiksi) kertoo, mitkä
 laajennukset tämä palvelin on kytkenyt päälle ja mitkä rajat ovat voimassa,
 jotta asiakas sopeutuu sen sijaan että kokeilisi:
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Dataregium OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
@@ -55,7 +55,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
 ```
 
 `404` tarkoittaa palvelinta ilman laajennuksia (toinen OpenCDE-palvelin tai
-vanhempi Kontroll). Käsittele tuntemattomat avaimet puuttuvina.
+vanhempi Dataregium). Käsittele tuntemattomat avaimet puuttuvina.
 `ifcgraph.bolt` on asetettu vain, kun ylläpitäjä on tarkoituksella
 julkaissut graafitietokannan (`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `graph_query`
 on päällä vain, kun ylläpitäjä on asettanut `OPENCDE_GRAPH_QUERY_ENABLED`

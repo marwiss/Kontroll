@@ -2,9 +2,11 @@
 
 <img src="opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE-server
+# Dataregium OpenCDE-server
 
-Kontroll är en server för buildingSMARTs **OpenCDE-API:er** (Foundation API
+*Dataregium hette Kontroll fram till den 8 november 2026.*
+
+Dataregium är en server för buildingSMARTs **OpenCDE-API:er** (Foundation API
 1.0, BCF API 3.0 och 2.1 samt Documents API 1.0), byggd på en grafdatabas, med
 webbadministration och en valfri IFC-LPG-modul som kopplar BCF-komponenter
 till de byggdelar de pekar på. Den växte fram ur en forskningsprototyp från
@@ -13,7 +15,7 @@ med säkerhet som första krav.
 Klienter som följer specifikationerna ska kunna ansluta, så servern är
 inte bunden till något enskilt program.
 
-![Administrationens översikt i en Kontroll-server: antal användare, projekt, klienter, ärenden och dokument, databasens status och de senaste revisionshändelserna](docs/images/admin-overview.png)
+![Administrationens översikt i en Dataregium-server: antal användare, projekt, klienter, ärenden och dokument, databasens status och de senaste revisionshändelserna](docs/images/admin-overview.png)
 
 **Innehåll**
 
@@ -21,7 +23,7 @@ inte bunden till något enskilt program.
 - [Vad som krävs](#vad-som-krävs)
 - [Vad du kan göra](#vad-du-kan-göra)
 - [OpenCDE-API:erna och deras klienter](#opencde-apierna-och-deras-klienter)
-- [Kontroll och Dataspatium](#kontroll-och-dataspatium)
+- [Dataregium och Dataspatium](#dataregium-och-dataspatium)
 - [Lär dig mer](#lär-dig-mer)
 - [Begränsningar i korthet](#begränsningar-i-korthet)
 - [Fel och förslag](#fel-och-förslag)
@@ -37,8 +39,8 @@ inte bunden till något enskilt program.
    vid varje utgåva):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Konfigurera.** Kopiera `.env.example` till `.env` och sätt
@@ -58,7 +60,7 @@ inte bunden till något enskilt program.
    Logga in på <http://127.0.0.1:8000/signin> som `admin` och öppna `/admin`.
 6. **Anslut en klient.** Registrera din app under *Klienter* (eller låt den
    registrera sig själv när `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) och
-   peka den mot `http://127.0.0.1:8000`; [Dataspatium](#kontroll-och-dataspatium)
+   peka den mot `http://127.0.0.1:8000`; [Dataspatium](#dataregium-och-dataspatium)
    och Python-biblioteket i [client/](client/) är färdiga klienter.
    Ska du logga in från Dataspatium, följ [snabbstarten](docs/sv/quickstart.md): den
    tar upp alla inställningar som krävs och vad du gör om något går fel.
@@ -128,7 +130,7 @@ databaslösenord, och inget är öppet förrän det har konfigurerats.
   sina appar och sina sessioner. Kommandoraden (`uv run opencde --help`) gör
   samma sak från en terminal.
 - **Tillägg utanför specifikationerna**, vart och ett markerat som sådant: ett
-  kapabilitetsdokument på `/.well-known/kontroll` som berättar för klienten
+  kapabilitetsdokument på `/.well-known/dataregium` som berättar för klienten
   vilka tillägg som är påslagna, ett stabilt `code` i varje felkropp, en
   begärandelogg för felsökning av klienter (`/admin/requests`,
   `GET /admin/api/requests` med scopet `admin`), och IFC-LPG-modulen som gör
@@ -153,7 +155,7 @@ databaslösenord, och inget är öppet förrän det har konfigurerats.
 OpenCDE är buildingSMART Internationals familj av öppna webb-API:er för en gemensam
 datamiljö, den plats där ett projekt delar sina modeller, dokument och ärenden. En
 klient och en server som följer samma specifikationer kan arbeta tillsammans, vem som
-än har byggt dem. Kontroll implementerar alla tre:
+än har byggt dem. Dataregium implementerar alla tre:
 
 | API | Vad det är till för | Specifikation |
 |---|---|---|
@@ -180,14 +182,14 @@ hur det gick under [Fel och förslag](#fel-och-förslag). När en klient och en 
 stämmer överens avgör specifikationen. [docs/sv/client-guide.md](docs/sv/client-guide.md) är till för den som bygger
 en klient.
 
-## Kontroll och Dataspatium
+## Dataregium och Dataspatium
 
-Kontroll (servern) och [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (servern) och [Dataspatium](https://github.com/marwiss/Dataspatium)
 (en dataapp som körs helt i webbläsaren) är utvecklade för att fungera
 tillsammans som server och klient, och samma utgåvenummer på båda betyder
-att de fungerar ihop: Dataspatium 2.0.0 fungerar med Kontroll 2.0.0
+att de fungerar ihop: Dataspatium 2.0.0 fungerar med Dataregium 2.0.0
 ([snabbstart](docs/sv/quickstart.md)).
-Dataspatium lägger till en Kontroll-server som källa: appen upptäcker
+Dataspatium lägger till en Dataregium-server som källa: appen upptäcker
 API:erna genom `/foundation/versions`, loggar in med OAuth2 authorization
 code och PKCE och registrerar sig själv som publik klient när dynamisk
 registrering är påslagen, listar projektets modeller och dokument, läser och
@@ -211,7 +213,7 @@ flowchart LR
         log["Loggen i appen"]
         admin["Kortet Administration"]
     end
-    subgraph server ["Kontroll, servern"]
+    subgraph server ["Dataregium, servern"]
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
@@ -239,7 +241,7 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 
 ## Lär dig mer
 
-- [docs/sv/quickstart.md](docs/sv/quickstart.md): Kontroll och Dataspatium tillsammans på
+- [docs/sv/quickstart.md](docs/sv/quickstart.md): Dataregium och Dataspatium tillsammans på
   tjugo minuter, från tom dator till ett ärende skapat i 3D-vyn.
 - [docs/sv/client-guide.md](docs/sv/client-guide.md) och [docs/examples/](docs/examples/):
   hur man bygger en klient, kapabilitetsdokumentet, felkoderna och körbara
@@ -253,7 +255,7 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 - [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans med
   oberoende klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): vad
-  Kontroll och Dataspatium delar och ägarens beslut.
+  Dataregium och Dataspatium delar och ägarens beslut.
 - [docs/inventory.md](docs/inventory.md): funktionsinventering av prototypen
   från 2023 och status i omskrivningen, med noteringar om specifikationernas
   egenheter.
@@ -307,7 +309,7 @@ hålls på engelska.
 ## Fel och förslag
 
 Rapportera fel och önskemål som *Issues* här på GitHub. Ange vilken
-serverversion du kör (`version` i `/.well-known/kontroll` eller `/healthz`),
+serverversion du kör (`version` i `/.well-known/dataregium` eller `/healthz`),
 vilken klient du använde och `X-Request-ID` för ett misslyckat anrop;
 begärandeloggen och klientens logg delar det. Bifoga inga personuppgifter och
 inga hemligheter. Hur ändringar tas emot står i

@@ -11,7 +11,7 @@ er normativ for nye sider (ADR 0004).
    stadfestingsdialogar, kopieringsknappar).
 2. **Éi kjelde til designet, og det er Dataspatium si.** Eigaren avgjorde at
    sidene til serveren og Dataspatium-appen deler eitt utsjånad, basert på
-   Dataspatium sitt, og som rettshavar til Dataspatium lét Kontroll bruke det
+   Dataspatium sitt, og som rettshavar til Dataspatium lét Dataregium bruke det
    designet trass i dei ulike lisensane (2026-11-05). Fargar, typografi,
    avstandar og radiar kjem frå `opencde/ui/static/css/tokens.css`, som ber
    Dataspatium sine tokens med `--dm-*`-namna deira; komponentar frå
@@ -81,7 +81,7 @@ minus datapaletten og panellayouten som berre appen treng. Namna er dei same,
 
 Komponentane blir avbilda på Dataspatium sine slik:
 
-| Kontroll-klasse | Dataspatium-komponent | Utsjånad |
+| Dataregium-klasse | Dataspatium-komponent | Utsjånad |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` med `variant` og `size` | 32 px (26 px liten), radius 6 px, 13 px medium tekst; primær fylt aksent; danger raud tekst, raud ved hover |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, feltkant, fokusring innanfor; tekstområde i monospace |
@@ -104,7 +104,7 @@ animasjon utover korte overgangar, ingen i det heile under
 ## Merket
 
 Merket til serveren er sysken til Dataspatium sitt: der Dataspatium viser tre
-stabla ark, viser Kontroll tre samanbundne nodar (ein graf): hole ringar med
+stabla ark, viser Dataregium tre samanbundne nodar (ein graf): hole ringar med
 radius 2,6, éin i midten til venstre bunden med to linjer til dei to til
 høgre, kvite på den same blå plata `#2b6cb0` med hjørneradius 7 i eit kvadrat
 på 32 einingar, alt med same strekbreidd 2,2. Den kvite fargen held på

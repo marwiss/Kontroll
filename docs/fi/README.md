@@ -2,9 +2,11 @@
 
 <img src="../../opencde/ui/static/icon-192.png" alt="" width="64" height="64" align="left">
 
-# Kontroll OpenCDE-palvelin
+# Dataregium OpenCDE-palvelin
 
-Kontroll on palvelin buildingSMARTin **OpenCDE-rajapinnoille** (Foundation
+*Dataregiumin nimi oli Kontroll 8. marraskuuta 2026 asti.*
+
+Dataregium on palvelin buildingSMARTin **OpenCDE-rajapinnoille** (Foundation
 API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0). Se on rakennettu
 graafitietokannan päälle, siinä on selainpohjainen hallinta ja valinnainen
 IFC-LPG-moduuli, joka yhdistää BCF-komponentit rakennusosiin, joihin ne
@@ -14,7 +16,7 @@ uudelleen alusta alkaen tietoturva ensimmäisenä vaatimuksena.
 Määrittelyjä noudattavien asiakkaiden pitäisi pystyä muodostamaan yhteys, joten
 palvelin ei ole sidottu yhteen sovellukseen.
 
-![Kontroll-palvelimen hallinnan yleiskuva: käyttäjien, projektien, asiakkaiden, asioiden ja asiakirjojen määrät, tietokannan tila ja viimeisimmät tapahtumalokin merkinnät](../images/admin-overview.png)
+![Dataregium-palvelimen hallinnan yleiskuva: käyttäjien, projektien, asiakkaiden, asioiden ja asiakirjojen määrät, tietokannan tila ja viimeisimmät tapahtumalokin merkinnät](../images/admin-overview.png)
 
 **Sisältö**
 
@@ -22,7 +24,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 - [Vaatimukset](#vaatimukset)
 - [Mitä voit tehdä](#mitä-voit-tehdä)
 - [OpenCDE-rajapinnat ja niiden asiakkaat](#opencde-rajapinnat-ja-niiden-asiakkaat)
-- [Kontroll ja Dataspatium](#kontroll-ja-dataspatium)
+- [Dataregium ja Dataspatium](#dataregium-ja-dataspatium)
 - [Lue lisää](#lue-lisää)
 - [Rajoitukset lyhyesti](#rajoitukset-lyhyesti)
 - [Virheet ja ehdotukset](#virheet-ja-ehdotukset)
@@ -38,8 +40,8 @@ palvelin ei ole sidottu yhteen sovellukseen.
    SBOM:n kanssa jokaisessa julkaisussa):
 
    ```sh
-   git clone https://github.com/marwiss/Kontroll.git
-   cd Kontroll
+   git clone https://github.com/marwiss/Dataregium.git
+   cd Dataregium
    ```
 
 2. **Määritä.** Kopioi `.env.example` tiedostoksi `.env` ja aseta
@@ -61,7 +63,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 6. **Yhdistä asiakasohjelma.** Rekisteröi sovelluksesi kohdassa *Asiakkaat*
    (tai anna sen rekisteröityä itse, kun
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se osoitteeseen
-   `http://127.0.0.1:8000`; [Dataspatium](#kontroll-ja-dataspatium) ja
+   `http://127.0.0.1:8000`; [Dataspatium](#dataregium-ja-dataspatium) ja
    Python-kirjasto kansiossa [client/](../../client/) ovat valmiita
    asiakasohjelmia.
    Jos kirjaudut Dataspatiumista, seuraa [pika-aloitusta](quickstart.md): siinä on
@@ -134,7 +136,7 @@ mikään ole auki ennen kuin se on määritetty.
   omia istuntoja varten. Komentorivi (`uv run opencde --help`) tekee saman
   terminaalista.
 - **Spesifikaatioiden ulkopuoliset laajennukset**, jokainen sellaiseksi
-  merkittynä: kyvykkyysasiakirja osoitteessa `/.well-known/kontroll`, joka
+  merkittynä: kyvykkyysasiakirja osoitteessa `/.well-known/dataregium`, joka
   kertoo asiakkaalle, mitkä laajennukset ovat päällä, pysyvä `code`
   jokaisessa virhevastauksessa, pyyntöloki asiakasohjelmien vianetsintään
   (`/admin/requests`, `GET /admin/api/requests` `admin`-oikeudella) ja
@@ -161,7 +163,7 @@ mikään ole auki ennen kuin se on määritetty.
 OpenCDE on buildingSMART Internationalin avoimien verkkorajapintojen perhe yhteiselle
 tietoympäristölle, paikalle, jossa projekti jakaa mallinsa, asiakirjansa ja asiansa.
 Asiakas ja palvelin, jotka noudattavat samoja määrittelyjä, voivat toimia yhdessä, olipa
-ne rakentanut kuka tahansa. Kontroll toteuttaa ne kaikki kolme:
+ne rakentanut kuka tahansa. Dataregium toteuttaa ne kaikki kolme:
 
 | API | Mihin se on tarkoitettu | Määrittely |
 |---|---|---|
@@ -189,14 +191,14 @@ ajettu. Jos kokeilet jotakin asiakasta, kerro, miten kävi, kohdassa
 [Virheet ja ehdotukset](#virheet-ja-ehdotukset). Kun asiakas ja määrittely ovat ristiriidassa, määrittely ratkaisee.
 [docs/fi/client-guide.md](client-guide.md) on tarkoitettu asiakkaan rakentajille.
 
-## Kontroll ja Dataspatium
+## Dataregium ja Dataspatium
 
-Kontroll (palvelin) ja [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (palvelin) ja [Dataspatium](https://github.com/marwiss/Dataspatium)
 (kokonaan selaimessa toimiva datasovellus) on kehitetty toimimaan yhdessä
 palvelimena ja asiakkaana, ja sama julkaisunumero molemmissa tarkoittaa, että
-ne toimivat yhdessä: Dataspatium 2.0.0 toimii Kontroll 2.0.0:n kanssa
+ne toimivat yhdessä: Dataspatium 2.0.0 toimii Dataregium 2.0.0:n kanssa
 ([pika-aloitus](quickstart.md)).
-Dataspatium lisää Kontroll-palvelimen lähteeksi: sovellus löytää rajapinnat
+Dataspatium lisää Dataregium-palvelimen lähteeksi: sovellus löytää rajapinnat
 osoitteesta `/foundation/versions`, kirjautuu OAuth2 authorization code
 -kululla ja PKCE:llä ja rekisteröi itsensä julkiseksi asiakkaaksi, kun
 dynaaminen rekisteröinti on päällä, luettelee projektin mallit ja asiakirjat,
@@ -221,7 +223,7 @@ flowchart LR
         log["Sovelluksen loki"]
         admin["Kortti Hallinta"]
     end
-    subgraph server ["Kontroll, palvelin"]
+    subgraph server ["Dataregium, palvelin"]
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
@@ -250,7 +252,7 @@ sovittavat yhteen, on tiedostossa
 
 ## Lue lisää
 
-- [docs/fi/quickstart.md](quickstart.md): Kontroll ja Dataspatium yhdessä
+- [docs/fi/quickstart.md](quickstart.md): Dataregium ja Dataspatium yhdessä
   kahdessakymmenessä minuutissa, tyhjästä koneesta 3D-näkymässä luotuun asiaan.
 - [docs/fi/client-guide.md](client-guide.md) ja [docs/examples/](../examples/):
   miten asiakasohjelma rakennetaan, kyvykkyysasiakirja, virhekoodit ja
@@ -264,7 +266,7 @@ sovittavat yhteen, on tiedostossa
 - [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
   tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
-  Kontroll ja Dataspatium jakavat sekä omistajan päätökset.
+  Dataregium ja Dataspatium jakavat sekä omistajan päätökset.
 - [docs/inventory.md](../inventory.md): vuoden 2023 prototyypin
   toimintoluettelo ja tilanne uudelleenkirjoituksessa sekä huomioita
   spesifikaatioiden erikoisuuksista.
@@ -320,7 +322,7 @@ IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
 ## Virheet ja ehdotukset
 
 Ilmoita virheet ja toiveet *Issues*-kohdassa täällä GitHubissa. Kerro, mitä
-palvelinversiota käytät (`version` osoitteessa `/.well-known/kontroll` tai
+palvelinversiota käytät (`version` osoitteessa `/.well-known/dataregium` tai
 `/healthz`), mitä asiakasohjelmaa käytit ja epäonnistuneen kutsun
 `X-Request-ID`; pyyntöloki ja asiakasohjelman loki jakavat sen. Älä liitä
 henkilötietoja tai salaisuuksia. Se, miten muutokset otetaan vastaan, kerrotaan

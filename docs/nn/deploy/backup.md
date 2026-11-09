@@ -38,9 +38,11 @@ objektlagring); ein tryggingskopi på same disk som dataa er berre ein halv
 tryggingskopi:
 
 ```sh
-docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
-  tar czf /out/kontroll-backups.tgz -C /backups .
+docker run --rm -v dataregium_backups:/backups -v "$PWD":/out alpine \
+  tar czf /out/dataregium-backups.tgz -C /backups .
 ```
+
+Ein installasjon som har halde på det gamle prosjektnamnet, har volumet som `kontroll_backups`.
 
 For å gjenopprette på ein ny blir: start stakken, kopier ei
 tryggingskopimappe inn i containeren `api` (eller monter henne) og køyr

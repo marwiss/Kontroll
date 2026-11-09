@@ -41,5 +41,5 @@ latest, etag = cde.documents.query_versions([version["document_id"]])
 Command line: `python -m opencde_client --server https://cde.example --client-id my-app login`,
 then `projects` or `topics PROJECT_ID`. Tokens are stored in a file only you can read.
 
-`opencde_client.testing` drives a Kontroll server's pages headlessly for
+`opencde_client.testing` drives a Dataregium server's pages headlessly for
 automated tests; real applications never handle a user's password.

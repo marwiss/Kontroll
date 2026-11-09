@@ -164,7 +164,7 @@ sagens hoved.
 udvikles sammen med denne server, kører Cypher mod denne graf gennem sin
 Neo4j-kilde over Bolt (WebSocket på Bolt-porten), når operatøren eksponerer
 databasen, som udviklingsoverlejringen gør på `127.0.0.1:7697`. Dets
-Kontroll-arbejdsområde bruger mønstrene ovenfor (modeller, klasser,
+Dataregium-arbejdsområde bruger mønstrene ovenfor (modeller, klasser,
 komponenter via `SAME_AS`, den seneste færdige model per dokument);
 forespørgslerne findes i Dataspatiums dokumentation (`docs/grafer.md`), og
 live-kørslerne er listet i [acceptance.md](../acceptance.md). En

@@ -164,7 +164,7 @@ BCF-tjänsten `files_information` visar importerade modellers
 utvecklas tillsammans med den här servern, kör Cypher mot den här grafen
 genom sin Neo4j-källa över Bolt (WebSocket på Bolt-porten) när operatören
 exponerar databasen, som utvecklingsöverlagringen gör på `127.0.0.1:7697`.
-Dess Kontroll-arbetsyta använder mönstren ovan (modeller, klasser,
+Dess Dataregium-arbetsyta använder mönstren ovan (modeller, klasser,
 komponenter via `SAME_AS`, den senaste färdiga modellen per dokument);
 frågorna finns i Dataspatiums dokumentation (`docs/grafer.md`), och
 live-körningarna listas i [acceptance.md](../acceptance.md). En

@@ -10,8 +10,8 @@ Alt kjører i Docker på din maskin; ingenting kan nås utenfra.
 ## Trinn
 
 ```sh
-git clone https://github.com/marwiss/Kontroll.git
-cd Kontroll
+git clone https://github.com/marwiss/Dataregium.git
+cd Dataregium
 uv run opencde init --dev                                 # skriver .env med nye hemmeligheter
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
@@ -32,8 +32,13 @@ en offentlig OAuth2-klient, og skriver ut passordene én gang.
 Utviklingsoverlegget publiserer Neo4j på 7484/7697 i stedet for
 standardportene 7474/7687, som en annen Neo4j på samme maskin ofte holder.
 Endre portene med `OPENCDE_DEV_*` i `.env`. To utsjekkinger på samme maskin
-deler Compose-prosjektnavnet `kontroll` (`compose.yaml` setter det); gi den
-andre `COMPOSE_PROJECT_NAME=kontroll-2` og andre porter i sin `.env`.
+deler Compose-prosjektnavnet `dataregium` (`compose.yaml` setter det); gi den
+andre `COMPOSE_PROJECT_NAME=dataregium-2` og andre porter i sin `.env`.
+
+En installasjon som ble gjort mens prosjektet fortsatt het Kontroll, har dataene
+sine i volumer som heter `kontroll_…`. Den beholder dem med
+`COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går foran navnet i `compose.yaml`;
+uten det starter neste `up` et nytt prosjekt med tomme volumer.
 
 ## Uten Docker for serveren
 

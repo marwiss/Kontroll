@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/marwiss/Kontroll"
+Source = "https://github.com/marwiss/Dataregium"
 
 [build-system]
 requires = ["hatchling>=1.27"]

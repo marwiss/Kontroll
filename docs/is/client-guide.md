@@ -30,14 +30,14 @@ biðlari finnur hann með `GET /bcf/versions` og skráir sig inn með `GET
 
 ### Getuskjalið (viðbót)
 
-Umfram forskriftirnar segir `GET /.well-known/kontroll` (engin auðkenning,
+Umfram forskriftirnar segir `GET /.well-known/dataregium` (engin auðkenning,
 CORS eins og fyrir forritaskilin, má geyma í skyndiminni í fimm mínútur)
 hvaða viðbætur þessi þjónn hefur kveikt á og hvaða takmörk gilda, svo að
 biðlari aðlagi sig í stað þess að þreifa fyrir sér:
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Dataregium OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
@@ -53,7 +53,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
 }
 ```
 
-`404` þýðir þjónn án viðbóta (annar OpenCDE-þjónn, eða eldri Kontroll).
+`404` þýðir þjónn án viðbóta (annar OpenCDE-þjónn, eða eldri Dataregium).
 Meðhöndlaðu óþekkta lykla sem fjarverandi. `ifcgraph.bolt` er aðeins sett
 þegar rekstraraðilinn hefur af ásettu ráði birt grafgagnagrunninn
 (`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `graph_query` er aðeins virkt þegar

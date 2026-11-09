@@ -1,9 +1,9 @@
 # Personoplysninger og opbevaring
 
-Hvad en Kontroll-server gemmer om personer, hvor længe, og hvem der kan se
+Hvad en Dataregium-server gemmer om personer, hvor længe, og hvem der kan se
 det. Dette er serverens halvdel af en side, der deles med Dataspatium;
 appens halvdel (hvad den gemmer i browseren, og hvad den sender) står i
-Dataspatiums dokumentation. Den, der driver Kontroll for andre, er
+Dataspatiums dokumentation. Den, der driver Dataregium for andre, er
 dataansvarlig for disse oplysninger; siden giver fakta til de egne
 fortegnelser.
 
@@ -42,7 +42,7 @@ operatørens valg ([deploy/backup.md](../deploy/backup.md)).
   `/account` og kan tilbagekalde dem.
 - Ingen ser kodeord, hemmeligheder eller tokens: serveren gemmer kun
   hashes og viser en ny hemmelighed én gang, ved oprettelsen.
-- Alle kan læse `/.well-known/kontroll`, `/foundation/versions`,
+- Alle kan læse `/.well-known/dataregium`, `/foundation/versions`,
   `/foundation/1.0/auth` og `/healthz`; de indeholder konfiguration, aldrig
   personer.
 

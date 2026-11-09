@@ -62,6 +62,6 @@ näkymä ja projekti ovat samat sanat kuin Dataspatiumissa.
 |---|---|
 | Pino | Kontit, jotka muodostavat käynnissä olevan palvelimen: API, tietokanta ja tuotannossa proxy ja varmuuskopiointi |
 | Seed | `opencde seed`, joka lataa esittelytiedot tyhjään tietokantaan |
-| Capabilities | `/.well-known/kontroll`, joka kertoo, mitä tämä palvelin on ottanut käyttöön |
+| Capabilities | `/.well-known/dataregium`, joka kertoo, mitä tämä palvelin on ottanut käyttöön |
 | Pyyntöloki | Valinnainen luettelo pyynnöistä, joihin palvelin on vastannut |
 | Tarkastusloki | Luettelo siitä, kuka on kirjautunut ja muuttanut mitä |

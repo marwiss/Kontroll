@@ -163,7 +163,7 @@ saka.
 blir utvikla saman med denne serveren, køyrer Cypher mot denne grafen gjennom
 Neo4j-kjelda si over Bolt (WebSocket på Bolt-porten) når operatøren
 eksponerer databasen, slik utviklingsoverlegget gjer på `127.0.0.1:7697`.
-Kontroll-arbeidsområdet der brukar mønstera ovanfor (modellar, klassar,
+Dataregium-arbeidsområdet der brukar mønstera ovanfor (modellar, klassar,
 komponentar via `SAME_AS`, den siste ferdige modellen per dokument);
 spørjingane ligg i dokumentasjonen til Dataspatium (`docs/grafer.md`), og
 live-køyringane er lista i [acceptance.md](../acceptance.md). Ein

@@ -21,7 +21,7 @@ publicera porten bara när en klient behöver Bolt i sig.
   Webbläsarklienter som Dataspatium behöver ett certifikat som webbläsaren
   litar på, så självsignerade certifikat fungerar inte för dem.
 - **Annonserad för klienter.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` publiceras i
-  kapabilitetsdokumentet (`/.well-known/kontroll`, `extensions.ifcgraph.bolt`),
+  kapabilitetsdokumentet (`/.well-known/dataregium`, `extensions.ifcgraph.bolt`),
   där Dataspatium läser den, och visas på administrationens sida Inställningar.
   Lämna den tom medan porten är stängd.
 
@@ -69,7 +69,7 @@ docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
 kontorsnät, ett VPN), aldrig mot hela världen. Kontrollera resultatet:
 
 ```sh
-curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
+curl -s https://cde.example.org/.well-known/dataregium | grep -o '"bolt":"[^"]*"'
 ```
 
 Dataspatiums grafvy, Neo4j Browser (`bolt+s://cde.example.org:7687`) och de

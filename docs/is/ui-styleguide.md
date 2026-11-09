@@ -11,7 +11,7 @@ leiðarvísir er bindandi fyrir nýjar síður (ADR 0004).
    afritunarhnappar).
 2. **Ein uppspretta hönnunar, og hún er Dataspatium.** Eigandinn ákvað að
    síður þjónsins og Dataspatium-forritið deili einu útliti, byggðu á
-   Dataspatium, og leyfði sem rétthafi Dataspatium Kontroll að nota þá hönnun
+   Dataspatium, og leyfði sem rétthafi Dataspatium Dataregium að nota þá hönnun
    þrátt fyrir ólík leyfi (2026-11-05). Litir, letur, bil og rúnnun koma úr
    `opencde/ui/static/css/tokens.css`, sem ber tókana Dataspatium með
    `--dm-*`-heitum sínum; íhlutir úr `components.css`, sem tjáir íhluti
@@ -85,7 +85,7 @@ línu:
 
 Íhlutirnir varpast á íhluti Dataspatium þannig:
 
-| Kontroll-klasi | Dataspatium-íhlutur | Útlit |
+| Dataregium-klasi | Dataspatium-íhlutur | Útlit |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` með `variant` og `size` | 32 px (26 px lítill), rúnnun 6 px, 13 px medium-texti; primary fylltur áherslulit; danger rauður texti, rauður við yfirsveim |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, reitarammi, fókushringur innan í; textasvæði með jafnbreiðu letri |
@@ -107,7 +107,7 @@ umfram stuttar millifærslur, engar undir `prefers-reduced-motion`.
 ## Merkið
 
 Merki þjónsins er systkini merkis Dataspatium: þar sem Dataspatium sýnir þrjú
-stöfluð blöð sýnir Kontroll þrjá tengda hnúta (graf): hola hringi með radíus
+stöfluð blöð sýnir Dataregium þrjá tengda hnúta (graf): hola hringi með radíus
 2,6, einn í miðju til vinstri tengdan með tveimur línum við þá tvo til hægri,
 hvíta á sömu bláu plötunni `#2b6cb0` með hornarúnnun 7 í 32 eininga
 ferningi, allt með sömu strikbreidd 2,2. Hvíta litunin heldur spássíum
