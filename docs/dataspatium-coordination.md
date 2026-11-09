@@ -153,7 +153,7 @@ the owner's word. No history is rewritten. Dataspatium's 1.0.0 and both projects
 
 The same steps on both sides, in this order, under the same number on the same day:
 
-| Step | Kontroll | Dataspatium |
+| Step | Dataregium | Dataspatium |
 |---|---|---|
 | The version | `pyproject.toml`, `opencde/__init__.py`, `client/pyproject.toml`, `client/opencde_client/__init__.py` and `uv.lock`; the number in the READMEs, `docs/client-guide.md` and `docs/deploy/vps-caddy.md` in every language | `src/platform/registry.js` and `sw-coi.js`; the number in the READMEs |
 | The notes | `## Unreleased` in `CHANGELOG.md` is folded in under the number | The release notes |
