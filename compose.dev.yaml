@@ -5,7 +5,7 @@
 # Neo4j on the same machine often holds them; override with OPENCDE_DEV_* in .env.
 # Everything binds to 127.0.0.1 only. A second checkout on the same machine
 # needs its own COMPOSE_PROJECT_NAME and OPENCDE_DEV_* ports in .env, because
-# compose.yaml names the project "kontroll" and the two would share containers.
+# compose.yaml names the project "dataregium" and the two would share containers.
 
 services:
   graph:

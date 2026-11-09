@@ -4,9 +4,9 @@
 
 # Dataregium OpenCDE-þjónn
 
-*Dataregium hét Kontroll til 8. nóvember 2026, og textarnir hér á eftir nota enn það nafn.*
+*Dataregium hét Kontroll til 8. nóvember 2026.*
 
-Kontroll er þjónn fyrir **OpenCDE-forritaskil** buildingSMART (Foundation API
+Dataregium er þjónn fyrir **OpenCDE-forritaskil** buildingSMART (Foundation API
 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), byggður á grafgagnagrunni, með
 vefstjórnun og valkvæðri IFC-LPG-einingu sem tengir BCF-einingar við
 byggingarhlutana sem þær vísa á. Hann spratt upp úr rannsóknarfrumgerð frá
@@ -15,7 +15,7 @@ endurskrifaður frá grunni með öryggi sem fyrstu kröfu.
 Biðlarar sem fylgja forskriftunum eiga að geta tengst, svo að þjónninn er ekki
 bundinn við eitt tiltekið forrit.
 
-![Yfirlit stjórnunar á Kontroll-þjóni: fjöldi notenda, verkefna, biðlara, mála og skjala, staða gagnagrunnsins og nýjustu endurskoðunaratburðir](../images/admin-overview.png)
+![Yfirlit stjórnunar á Dataregium-þjóni: fjöldi notenda, verkefna, biðlara, mála og skjala, staða gagnagrunnsins og nýjustu endurskoðunaratburðir](../images/admin-overview.png)
 
 **Efni**
 
@@ -23,7 +23,7 @@ bundinn við eitt tiltekið forrit.
 - [Kröfur](#kröfur)
 - [Hvað þú getur gert](#hvað-þú-getur-gert)
 - [OpenCDE-forritaskilin og biðlarar þeirra](#opencde-forritaskilin-og-biðlarar-þeirra)
-- [Kontroll og Dataspatium](#kontroll-og-dataspatium)
+- [Dataregium og Dataspatium](#dataregium-og-dataspatium)
 - [Lærðu meira](#lærðu-meira)
 - [Takmarkanir í stuttu máli](#takmarkanir-í-stuttu-máli)
 - [Næst í 3-röðinni](#næst-í-3-röðinni)
@@ -62,7 +62,7 @@ bundinn við eitt tiltekið forrit.
    `/admin`.
 6. **Tengja biðlara.** Skráðu forritið þitt undir *Biðlarar* (eða láttu það
    skrá sig sjálft þegar `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
-   beindu því á `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
+   beindu því á `http://127.0.0.1:8000`; [Dataspatium](#dataregium-og-dataspatium)
    og Python-safnið í [client/](../../client/) eru tilbúnir biðlarar.
    Ef þú ætlar að skrá þig inn úr Dataspatium skaltu fylgja [fljótlegu
    byrjuninni](quickstart.md): hún fjallar um allar stillingar sem þarf og hvað þú
@@ -131,7 +131,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   Hver notandi hefur `/account` fyrir eigið lykilorð, eigin forrit og eigin
   setur. Skipanalínan (`uv run opencde --help`) gerir það sama úr skjáhermi.
 - **Viðbætur utan forskriftanna**, hver merkt sem slík: getuskjal á
-  `/.well-known/kontroll` sem segir biðlaranum hvaða viðbætur eru virkar,
+  `/.well-known/dataregium` sem segir biðlaranum hvaða viðbætur eru virkar,
   stöðugur `code` í hverju villusvari, beiðnaskrá til villuleitar í biðlurum
   (`/admin/requests`, `GET /admin/api/requests` með heimildinni `admin`) og
   IFC-LPG-einingin sem breytir upphöluðum IFC-líkönum í grafgögn tengd
@@ -158,7 +158,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
 OpenCDE er fjölskylda buildingSMART International af opnum vefforritaskilum fyrir
 sameiginlegt gagnaumhverfi, staðinn þar sem verkefni deilir líkönum sínum, skjölum og
 málum. Biðlari og þjónn sem fylgja sömu forskriftum geta unnið saman, hver sem smíðaði þá.
-Kontroll útfærir öll þrjú:
+Dataregium útfærir öll þrjú:
 
 | Forritaskil | Til hvers þau eru | Forskrift |
 |---|---|---|
@@ -184,13 +184,13 @@ hvert push, og Dataspatium og Python-safnið í [client/](../../client/) keyra g
 segðu frá hvernig gekk undir [Villur og tillögur](#villur-og-tillögur). Þegar biðlari og forskrift stangast
 á ræður forskriftin. [docs/is/client-guide.md](client-guide.md) er fyrir þá sem smíða biðlara.
 
-## Kontroll og Dataspatium
+## Dataregium og Dataspatium
 
-Kontroll (þjónninn) og [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (þjónninn) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (gagnaforrit sem keyrir alfarið í vafranum) eru þróuð til að vinna saman sem
 þjónn og biðlari, og sama útgáfunúmer á báðum þýðir að þau vinna saman:
-Dataspatium 3.0.0 vinnur með Kontroll 3.0.0 ([fljótleg byrjun](quickstart.md)).
-Dataspatium bætir Kontroll-þjóni
+Dataspatium 3.0.0 vinnur með Dataregium 3.0.0 ([fljótleg byrjun](quickstart.md)).
+Dataspatium bætir Dataregium-þjóni
 við sem uppsprettu: forritið uppgötvar forritaskilin um `/foundation/versions`,
 skráir sig inn með OAuth2 authorization code og PKCE og skráir sig sjálft sem
 opinberan biðlara þegar kvik skráning er virk, telur upp líkön og skjöl
@@ -214,7 +214,7 @@ flowchart LR
         log["Skráin í forritinu"]
         admin["Spjaldið Stjórnun"]
     end
-    subgraph server ["Kontroll, þjónninn"]
+    subgraph server ["Dataregium, þjónninn"]
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
@@ -242,7 +242,7 @@ og það sem verkefnin tvö samræma er í
 
 ## Lærðu meira
 
-- [docs/is/quickstart.md](quickstart.md): Kontroll og Dataspatium saman á tuttugu
+- [docs/is/quickstart.md](quickstart.md): Dataregium og Dataspatium saman á tuttugu
   mínútum, frá tómri tölvu að máli sem er búið til í þrívíddarsýninni.
 - [docs/is/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   hvernig biðlari er smíðaður, getuskjalið, villukóðarnir og keyranleg dæmi
@@ -256,7 +256,7 @@ og það sem verkefnin tvö samræma er í
 - [docs/acceptance.md](../acceptance.md): gátlisti fyrir sjónræna samþykkt
   með óháðum biðlurum (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvað
-  Kontroll og Dataspatium eiga sameiginlegt og ákvarðanir eigandans.
+  Dataregium og Dataspatium eiga sameiginlegt og ákvarðanir eigandans.
 - [docs/inventory.md](../inventory.md): yfirlit yfir virkni frumgerðarinnar
   frá 2023 og staða í endurskrifinu, með athugasemdum um sérkenni forskriftanna.
 - [docs/adr/](../adr/): arkitektúrákvarðanir (grafgagnagrunnur, ógegnsæir tókar,
@@ -338,7 +338,7 @@ heitum. Þessi hluti segir hvað er ákveðið og hvað er aðeins lagt til, fyr
   `bim_snippet` í BCF 3.0-máli, með birtu skema á bak við `reference_schema`,
   svo að breytingin, umræðan og ákvörðunin séu á einum stað. Enginn hugbúnaður
   beitir snippet í dag, og óútgefnar þróunargreinar buildingSMART hafa fellt þær
-  niður; Kontroll smíðar þær til að sýna hvernig þær gætu virkað. Snippet bendir
+  niður; Dataregium smíðar þær til að sýna hvernig þær gætu virkað. Snippet bendir
   á það sem hún breytir með STEP-auðkenni, eða með GlobalId og slóð þaðan.
   STEP-auðkennið nær alltaf til tilviks; GlobalId og slóð náðu til 98 til 100
   prósenta tilvikanna í 28 prófunarskrám, með skrefum til baka gegnum andhverfar
@@ -370,7 +370,7 @@ heitum. Þessi hluti segir hvað er ákveðið og hvað er aðeins lagt til, fyr
 ## Villur og tillögur
 
 Tilkynntu villur og óskir sem *Issues* hér á GitHub. Segðu hvaða útgáfu
-þjónsins þú keyrir (`version` í `/.well-known/kontroll` eða `/healthz`), hvaða
+þjónsins þú keyrir (`version` í `/.well-known/dataregium` eða `/healthz`), hvaða
 biðlara þú notaðir og `X-Request-ID` kalls sem mistókst; beiðnaskráin og
 atvikaskrá biðlarans deila því. Hengdu hvorki persónuupplýsingar né leyndarmál
 við. Hvernig breytingar eru teknar inn er lýst í

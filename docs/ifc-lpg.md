@@ -16,7 +16,7 @@ Until November 2026 the module was named IFC-graph. Its settings were named
 the server's log and `opencde doctor` name the old settings it is given.
 
 The conversion, the writing of a file and the checks come from the library
-[IFC-LPG](https://github.com/marwiss/IFC-LPG), which Kontroll installs from its
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), which Dataregium installs from its
 repository at a fixed commit, and whose README describes how a model is kept in
 the graph. The server's own process uses the part that needs no IfcOpenShell;
 the `ifc-lpg` extra adds the worker processes that do.
@@ -125,7 +125,7 @@ limits, and as the rule set's own tests run them: with behave and IfcOpenShell
 the verdict its tests expect for every one.
 
 The rules get an environment of their own, since one of their helpers does not
-work with the IfcOpenShell 0.9 that Kontroll uses.
+work with the IfcOpenShell 0.9 that Dataregium uses.
 `python -m ifc_lpg.gherkin_install <folder>` makes it from pinned
 downloads, each checked against its SHA-256: the rule set at a fixed commit,
 IfcOpenShell's build of 0.8.6 for the platform, and the Python packages with
@@ -393,7 +393,7 @@ being converted answers 409. The capabilities document announces the queries in
 developed together with this server, runs Cypher against this graph through
 its Neo4j source over Bolt (WebSocket on the Bolt port) when the operator
 exposes the database, as the development overlay does on `127.0.0.1:7697`.
-Its Kontroll workspace uses the patterns above (models, classes, components
+Its Dataregium workspace uses the patterns above (models, classes, components
 through `SAME_AS`, the latest finished model per document); the queries live in
 Dataspatium's documentation (`docs/grafer.md`), and the live runs are listed
 in [acceptance.md](acceptance.md). A production server does not publish Bolt;

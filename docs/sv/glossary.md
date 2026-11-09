@@ -62,6 +62,6 @@ kommentar, viewpoint och projekt är samma ord som i Dataspatium.
 |---|---|
 | Stack | Containrarna som utgör en körande server: API:et, databasen och i produktion proxyn och säkerhetskopieringen |
 | Seed | `opencde seed`, som läser in demonstrationsdata i en tom databas |
-| Capabilities | `/.well-known/kontroll`, som säger vad den här servern har slagit på |
+| Capabilities | `/.well-known/dataregium`, som säger vad den här servern har slagit på |
 | Begärandelogg | En valfri förteckning över anropen som servern har svarat på |
 | Granskningslogg | Förteckningen över vem som loggat in och ändrat vad |

@@ -25,7 +25,7 @@ import typer
 
 from opencde import __version__
 
-app = typer.Typer(no_args_is_help=True, help="Kontroll OpenCDE server.", rich_markup_mode="markdown")
+app = typer.Typer(no_args_is_help=True, help="Dataregium OpenCDE server.", rich_markup_mode="markdown")
 user_app = typer.Typer(no_args_is_help=True, help="Manage users and their project roles.")
 project_app = typer.Typer(no_args_is_help=True, help="Manage projects, members and BCF extensions.")
 client_app = typer.Typer(no_args_is_help=True, help="Manage OAuth2 clients.")

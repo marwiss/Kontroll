@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The capabilities document: what this server offers beyond the OpenCDE specifications.
 
-``GET /.well-known/kontroll`` (no authentication, CORS as for the API, cacheable
+``GET /.well-known/dataregium`` (no authentication, CORS as for the API, cacheable
 for a few minutes) tells a client which extensions are on, so that it can
 adapt instead of probing: dynamic client registration, the request log, the
 administration API, the IFC graph and whether its database is published, and
@@ -41,7 +41,7 @@ def offered_apis(settings: Settings) -> dict[str, str]:
 
 def capabilities(settings: Settings) -> dict[str, Any]:
     return {
-        "server": {"name": "Kontroll OpenCDE server", "version": __version__, "public_url": settings.public_url},
+        "server": {"name": "Dataregium OpenCDE server", "version": __version__, "public_url": settings.public_url},
         "apis": offered_apis(settings),
         "bcf_versions": [version for version in (BCF_VERSION, BCF_OLDER_VERSION) if settings.offers(f"bcf-{version}")],
         "scopes": list(SCOPES),
@@ -96,7 +96,15 @@ def capabilities(settings: Settings) -> dict[str, Any]:
     }
 
 
-@router.get("/.well-known/kontroll", summary="Capabilities (extension): what this server offers beyond the specs")
-async def well_known_kontroll(settings: SettingsDep) -> JSONResponse:
-    """The server's extensions, limits and links, for clients that adapt to them. Never anything secret."""
+@router.get("/.well-known/dataregium", summary="Capabilities (extension): what this server offers beyond the specs")
+@router.get(
+    "/.well-known/kontroll",
+    summary="Capabilities (extension): the same document under the former name",
+    deprecated=True,
+)
+async def well_known_dataregium(settings: SettingsDep) -> JSONResponse:
+    """The server's extensions, limits and links, for clients that adapt to them. Never anything secret.
+
+    ``/.well-known/kontroll`` is the path from before the rename of 2026-11-08 and answers the same.
+    """
     return JSONResponse(capabilities(settings), headers={"Cache-Control": "public, max-age=300"})

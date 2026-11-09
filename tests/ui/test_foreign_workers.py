@@ -3,7 +3,7 @@
 
 Such a worker answers with old copies of the pages, whose expired form tokens make the sign-in fail. It happens
 when another project once ran on the same address, for instance ``python -m http.server`` on its default port 8000,
-which is also Kontroll's. So the tests are what happens: the other app first, and then the server on its address.
+which is also Dataregium's. So the tests are what happens: the other app first, and then the server on its address.
 """
 
 from __future__ import annotations

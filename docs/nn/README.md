@@ -4,9 +4,9 @@
 
 # Dataregium OpenCDE-server
 
-*Dataregium heitte Kontroll fram til 8. november 2026, og tekstane nedanfor brukar framleis det namnet.*
+*Dataregium heitte Kontroll fram til 8. november 2026.*
 
-Kontroll er ein server for **OpenCDE-API-ane** frå buildingSMART (Foundation
+Dataregium er ein server for **OpenCDE-API-ane** frå buildingSMART (Foundation
 API 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), bygd på ein grafdatabase, med
 webadministrasjon og ein valfri IFC-LPG-modul som knyter BCF-komponentar til
 bygningsdelane dei peikar på. Han voks fram av ein forskingsprototyp frå 2023
@@ -15,7 +15,7 @@ grunnen av med tryggleik som fyrste krav.
 Klientar som følgjer spesifikasjonane, skal kunne kople seg til, så serveren
 ikkje er bunden til eitt bestemt program.
 
-![Oversikta i administrasjonen til ein Kontroll-server: talet på brukarar, prosjekt, klientar, saker og dokument, statusen til databasen og dei siste revisjonshendingane](../images/admin-overview.png)
+![Oversikta i administrasjonen til ein Dataregium-server: talet på brukarar, prosjekt, klientar, saker og dokument, statusen til databasen og dei siste revisjonshendingane](../images/admin-overview.png)
 
 **Innhald**
 
@@ -23,7 +23,7 @@ ikkje er bunden til eitt bestemt program.
 - [Kva som krevst](#kva-som-krevst)
 - [Kva du kan gjere](#kva-du-kan-gjere)
 - [OpenCDE-API-a og klientane deira](#opencde-api-a-og-klientane-deira)
-- [Kontroll og Dataspatium](#kontroll-og-dataspatium)
+- [Dataregium og Dataspatium](#dataregium-og-dataspatium)
 - [Lær meir](#lær-meir)
 - [Avgrensingar i korte trekk](#avgrensingar-i-korte-trekk)
 - [Det neste i 3-serien](#det-neste-i-3-serien)
@@ -61,7 +61,7 @@ ikkje er bunden til eitt bestemt program.
    Logg inn på <http://127.0.0.1:8000/signin> som `admin` og opne `/admin`.
 6. **Kople til ein klient.** Registrer appen din under *Klientar* (eller lat
    han registrere seg sjølv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
-   peik han mot `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
+   peik han mot `http://127.0.0.1:8000`; [Dataspatium](#dataregium-og-dataspatium)
    og Python-biblioteket i [client/](../../client/) er ferdige klientar.
    Skal du logge inn frå Dataspatium, følg [snøggstarten](quickstart.md): han tek for
    seg alle innstillingane som trengst, og kva du gjer om noko går gale.
@@ -131,7 +131,7 @@ databasepassord, og ingenting er ope før det er konfigurert.
   passord, eigne appar og eigne sesjonar. Kommandolinja
   (`uv run opencde --help`) gjer det same frå ein terminal.
 - **Tillegg utanfor spesifikasjonane**, kvart merkt som det: eit
-  kapabilitetsdokument på `/.well-known/kontroll` som fortel klienten kva
+  kapabilitetsdokument på `/.well-known/dataregium` som fortel klienten kva
   tillegg som er slått på, ein stabil `code` i kvar feilkropp, ein
   førespurnadslogg for feilsøking av klientar (`/admin/requests`,
   `GET /admin/api/requests` med scopet `admin`), og IFC-LPG-modulen som gjer
@@ -159,7 +159,7 @@ databasepassord, og ingenting er ope før det er konfigurert.
 OpenCDE er familien til buildingSMART International av opne web-API-ar for eit felles
 datamiljø, staden der eit prosjekt deler modellar, dokument og saker. Ein klient og ein
 server som følgjer dei same spesifikasjonane, kan arbeide saman, same kven som har bygd
-dei. Kontroll implementerer alle tre:
+dei. Dataregium implementerer alle tre:
 
 | API | Kva det er til | Spesifikasjon |
 |---|---|---|
@@ -186,14 +186,14 @@ korleis det gjekk under [Feil og framlegg](#feil-og-framlegg). Når ein klient o
 stemmer overeins, avgjer spesifikasjonen. [docs/nn/client-guide.md](client-guide.md) er for dei som byggjer
 ein klient.
 
-## Kontroll og Dataspatium
+## Dataregium og Dataspatium
 
-Kontroll (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (ein dataapp som køyrer heilt i nettlesaren) er utvikla for å verke saman som
 server og klient, og same utgjevingsnummer på begge tyder at dei verkar
-saman: Dataspatium 3.0.0 verkar med Kontroll 3.0.0
+saman: Dataspatium 3.0.0 verkar med Dataregium 3.0.0
 ([snøggstart](quickstart.md)). Dataspatium legg til ein
-Kontroll-server som kjelde: appen oppdagar API-ane gjennom
+Dataregium-server som kjelde: appen oppdagar API-ane gjennom
 `/foundation/versions`, loggar inn med OAuth2 authorization code og PKCE og
 registrerer seg sjølv som offentleg klient når dynamisk registrering er slått
 på, listar modellane og dokumenta i prosjektet, les og skriv BCF-saker med
@@ -216,7 +216,7 @@ flowchart LR
         log["Loggen i appen"]
         admin["Kortet Administrasjon"]
     end
-    subgraph server ["Kontroll, serveren"]
+    subgraph server ["Dataregium, serveren"]
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
@@ -244,7 +244,7 @@ står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 
 ## Lær meir
 
-- [docs/nn/quickstart.md](quickstart.md): Kontroll og Dataspatium saman på tjue
+- [docs/nn/quickstart.md](quickstart.md): Dataregium og Dataspatium saman på tjue
   minutt, frå ei tom maskin til ei sak oppretta i 3D-visinga.
 - [docs/nn/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   korleis byggje ein klient, kapabilitetsdokumentet, feilkodane og køyrbare
@@ -258,7 +258,7 @@ står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 - [docs/acceptance.md](../acceptance.md): sjekkliste for visuell akseptanse
   med uavhengige klientar (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): kva
-  Kontroll og Dataspatium deler, og avgjerdene til eigaren.
+  Dataregium og Dataspatium deler, og avgjerdene til eigaren.
 - [docs/inventory.md](../inventory.md): funksjonsinventar over prototypen frå
   2023 og status i omskrivinga, med merknader om særdrag i spesifikasjonane.
 - [docs/adr/](../adr/): arkitekturavgjerder (grafdatabase, opake tokens,
@@ -340,7 +340,7 @@ Avgjerdene står i [docs/adr](../adr), arbeidsmåtane i
   som `bim_snippet` i ei BCF 3.0-sak, med eit publisert skjema bak
   `reference_schema`, så endringa, diskusjonen og avgjerda er på éin stad.
   Ingen programvare bruker ein snippet i dag, og dei ikkje utgjevne
-  utviklingsgreinene til buildingSMART har fjerna dei; Kontroll byggjer dei for
+  utviklingsgreinene til buildingSMART har fjerna dei; Dataregium byggjer dei for
   å vise korleis dei kunne verke. Ein snippet peikar ut det han endrar med
   STEP-id, eller med GlobalId og ein sti derifrå. STEP-ida når alltid ein
   instans; GlobalId og sti nådde 98 til 100 prosent av instansane i 28
@@ -373,7 +373,7 @@ Avgjerdene står i [docs/adr](../adr), arbeidsmåtane i
 ## Feil og framlegg
 
 Rapporter feil og ønske som *Issues* her på GitHub. Oppgje kva serverversjon
-du køyrer (`version` i `/.well-known/kontroll` eller `/healthz`), kva klient
+du køyrer (`version` i `/.well-known/dataregium` eller `/healthz`), kva klient
 du brukte og `X-Request-ID` for eit mislukka kall; førespurnadsloggen og
 loggen til klienten deler han. Legg ikkje ved personopplysningar eller
 løyndomar. Korleis endringar blir tekne imot står i

@@ -12,7 +12,7 @@ opas on normatiivinen uusille sivuille (ADR 0004).
 2. **Yksi designin lähde, ja se on Dataspatiumin.** Omistaja päätti, että
    palvelimen sivut ja Dataspatium-sovellus jakavat yhden, Dataspatiumiin
    perustuvan ulkoasun, ja Dataspatiumin tekijänoikeuden haltijana salli
-   Kontrollin käyttää tuota designia lisenssien eroista huolimatta
+   Dataregiumin käyttää tuota designia lisenssien eroista huolimatta
    (2026-11-05). Värit, typografia, välit ja pyöristykset tulevat tiedostosta
    `opencde/ui/static/css/tokens.css`, joka sisältää Dataspatiumin tokenit
    `--dm-*`-nimillään; komponentit tiedostosta `components.css`, joka ilmaisee
@@ -87,7 +87,7 @@ rivi riviltä:
 
 Komponentit vastaavat Dataspatiumin komponentteja näin:
 
-| Kontroll-luokka | Dataspatium-komponentti | Ulkoasu |
+| Dataregium-luokka | Dataspatium-komponentti | Ulkoasu |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` ja `variant` sekä `size` | 32 px (26 px pieni), pyöristys 6 px, 13 px medium-teksti; primary täytetty korostusvärillä; danger punainen teksti, punainen osoitettaessa |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, kentän reunus, kohdistusrengas sisäpuolella; tekstialueet tasalevyisellä kirjasimella |
@@ -110,7 +110,7 @@ ottamatta, eikä lainkaan `prefers-reduced-motion`-asetuksella.
 ## Tunnus
 
 Palvelimen tunnus on Dataspatiumin tunnuksen sisarus: missä Dataspatium
-näyttää kolme päällekkäistä arkkia, Kontroll näyttää kolme yhdistettyä solmua
+näyttää kolme päällekkäistä arkkia, Dataregium näyttää kolme yhdistettyä solmua
 (graafin): onttoja renkaita säteellä 2,6, yksi keskellä vasemmalla
 yhdistettynä kahdella viivalla kahteen oikealla olevaan, valkoisina samalla
 sinisellä laatalla `#2b6cb0`, jonka kulmapyöristys on 7, 32 yksikön

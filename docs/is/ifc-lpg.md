@@ -15,7 +15,7 @@ og skipunin `opencde ifcgraph`, og hvort tveggja virkar enn; atvikaskrá þjóns
 og `opencde doctor` nefna gömlu stillingarnar sem hann fær.
 
 Umbreytingin, ritun skrár og prófanirnar koma úr safninu
-[IFC-LPG](https://github.com/marwiss/IFC-LPG), sem Kontroll setur upp úr
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), sem Dataregium setur upp úr
 geymslu þess við fasta útgáfu (commit), og README-skrá þess lýsir því hvernig
 líkan er geymt í grafinu. Eigið ferli þjónsins notar þann hluta sem þarf ekki
 IfcOpenShell; aukapakkinn `ifc-lpg` bætir við vinnsluferlunum sem þurfa það.
@@ -123,7 +123,7 @@ og eins og eigin prófanir reglusafnsins keyra þær: með behave og IfcOpenShel
 þá niðurstöðu sem prófanir þess búast við fyrir hverja einustu.
 
 Reglurnar fá eigið umhverfi, þar sem eitt af hjálparföllum þeirra virkar ekki
-með IfcOpenShell 0.9, sem Kontroll notar.
+með IfcOpenShell 0.9, sem Dataregium notar.
 `python -m ifc_lpg.gherkin_install <mappa>` býr það til úr festum
 niðurhölum, og hvert þeirra er borið saman við SHA-256 sitt: reglusafnið við
 ákveðið commit, smíð IfcOpenShell af 0.8.6 fyrir verkvanginn og Python-pakkana
@@ -391,7 +391,7 @@ umbreyta líkaninu svarar 409. Getuskjalið kynnir fyrirspurnirnar í
 þróaður samhliða þessum þjóni, keyrir Cypher gegn þessu grafi um
 Neo4j-uppsprettu sína yfir Bolt (WebSocket á Bolt-gáttinni) þegar
 rekstraraðilinn opnar gagnagrunninn, eins og þróunaryfirlagið gerir á
-`127.0.0.1:7697`. Kontroll-vinnusvæði þess notar mynstrin að ofan (líkön,
+`127.0.0.1:7697`. Dataregium-vinnusvæði þess notar mynstrin að ofan (líkön,
 flokka, einingar um `SAME_AS`, nýjasta lokna líkanið á hvert skjal);
 fyrirspurnirnar eru í skjölun Dataspatium (`docs/grafer.md`), og lifandi
 keyrslurnar eru taldar upp í [acceptance.md](../acceptance.md).

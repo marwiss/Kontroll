@@ -36,9 +36,11 @@ Kopiera den volymen någon annanstans (en annan värd, objektlagring); en
 säkerhetskopia på samma disk som datat är bara en halv säkerhetskopia:
 
 ```sh
-docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
-  tar czf /out/kontroll-backups.tgz -C /backups .
+docker run --rm -v dataregium_backups:/backups -v "$PWD":/out alpine \
+  tar czf /out/dataregium-backups.tgz -C /backups .
 ```
+
+En installation som behållit det gamla projektnamnet har volymen som `kontroll_backups`.
 
 För att återställa på en ny värd: starta stacken, kopiera en
 säkerhetskopiemapp in i containern `api` (eller montera den) och kör

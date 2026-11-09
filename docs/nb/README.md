@@ -4,9 +4,9 @@
 
 # Dataregium OpenCDE-server
 
-*Dataregium het Kontroll fram til 8. november 2026, og tekstene nedenfor bruker fortsatt det navnet.*
+*Dataregium het Kontroll fram til 8. november 2026.*
 
-Kontroll er en server for buildingSMARTs **OpenCDE-API-er** (Foundation API
+Dataregium er en server for buildingSMARTs **OpenCDE-API-er** (Foundation API
 1.0, BCF API 3.0 og 2.1 samt Documents API 1.0), bygget på en grafdatabase, med
 webadministrasjon og en valgfri IFC-LPG-modul som knytter BCF-komponenter
 til bygningsdelene de peker på. Den vokste fram av en forskningsprototyp fra
@@ -15,7 +15,7 @@ fra grunnen av med sikkerhet som første krav.
 Klienter som følger spesifikasjonene, skal kunne koble seg til, så serveren
 ikke er bundet til ett bestemt program.
 
-![Administrasjonens oversikt i en Kontroll-server: antall brukere, prosjekter, klienter, saker og dokumenter, databasens status og de siste revisjonshendelsene](../images/admin-overview.png)
+![Administrasjonens oversikt i en Dataregium-server: antall brukere, prosjekter, klienter, saker og dokumenter, databasens status og de siste revisjonshendelsene](../images/admin-overview.png)
 
 **Innhold**
 
@@ -23,7 +23,7 @@ ikke er bundet til ett bestemt program.
 - [Hva som kreves](#hva-som-kreves)
 - [Hva du kan gjøre](#hva-du-kan-gjøre)
 - [OpenCDE-API-ene og klientene deres](#opencde-api-ene-og-klientene-deres)
-- [Kontroll og Dataspatium](#kontroll-og-dataspatium)
+- [Dataregium og Dataspatium](#dataregium-og-dataspatium)
 - [Lær mer](#lær-mer)
 - [Begrensninger i korte trekk](#begrensninger-i-korte-trekk)
 - [Det neste i 3-serien](#det-neste-i-3-serien)
@@ -62,7 +62,7 @@ ikke er bundet til ett bestemt program.
    `/admin`.
 6. **Koble til en klient.** Registrer appen din under *Klienter* (eller la
    den registrere seg selv når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og
-   pek den mot `http://127.0.0.1:8000`; [Dataspatium](#kontroll-og-dataspatium)
+   pek den mot `http://127.0.0.1:8000`; [Dataspatium](#dataregium-og-dataspatium)
    og Python-biblioteket i [client/](../../client/) er ferdige klienter.
    Skal du logge inn fra Dataspatium, følg [hurtigstarten](quickstart.md): den tar for
    seg alle innstillingene som trengs, og hva du gjør hvis noe går galt.
@@ -132,7 +132,7 @@ databasepassord, og ingenting er åpent før det er konfigurert.
   egne apper og egne sesjoner. Kommandolinjen (`uv run opencde --help`) gjør
   det samme fra en terminal.
 - **Tillegg utenfor spesifikasjonene**, hvert merket som det: et
-  kapabilitetsdokument på `/.well-known/kontroll` som forteller klienten
+  kapabilitetsdokument på `/.well-known/dataregium` som forteller klienten
   hvilke tillegg som er slått på, en stabil `code` i hver feilkropp, en
   forespørselslogg for feilsøking av klienter (`/admin/requests`,
   `GET /admin/api/requests` med scopet `admin`), og IFC-LPG-modulen som gjør
@@ -160,7 +160,7 @@ databasepassord, og ingenting er åpent før det er konfigurert.
 OpenCDE er buildingSMART Internationals familie av åpne web-API-er for et felles
 datamiljø, stedet der et prosjekt deler modeller, dokumenter og saker. En klient og en
 server som følger de samme spesifikasjonene, kan arbeide sammen, uansett hvem som har
-bygget dem. Kontroll implementerer alle tre:
+bygget dem. Dataregium implementerer alle tre:
 
 | API | Hva det er til | Spesifikasjon |
 |---|---|---|
@@ -187,14 +187,14 @@ hvordan det gikk under [Feil og forslag](#feil-og-forslag). Når en klient og en
 stemmer overens, avgjør spesifikasjonen. [docs/nb/client-guide.md](client-guide.md) er for dem som bygger en
 klient.
 
-## Kontroll og Dataspatium
+## Dataregium og Dataspatium
 
-Kontroll (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
+Dataregium (serveren) og [Dataspatium](https://github.com/marwiss/Dataspatium)
 (en dataapp som kjører helt i nettleseren) er utviklet for å virke sammen som
 server og klient, og samme utgivelsesnummer på begge betyr at de virker
-sammen: Dataspatium 3.0.0 virker med Kontroll 3.0.0
+sammen: Dataspatium 3.0.0 virker med Dataregium 3.0.0
 ([hurtigstart](quickstart.md)). Dataspatium legger til
-en Kontroll-server som kilde: appen oppdager API-ene gjennom
+en Dataregium-server som kilde: appen oppdager API-ene gjennom
 `/foundation/versions`, logger inn med OAuth2 authorization code og PKCE og
 registrerer seg selv som offentlig klient når dynamisk registrering er slått
 på, lister prosjektets modeller og dokumenter, leser og skriver BCF-saker med
@@ -218,7 +218,7 @@ flowchart LR
         log["Loggen i appen"]
         admin["Kortet Administrasjon"]
     end
-    subgraph server ["Kontroll, serveren"]
+    subgraph server ["Dataregium, serveren"]
         foundation["Foundation API, OAuth2"]
         bcf["BCF API"]
         documents["Documents API"]
@@ -246,7 +246,7 @@ og hva de to prosjektene samordner står i
 
 ## Lær mer
 
-- [docs/nb/quickstart.md](quickstart.md): Kontroll og Dataspatium sammen på tjue
+- [docs/nb/quickstart.md](quickstart.md): Dataregium og Dataspatium sammen på tjue
   minutter, fra en tom maskin til en sak opprettet i 3D-visningen.
 - [docs/nb/client-guide.md](client-guide.md) og [docs/examples/](../examples/):
   hvordan bygge en klient, kapabilitetsdokumentet, feilkodene og kjørbare
@@ -260,7 +260,7 @@ og hva de to prosjektene samordner står i
 - [docs/acceptance.md](../acceptance.md): sjekkliste for visuell akseptanse
   med uavhengige klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hva
-  Kontroll og Dataspatium deler, og eierens beslutninger.
+  Dataregium og Dataspatium deler, og eierens beslutninger.
 - [docs/inventory.md](../inventory.md): funksjonsinventar over prototypen fra
   2023 og status i omskrivingen, med merknader om særtrekk i spesifikasjonene.
 - [docs/adr/](../adr/): arkitekturbeslutninger (grafdatabase, opake tokens,
@@ -340,7 +340,7 @@ og IFC-grafen i [docs/nb/ifc-lpg.md](ifc-lpg.md).
   som `bim_snippet` i en BCF 3.0-sak, med et publisert skjema bak dens
   `reference_schema`, så endringen, diskusjonen og beslutningen er på ett sted.
   Ingen programvare bruker en snippet i dag, og buildingSMARTs uutgitte
-  utviklingsgrener har fjernet dem; Kontroll bygger dem for å vise hvordan de
+  utviklingsgrener har fjernet dem; Dataregium bygger dem for å vise hvordan de
   kunne virke. En snippet peker ut det den endrer med STEP-id, eller med
   GlobalId og en sti derfra. STEP-id-en når alltid en instans; GlobalId og sti
   nådde 98 til 100 prosent av instansene i 28 prøvefiler, med steg tilbake
@@ -373,7 +373,7 @@ og IFC-grafen i [docs/nb/ifc-lpg.md](ifc-lpg.md).
 ## Feil og forslag
 
 Rapporter feil og ønsker som *Issues* her på GitHub. Oppgi hvilken
-serverversjon du kjører (`version` i `/.well-known/kontroll` eller
+serverversjon du kjører (`version` i `/.well-known/dataregium` eller
 `/healthz`), hvilken klient du brukte og `X-Request-ID` for et mislykket
 kall; forespørselsloggen og klientens logg deler den. Legg ikke ved
 personopplysninger eller hemmeligheter. Hvordan endringer tas imot står i

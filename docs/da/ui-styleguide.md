@@ -11,7 +11,7 @@ for nye sider (ADR 0004).
    bekræftelsesdialoger, kopieringsknapper).
 2. **Én kilde til designet, og det er Dataspatiums.** Ejeren besluttede, at
    serverens sider og Dataspatium-appen deler ét udseende, baseret på
-   Dataspatiums, og som Dataspatiums rettighedshaver tillod Kontroll at bruge
+   Dataspatiums, og som Dataspatiums rettighedshaver tillod Dataregium at bruge
    det design trods de forskellige licenser (2026-11-05). Farver, typografi,
    afstande og radier kommer fra `opencde/ui/static/css/tokens.css`, som
    bærer Dataspatiums tokens med deres `--dm-*`-navne; komponenter fra
@@ -81,7 +81,7 @@ samme, `--dm-*`, så en værdi kan sammenlignes linje for linje:
 
 Komponenterne afbildes på Dataspatiums således:
 
-| Kontroll-klasse | Dataspatium-komponent | Udseende |
+| Dataregium-klasse | Dataspatium-komponent | Udseende |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` med `variant` og `size` | 32 px (26 px lille), radius 6 px, 13 px medium tekst; primær udfyldt accent; danger rød tekst, rød ved hover |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, feltkant, fokusring indeni; tekstområder i monospace |
@@ -103,7 +103,7 @@ animation ud over korte overgange, slet ingen under `prefers-reduced-motion`.
 ## Mærket
 
 Serverens mærke er søskende til Dataspatiums: hvor Dataspatium viser tre
-stablede ark, viser Kontroll tre forbundne noder (en graf): hule ringe med
+stablede ark, viser Dataregium tre forbundne noder (en graf): hule ringe med
 radius 2,6, én i midten til venstre forbundet med to linjer til de to til
 højre, hvide på den samme blå plade `#2b6cb0` med hjørneradius 7 i et kvadrat
 på 32 enheder, alt med samme stregbredde 2,2. Den hvide farve beholder

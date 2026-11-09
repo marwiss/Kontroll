@@ -8,8 +8,8 @@ säkerhetskopieringsjobbet körs på ett privat nät.
 ## 1. Förbered
 
 ```sh
-git clone https://github.com/marwiss/Dataregium.git /opt/kontroll
-cd /opt/kontroll
+git clone https://github.com/marwiss/Dataregium.git /opt/dataregium
+cd /opt/dataregium
 uv run opencde init --public-url https://cde.example.org
 ```
 

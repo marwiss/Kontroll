@@ -22,7 +22,7 @@ klient treng sjølve Bolt.
   Nettlesarklientar som Dataspatium treng eit sertifikat nettlesaren stolar
   på, så sjølvsignerte sertifikat verkar ikkje for dei.
 - **Annonsert til klientar.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` blir publisert i
-  kapabilitetsdokumentet (`/.well-known/kontroll`, `extensions.ifcgraph.bolt`),
+  kapabilitetsdokumentet (`/.well-known/dataregium`, `extensions.ifcgraph.bolt`),
   der Dataspatium les han, og vist på sida Innstillingar i administrasjonen.
   Lat han stå tom medan porten er lukka.
 
@@ -69,7 +69,7 @@ Opne brannmuren for porten berre mot adressene som treng han (eit
 kontornettverk, ein VPN), aldri mot heile verda. Sjekk resultatet:
 
 ```sh
-curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
+curl -s https://cde.example.org/.well-known/dataregium | grep -o '"bolt":"[^"]*"'
 ```
 
 Grafvisinga i Dataspatium, Neo4j Browser (`bolt+s://cde.example.org:7687`) og

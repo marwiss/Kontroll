@@ -29,14 +29,14 @@ offers the Foundation API and the Documents API, and no BCF.
 
 ### The capabilities document (extension)
 
-Beyond the specifications, `GET /.well-known/kontroll` (no authentication,
+Beyond the specifications, `GET /.well-known/dataregium` (no authentication,
 CORS as for the API, cacheable for five minutes) says which extensions this
 server has turned on and which limits apply, so that a client adapts instead
 of probing:
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "3.0.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Dataregium OpenCDE server", "version": "3.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
@@ -54,7 +54,7 @@ of probing:
 ```
 
 A `404` means a server without extensions (another OpenCDE server, or an
-older Kontroll). Treat unknown keys as absent. `ifcgraph.bolt` is set only
+older Dataregium). Treat unknown keys as absent. `ifcgraph.bolt` is set only
 when the operator has deliberately published the graph database
 (`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `graph_query` is on only when the
 operator has set `OPENCDE_GRAPH_QUERY_ENABLED` (§7); `links.dataspatium`

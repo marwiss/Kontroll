@@ -32,8 +32,13 @@ en offentlig OAuth2-klient og udskriver kodeordene én gang.
 Udviklingsoverlejringen udgiver Neo4j på 7484/7697 i stedet for
 standardportene 7474/7687, som en anden Neo4j på samme maskine ofte optager.
 Skift portene med `OPENCDE_DEV_*` i `.env`. To checkouts på samme maskine deler
-Compose-projektnavnet `kontroll` (`compose.yaml` sætter det); giv det andet
-`COMPOSE_PROJECT_NAME=kontroll-2` og andre porte i sin `.env`.
+Compose-projektnavnet `dataregium` (`compose.yaml` sætter det); giv det andet
+`COMPOSE_PROJECT_NAME=dataregium-2` og andre porte i sin `.env`.
+
+En installation, der blev lavet, mens projektet stadig hed Kontroll, har sine
+data i volumener med navnet `kontroll_…`. Den beholder dem med
+`COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går forud for navnet i
+`compose.yaml`; uden det starter næste `up` et nyt projekt med tomme volumener.
 
 ## Uden Docker til serveren
 

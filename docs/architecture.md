@@ -1,6 +1,6 @@
 # Architecture
 
-Kontroll is one web server in front of one graph database. This page shows how
+Dataregium is one web server in front of one graph database. This page shows how
 the parts fit together, what happens to a request and where each thing lives in
 the code. Read it if you want to run the server with confidence, change it or
 build on it. The words are explained in the [glossary](glossary.md).
@@ -11,7 +11,7 @@ build on it. The words are explained in the [glossary](glossary.md).
 flowchart LR
     apps["Clients: Dataspatium, BIM tools, scripts"] -- "HTTPS: Foundation, BCF, Documents" --> api
     people["Browser: sign-in, upload, administration"] -- "HTTPS: pages" --> api
-    subgraph kontroll ["Kontroll"]
+    subgraph dataregium ["Dataregium"]
         api["Web server"]
         worker["Conversion worker"]
         api -- "starts" --> worker

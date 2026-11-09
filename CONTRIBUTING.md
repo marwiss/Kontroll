@@ -1,6 +1,6 @@
-# Contributing to Kontroll
+# Contributing to Dataregium
 
-Thank you for helping. Kontroll is a server for the buildingSMART OpenCDE
+Thank you for helping. Dataregium is a server for the buildingSMART OpenCDE
 APIs, licensed under the GNU Affero General Public License v3.0 or later
 ([LICENSE](LICENSE)); the client library in [client/](client/) is
 LGPL-3.0-or-later. Both licences let you change the code and pass it on
@@ -10,7 +10,7 @@ under the same terms, and contributions are taken in under those terms
 ## Bug reports and suggestions
 
 Open an issue on GitHub. Say which version of the server you run (the
-`version` field of `GET /healthz` or `/.well-known/kontroll`), which client
+`version` field of `GET /healthz` or `/.well-known/dataregium`), which client
 you used, what you did, what happened and what you expected. Include the
 `X-Request-ID` of a failing call when you have it; the server's request log
 and your client's log share it. Attach no personal data and no secrets; a
@@ -71,20 +71,20 @@ source, and a change to a page is made in all seven languages in the same
 commit (`tests/unit/test_docs.py` checks that they keep up). The project logs
 (`acceptance.md`, `inventory.md`, `dataspatium-coordination.md`), the ADRs,
 the upstream drafts and this file stay in English. Shared terms follow
-the glossary that Kontroll and [Dataspatium](https://github.com/marwiss/Dataspatium)
+the glossary that Dataregium and [Dataspatium](https://github.com/marwiss/Dataspatium)
 keep together (`presets/i18n-shared.json` there); keep "viewpoint" and the
 API names untranslated, and send corrections of a translation as an issue or
 a pull request like any other change.
 
 ## Working with Dataspatium
 
-Kontroll and Dataspatium are developed to work together but are separate
+Dataregium and Dataspatium are developed to work together but are separate
 projects with different licences (AGPL here, PolyForm Strict there). Both
 have the same copyright holder, who gave two permissions on 2026-11-05:
-Kontroll may use Dataspatium's design (tokens, type, spacing, component
+Dataregium may use Dataspatium's design (tokens, type, spacing, component
 styles), which is why `opencde/ui/static/css/tokens.css` carries
 Dataspatium's tokens under this project's licence and the components follow
-Dataspatium's; and Dataspatium may use all of Kontroll's own code and
+Dataspatium's; and Dataspatium may use all of Dataregium's own code and
 resources (the quick start, the sample model, anything else) under its own
 licence. The licences are otherwise unchanged, and third-party material
 keeps its own terms (the buildingSMART specification files, the Inter font,

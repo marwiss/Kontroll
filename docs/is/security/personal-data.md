@@ -1,9 +1,9 @@
 # Persónuupplýsingar og varðveisla
 
-Hvað Kontroll-þjónn geymir um fólk, hve lengi, og hver getur séð það. Þetta
+Hvað Dataregium-þjónn geymir um fólk, hve lengi, og hver getur séð það. Þetta
 er helmingur þjónsins af síðu sem er deilt með Dataspatium; helmingur
 forritsins (hvað það geymir í vafranum og hvað það sendir) er í skjölun
-Dataspatium. Sá sem rekur Kontroll fyrir aðra er ábyrgðaraðili þessara
+Dataspatium. Sá sem rekur Dataregium fyrir aðra er ábyrgðaraðili þessara
 gagna; síðan gefur staðreyndirnar fyrir eigin skrár.
 
 ## Hvað er geymt
@@ -41,7 +41,7 @@ rekstraraðilans ([deploy/backup.md](../deploy/backup.md)).
   afturkallað þau.
 - Enginn sér lykilorð, leyndarmál eða tóka: þjónninn geymir aðeins tætigildi
   og sýnir nýtt leyndarmál einu sinni, við stofnun.
-- Hver sem er getur lesið `/.well-known/kontroll`, `/foundation/versions`,
+- Hver sem er getur lesið `/.well-known/dataregium`, `/foundation/versions`,
   `/foundation/1.0/auth` og `/healthz`; þau innihalda stillingar, aldrei
   fólk.
 

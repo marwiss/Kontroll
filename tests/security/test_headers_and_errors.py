@@ -161,7 +161,7 @@ def test_icons_are_served_with_image_types(client: TestClient) -> None:
     """The mark as SVG and PNG under /static, and favicon.ico for browsers that ask without being told."""
     svg = client.get("/static/icon.svg")
     assert svg.status_code == 200 and svg.headers["content-type"].startswith("image/svg+xml")
-    assert b"Kontroll OpenCDE server" in svg.content and svg.headers["x-content-type-options"] == "nosniff"
+    assert b"Dataregium OpenCDE server" in svg.content and svg.headers["x-content-type-options"] == "nosniff"
     png = client.get("/static/icon-32.png")
     assert (
         png.status_code == 200

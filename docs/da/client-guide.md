@@ -29,14 +29,14 @@ dokumentserver tilbyder Foundation API og Documents API, men ingen BCF.
 
 ### Kapabilitetsdokumentet (udvidelse)
 
-Ud over specifikationerne fortæller `GET /.well-known/kontroll` (ingen
+Ud over specifikationerne fortæller `GET /.well-known/dataregium` (ingen
 autentificering, CORS som for API'et, kan caches i fem minutter), hvilke
 udvidelser denne server har slået til, og hvilke grænser der gælder, så en
 klient tilpasser sig i stedet for at prøve sig frem:
 
 ```json
 {
-  "server": {"name": "Kontroll OpenCDE server", "version": "3.0.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Dataregium OpenCDE server", "version": "3.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "admin"],
   "extensions": {
@@ -54,7 +54,7 @@ klient tilpasser sig i stedet for at prøve sig frem:
 ```
 
 Et `404` betyder en server uden udvidelser (en anden OpenCDE-server eller en
-ældre Kontroll). Behandl ukendte nøgler som manglende. `ifcgraph.bolt` er kun
+ældre Dataregium). Behandl ukendte nøgler som manglende. `ifcgraph.bolt` er kun
 sat, når operatøren bevidst har offentliggjort grafdatabasen
 (`OPENCDE_GRAPH_PUBLIC_BOLT_URL`); `graph_query` er kun slået til, når
 operatøren har sat `OPENCDE_GRAPH_QUERY_ENABLED` (§7); `links.dataspatium`

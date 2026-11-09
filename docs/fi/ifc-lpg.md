@@ -17,7 +17,7 @@ Marraskuuhun 2026 asti moduulin nimi oli IFC-graph. Sen asetusten nimet olivat
 palvelimen loki ja `opencde doctor` nimeävät vanhat asetukset, jotka se saa.
 
 Muunnos, tiedoston kirjoittaminen ja tarkistukset tulevat kirjastosta
-[IFC-LPG](https://github.com/marwiss/IFC-LPG), jonka Kontroll asentaa sen
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), jonka Dataregium asentaa sen
 repositoriosta tietystä commitista ja jonka README kertoo, miten malli
 tallennetaan graafiin. Palvelimen oma prosessi käyttää osaa, joka ei tarvitse
 IfcOpenShelliä; `ifc-lpg`-lisäosa lisää työprosessit, jotka tarvitsevat sitä.
@@ -130,7 +130,7 @@ IfcOpenShell 0.8.6:lla, jota sääntökokoelman CI käyttää. Sääntökokoelma
 testitiedostolla tämä antaa jokaiselle sen tuloksen, jota sen testit odottavat.
 
 Säännöt saavat oman ympäristönsä, koska yksi niiden apufunktioista ei toimi
-IfcOpenShell 0.9:n kanssa, jota Kontroll käyttää.
+IfcOpenShell 0.9:n kanssa, jota Dataregium käyttää.
 `python -m ifc_lpg.gherkin_install <kansio>` tekee sen lukituista
 latauksista, joista jokainen tarkistetaan SHA-256-tiivistettään vasten:
 sääntökokoelma tietyssä commitissa, IfcOpenShellin 0.8.6-käännös alustalle ja
@@ -404,7 +404,7 @@ vielä muunnetaan, vastaa 409. Ominaisuusdokumentti ilmoittaa kyselyt kentässä
 kanssa kehitettävä selainasiakas, ajaa Cypheriä tätä graafia vasten
 Neo4j-lähteensä kautta Boltilla (WebSocket Bolt-portissa), kun ylläpitäjä
 avaa tietokannan, kuten kehityspäällyste tekee osoitteessa `127.0.0.1:7697`.
-Sen Kontroll-työtila käyttää yllä olevia malleja (mallit, luokat,
+Sen Dataregium-työtila käyttää yllä olevia malleja (mallit, luokat,
 komponentit `SAME_AS`-suhteen kautta, uusin valmis malli asiakirjaa kohti);
 kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/grafer.md`), ja live-ajot
 on lueteltu tiedostossa [acceptance.md](../acceptance.md). Tuotantopalvelin

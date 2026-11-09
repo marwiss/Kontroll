@@ -23,7 +23,7 @@ har brug for selve Bolt.
   Browserklienter som Dataspatium har brug for et certifikat, browseren stoler
   på, så selvsignerede certifikater virker ikke for dem.
 - **Annonceret til klienter.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` udgives i
-  kapabilitetsdokumentet (`/.well-known/kontroll`, `extensions.ifcgraph.bolt`),
+  kapabilitetsdokumentet (`/.well-known/dataregium`, `extensions.ifcgraph.bolt`),
   hvor Dataspatium læser den, og vises på administrationens side
   Indstillinger. Lad den være tom, mens porten er lukket.
 
@@ -70,7 +70,7 @@ docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
 kontornetværk, en VPN), aldrig mod hele verden. Tjek resultatet:
 
 ```sh
-curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
+curl -s https://cde.example.org/.well-known/dataregium | grep -o '"bolt":"[^"]*"'
 ```
 
 Dataspatiums grafvisning, Neo4j Browser (`bolt+s://cde.example.org:7687`) og de

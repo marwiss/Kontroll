@@ -62,6 +62,6 @@ viewpoint and project are the same words as in Dataspatium.
 |---|---|
 | Stack | The containers that make up a running server: the API, the database and, in production, the proxy and the backup |
 | Seed | `opencde seed`, which loads demonstration data into an empty database |
-| Capabilities | `/.well-known/kontroll`, which says what this server has switched on |
+| Capabilities | `/.well-known/dataregium`, which says what this server has switched on |
 | Request log | An optional record of the requests the server has answered |
 | Audit log | The record of who signed in and changed what |

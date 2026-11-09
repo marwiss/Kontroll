@@ -1,6 +1,6 @@
 # Changelog
 
-Kontroll takes the same release numbers as [Dataspatium](https://github.com/marwiss/Dataspatium):
+Dataregium takes the same release numbers as [Dataspatium](https://github.com/marwiss/Dataspatium):
 the same number on both means they work together. Each major number has one
 release, numbered X.0.0: 2.0.0 for the 2 series and 3.0.0 for the 3 series.
 A change to a series is released again under the same number; the release
@@ -15,6 +15,10 @@ can be written back as a file, every upload checked against the IFC schema, buil
 and the IDS documents of its project, named queries for members, and IFC-LPG as a library. Works
 with Dataspatium 3.0.0.
 
+- The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
+  `GET /.well-known/dataregium`, and `/.well-known/kontroll` answers the same as an alias; `server.name` in it says
+  `Dataregium OpenCDE server`. The Compose project is named `dataregium`; an installation that keeps its volumes from
+  the old name sets `COMPOSE_PROJECT_NAME=kontroll` in `.env` (see docs/deploy/local.md).
 - An IFC model can be written back from the graph as a file that holds the same model, on Neo4j and on Memgraph:
   `opencde ifc-lpg export <model id> model.ifc`, with `--verify` to compare it with the upload. See
   [docs/ifc-lpg.md](docs/ifc-lpg.md).
@@ -66,6 +70,10 @@ Dataspatium's, and this release takes the first number again. No history is rewr
 commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
 speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
+- The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
+  `GET /.well-known/dataregium`, and `/.well-known/kontroll` answers the same as an alias; `server.name` in it says
+  `Dataregium OpenCDE server`. The Compose project is named `dataregium`; an installation that keeps its volumes from
+  the old name sets `COMPOSE_PROJECT_NAME=kontroll` in `.env` (see docs/deploy/local.md).
 - A server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
   without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
   The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
@@ -154,7 +162,7 @@ speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws
   the browser's check for its script with one that removes it, empties its caches and reloads
   the windows. Such a worker answers with old copies of the pages, so that the sign-in fails
   with an expired form. It works while a saved page is showing, and needs nothing in the pages.
-- The quick start covers everything it takes to sign in to Kontroll from
+- The quick start covers everything it takes to sign in to Dataregium from
   Dataspatium: what you need, exactly which lines of `.env` to change and why, the
   words on the screen in each language, and a troubleshooting table that quotes each
   message with its cause and what to do. It was followed literally from an empty

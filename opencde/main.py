@@ -135,7 +135,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             log.info("server_stopped")
 
     app = FastAPI(
-        title="Kontroll OpenCDE server",
+        title="Dataregium OpenCDE server",
         description=DESCRIPTION,
         version=__version__,
         lifespan=lifespan,
