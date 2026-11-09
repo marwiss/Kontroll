@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('ViewDefinition [ReferenceView]','Written with the assistance of an AI coding tool, for the tests of the named queries'),'2;1');
-FILE_NAME('two_spaces.ifc','2026-11-08T00:00:00',(''),(''),'Kontroll tests','Kontroll tests','');
+FILE_NAME('two_spaces.ifc','2026-11-08T00:00:00',(''),(''),'Dataregium tests','Dataregium tests','');
 FILE_SCHEMA(('IFC4'));
 ENDSEC;
 DATA;

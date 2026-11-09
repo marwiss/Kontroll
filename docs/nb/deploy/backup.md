@@ -37,9 +37,11 @@ objektlagring); en sikkerhetskopi på samme disk som dataene er bare en halv
 sikkerhetskopi:
 
 ```sh
-docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
-  tar czf /out/kontroll-backups.tgz -C /backups .
+docker run --rm -v dataregium_backups:/backups -v "$PWD":/out alpine \
+  tar czf /out/dataregium-backups.tgz -C /backups .
 ```
+
+En installasjon som har beholdt det gamle prosjektnavnet, har volumet som `kontroll_backups`.
 
 For å gjenopprette på en ny vert: start stakken, kopier en sikkerhetskopimappe
 inn i containeren `api` (eller monter den) og kjør

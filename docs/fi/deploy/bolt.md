@@ -23,7 +23,7 @@ asiakas tarvitsee nimenomaan Boltia.
   johon selain luottaa, joten itse allekirjoitetut varmenteet eivät toimi
   niille.
 - **Ilmoitettu asiakkaille.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` julkaistaan
-  kyvykkyysasiakirjassa (`/.well-known/kontroll`, `extensions.ifcgraph.bolt`),
+  kyvykkyysasiakirjassa (`/.well-known/dataregium`, `extensions.ifcgraph.bolt`),
   josta Dataspatium lukee sen, ja näytetään hallinnan Asetukset-sivulla. Jätä
   se tyhjäksi, kun portti on suljettu.
 
@@ -73,7 +73,7 @@ Avaa palomuuri portille vain niille osoitteille, jotka sitä tarvitsevat
 (toimiston verkko, VPN), ei koskaan koko maailmalle. Tarkista tulos:
 
 ```sh
-curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
+curl -s https://cde.example.org/.well-known/dataregium | grep -o '"bolt":"[^"]*"'
 ```
 
 Dataspatiumin graafinäkymä, Neo4j Browser (`bolt+s://cde.example.org:7687`)

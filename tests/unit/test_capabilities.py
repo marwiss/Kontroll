@@ -10,13 +10,13 @@ from tests.conftest import test_settings as make_settings
 
 
 def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestClient) -> None:
-    response = client.get("/.well-known/kontroll", headers={"Origin": "https://app.example"})
+    response = client.get("/.well-known/dataregium", headers={"Origin": "https://app.example"})
     assert response.status_code == 200
     assert response.headers["cache-control"] == "public, max-age=300"
     assert response.headers["access-control-allow-origin"] == "*", "clients read it cross-origin"
     body = response.json()
     assert set(body) == {"server", "apis", "bcf_versions", "scopes", "extensions", "limits", "links"}
-    assert body["server"]["name"] == "Kontroll OpenCDE server" and body["server"]["public_url"] == "http://testserver"
+    assert body["server"]["name"] == "Dataregium OpenCDE server" and body["server"]["public_url"] == "http://testserver"
     assert body["apis"] == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
     assert body["bcf_versions"] == ["3.0", "2.1"]
     assert body["scopes"] == ["profile", "bcf", "documents", "admin"]
@@ -49,6 +49,13 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert not any(word in response.text for word in secret_like), "nothing from the configuration's secrets"
 
 
+def test_the_former_path_answers_the_same_document(client: TestClient) -> None:
+    current = client.get("/.well-known/dataregium")
+    former = client.get("/.well-known/kontroll")
+    assert former.status_code == 200 and former.json() == current.json()
+    assert former.headers["cache-control"] == current.headers["cache-control"]
+
+
 def test_capabilities_reflect_the_settings_and_the_admin_api_can_be_off(tmp_path: Path) -> None:
     settings = make_settings(
         tmp_path,
@@ -60,7 +67,7 @@ def test_capabilities_reflect_the_settings_and_the_admin_api_can_be_off(tmp_path
         graph_query_enabled=True,
     )
     with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
-        body = client.get("/.well-known/kontroll").json()
+        body = client.get("/.well-known/dataregium").json()
         assert body["extensions"]["request_log"]["enabled"] is True
         assert body["extensions"]["dynamic_client_registration"]["enabled"] is True
         assert body["extensions"]["admin_api"]["enabled"] is False
@@ -77,7 +84,7 @@ def test_the_graph_query_is_announced_with_its_limits_when_on(tmp_path: Path) ->
         tmp_path, graph_query_enabled=True, graph_query_max_rows=50, graph_query_timeout_seconds=2.5
     )
     with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
-        body = client.get("/.well-known/kontroll").json()
+        body = client.get("/.well-known/dataregium").json()
         assert body["extensions"]["graph_query"] == {
             "enabled": True,
             "url": "/admin/api/graph/query",
@@ -92,7 +99,7 @@ def test_the_named_queries_are_announced_with_the_module(tmp_path: Path) -> None
     from opencde.ifcgraph.queries import MAX_ROWS, QUERIES
 
     with TestClient(create_app(make_settings(tmp_path, ifcgraph_enabled=True), startup_wait_seconds=0)) as client:
-        announced = client.get("/.well-known/kontroll").json()["extensions"]["ifc_queries"]
+        announced = client.get("/.well-known/dataregium").json()["extensions"]["ifc_queries"]
         assert announced == {
             "enabled": True,
             "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries",
@@ -102,4 +109,4 @@ def test_the_named_queries_are_announced_with_the_module(tmp_path: Path) -> None
         refused = client.get(f"/documents/1.0/documents/{'0' * 32}/versions/1/ifc-queries")
         assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
     with TestClient(create_app(make_settings(tmp_path, apis=["bcf-2.1"]), startup_wait_seconds=0)) as client:
-        assert client.get("/.well-known/kontroll").json()["extensions"]["ifc_queries"] == {"enabled": False}
+        assert client.get("/.well-known/dataregium").json()["extensions"]["ifc_queries"] == {"enabled": False}

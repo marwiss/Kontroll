@@ -29,7 +29,7 @@ pytestmark = [
 ]
 
 ROOT = Path(__file__).resolve().parents[2]
-PROJECT = "kontroll-restart"
+PROJECT = "dataregium-restart"
 PORT = 8311
 URL = f"http://127.0.0.1:{PORT}"
 USER = "inspection_manager"

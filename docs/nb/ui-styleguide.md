@@ -11,7 +11,7 @@ normativ for nye sider (ADR 0004).
    bekreftelsesdialoger, kopieringsknapper).
 2. **Én kilde til designet, og det er Dataspatiums.** Eieren besluttet at
    serverens sider og Dataspatium-appen deler ett utseende, basert på
-   Dataspatiums, og som Dataspatiums rettighetshaver tillot Kontroll å bruke
+   Dataspatiums, og som Dataspatiums rettighetshaver tillot Dataregium å bruke
    det designet til tross for de ulike lisensene (2026-11-05). Farger,
    typografi, avstander og radier kommer fra `opencde/ui/static/css/tokens.css`,
    som bærer Dataspatiums tokens med `--dm-*`-navnene deres; komponenter fra
@@ -81,7 +81,7 @@ datapaletten og panellayouten som bare appen trenger. Navnene er de samme,
 
 Komponentene avbildes på Dataspatiums slik:
 
-| Kontroll-klasse | Dataspatium-komponent | Utseende |
+| Dataregium-klasse | Dataspatium-komponent | Utseende |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` med `variant` og `size` | 32 px (26 px liten), radius 6 px, 13 px medium tekst; primær fylt aksent; danger rød tekst, rød ved hover |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, feltkant, fokusring innenfor; tekstområder i monospace |
@@ -104,7 +104,7 @@ animasjon utover korte overganger, ingen i det hele tatt under
 ## Merket
 
 Serverens merke er søsken til Dataspatiums: der Dataspatium viser tre
-stablede ark, viser Kontroll tre sammenkoblede noder (en graf): hule ringer
+stablede ark, viser Dataregium tre sammenkoblede noder (en graf): hule ringer
 med radius 2,6, én i midten til venstre forbundet med to linjer til de to til
 høyre, hvite på den samme blå platen `#2b6cb0` med hjørneradius 7 i et
 kvadrat på 32 enheter, alt med samme strekbredde 2,2. Den hvite fargen

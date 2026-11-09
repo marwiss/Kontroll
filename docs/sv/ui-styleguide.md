@@ -11,7 +11,7 @@ guiden är normerande för nya sidor (ADR 0004).
    bekräftelsedialoger, kopieringsknappar).
 2. **En källa till designen, och det är Dataspatiums.** Ägaren beslutade att
    serverns sidor och Dataspatium-appen delar ett utseende, baserat på
-   Dataspatiums, och som Dataspatiums upphovsrättsinnehavare tillät Kontroll
+   Dataspatiums, och som Dataspatiums upphovsrättsinnehavare tillät Dataregium
    att använda den designen trots de olika licenserna (2026-11-05). Färger,
    typografi, avstånd och radier kommer från `opencde/ui/static/css/tokens.css`,
    som bär Dataspatiums tokens med deras `--dm-*`-namn; komponenter från
@@ -82,7 +82,7 @@ datapaletten och panellayouten som bara appen behöver. Namnen är desamma,
 
 Komponenterna avbildas på Dataspatiums så här:
 
-| Kontroll-klass | Dataspatium-komponent | Utseende |
+| Dataregium-klass | Dataspatium-komponent | Utseende |
 |---|---|---|
 | `.btn`, `--primary`, `--secondary`, `--ghost`, `--danger`, `--small` | `dm-button` med `variant` och `size` | 32 px (26 px liten), radie 6 px, 13 px medium text; primär fylld accent; danger röd text, röd vid hovring |
 | `.input`, `.select`, `.textarea`, `.field__label`, `.field__hint` | `.dm-field`, `.dm-label`, `.dm-help` | 32 px, fältkant, fokusring inuti; textrutor med fast breddsteg |
@@ -104,7 +104,7 @@ animation utöver korta övergångar, inga alls under `prefers-reduced-motion`.
 ## Märket
 
 Serverns märke är syskonet till Dataspatiums: där Dataspatium visar tre
-staplade blad visar Kontroll tre sammankopplade noder (en graf): ihåliga
+staplade blad visar Dataregium tre sammankopplade noder (en graf): ihåliga
 ringar med radie 2,6, en i mitten till vänster förbunden med två linjer till
 de två till höger, vita på samma blå platta `#2b6cb0` med hörnradie 7 i en
 32-enheters kvadrat, allt med samma linjebredd 2,2. Den vita färgen behåller

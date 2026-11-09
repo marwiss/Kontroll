@@ -62,6 +62,6 @@ viewpoint og projekt er de samme ord som i Dataspatium.
 |---|---|
 | Stak | De containere, der udgør en kørende server: API'et, databasen og i produktion proxyen og sikkerhedskopieringen |
 | Seed | `opencde seed`, der indlæser demonstrationsdata i en tom database |
-| Capabilities | `/.well-known/kontroll`, som siger, hvad denne server har slået til |
+| Capabilities | `/.well-known/dataregium`, som siger, hvad denne server har slået til |
 | Forespørgselslog | En valgfri fortegnelse over de forespørgsler, serveren har besvaret |
 | Revisionslog | Fortegnelsen over, hvem der har logget ind og ændret hvad |

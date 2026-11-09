@@ -29,5 +29,5 @@ services:
 
   api:
     environment:
-      # Announced in the capabilities document (/.well-known/kontroll, extensions.ifcgraph.bolt).
+      # Announced in the capabilities document (/.well-known/dataregium, extensions.ifcgraph.bolt).
       OPENCDE_GRAPH_PUBLIC_BOLT_URL: "${OPENCDE_GRAPH_PUBLIC_BOLT_URL:?Set OPENCDE_GRAPH_PUBLIC_BOLT_URL in .env, e.g. bolt+s://cde.example.org:7687}"

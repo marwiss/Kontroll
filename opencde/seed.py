@@ -280,7 +280,7 @@ async def _seed_content(
                 aspect_ratio=1.5,
             ),
             components=Components(
-                selection=[Component(ifc_guid=first_wall, originating_system="Kontroll seed")],
+                selection=[Component(ifc_guid=first_wall, originating_system="Dataregium seed")],
                 visibility=Visibility(default_visibility=True),
             ),
         ),

@@ -36,9 +36,11 @@ geymslunni `backups`. Afritaðu þá geymslu eitthvert annað (annan hýsil,
 hlutageymslu); öryggisafrit á sama diski og gögnin er bara hálft öryggisafrit:
 
 ```sh
-docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
-  tar czf /out/kontroll-backups.tgz -C /backups .
+docker run --rm -v dataregium_backups:/backups -v "$PWD":/out alpine \
+  tar czf /out/dataregium-backups.tgz -C /backups .
 ```
+
+Uppsetning sem hélt gamla verkefnisheitinu hefur geymsluna sem `kontroll_backups`.
 
 Til að endurheimta á nýjum hýsli: ræstu staflann, afritaðu öryggisafritsmöppu
 inn í gáminn `api` (eða tengdu hana) og keyrðu

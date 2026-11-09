@@ -28,6 +28,7 @@ PUBLIC = {
     ("GET", "/bcf/versions"),  # BCF API 2.1's versions service
     ("GET", "/bcf/2.1/auth"),  # and its authentication information
     ("POST", "/bcf/2.1/oauth2/reg"),  # off unless the operator allows it
+    ("GET", "/.well-known/dataregium"),
     ("GET", "/.well-known/kontroll"),
 }
 

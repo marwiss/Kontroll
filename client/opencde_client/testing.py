@@ -3,7 +3,7 @@
 
 Real applications never see a user's password; these helpers exist so test
 suites and demo scripts can complete the sign-in and the Documents API pages
-of a *Kontroll* server headlessly. They depend on that server's page markup.
+of a *Dataregium* server headlessly. They depend on that server's page markup.
 """
 
 from __future__ import annotations

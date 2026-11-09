@@ -44,7 +44,7 @@ def test_by_default_every_api_is_offered(client: TestClient) -> None:
         ("documents", "1.0"),
     ]
     assert [v["version_id"] for v in client.get("/bcf/versions").json()["versions"]] == ["3.0", "2.1"]
-    body = client.get("/.well-known/kontroll").json()
+    body = client.get("/.well-known/dataregium").json()
     assert body["apis"] == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
     assert body["bcf_versions"] == ["3.0", "2.1"]
     assert offered(client, BCF30) and offered(client, BCF21) and offered(client, DOCUMENTS)
@@ -63,7 +63,7 @@ def test_a_server_for_bcf_21_alone_offers_that_and_sign_in(bcf21: TestClient) ->
     for gone in ("/foundation/versions", "/foundation/1.0/auth", "/bcf/3.0/auth"):
         assert bcf21.get(gone).status_code == 404, gone
     assert offered(bcf21, BCF21) and not offered(bcf21, BCF30) and not offered(bcf21, DOCUMENTS)
-    body = bcf21.get("/.well-known/kontroll").json()
+    body = bcf21.get("/.well-known/dataregium").json()
     assert body["apis"] == {"bcf": "2.1"} and body["bcf_versions"] == ["2.1"]
     assert not [path for path in paths(bcf21) if path.startswith(("/foundation/1.0", "/bcf/3.0", "/documents/"))]
     page = bcf21.get("/", headers={"Accept-Language": "en"}).text
@@ -78,7 +78,7 @@ def test_a_document_server_offers_the_documents_api_with_the_foundation_api(tmp_
         assert client.get("/bcf/versions").status_code == 404
         assert offered(client, DOCUMENTS) and not offered(client, BCF30) and not offered(client, BCF21)
         assert not [path for path in paths(client) if path.startswith("/bcf/")]
-        body = client.get("/.well-known/kontroll").json()
+        body = client.get("/.well-known/dataregium").json()
         assert body["apis"] == {"foundation": "1.0", "documents": "1.0"} and body["bcf_versions"] == []
 
 

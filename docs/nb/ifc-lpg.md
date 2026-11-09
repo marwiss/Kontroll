@@ -17,7 +17,7 @@ kommandoen `opencde ifcgraph`, og begge virker fortsatt; serverens logg og
 `opencde doctor` nevner de gamle innstillingene den får.
 
 Konverteringen, skrivingen av en fil og kontrollene kommer fra biblioteket
-[IFC-LPG](https://github.com/marwiss/IFC-LPG), som Kontroll installerer fra
+[IFC-LPG](https://github.com/marwiss/IFC-LPG), som Dataregium installerer fra
 repoet ved en fast commit, og som har en README som beskriver hvordan en modell
 lagres i grafen. Serverens egen prosess bruker den delen som ikke trenger
 IfcOpenShell; ekstrapakken `ifc-lpg` legger til arbeidsprosessene som gjør det.
@@ -128,7 +128,7 @@ IfcOpenShell 0.8.6, som regelsettets CI bruker. På regelsettets 722 testfiler
 gir det utfallet testene venter for hver eneste en.
 
 Reglene får et eget miljø, fordi en av hjelpefunksjonene deres ikke virker med
-IfcOpenShell 0.9, som Kontroll bruker.
+IfcOpenShell 0.9, som Dataregium bruker.
 `python -m ifc_lpg.gherkin_install <mappe>` lager det av fastlåste
 nedlastinger, hver kontrollert mot sin SHA-256: regelsettet ved en bestemt
 commit, IfcOpenShells bygg av 0.8.6 for plattformen og Python-pakkene med
@@ -397,7 +397,7 @@ i `ifc_queries`.
 utvikles sammen med denne serveren, kjører Cypher mot denne grafen gjennom
 Neo4j-kilden sin over Bolt (WebSocket på Bolt-porten) når operatøren
 eksponerer databasen, slik utviklingsoverlegget gjør på `127.0.0.1:7697`.
-Kontroll-arbeidsområdet dets bruker mønstrene ovenfor (modeller, klasser,
+Dataregium-arbeidsområdet dets bruker mønstrene ovenfor (modeller, klasser,
 komponenter via `SAME_AS`, den siste ferdige modellen per dokument);
 spørringene ligger i Dataspatiums dokumentasjon (`docs/grafer.md`), og
 live-kjøringene er listet i [acceptance.md](../acceptance.md). En

@@ -78,7 +78,7 @@ def test_registering_takes_the_token_when_one_is_set(with_token: TestClient) -> 
 
 
 def test_the_capabilities_say_what_it_takes_to_register(with_token: TestClient, settings: Settings) -> None:
-    found = with_token.get("/.well-known/kontroll").json()["extensions"]["dynamic_client_registration"]
+    found = with_token.get("/.well-known/dataregium").json()["extensions"]["dynamic_client_registration"]
     assert found["initial_access_token"] is True and found["approval"] is False
     assert "an-invitation-to-register" not in str(found), "the value itself is a secret"
 

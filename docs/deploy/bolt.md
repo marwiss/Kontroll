@@ -22,7 +22,7 @@ client needs Bolt itself.
   Browser clients such as Dataspatium need a certificate the browser trusts,
   so self-signed certificates do not work for them.
 - **Announced to clients.** `OPENCDE_GRAPH_PUBLIC_BOLT_URL` is published in
-  the capabilities document (`/.well-known/kontroll`,
+  the capabilities document (`/.well-known/dataregium`,
   `extensions.ifcgraph.bolt`), where Dataspatium reads it, and shown on the
   administration's Settings page. Leave it empty while the port is closed.
 
@@ -70,7 +70,7 @@ Open the firewall for the port only to the addresses that need it (an office
 range, a VPN), never to the world. Check the result:
 
 ```sh
-curl -s https://cde.example.org/.well-known/kontroll | grep -o '"bolt":"[^"]*"'
+curl -s https://cde.example.org/.well-known/dataregium | grep -o '"bolt":"[^"]*"'
 ```
 
 Dataspatium's graph view, Neo4j Browser (`bolt+s://cde.example.org:7687`)

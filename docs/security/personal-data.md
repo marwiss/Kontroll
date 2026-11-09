@@ -1,9 +1,9 @@
 # Personal data and retention
 
-What a Kontroll server stores about people, for how long, and who can see
+What a Dataregium server stores about people, for how long, and who can see
 it. This is the server's half of a page shared with Dataspatium; the app's
 half (what it keeps in the browser and what it sends) is in Dataspatium's
-documentation. Operators who run Kontroll for others are the controllers of
+documentation. Operators who run Dataregium for others are the controllers of
 this data; this page gives them the facts for their own records.
 
 ## What is stored
@@ -41,7 +41,7 @@ above except the server logs, encrypted or not as the operator chooses
   and can revoke them.
 - Nobody sees passwords, secrets or tokens: the server stores hashes only and
   shows a new secret once, at creation.
-- Anyone can read `/.well-known/kontroll`, `/foundation/versions`,
+- Anyone can read `/.well-known/dataregium`, `/foundation/versions`,
   `/foundation/1.0/auth` and `/healthz`; they contain configuration, never
   people.
 

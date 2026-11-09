@@ -39,9 +39,11 @@ objektitallennukseen); samalla levyllä kuin data oleva varmuuskopio on vain
 puoli varmuuskopiota:
 
 ```sh
-docker run --rm -v kontroll_backups:/backups -v "$PWD":/out alpine \
-  tar czf /out/kontroll-backups.tgz -C /backups .
+docker run --rm -v dataregium_backups:/backups -v "$PWD":/out alpine \
+  tar czf /out/dataregium-backups.tgz -C /backups .
 ```
+
+Asennuksella, joka on säilyttänyt vanhan projektinimen, taltio on `kontroll_backups`.
 
 Palauttaaksesi uudelle isännälle käynnistä pino, kopioi varmuuskopiokansio
 `api`-konttiin (tai liitä se) ja aja

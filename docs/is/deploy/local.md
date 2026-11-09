@@ -32,8 +32,13 @@ opinberan OAuth2-biðlara, og prentar lykilorðin einu sinni.
 Þróunaryfirlagið birtir Neo4j á 7484/7697 frekar en sjálfgefnu gáttunum
 7474/7687, sem annar Neo4j á sömu tölvu heldur oft. Breyttu gáttunum með
 `OPENCDE_DEV_*` í `.env`. Tvö útgáfusöfn á sömu tölvu deila
-Compose-verkefnisheitinu `kontroll` (`compose.yaml` setur það); gefðu hinu
-síðara `COMPOSE_PROJECT_NAME=kontroll-2` og aðrar gáttir í sinni `.env`.
+Compose-verkefnisheitinu `dataregium` (`compose.yaml` setur það); gefðu hinu
+síðara `COMPOSE_PROJECT_NAME=dataregium-2` og aðrar gáttir í sinni `.env`.
+
+Uppsetning sem var gerð meðan verkefnið hét enn Kontroll hefur gögnin sín í
+geymslum sem heita `kontroll_…`. Hún heldur þeim með
+`COMPOSE_PROJECT_NAME=kontroll` í `.env`, sem gengur framar heitinu í
+`compose.yaml`; án þess ræsir næsta `up` nýtt verkefni með tómum geymslum.
 
 ## Án Docker fyrir þjóninn
 

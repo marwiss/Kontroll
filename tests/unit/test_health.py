@@ -24,5 +24,5 @@ def test_index_points_to_docs_and_versions(client: TestClient) -> None:
 
 def test_openapi_document_is_served(client: TestClient) -> None:
     schema = client.get("/openapi.json").json()
-    assert schema["info"]["title"] == "Kontroll OpenCDE server"
+    assert schema["info"]["title"] == "Dataregium OpenCDE server"
     assert schema["info"]["license"]["name"] == "AGPL-3.0-or-later"

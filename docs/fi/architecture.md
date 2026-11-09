@@ -1,6 +1,6 @@
 # Arkkitehtuuri
 
-Kontroll on yksi verkkopalvelin yhden graafitietokannan edessä. Tämä sivu näyttää,
+Dataregium on yksi verkkopalvelin yhden graafitietokannan edessä. Tämä sivu näyttää,
 miten osat liittyvät toisiinsa, mitä pyynnölle tapahtuu ja missä kaikki on koodissa.
 Lue se, jos haluat ylläpitää palvelinta luottavaisin mielin, muuttaa sitä tai
 rakentaa sen päälle. Sanat selitetään [sanastossa](glossary.md).
@@ -11,7 +11,7 @@ rakentaa sen päälle. Sanat selitetään [sanastossa](glossary.md).
 flowchart LR
     apps["Asiakkaat: Dataspatium, BIM-työkalut, skriptit"] -- "HTTPS: Foundation, BCF, Documents" --> api
     people["Selain: kirjautuminen, lataus, hallinta"] -- "HTTPS: sivut" --> api
-    subgraph kontroll ["Kontroll"]
+    subgraph dataregium ["Dataregium"]
         api["Verkkopalvelin"]
         worker["Muunnosprosessi"]
         api -- "käynnistää" --> worker

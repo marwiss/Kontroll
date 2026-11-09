@@ -515,6 +515,6 @@ def test_a_model_that_does_not_hold_it_all_is_not_written(
         return messages
 
     ordinary, running, missing = asyncio.run(work())
-    assert "OPENCDE_IFC_LPG_LOSSLESS" in ordinary, "Kontroll names its setting"
+    assert "OPENCDE_IFC_LPG_LOSSLESS" in ordinary, "Dataregium names its setting"
     assert "running" in running and "OPENCDE_" not in running
     assert "no such model" in missing
