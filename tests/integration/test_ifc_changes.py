@@ -35,7 +35,9 @@ def test_the_schema_is_public_and_the_snippet_is_held_to_it(client: TestClient, 
         "tried": False,
         "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal",
         "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve",
-    }
+        "ops": ["set", "add", "remove", "delete"],
+        "unreachable_url": None,
+    }, "the server proposes no removal without the IFC-LPG module"
 
     editor = login_as(client, world, "editor")
     viewer = login_as(client, world, "viewer")
