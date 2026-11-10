@@ -467,7 +467,8 @@ applied file becomes the next version of the base document, with
 `approved_by` in its metadata, and the AI model and tool call where an AI
 proposed it; the answer is the new version as the Documents API gives it, and
 it is converted and checked as an upload is. The topic gets a comment with the
-version's address, and the status `Closed` where the project has that value.
+version's address, a viewpoint that selects the changed elements, and the
+status `Closed` where the project has that value.
 `412 version_conflict` says the document has moved on since the base; `409`
 that the trial is not clean, or was approved already. An AI only proposes:
 approval is a person's.

@@ -478,7 +478,8 @@ brukte fila blir den neste versjonen av basisdokumentet, med
 `approved_by` i metadataa sine, og AI-modellen og verktøykallet der ein AI
 føreslo henne; svaret er den nye versjonen slik Documents API gjev han, og han
 blir konvertert og kontrollert som ei opplasting. Saka får ein kommentar med
-adressa til versjonen, og statusen `Closed` der prosjektet har den verdien.
+adressa til versjonen, eit viewpoint som markerer dei endra elementa, og
+statusen `Closed` der prosjektet har den verdien.
 `412 version_conflict` seier at dokumentet har gått vidare sidan basen; `409`
 at prøven ikkje er rein, eller alt er godkjend. Ein AI føreslår berre:
 godkjenninga er eit menneske si.

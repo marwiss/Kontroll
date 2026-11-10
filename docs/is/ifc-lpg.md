@@ -467,8 +467,8 @@ sem breytingunum var beitt á verður næsta útgáfa grunnskjalsins, með
 `approved_by` í lýsigögnum sínum, og gervigreindarlíkaninu og verkfærakallinu
 þar sem gervigreind lagði hana til; svarið er nýja útgáfan eins og Documents
 API gefur hana, og henni er umbreytt og hún prófuð eins og upphal. Málið fær
-athugasemd með heimilisfangi útgáfunnar, og stöðuna `Closed` þar sem verkefnið
-hefur það gildi. `412 version_conflict` segir að skjalið hafi haldið áfram
+athugasemd með heimilisfangi útgáfunnar, sjónarhorn (viewpoint) sem velur
+breyttu einingarnar, og stöðuna `Closed` þar sem verkefnið hefur það gildi. `412 version_conflict` segir að skjalið hafi haldið áfram
 síðan grunnurinn var; `409` að prófunin sé ekki hrein, eða þegar samþykkt.
 Gervigreind leggur aðeins til: samþykktin er manneskju.
 

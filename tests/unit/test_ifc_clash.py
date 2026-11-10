@@ -10,12 +10,12 @@ from typing import Any
 
 import pytest
 
-from opencde.documents.routes_clash import _camera, _topic_body
+from opencde.documents.routes_clash import _topic_body, camera_looking_at
 from tests.conftest import FIXTURES_DIR
 
 
 def test_the_camera_looks_down_from_the_south_east_at_a_distance_set_by_the_size() -> None:
-    near = _camera([10.0, 20.0, 3.0], None)
+    near = camera_looking_at([10.0, 20.0, 3.0], None)
     assert near.camera_view_point.x > 10 and near.camera_view_point.y < 20 and near.camera_view_point.z > 3
     assert near.camera_up_vector.z == 1
     assert math.isclose(near.camera_direction.x, -near.camera_direction.y) and near.camera_direction.z < 0
@@ -23,7 +23,7 @@ def test_the_camera_looks_down_from_the_south_east_at_a_distance_set_by_the_size
         (10.0, 20.0, 3.0), (near.camera_view_point.x, near.camera_view_point.y, near.camera_view_point.z)
     )
     assert math.isclose(distance, 5.0, rel_tol=1e-6), "2 m of extent by default: 2 * 1.5 + 2"
-    far = _camera([0.0, 0.0, 0.0], 100.0)
+    far = camera_looking_at([0.0, 0.0, 0.0], 100.0)
     assert math.isclose(
         math.dist((0, 0, 0), (far.camera_view_point.x, far.camera_view_point.y, far.camera_view_point.z)), 40.0
     )

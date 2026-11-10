@@ -475,7 +475,8 @@ den tillämpade filen blir basdokumentets nästa version, med
 `approved_by` i sina metadata, och AI-modellen och verktygsanropet där en AI
 föreslog den; svaret är den nya versionen som Documents API ger den, och den
 konverteras och kontrolleras som en uppladdning. Ärendet får en kommentar med
-versionens adress, och statusen `Closed` där projektet har det värdet.
+versionens adress, en viewpoint som markerar de ändrade elementen, och
+statusen `Closed` där projektet har det värdet.
 `412 version_conflict` säger att dokumentet har gått vidare sedan basen; `409`
 att prövningen inte är ren, eller redan är godkänd. En AI föreslår bara:
 godkännandet är en människas.

@@ -192,6 +192,11 @@ def test_a_manager_approves_a_clean_trial_and_it_becomes_the_next_version(ifc_cl
     comments = client.get(f"{topics}/{topic['guid']}/comments", headers=editor.headers).json()
     assert any("version 2" in comment["comment"] and comment["author"] == "manager" for comment in comments)
     assert client.get(f"{topics}/{topic['guid']}", headers=editor.headers).json()["topic_status"] == "Closed"
+    (viewpoint,) = client.get(f"{topics}/{topic['guid']}/viewpoints", headers=editor.headers).json()
+    selection = client.get(
+        f"{topics}/{topic['guid']}/viewpoints/{viewpoint['guid']}/selection", headers=editor.headers
+    ).json()["selection"]
+    assert [component["ifc_guid"] for component in selection] == [WALLS[0]], "the viewpoint selects what changed"
 
     # A change set on a base the document has moved past is not approved: 412, as an upload on an old base.
     stale = make_topic(client, world, editor, bim_snippet=snippet_fields)

@@ -481,8 +481,8 @@ metatiedoissa ovat `base_version_index`, `change_set_id` (asian guid),
 `proposed_by` ja `approved_by` sekä tekoälymalli ja työkalukutsu, kun
 ehdottaja oli tekoäly; vastaus on uusi versio sellaisena kuin Documents API
 sen antaa, ja se muunnetaan ja tarkistetaan kuten lähetys. Asia saa
-kommentin, jossa on version osoite, ja tilan `Closed`, kun projektilla on se
-arvo. `412 version_conflict` kertoo, että dokumentti on edennyt perustan
+kommentin, jossa on version osoite, näkymän (viewpoint), joka valitsee
+muuttuneet elementit, ja tilan `Closed`, kun projektilla on se arvo. `412 version_conflict` kertoo, että dokumentti on edennyt perustan
 jälkeen; `409`, ettei kokeilu ole puhdas tai se on jo hyväksytty. Tekoäly
 vain ehdottaa: hyväksyntä on ihmisen.
 

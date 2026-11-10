@@ -260,7 +260,7 @@ async def get_clash(
     return _report(request, row)
 
 
-def _camera(point: list[float], extent: float | None) -> PerspectiveCamera:
+def camera_looking_at(point: list[float], extent: float | None) -> PerspectiveCamera:
     """A camera that looks down at the point from the south-east, at a distance set by the elements' size."""
     distance = min(40.0, max(2.5, (extent or 2.0) * 1.5 + 2.0))
     step = distance / math.sqrt(3)
@@ -302,7 +302,7 @@ def _topic_body(pair: dict[str, Any], extensions: dict[str, list[str]]) -> Topic
 def _viewpoint_body(pair: dict[str, Any]) -> ViewpointPOST:
     a, b = Component(ifc_guid=pair["a"]["guid"]), Component(ifc_guid=pair["b"]["guid"])
     return ViewpointPOST(
-        perspective_camera=_camera(pair["point"], pair.get("extent")),
+        perspective_camera=camera_looking_at(pair["point"], pair.get("extent")),
         components=Components(
             selection=[a, b],
             coloring=[Coloring(color=COLOUR_A, components=[a]), Coloring(color=COLOUR_B, components=[b])],

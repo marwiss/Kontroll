@@ -10,6 +10,8 @@ the commit history.
 
 ## Unreleased
 
+- An approved change set gives its topic a viewpoint that selects the changed elements, so that the topic shows
+  in 3D what the version changed.
 - Two named queries more: `entity?global_id=` gives one rooted entity with every literal attribute and what it
   refers to and is referred to by, and `changed-since?since=` lists what changed in the document since a version,
   from the change sets of the versions between (one row with `whole_file` for a whole-file upload).

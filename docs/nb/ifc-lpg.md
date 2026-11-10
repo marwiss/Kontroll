@@ -472,8 +472,8 @@ brukte filen blir basisdokumentets neste versjon, med `base_version_index`,
 `change_set_id` (sakens guid), `proposed_by` og `approved_by` i metadataene
 sine, og AI-modellen og verktøykallet der en AI foreslo den; svaret er den nye
 versjonen slik Documents API gir den, og den konverteres og kontrolleres som
-en opplasting. Saken får en kommentar med versjonens adresse, og statusen
-`Closed` der prosjektet har den verdien. `412 version_conflict` sier at
+en opplasting. Saken får en kommentar med versjonens adresse, et viewpoint som markerer de endrede elementene, og
+statusen `Closed` der prosjektet har den verdien. `412 version_conflict` sier at
 dokumentet har gått videre siden basen; `409` at prøven ikke er ren, eller
 allerede er godkjent. En AI foreslår bare: godkjenningen er et menneskes.
 

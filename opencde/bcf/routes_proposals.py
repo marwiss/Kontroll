@@ -31,11 +31,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.accounts.roles import Role, at_least
 from opencde.bcf.comments import CommentsDep
-from opencde.bcf.schemas import CommentPOST, TopicPUT
+from opencde.bcf.schemas import CommentPOST, Component, Components, TopicPUT, ViewpointPOST, Visibility
 from opencde.bcf.topic_access import TopicCtx, TopicsDep
+from opencde.bcf.viewpoints import ViewpointsDep
 from opencde.deps import ProjectsDep, SettingsDep, StorageDep
 from opencde.documents.links import api_base
 from opencde.documents.repository import DocumentsDep, default_metadata
+from opencde.documents.routes_clash import camera_looking_at
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion
 from opencde.documents.validation import IfcValidationCheck, IfcValidationIssue
 from opencde.errors import CODE_VERSION_CONFLICT, ApiError
@@ -153,13 +155,15 @@ async def proposal_approve(
     documents: DocumentsDep,
     comments: CommentsDep,
     topics: TopicsDep,
+    viewpoints: ViewpointsDep,
     projects: ProjectsDep,
     storage: StorageDep,
     settings: SettingsDep,
 ) -> DocumentVersion:
     """A `manager` approves a `clean` trial: the answer is the new version as the Documents API gives it, with
     `base_version_index`, `change_set_id`, `proposed_by`, `approved_by` and, where an AI proposed it, `ai_model` and
-    `tool_call` in its metadata. When the document has moved on since the base, the change set is tried again on
+    `tool_call` in its metadata, and the topic gets a viewpoint that selects the changed elements (OB-32). When the
+    document has moved on since the base, the change set is tried again on
     the latest version and approved on it, unless one of its attributes was changed in between: then 412
     `version_conflict` with the colliding attributes in `conflicts`. 403 for other roles, 409 when the trial is not
     clean or was approved already."""
@@ -245,12 +249,90 @@ async def proposal_approve(
             comment=f"Approved as version {record.version_index} of {latest.title}: {version.links.document_version.url}"
         ),
     )
+    guids, centre, extent = await anyio.to_thread.run_sync(
+        _changed_guids, storage.path(str(node["storage_key"])), list(change_set.get("changes") or [])
+    )
+    if guids:
+        await viewpoints.create(
+            project_id=topic.project_id,
+            topic_guid=topic.guid,
+            author=topic.username,
+            body=ViewpointPOST(
+                perspective_camera=camera_looking_at(centre, extent),
+                components=Components(
+                    selection=[Component(ifc_guid=guid) for guid in guids],
+                    visibility=Visibility(default_visibility=True),
+                ),
+            ),
+        )
     statuses = (await projects.extensions(topic.project_id) or {}).get("topic_status") or []
     if CLOSED in statuses and topic.topic.topic_status != CLOSED:
         fields = topic.topic.model_dump(include=set(TopicPUT.model_fields))
         body = TopicPUT.model_validate({**fields, "topic_status": CLOSED})
         await topics.update(project_id=topic.project_id, guid=topic.guid, author=topic.username, body=body)
     return version
+
+
+MAX_SELECTED = 1_000
+INVERSE_DEPTH = 4
+
+
+def _changed_guids(applied: Path, changes: list[dict[str, Any]]) -> tuple[list[str], list[float], float | None]:
+    """The objects the changes touched, for the viewpoint: their GlobalIds, where they are (the middle of their
+    placements, in metres) and how far they spread. A change named by GlobalId gives its object; one named by
+    STEP id gives the nearest object that refers to the instance, a few steps back."""
+    import ifcopenshell
+    import ifcopenshell.util.placement
+    import ifcopenshell.util.unit
+
+    model = ifcopenshell.open(str(applied))
+    guids: set[str] = set()
+    for change in changes:
+        if change.get("guid"):
+            guids.add(str(change["guid"]))
+        elif change.get("step_id") is not None:
+            try:
+                guids.update(_owning_objects(model, model.by_id(int(change["step_id"]))))
+            except RuntimeError:
+                continue
+        if len(guids) >= MAX_SELECTED:
+            break
+    selected = sorted(guids)[:MAX_SELECTED]
+    scale = float(ifcopenshell.util.unit.calculate_unit_scale(model))
+    points: list[list[float]] = []
+    for guid in selected:
+        try:
+            placement = getattr(model.by_guid(guid), "ObjectPlacement", None)
+        except RuntimeError:
+            continue
+        if placement is not None and placement.is_a("IfcLocalPlacement"):
+            matrix = ifcopenshell.util.placement.get_local_placement(placement)
+            points.append([float(matrix[i][3]) * scale for i in range(3)])
+    if not points:
+        return selected, [0.0, 0.0, 0.0], None
+    centre = [sum(point[i] for point in points) / len(points) for i in range(3)]
+    extent = max((max(abs(point[i] - centre[i]) for point in points) for i in range(3)), default=0.0) * 2
+    return selected, centre, extent or None
+
+
+def _owning_objects(model: Any, entity: Any) -> set[str]:
+    found: set[str] = set()
+    seen: set[int] = set()
+    frontier = [entity]
+    for _ in range(INVERSE_DEPTH + 1):
+        next_frontier = []
+        for item in frontier:
+            if item.id() in seen:
+                continue
+            seen.add(item.id())
+            if item.is_a("IfcObjectDefinition"):
+                found.add(item.GlobalId)
+                continue
+            next_frontier.extend(model.get_inverse(item))
+        if found or not next_frontier:
+            break
+        frontier = next_frontier
+    return found
 
 
 def _touched(change_set: dict[str, Any]) -> set[str]:
