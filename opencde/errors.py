@@ -11,7 +11,7 @@ As an extension outside the specifications, every error the server shapes
 itself also carries a stable ``code`` (``{"message": "...", "code":
 "not_found"}``) that a client can act on or translate, while ``message``
 stays the English text for people. The list is closed and documented in
-``docs/client-guide.md``; a client treats an unknown code like a missing one
+``docs/en/client-guide.md``; a client treats an unknown code like a missing one
 and shows the message. The code follows from the status unless the raising
 code names one (``ApiError``), as the few places where one status covers two
 different client reactions do (no token versus a stale token, a request body

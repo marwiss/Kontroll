@@ -274,10 +274,10 @@ sovittavat yhteen, on tiedostossa
 - [spec/SOURCES.md](../../spec/SOURCES.md): tarkat spesifikaatioversiot,
   joita vastaan palvelin testataan.
 
-Dokumentaatio on tämän README-tiedoston seitsemällä kielellä: englanti
-hakemistossa `docs/`, muut hakemistoissa `docs/<kieli>/`. Projektilokit
-(hyväksyntä, toimintoluettelo, yhteensovitus), arkkitehtuuripäätökset,
-IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
+Dokumentaatio on tämän README-tiedoston seitsemällä kielellä, kukin kieli
+hakemistossa `docs/<kieli>/`; englanti hakemistossa `docs/en/` on lähde.
+Projektilokit (hyväksyntä, yhteensovitus), IfcOpenShell-luonnokset ja
+CONTRIBUTING pidetään englanniksi.
 
 ### Lisälukemista
 

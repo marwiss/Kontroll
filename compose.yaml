@@ -8,7 +8,7 @@
 #   docker compose -f compose.yaml -f compose.dev.yaml up -d
 #
 # Configuration comes from .env (copy .env.example or run `opencde init`). Secrets never
-# live in this file. See docs/deploy/ for every scenario, including managed databases.
+# live in this file. See docs/en/deploy/ for every scenario, including managed databases.
 
 name: dataregium
 

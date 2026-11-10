@@ -1,8 +1,8 @@
 # Building a client
 
 How an application talks to this server (or any OpenCDE server). The Python
-library in [client/](../client/) does all of this; the examples in
-[examples/](examples/) show it in use.
+library in [client/](../../client/) does all of this; the examples in
+[examples/](../examples/) show it in use.
 
 ## 1. Discover
 
@@ -345,7 +345,7 @@ of the statement, never the parameters.
 developed together with this server; its OpenCDE source (sign-in, BCF tables,
 Documents API, graph queries, request ids) is a worked example of everything
 above, and its live test suites run against the development stack
-(see [acceptance.md](acceptance.md)).
+(see [acceptance.md](../acceptance.md)).
 
 - `uv run opencde seed` fills an empty database with demo users and
   projects (passwords are printed once), the sample model

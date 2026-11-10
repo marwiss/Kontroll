@@ -262,10 +262,9 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 - [spec/SOURCES.md](spec/SOURCES.md): de exakta specifikationsversioner
   som servern testas mot.
 
-Dokumentationen finns på den här README-filens sju språk: engelska under
-`docs/`, de andra under `docs/<språk>/`. Projektloggarna (acceptans, inventering,
-samordning), arkitekturbesluten, utkasten till IfcOpenShell och CONTRIBUTING
-hålls på engelska.
+Dokumentationen finns på den här README-filens sju språk, varje språk under
+`docs/<språk>/`; engelskan under `docs/en/` är källan. Projektloggarna (acceptans,
+samordning), utkasten till IfcOpenShell och CONTRIBUTING hålls på engelska.
 
 ### Vidare läsning
 

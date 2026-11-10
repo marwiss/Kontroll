@@ -62,7 +62,7 @@ is not tied to any one application.
    register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
    it at `http://127.0.0.1:8000`; [Dataspatium](#dataregium-and-dataspatium) and
    the Python library in [client/](../../client/) are ready-made clients.
-   To sign in from Dataspatium, follow the [quick start](../quickstart.md): it
+   To sign in from Dataspatium, follow the [quick start](quickstart.md): it
    covers every setting needed and what to do if something goes wrong.
 
 Without Docker for the server itself (a database is still needed):
@@ -79,12 +79,12 @@ One compose file plus an overlay per scenario:
 
 | Scenario | Guide |
 |---|---|
-| Local test on your machine | [docs/deploy/local.md](../deploy/local.md) |
-| Public https URL for client tests without a server (tunnel) | [docs/deploy/tunnel.md](../deploy/tunnel.md) |
-| Production on your own server with Caddy (automatic TLS) and nightly backups | [docs/deploy/vps-caddy.md](../deploy/vps-caddy.md) |
-| Coolify, Dokploy, Portainer | [docs/deploy/paas.md](../deploy/paas.md) |
-| Container service plus managed Neo4j AuraDB or Memgraph Cloud | [docs/deploy/cloud-aura.md](../deploy/cloud-aura.md) |
-| Backup and restore (portable between Neo4j and Memgraph) | [docs/deploy/backup.md](../deploy/backup.md) |
+| Local test on your machine | [docs/en/deploy/local.md](deploy/local.md) |
+| Public https URL for client tests without a server (tunnel) | [docs/en/deploy/tunnel.md](deploy/tunnel.md) |
+| Production on your own server with Caddy (automatic TLS) and nightly backups | [docs/en/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Coolify, Dokploy, Portainer | [docs/en/deploy/paas.md](deploy/paas.md) |
+| Container service plus managed Neo4j AuraDB or Memgraph Cloud | [docs/en/deploy/cloud-aura.md](deploy/cloud-aura.md) |
+| Backup and restore (portable between Neo4j and Memgraph) | [docs/en/deploy/backup.md](deploy/backup.md) |
 
 `uv run opencde init --public-url https://cde.example.org` writes a production
 `.env` with fresh secrets; `opencde doctor` checks the result.
@@ -168,14 +168,14 @@ know them does not notice them. A client needs three things:
   itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`;
 - OAuth2 authorization code with PKCE `S256`, which the server requires of every client but a confidential one an administrator has marked;
 - BCF API 3.0, or 2.1 for a client that only speaks that version. `GET /foundation/versions` lists both, and
-  [the client guide](../client-guide.md) says what differs between them.
+  [the client guide](client-guide.md) says what differs between them.
 
 How far this has been shown: the server's answers are tested against buildingSMART's
 schemas on every push, and Dataspatium and the Python library in [client/](../../client/) run
 against the server. Independent clients such as Bonsai and ifc-lite have a prepared
 checklist in [docs/acceptance.md](../acceptance.md) that has not been run yet. If you try a
 client, tell us how it went under [Bugs and suggestions](#bugs-and-suggestions). When a client and a
-specification disagree, the specification decides. [docs/client-guide.md](../client-guide.md) is for those
+specification disagree, the specification decides. [docs/en/client-guide.md](client-guide.md) is for those
 who build a client.
 
 ## Dataregium and Dataspatium
@@ -183,7 +183,7 @@ who build a client.
 Dataregium (the server) and [Dataspatium](https://github.com/marwiss/Dataspatium)
 (a data app that runs entirely in the browser) are developed to work together
 as server and client, and the same release number on both means they work
-together: Dataspatium 2.0.0 works with Dataregium 2.0.0 ([quick start](../quickstart.md)).
+together: Dataspatium 2.0.0 works with Dataregium 2.0.0 ([quick start](quickstart.md)).
 Dataspatium adds a
 Dataregium server as a source: it discovers the APIs through
 `/foundation/versions`, signs in with OAuth2 authorization code and PKCE and
@@ -237,16 +237,16 @@ coordinate is in
 
 ## Learn more
 
-- [docs/quickstart.md](../quickstart.md): Dataregium and Dataspatium together
+- [docs/en/quickstart.md](quickstart.md): Dataregium and Dataspatium together
   in twenty minutes, from an empty machine to an issue created in the 3D view.
-- [docs/client-guide.md](../client-guide.md) and [docs/examples/](../examples/):
+- [docs/en/client-guide.md](client-guide.md) and [docs/examples/](../examples/):
   how to build a client, the capabilities document, the error codes, and
   runnable examples with the Python library in [client/](../../client/).
-- [docs/architecture.md](../architecture.md): how the parts fit together, what happens to a request and where each thing lives in the code.
-- [docs/glossary.md](../glossary.md): the words the documentation uses.
-- [docs/flows/](../flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
-- [docs/graph-schema.md](../graph-schema.md): the graph model.
-- [docs/ifc-lpg.md](../ifc-lpg.md): the optional IFC-LPG module and example Cypher queries.
+- [docs/en/architecture.md](architecture.md): how the parts fit together, what happens to a request and where each thing lives in the code.
+- [docs/en/glossary.md](glossary.md): the words the documentation uses.
+- [docs/en/flows/](flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
+- [docs/en/graph-schema.md](graph-schema.md): the graph model.
+- [docs/en/ifc-lpg.md](ifc-lpg.md): the optional IFC-LPG module and example Cypher queries.
 - [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
   independent clients (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): what
@@ -260,9 +260,10 @@ coordinate is in
 - [spec/SOURCES.md](../../spec/SOURCES.md): the exact specification revisions the
   server is tested against.
 
-The documentation exists in the seven languages of this README: English under
-`docs/`, the others under `docs/<language>/`. The project logs (acceptance,
-coordination), the upstream drafts and CONTRIBUTING are kept in English.
+The documentation exists in the seven languages of this README, each language
+under `docs/<language>/`; English under `docs/en/` is the source. The project
+logs (acceptance, coordination), the upstream drafts and CONTRIBUTING are kept
+in English.
 
 ### Further reading
 

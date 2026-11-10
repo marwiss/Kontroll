@@ -74,7 +74,7 @@ from the browser (`src/api/families/opencde.js`): it opens the server's
 selection page in a popup and imports the chosen files, and uploads datasets,
 files and workspace bundles in parts with the server's upload page for the
 metadata; its live suites run these flows against the development stack
-([acceptance.md](../acceptance.md)).
+([acceptance.md](../../acceptance.md)).
 
 ## Who may do what
 

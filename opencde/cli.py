@@ -149,7 +149,7 @@ def _say_what_comes_next(url: str, *, dev: bool) -> None:
         steps = [
             f"{compose} up -d --build --wait",
             f"{compose} exec api opencde seed",
-            f"Then open {url}/ and follow docs/quickstart.md.",
+            f"Then open {url}/ and follow docs/en/quickstart.md.",
         ]
     else:
         compose = "docker compose -f compose.yaml -f compose.prod.yaml"
@@ -160,7 +160,7 @@ def _say_what_comes_next(url: str, *, dev: bool) -> None:
             f"{compose} exec api opencde doctor",
             f"{compose} exec api opencde user create admin --admin",
             f'{compose} exec api opencde client create "Your application" --public --redirect-uri https://app.example.org/callback',
-            f"Then sign in at {url}/signin and see docs/deploy/vps-caddy.md.",
+            f"Then sign in at {url}/signin and see docs/en/deploy/vps-caddy.md.",
         ]
     typer.echo("        next:")
     for step in steps:
@@ -222,7 +222,7 @@ def init(
     typer.echo(
         "        next: docker compose -f compose.yaml -f compose.dev.yaml up -d --build"
         if dev
-        else "        next: see docs/deploy/vps-caddy.md"
+        else "        next: see docs/en/deploy/vps-caddy.md"
     )
 
 

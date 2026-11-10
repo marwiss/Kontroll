@@ -81,7 +81,7 @@ card), not per project, so the "starts at the user node" rule is replaced by the
 administrator fences: writing clauses and non-schema procedures refused,
 protected properties refused and kept out of answers, every call audited. The
 answer is tabular, and Dataspatium builds graphs from tables itself.
-`docs/client-guide.md` §7.
+`docs/en/client-guide.md` §7.
 
 ## Languages and glossary
 
@@ -119,14 +119,14 @@ its tokens change, Dataregium's follow.
 ## Error codes
 
 The server keeps one error body, the Foundation API's `{"message": …}`, and adds
-a stable `code` field where a client must react (`docs/client-guide.md` §6). The
+a stable `code` field where a client must react (`docs/en/client-guide.md` §6). The
 app translates the codes. There is no second error format.
 
 ## Test data
 
 Dataregium's seed stores `tests/fixtures/three_walls_gtin.ifc` (three walls with
 `Reuse`/`GTIN` 1–3 and known GlobalIds) as a document and creates a topic,
-viewpoint and comment with fixed ids (`docs/client-guide.md` §7, inventory §9),
+viewpoint and comment with fixed ids (`docs/en/client-guide.md` §7, inventory §9),
 so runs against the seed know what to expect.
 
 ## Deep links
@@ -155,7 +155,7 @@ The same steps on both sides, in this order, under the same number on the same d
 
 | Step | Dataregium | Dataspatium |
 |---|---|---|
-| The version | `pyproject.toml`, `opencde/__init__.py`, `client/pyproject.toml`, `client/opencde_client/__init__.py` and `uv.lock`; the number in the READMEs, `docs/client-guide.md` and `docs/deploy/vps-caddy.md` in every language | `src/platform/registry.js` and `sw-coi.js`; the number in the READMEs |
+| The version | `pyproject.toml`, `opencde/__init__.py`, `client/pyproject.toml`, `client/opencde_client/__init__.py` and `uv.lock`; the number in the READMEs, `docs/en/client-guide.md` and `docs/en/deploy/vps-caddy.md` in every language | `src/platform/registry.js` and `sw-coi.js`; the number in the READMEs |
 | The notes | `## Unreleased` in `CHANGELOG.md` is folded in under the number | The release notes |
 | Each other | `DATASPATIUM_REF` in `dataspatium-nightly.yml` is the other side's new commit; the READMEs say which release works with which | The READMEs say the same |
 | The tests | CI and both nightly jobs are green on the commit | The test matrix: Edge and Firefox from `file://`, the ZIP, Pages, localhost with real Python |
@@ -182,7 +182,7 @@ tests nothing fails.
 
 ## The joint quick start
 
-`docs/quickstart.md` here and `docs/snabbstart.md` there are the same text in
+`docs/en/quickstart.md` here and `docs/snabbstart.md` there are the same text in
 seven languages, apart from the links and the line that names the other
 repository: install Dataregium locally, serve Dataspatium, register the app, open
 the demo project, create an issue from the 3D view, see it in the server's audit
@@ -213,7 +213,7 @@ the README's "Personal data" section here and `docs/sakerhet.md` there.
 Dataspatium wrote (read: overview, users, projects, clients,
 sessions, audit, settings, health; write: users, projects and members, clients
 and secrets, sessions; dangerous actions behind a fresh sign-in; one-time values
-returned once). `docs/client-guide.md` §7 documents it and
+returned once). `docs/en/client-guide.md` §7 documents it and
 `tests/integration/test_admin_api*.py` tests it. The agreed details:
 
 - Errors keep the server's `{"message", "code"}` body.

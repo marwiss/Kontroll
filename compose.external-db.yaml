@@ -9,7 +9,7 @@
 #
 # The API and the backup sidecar read OPENCDE_STACK_GRAPH_URI and wait for the database
 # container only if it is there. Nothing starts this profile, so its volumes stay empty.
-# See docs/deploy/cloud-aura.md.
+# See docs/en/deploy/cloud-aura.md.
 
 services:
   graph:

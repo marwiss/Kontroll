@@ -20,14 +20,14 @@ speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws
 - The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
   `GET /.well-known/dataregium`, and `/.well-known/kontroll` answers the same as an alias; `server.name` in it says
   `Dataregium OpenCDE server`. The Compose project is named `dataregium`; an installation that keeps its volumes from
-  the old name sets `COMPOSE_PROJECT_NAME=kontroll` in `.env` (see docs/deploy/local.md).
+  the old name sets `COMPOSE_PROJECT_NAME=kontroll` in `.env` (see docs/en/deploy/local.md).
 - A server can offer only some of its APIs. `OPENCDE_APIS=["bcf-2.1"]` makes it a server for BCF API 2.1 alone,
   without the Foundation API, and `["documents"]` a document server with the Foundation API and the Documents API.
   The version lists, the capabilities document and `apis` in `GET /admin/api/settings` say what is offered, and an
   API that is not offered answers 404. All three are offered by default.
 - The IFC-graph module is now IFC-LPG, the name of its library,
   [IFC–LPG round-tripping](https://github.com/marwiss/IFC-LPG). Its settings are `OPENCDE_IFC_LPG_*`, its command
-  `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/ifc-lpg.md](docs/ifc-lpg.md). The old names
+  `opencde ifc-lpg`, its extra `ifc-lpg` and its page [docs/en/ifc-lpg.md](docs/en/ifc-lpg.md). The old names
   `OPENCDE_IFCGRAPH_*`, `opencde ifcgraph` and `ifcgraph` still work, so a server keeps its configuration across the
   upgrade, and the log and `opencde doctor` name the old settings it is given. The administration API and the
   capabilities document keep their keys, except that `raw` in `GET /admin/api/settings` names the settings by their

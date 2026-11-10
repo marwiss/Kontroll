@@ -210,9 +210,9 @@ Ctrl+C.
 
 ## Næste skridt
 
-- [docs/client-guide.md](client-guide.md) om API'erne,
+- [docs/da/client-guide.md](client-guide.md) om API'erne,
   kapabilitetsdokumentet og fejlkoderne.
 - [docs/acceptance.md](../acceptance.md) om tjeklisterne, parret testes med,
   og [docs/dataspatium-coordination.md](../dataspatium-coordination.md) om,
   hvad de to projekter samordner.
-- [docs/deploy/](deploy/), når serveren skal køre for andre.
+- [docs/da/deploy/](deploy/), når serveren skal køre for andre.
