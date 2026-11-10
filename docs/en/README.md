@@ -71,6 +71,19 @@ is not tied to any one application.
 
    </details>
 
+   <details>
+   <summary><b>Without a container</b></summary>
+
+   ```sh
+   uv sync                          # installs Python 3.13 and all dependencies
+   uv run opencde doctor            # checks configuration and the database
+   uv run opencde serve             # http://127.0.0.1:8000
+   ```
+
+   runs the server from the checkout with [uv](https://docs.astral.sh/uv/); a database is still needed (Neo4j Desktop, Memgraph Lab or the database of the Compose files).
+
+   </details>
+
 4. **Look around.** <http://127.0.0.1:8000/docs> is the interactive API
    documentation, <http://127.0.0.1:8000/readyz> the readiness check and
    <http://127.0.0.1:7484> Neo4j Browser (Bolt on `127.0.0.1:7697`; the
@@ -86,14 +99,6 @@ is not tied to any one application.
    the Python library in [client/](../../client/) are ready-made clients.
    To sign in from Dataspatium, follow the [quick start](quickstart.md): it
    covers every setting needed and what to do if something goes wrong.
-
-Without Docker for the server itself (a database is still needed):
-
-```sh
-uv sync                          # installs Python 3.13 and all dependencies
-uv run opencde doctor            # checks configuration and the database
-uv run opencde serve             # http://127.0.0.1:8000
-```
 
 ### Deployment
 

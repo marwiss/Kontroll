@@ -72,6 +72,19 @@ palvelin ei ole sidottu yhteen sovellukseen.
 
    </details>
 
+   <details>
+   <summary><b>Ilman konttia</b></summary>
+
+   ```sh
+   uv sync                          # asentaa Python 3.13:n ja kaikki riippuvuudet
+   uv run opencde doctor            # tarkistaa määritykset ja tietokannan
+   uv run opencde serve             # http://127.0.0.1:8000
+   ```
+
+   ajaa palvelimen työkopiosta [uv](https://docs.astral.sh/uv/):lla; tietokanta tarvitaan edelleen (Neo4j Desktop, Memgraph Lab tai compose-tiedostojen tietokanta).
+
+   </details>
+
 4. **Katsele ympärillesi.** <http://127.0.0.1:8000/docs> on vuorovaikutteinen
    API-dokumentaatio, <http://127.0.0.1:8000/readyz> valmiustarkistus ja
    <http://127.0.0.1:7484> Neo4j Browser (Bolt osoitteessa `127.0.0.1:7697`;
@@ -90,14 +103,6 @@ palvelin ei ole sidottu yhteen sovellukseen.
    asiakasohjelmia.
    Jos kirjaudut Dataspatiumista, seuraa [pika-aloitusta](quickstart.md): siinä on
    kaikki tarvittavat asetukset ja ohjeet siihen, mitä tehdä, jos jokin menee vikaan.
-
-Ilman Dockeria itse palvelimelle (tietokanta tarvitaan edelleen):
-
-```sh
-uv sync                          # asentaa Python 3.13:n ja kaikki riippuvuudet
-uv run opencde doctor            # tarkistaa määritykset ja tietokannan
-uv run opencde serve             # http://127.0.0.1:8000
-```
 
 ### Käyttöönotto
 

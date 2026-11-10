@@ -71,6 +71,19 @@ inte bunden till något enskilt program.
 
    </details>
 
+   <details>
+   <summary><b>Utan container</b></summary>
+
+   ```sh
+   uv sync                          # installerar Python 3.13 och alla beroenden
+   uv run opencde doctor            # kontrollerar konfiguration och databas
+   uv run opencde serve             # http://127.0.0.1:8000
+   ```
+
+   kör servern från utcheckningen med [uv](https://docs.astral.sh/uv/); en databas behövs fortfarande (Neo4j Desktop, Memgraph Lab eller databasen ur compose-filerna).
+
+   </details>
+
 4. **Se dig omkring.** <http://127.0.0.1:8000/docs> är den interaktiva
    API-dokumentationen, <http://127.0.0.1:8000/readyz> beredskapskontrollen
    och <http://127.0.0.1:7484> Neo4j Browser (Bolt på `127.0.0.1:7697`;
@@ -86,14 +99,6 @@ inte bunden till något enskilt program.
    och Python-biblioteket i [client/](client/) är färdiga klienter.
    Ska du logga in från Dataspatium, följ [snabbstarten](docs/sv/quickstart.md): den
    tar upp alla inställningar som krävs och vad du gör om något går fel.
-
-Utan Docker för själva servern (en databas behövs fortfarande):
-
-```sh
-uv sync                          # installerar Python 3.13 och alla beroenden
-uv run opencde doctor            # kontrollerar konfiguration och databas
-uv run opencde serve             # http://127.0.0.1:8000
-```
 
 ### Driftsättning
 

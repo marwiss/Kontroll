@@ -71,6 +71,19 @@ bundinn við eitt tiltekið forrit.
 
    </details>
 
+   <details>
+   <summary><b>Án gáms</b></summary>
+
+   ```sh
+   uv sync                          # setur upp Python 3.13 og öll ósjálfstæði
+   uv run opencde doctor            # athugar stillingar og gagnagrunn
+   uv run opencde serve             # http://127.0.0.1:8000
+   ```
+
+   keyrir þjóninn úr útgáfunni með [uv](https://docs.astral.sh/uv/); gagnagrunn þarf samt (Neo4j Desktop, Memgraph Lab eða gagnagrunninn úr compose-skránum).
+
+   </details>
+
 4. **Litast um.** <http://127.0.0.1:8000/docs> er gagnvirka API-skjölunin,
    <http://127.0.0.1:8000/readyz> viðbúnaðarathugunin og
    <http://127.0.0.1:7484> Neo4j Browser (Bolt á `127.0.0.1:7697`;
@@ -88,14 +101,6 @@ bundinn við eitt tiltekið forrit.
    Ef þú ætlar að skrá þig inn úr Dataspatium skaltu fylgja [fljótlegu
    byrjuninni](quickstart.md): hún fjallar um allar stillingar sem þarf og hvað þú
    gerir ef eitthvað fer úrskeiðis.
-
-Án Docker fyrir þjóninn sjálfan (gagnagrunn þarf samt):
-
-```sh
-uv sync                          # setur upp Python 3.13 og öll ósjálfstæði
-uv run opencde doctor            # athugar stillingar og gagnagrunn
-uv run opencde serve             # http://127.0.0.1:8000
-```
 
 ### Uppsetning í rekstur
 
