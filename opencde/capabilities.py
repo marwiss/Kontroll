@@ -23,8 +23,8 @@ from opencde.deps import SettingsDep
 from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
 from opencde.ifcgraph.diff import MAX_ENTRIES as DIFF_MAX_ENTRIES
+from opencde.ifcgraph.queries import CHANGED_SINCE, QUERIES
 from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
-from opencde.ifcgraph.queries import QUERIES
 from opencde.settings import Settings
 
 router = APIRouter(tags=["Capabilities (extension)"])
@@ -71,7 +71,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 {
                     "enabled": True,
                     "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries",
-                    "names": list(QUERIES),
+                    "names": [*QUERIES, CHANGED_SINCE],
                     "max_rows": QUERIES_MAX_ROWS,
                 }
                 if settings.ifcgraph_enabled and settings.offers("documents")

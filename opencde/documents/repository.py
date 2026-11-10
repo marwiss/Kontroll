@@ -308,6 +308,33 @@ class DocumentRepository:
 
         return _record(await self.graph.write(work))
 
+    async def versions_since(self, *, user_id: str, document_id: str, since: int, until: int) -> list[dict[str, Any]]:
+        """The versions after `since` up to `until`, each with its change set unpacked, or none for a whole file."""
+        rows = await self.graph.run(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                  -[:HAS_VERSION]->(v:DocumentVersion)
+            WHERE v.version_index > $since AND v.version_index <= $until
+            RETURN v.version_index AS version_index, v.author AS author, v.approved_by AS approved_by,
+                   v.change_set_id AS change_set_id, v.change_set AS change_set
+            ORDER BY v.version_index
+            """,
+            user_id=user_id,
+            document_id=document_id,
+            since=since,
+            until=until,
+        )
+        return [
+            {
+                "version_index": int(row["version_index"]),
+                "author": row["author"],
+                "approved_by": row["approved_by"],
+                "change_set_id": row["change_set_id"],
+                "changes": unpack_report(row["change_set"]) if row["change_set"] else None,
+            }
+            for row in rows
+        ]
+
     async def change_set(self, *, user_id: str, document_id: str, version_index: int) -> dict[str, Any] | None:
         """The change set a version was approved from (ADR 0021), unpacked; None when it has none."""
         row = await self.graph.one(

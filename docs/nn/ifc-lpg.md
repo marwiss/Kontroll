@@ -412,6 +412,8 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 | `areas` | | Nettogolvarealet til romma i kvar etasje, lagt saman |
 | `materials` | `class` | Materiala til kvart element: eit eige, eller laga, lista eller bestanddelane sine |
 | `property` | `pset`, `property`, `class` | Verdien av éin eigenskap på kvart objekt som har han, med IFC-typen |
+| `entity` | `global_id` | Éin rotfesta entitet: klassen, kvart literale attributt, og kva han refererer til og blir referert av, kvar med IFC-attributt, STEP-id og klasse |
+| `changed-since` | `since` | Kva som er endra i dokumentet sidan ein versjon: éi rad per endring i endringssettet til kvar versjon fram til denne, eller éi rad med `whole_file` for ein versjon lasta opp som heil fil; svara frå versjonane, så han treng ingen graf |
 
 `class` namngjev ein IFC-klasse, til dømes `IfcWall`, og tek med seg
 underklassane: påkravd for `elements`, valfri for dei andre. Eit svar rommar

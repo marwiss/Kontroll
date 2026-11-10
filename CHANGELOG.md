@@ -10,6 +10,9 @@ the commit history.
 
 ## Unreleased
 
+- Two named queries more: `entity?global_id=` gives one rooted entity with every literal attribute and what it
+  refers to and is referred to by, and `changed-since?since=` lists what changed in the document since a version,
+  from the change sets of the versions between (one row with `whole_file` for a whole-file upload).
 - Two IFC versions are compared element by element: `GET /documents/1.0/documents/{id}/versions/{index}/ifc-diff/{other}`
   (an extension announced as `ifc_diff`; `?other_document_id=` for another document of the project) answers with
   what was added, removed and changed, by GlobalId and path, computed on request; the version's page shows the

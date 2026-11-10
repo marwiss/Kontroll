@@ -410,6 +410,8 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 | `areas` | | Nettogolvarean för varje vånings rum, summerad |
 | `materials` | `class` | Varje elements material: ett eget, eller dess skikts, listas eller beståndsdelars |
 | `property` | `pset`, `property`, `class` | Värdet av en egenskap på varje objekt som har den, med dess IFC-typ |
+| `entity` | `global_id` | En rotad entitet: dess klass, varje literalt attribut och vad den refererar till och refereras av, var och en med IFC-attribut, STEP-id och klass |
+| `changed-since` | `since` | Vad som ändrats i dokumentet sedan en version: en rad per ändring i varje versions ändringsset fram till den här, eller en rad med `whole_file` för en version som laddats upp som hel fil; svaras ur versionerna, så den behöver ingen graf |
 
 `class` namnger en IFC-klass, till exempel `IfcWall`, och tar med sig dess
 underklasser: obligatorisk för `elements`, valfri för de andra. Ett svar rymmer

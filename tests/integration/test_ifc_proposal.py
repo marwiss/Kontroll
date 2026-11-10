@@ -174,6 +174,21 @@ def test_a_manager_approves_a_clean_trial_and_it_becomes_the_next_version(ifc_cl
     report = client.get(proposal, headers=editor.headers).json()
     assert report["state"] == "approved" and report["approved_by"] == "manager" and report["version_index"] == 2
     assert client.post(approve, headers=manager.headers).status_code == 409, "approved once"
+    since = client.get(
+        new["links"]["document_version"]["url"] + "/ifc-queries/changed-since?since=1", headers=editor.headers
+    )
+    assert since.status_code == 200, since.text
+    assert since.json()["rows"] == [[2, topic["guid"], "editor", "manager", False, WALLS[0], None, None, "Name", "set"]]
+    from_the_start = client.get(
+        new["links"]["document_version"]["url"] + "/ifc-queries/changed-since?since=0", headers=editor.headers
+    ).json()
+    assert [row[0] for row in from_the_start["rows"]] == [1, 2] and from_the_start["rows"][0][4] is True
+    assert (
+        client.get(
+            new["links"]["document_version"]["url"] + "/ifc-queries/changed-since?since=2", headers=editor.headers
+        ).status_code
+        == 400
+    )
     comments = client.get(f"{topics}/{topic['guid']}/comments", headers=editor.headers).json()
     assert any("version 2" in comment["comment"] and comment["author"] == "manager" for comment in comments)
     assert client.get(f"{topics}/{topic['guid']}", headers=editor.headers).json()["topic_status"] == "Closed"

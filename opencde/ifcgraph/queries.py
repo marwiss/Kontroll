@@ -30,6 +30,23 @@ WITH m ORDER BY m.created_at DESC LIMIT 1
 """
 
 _CLASS = re.compile(r"^Ifc[A-Za-z0-9]{1,64}$")
+_GUID = re.compile(r"^[0-9A-Za-z_$]{22}$")
+
+#: The query on what changed since a version, answered from the versions' change sets, not from the graph
+#: (``documents/routes_queries.py``); listed and announced with the others.
+CHANGED_SINCE = "changed-since"
+CHANGED_SINCE_COLUMNS = (
+    "version_index",
+    "change_set_id",
+    "author",
+    "approved_by",
+    "whole_file",
+    "guid",
+    "step_id",
+    "path",
+    "attribute",
+    "op",
+)
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
 
 
@@ -43,11 +60,16 @@ class Parameter:
     description: str
     required: bool = False
     is_class: bool = False
+    is_guid: bool = False
 
     def value_of(self, raw: str) -> str:
         if self.is_class:
             if not _CLASS.match(raw):
                 raise InvalidParameters(f"{self.name} must be the name of an IFC class, such as IfcWall")
+            return raw
+        if self.is_guid:
+            if not _GUID.match(raw):
+                raise InvalidParameters(f"{self.name} must be a GlobalId: 22 characters of IFC's base 64")
             return raw
         if not 1 <= len(raw) <= 255 or _CONTROL.search(raw):
             raise InvalidParameters(f"{self.name} must be 1 to 255 characters, with no control characters")
@@ -89,6 +111,29 @@ _OF_CLASS = Parameter("class", "Only elements of this IFC class or its subclasse
 QUERIES: dict[str, NamedQuery] = {
     query.name: query
     for query in (
+        NamedQuery(
+            "entity",
+            "One rooted entity by its GlobalId: its class, every literal attribute, and the instances it refers to and "
+            "is referred to by, each by the IFC attribute, STEP id and class, with the GlobalId where it has one.",
+            ("global_id", "class", "step_id", "attributes", "references", "referenced_by"),
+            """
+            MATCH (e:IfcRoot {model_id: m.id})
+            WHERE e.GlobalId = $global_id
+            OPTIONAL MATCH (e)-[r]->(t:IfcEntity)
+            WITH e, collect(CASE WHEN r IS NULL THEN NULL ELSE
+                 {attribute: type(r), step_id: t.step_id, global_id: t.GlobalId, class: t.ifc_class} END) AS references
+            OPTIONAL MATCH (e)<-[r2]-(s:IfcEntity)
+            WITH e, references, collect(CASE WHEN r2 IS NULL THEN NULL ELSE
+                 {attribute: type(r2), step_id: s.step_id, global_id: s.GlobalId, class: s.ifc_class} END) AS referenced_by
+            RETURN e.GlobalId AS global_id, e.ifc_class AS class, e.step_id AS step_id, properties(e) AS attributes,
+                   references, referenced_by
+            """,
+            (
+                Parameter(
+                    "global_id", "The GlobalId of a rooted entity, such as a wall or a storey", True, is_guid=True
+                ),
+            ),
+        ),
         NamedQuery(
             "element-classes",
             "How many elements the model has of each class.",

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Path, Request
+from fastapi import APIRouter, HTTPException, Path, Query, Request
 from neo4j.exceptions import Neo4jError
 from pydantic import BaseModel, Field
 
@@ -22,7 +22,14 @@ from opencde.deps import GraphDep, SettingsDep
 from opencde.documents.repository import DocumentsDep
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, normalize_guid
-from opencde.ifcgraph.queries import MAX_ROWS, QUERIES, TIMEOUT_SECONDS, InvalidParameters
+from opencde.ifcgraph.queries import (
+    CHANGED_SINCE,
+    CHANGED_SINCE_COLUMNS,
+    MAX_ROWS,
+    QUERIES,
+    TIMEOUT_SECONDS,
+    InvalidParameters,
+)
 from opencde.settings import Settings
 
 TAG = "IFC queries (extension)"
@@ -117,8 +124,71 @@ async def ifc_queries(
                 columns=list(query.columns),
             )
             for query in QUERIES.values()
+        ]
+        + [
+            IfcQuery(
+                name=CHANGED_SINCE,
+                description="What changed in the document since a version: one row per change of each version's "
+                "change set up to this one, or one row with `whole_file` for a version uploaded as a whole file.",
+                parameters=[
+                    IfcQueryParameter(name="since", description="The version index to count from", required=True)
+                ],
+                columns=list(CHANGED_SINCE_COLUMNS),
+            )
         ],
     )
+
+
+@router.get(
+    "/documents/{document_id}/versions/{version_index}/ifc-queries/" + CHANGED_SINCE,
+    summary="What changed in the document since a version, from the change sets of the versions between",
+    response_model=IfcQueryAnswer,
+)
+async def ifc_changed_since(
+    principal: DocumentsPrincipal,
+    document_id: DocumentId,
+    version_index: VersionIndex,
+    documents: DocumentsDep,
+    settings: SettingsDep,
+    since: Annotated[int, Query(ge=0, le=1_000_000_000)],
+) -> IfcQueryAnswer:
+    """One row per change of every version after `since` up to this one, as its change set names it (by GlobalId or
+    STEP id, path, attribute and operation); a version uploaded as a whole file gives one row with `whole_file` true,
+    since anything may have changed in it. Answered from the versions, so it needs no graph."""
+    if not settings.ifcgraph_enabled:
+        raise HTTPException(404, "The IFC-LPG module is off on this server")
+    if not is_uuid(document_id):
+        raise HTTPException(404, "Document version not found")
+    document_id = normalize_guid(document_id)
+    if await documents.version(user_id=principal.user_id, document_id=document_id, version_index=version_index) is None:
+        raise HTTPException(404, "Document version not found")
+    if since >= version_index:
+        raise HTTPException(400, "since must be an earlier version than this one")
+    rows: list[list[Any]] = []
+    truncated = False
+    for version in await documents.versions_since(
+        user_id=principal.user_id, document_id=document_id, since=since, until=version_index
+    ):
+        head = [version["version_index"], version["change_set_id"], version["author"], version["approved_by"]]
+        if version["changes"] is None:
+            rows.append([*head, True, None, None, None, None, None])
+            continue
+        for change in version["changes"]:
+            if len(rows) >= MAX_ROWS:
+                truncated = True
+                break
+            rows.append(
+                [
+                    *head,
+                    False,
+                    change.get("guid"),
+                    change.get("step_id"),
+                    change.get("path"),
+                    change.get("attribute"),
+                    change.get("op"),
+                ]
+            )
+    return IfcQueryAnswer(name=CHANGED_SINCE, columns=list(CHANGED_SINCE_COLUMNS), rows=rows, truncated=truncated)
 
 
 @router.get(

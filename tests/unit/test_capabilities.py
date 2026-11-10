@@ -111,7 +111,7 @@ def test_the_named_queries_are_announced_with_the_module(tmp_path: Path) -> None
         assert announced == {
             "enabled": True,
             "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries",
-            "names": list(QUERIES),
+            "names": [*QUERIES, "changed-since"],
             "max_rows": MAX_ROWS,
         }
         refused = client.get(f"/documents/1.0/documents/{'0' * 32}/versions/1/ifc-queries")

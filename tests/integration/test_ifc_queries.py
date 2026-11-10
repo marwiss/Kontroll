@@ -69,7 +69,8 @@ def test_a_member_asks_the_walls_their_classes_storey_materials_and_gtin(
     web_sign_in(client, world, "editor")  # the upload page asks for a browser session
     walls = upload(client, world, editor, "three_walls_gtin.ifc", (FIXTURES_DIR / "three_walls_gtin.ifc").read_bytes())
     listed = converted(client, editor, walls)
-    assert listed["model_state"] == "done" and [query["name"] for query in listed["queries"]] == list(QUERIES)
+    assert listed["model_state"] == "done"
+    assert [query["name"] for query in listed["queries"]] == [*QUERIES, "changed-since"]
 
     classes = {row["class"]: row["count"] for row in rows_of(ask(client, editor, walls, "element-classes"))}
     assert classes["IfcWallStandardCase"] == 3
@@ -84,6 +85,19 @@ def test_a_member_asks_the_walls_their_classes_storey_materials_and_gtin(
     assert sorted(row["value"] for row in gtin) == ["1", "2", "3"] and {row["type"] for row in gtin} == {"IFCLABEL"}
     assert ask(client, editor, walls, "property", pset="Reuse", property="GTIN", **{"class": "IfcDoor"})["rows"] == []
     assert ask(client, editor, walls, "spaces")["rows"] == []
+    (wall,) = rows_of(ask(client, editor, walls, "entity", global_id="1Xezbq735AdBO_4DerG66G"))
+    assert wall["class"].startswith("IfcWall") and wall["step_id"] == 242 and wall["attributes"]["Name"] == "YVT-A"
+    assert {ref["attribute"] for ref in wall["references"]} >= {"OBJECT_PLACEMENT", "REPRESENTATION"}
+    back = {ref["attribute"]: ref for ref in wall["referenced_by"]}
+    assert (
+        back["RELATED_ELEMENTS"]["class"] == "IfcRelContainedInSpatialStructure"
+        and back["RELATED_ELEMENTS"]["global_id"]
+    )
+    assert ask(client, editor, walls, "entity", global_id="0000000000000000000000")["rows"] == []
+    assert listed["queries"][-1]["name"] == "changed-since"
+    only_the_upload = client.get(f"{queries_url(walls)}/changed-since", params={"since": "0"}, headers=editor.headers)
+    assert only_the_upload.status_code == 200, only_the_upload.text
+    assert only_the_upload.json()["rows"] == [[1, None, "editor", None, True, None, None, None, None, None]]
 
 
 def test_spaces_and_the_area_of_their_storey(query_client: tuple[TestClient, World]) -> None:

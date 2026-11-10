@@ -62,6 +62,14 @@ def test_a_class_must_be_the_name_of_one() -> None:
             elements.bind({"class": wrong})
 
 
+def test_a_global_id_must_look_like_one() -> None:
+    entity = QUERIES["entity"]
+    assert entity.bind({"global_id": "1Xezbq735AdBO_4DerG66G"}) == {"global_id": "1Xezbq735AdBO_4DerG66G"}
+    for wrong in ("wall", "1Xezbq735AdBO_4DerG66", "1Xezbq735AdBO_4DerG66G'", "x" * 23):
+        with pytest.raises(InvalidParameters, match="GlobalId"):
+            entity.bind({"global_id": wrong})
+
+
 def test_a_required_parameter_must_be_given_and_an_unknown_one_is_refused() -> None:
     with pytest.raises(InvalidParameters, match="needs the parameter class"):
         QUERIES["elements"].bind({})
