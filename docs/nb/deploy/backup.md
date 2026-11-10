@@ -30,7 +30,7 @@ server.
 
 ## I Docker Compose
 
-`compose.prod.yaml` kjører en tjeneste `backup` som kaller
+`docker/compose.prod.yaml` kjører en tjeneste `backup` som kaller
 `opencde backup /backups` én gang om dagen og beholder de 14 nyeste mappene i
 volumet `backups`. Kopier det volumet et annet sted (en annen vert,
 objektlagring); en sikkerhetskopi på samme disk som dataene er bare en halv
@@ -45,7 +45,7 @@ En installasjon som har beholdt det gamle prosjektnavnet, har volumet som `kontr
 
 For å gjenopprette på en ny vert: start stakken, kopier en sikkerhetskopimappe
 inn i containeren `api` (eller monter den) og kjør
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /sti --force`.
+`docker compose exec api opencde restore /sti --force`.
 
 ## Test gjenopprettingen din
 

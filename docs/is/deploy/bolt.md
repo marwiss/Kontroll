@@ -39,9 +39,9 @@ Með rekstraryfirlaginu hefur Caddy þegar Let's Encrypt-skírteini fyrir
 ```sh
 D=cde.example.org
 mkdir -p certs/bolt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.crt" certs/bolt/public.crt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.key" certs/bolt/private.key
 chmod 644 certs/bolt/public.crt certs/bolt/private.key
 ```
@@ -62,7 +62,8 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 Ræstu síðan með yfirlaginu bætt við venjulegu skipunina þína:
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml
+docker compose up -d
 ```
 
 Opnaðu eldvegginn fyrir gáttina aðeins fyrir þau vistföng sem þurfa hana
@@ -77,14 +78,14 @@ opinberu reklarnir tengjast með gagnagrunnsnotandanum og lykilorðinu.
 
 ## 3. Loka henni aftur
 
-Fjarlægðu `compose.bolt.yaml` úr skipanalínunni, hreinsaðu
+Fjarlægðu `docker/compose.bolt.yaml` úr `COMPOSE_FILE`, hreinsaðu
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` í `.env` og keyrðu `up -d` aftur. Gáttin
 hverfur af hýslinum og `bolt` verður aftur `null` í getuskjalinu. Skiptu um
 lykilorð gagnagrunnsins eftir á ef því var deilt víðar en ætlað var.
 
 ## Memgraph
 
-Með `compose.memgraph.yaml` birtir sama yfirlagið gáttina, en
+Með `docker/compose.memgraph.yaml` birtir sama yfirlagið gáttina, en
 TLS-stillingarnar hér að ofan eru Neo4j. Bættu í staðinn flöggum Memgraph við
 `command` þess (`--bolt-cert-file=/certs/bolt/public.crt
 --bolt-key-file=/certs/bolt/private.key`) og tengdu sömu möppuna; Memgraph

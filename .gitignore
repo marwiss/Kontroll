@@ -3,7 +3,7 @@
 .env.*
 !.env.example
 secrets/
-Caddyfile.local
+docker/Caddyfile.local
 
 # Local working notes for the maintainer and AI tooling: stay on this machine.
 CLAUDE.md

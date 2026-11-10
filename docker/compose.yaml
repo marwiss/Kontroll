@@ -5,10 +5,12 @@
 #   compose.tunnel.yaml    public https through a Cloudflare Tunnel for client tests
 #   compose.memgraph.yaml  Memgraph instead of Neo4j (add to any of the above)
 #
-#   docker compose -f compose.yaml -f compose.dev.yaml up -d
+#   docker compose up -d
 #
-# Configuration comes from .env (copy .env.example or run `opencde init`). Secrets never
-# live in this file. See docs/en/deploy/ for every scenario, including managed databases.
+# Configuration comes from .env in the folder above (copy .env.example or run `opencde init`),
+# whose COMPOSE_FILE names the files to combine, so that the command needs no -f options.
+# Paths in these files are relative to this folder. Secrets never live in this file. See
+# docs/en/deploy/ for every scenario, including managed databases.
 
 name: dataregium
 
@@ -39,7 +41,8 @@ services:
   api:
     image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-latest}
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       args:
         OPENCDE_GHERKIN: ${OPENCDE_GHERKIN:-0}  # 1 builds in buildingSMART's ifc-gherkin-rules (ADR 0012)
     restart: unless-stopped
@@ -48,7 +51,7 @@ services:
         condition: service_healthy
         required: false  # compose.external-db.yaml leaves the container out
     env_file:
-      - .env
+      - ../.env
     environment:
       OPENCDE_GRAPH_URI: "${OPENCDE_STACK_GRAPH_URI:-bolt://graph:7687}"
       OPENCDE_DATA_DIR: /data

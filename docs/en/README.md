@@ -47,7 +47,7 @@ is not tied to any one application.
 2. **Configure.** Copy `.env.example` to `.env` and set `OPENCDE_GRAPH_PASSWORD`
    (16 characters or more). Every setting is explained in
    [.env.example](../../.env.example).
-3. **Start.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+3. **Start.** `docker compose up -d --build`
    starts the server on <http://127.0.0.1:8000> and a Neo4j database.
    `docker compose logs -f api` shows the server log.
 4. **Look around.** <http://127.0.0.1:8000/docs> is the interactive API
@@ -56,7 +56,7 @@ is not tied to any one application.
    development overlay avoids Neo4j's default ports, which another Neo4j on
    the same machine often occupies).
 5. **Add demo data and sign in.**
-   `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
+   `docker compose exec api opencde seed`
    creates demonstration users and projects and prints their passwords once.
    Sign in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
 6. **Connect a client.** Register your application under *Clients* (or let it

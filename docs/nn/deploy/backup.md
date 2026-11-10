@@ -31,7 +31,7 @@ server.
 
 ## I Docker Compose
 
-`compose.prod.yaml` køyrer ei teneste `backup` som kallar
+`docker/compose.prod.yaml` køyrer ei teneste `backup` som kallar
 `opencde backup /backups` éin gong om dagen og held på dei 14 nyaste mappene i
 volumet `backups`. Kopier det volumet ein annan stad (ein annan vert,
 objektlagring); ein tryggingskopi på same disk som dataa er berre ein halv
@@ -46,7 +46,7 @@ Ein installasjon som har halde på det gamle prosjektnamnet, har volumet som `ko
 
 For å gjenopprette på ein ny blir: start stakken, kopier ei
 tryggingskopimappe inn i containeren `api` (eller monter henne) og køyr
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /sti --force`.
+`docker compose exec api opencde restore /sti --force`.
 
 ## Test gjenopprettinga di
 

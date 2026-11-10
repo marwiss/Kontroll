@@ -6,12 +6,12 @@ bjóða vefviðmót fyrir atvikaskrár, endurræsingar og uppfærslur. Þeir eru
 
 ## Compose-skrá
 
-Notaðu `compose.yaml` saman með `compose.prod.yaml` **án þjónustunnar
+Notaðu `docker/compose.yaml` saman með `docker/compose.prod.yaml` **án þjónustunnar
 `proxy`**: eigin milliþjónn vettvangsins (Traefik í Coolify og Dokploy) lýkur
 TLS. Einfaldast er lítil yfirskriftarskrá við hlið þeirra:
 
 ```yaml
-# compose.paas.yaml
+# docker/compose.paas.yaml
 services:
   proxy:
     profiles: ["disabled"]
@@ -22,7 +22,7 @@ services:
       traefik.http.services.opencde.loadbalancer.server.port: "8000"
 ```
 
-og settu `compose.yaml compose.prod.yaml compose.paas.yaml` upp sem einn
+og settu `docker/compose.yaml docker/compose.prod.yaml docker/compose.paas.yaml` upp sem einn
 stafla.
 
 ## Umhverfi

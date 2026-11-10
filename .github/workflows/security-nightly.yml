@@ -52,8 +52,8 @@ jobs:
           # The scan is to see every page it asks for, and the same answer to the same question.
           echo "OPENCDE_RATE_LIMITS_ENABLED=false" >> .env
           echo "OPENCDE_SIGN_IN_THROTTLE_ENABLED=false" >> .env
-          docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
-          docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde seed --password demo-password-for-zap-only > seed.txt
+          docker compose up -d --build --wait
+          docker compose exec -T api opencde seed --password demo-password-for-zap-only > seed.txt
           echo "CLIENT_ID=$(awk '/client +public/ {print $3}' seed.txt)" >> "$GITHUB_ENV"
       - name: Sign in
         run: uv run python .zap/credentials.py http://127.0.0.1:8000 "$CLIENT_ID" demo-password-for-zap-only
@@ -64,7 +64,7 @@ jobs:
             -e TARGET=http://127.0.0.1:8000 \
             ghcr.io/zaproxy/zaproxy:2.17.0 zap.sh -cmd -autorun /zap/wrk/authenticated-filled.yaml
       - name: What it reached
-        run: docker compose -f compose.yaml -f compose.dev.yaml logs api | uv run python .zap/reached.py
+        run: docker compose logs api | uv run python .zap/reached.py
       - name: What it found
         run: uv run python .zap/findings.py .zap/zap-authenticated.json
       - name: Keep the report
@@ -77,7 +77,7 @@ jobs:
           if-no-files-found: ignore
       - name: Server log
         if: always()
-        run: docker compose -f compose.yaml -f compose.dev.yaml logs api | tail -200
+        run: docker compose logs api | tail -200
 
   restart:
     name: The stack in Docker outlives a restart
@@ -105,6 +105,7 @@ jobs:
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          file: docker/Dockerfile
           load: true
           tags: opencdeserver:nightly
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -130,12 +131,12 @@ jobs:
         run: |
           uv run opencde init --dev
           echo "OPENCDE_RATE_LIMITS_ENABLED=false" >> .env  # the scan is to see every page it asks for
-          docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+          docker compose up -d --build
           for i in $(seq 1 60); do
             curl -fsS http://127.0.0.1:8000/readyz && break
             sleep 2
           done
-          docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde seed --password demo-password-for-zap-only
+          docker compose exec -T api opencde seed --password demo-password-for-zap-only
       - name: ZAP baseline (pages and public API surface)
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
@@ -146,4 +147,4 @@ jobs:
           allow_issue_writing: false
       - name: Server log
         if: always()
-        run: docker compose -f compose.yaml -f compose.dev.yaml logs api | tail -200
+        run: docker compose logs api | tail -200

@@ -379,7 +379,7 @@ utviklingsstakken (se [acceptance.md](../acceptance.md)).
   Modellens vegger er `1Xezbq735AdBO_4DerG66G` (GTIN 3),
   `3eT96F_cnDsOufCEsotwtp` (GTIN 2) og `3k3LbXmTfDWODxdSuyCGYE` (GTIN 1),
   i egenskapssettet `Reuse`; den samme filen er `tests/fixtures/three_walls_gtin.ifc`.
-- `docker compose -f compose.yaml -f compose.dev.yaml up -d` gir deg en
+- `docker compose up -d` gir deg en
   server på `http://127.0.0.1:8000` med Neo4j Browser på `:7484`.
 - Registrer en klient for appen din i admin-grensesnittet (`/admin` →
   Klienter) eller med

@@ -28,10 +28,10 @@ käsin (salaiselle avaimelle
 ## 2. Käynnistä
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml pull
-docker compose -f compose.yaml -f compose.prod.yaml up -d
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde doctor
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde user create admin --admin
+docker compose pull
+docker compose up -d
+docker compose exec api opencde doctor
+docker compose exec api opencde user create admin --admin
 ```
 
 Viimeinen komento tulostaa järjestelmänvalvojan salasanan kerran. Kirjaudu
@@ -42,10 +42,10 @@ käyttäjät ja OAuth2-asiakkaat, joita sovelluksesi tarvitsevat.
 
 | Tehtävä | Komento |
 |---|---|
-| Päivitä uusimpaan imageen | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
+| Päivitä uusimpaan imageen | `docker compose pull && docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d` |
 | Kiinnitä versio | `OPENCDE_IMAGE_TAG=3.0.0` `.env`-tiedostossa (tagit seuraavat GitHub-julkaisuja) |
 | Tarjoa vain osa rajapinnoista | `OPENCDE_APIS=["bcf-2.1"]` tiedostossa `.env` palvelimelle, joka tarjoaa vain BCF API 2.1:n, `["documents"]` dokumenttipalvelimelle; oletuksena kaikki kolme |
-| Lokit | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-rivejä) |
+| Lokit | `docker compose logs -f api` (JSON-rivejä) |
 | Kuntotarkistus | `https://cde.example.org/readyz`; hallinnan Asetukset-sivu |
 | Varmuuskopiot | joka yö `backups`-taltioon `backup`-palvelun toimesta; katso [backup.md](backup.md) |
 | Peru käyttöoikeudet tietoturvapoikkeamassa | `docker compose ... exec api opencde revoke --all` (tai `--user`, `--client`) |

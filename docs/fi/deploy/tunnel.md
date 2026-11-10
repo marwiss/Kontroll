@@ -22,8 +22,9 @@ portteja tai vuokraamatta palvelinta.
 3. Käynnistä:
 
    ```sh
-   docker compose -f compose.yaml -f compose.tunnel.yaml up -d
-   docker compose -f compose.yaml -f compose.tunnel.yaml exec api opencde seed
+   # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.tunnel.yaml
+   docker compose up -d
+   docker compose exec api opencde seed
    ```
 
 Tunnelin reuna päättää TLS:n; palvelin luottaa compose-verkkoon

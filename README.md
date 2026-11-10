@@ -47,7 +47,7 @@ inte bunden till något enskilt program.
 2. **Konfigurera.** Kopiera `.env.example` till `.env` och sätt
    `OPENCDE_GRAPH_PASSWORD` (minst 16 tecken). Varje inställning förklaras i
    [.env.example](.env.example).
-3. **Starta.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+3. **Starta.** `docker compose up -d --build`
    startar servern på <http://127.0.0.1:8000> och en Neo4j-databas.
    `docker compose logs -f api` visar serverloggen.
 4. **Se dig omkring.** <http://127.0.0.1:8000/docs> är den interaktiva
@@ -56,7 +56,7 @@ inte bunden till något enskilt program.
    utvecklingsöverlagringen undviker Neo4j:s standardportar, som ofta upptas
    av en annan Neo4j på samma dator).
 5. **Lägg in demodata och logga in.**
-   `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
+   `docker compose exec api opencde seed`
    skapar demoanvändare och projekt och skriver ut deras lösenord en gång.
    Logga in på <http://127.0.0.1:8000/signin> som `admin` och öppna `/admin`.
 6. **Anslut en klient.** Registrera din app under *Klienter* (eller låt den

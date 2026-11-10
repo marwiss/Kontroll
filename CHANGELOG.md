@@ -15,6 +15,9 @@ can be written back as a file, every upload checked against the IFC schema, buil
 and the IDS documents of its project, named queries for members, and IFC-LPG as a library. Works
 with Dataspatium 3.0.0.
 
+- The Docker files live in `docker/`: the Compose files, the Dockerfile and the Caddyfile. `.env` names the
+  Compose files to combine (`COMPOSE_FILE`, written by `opencde init`), so the commands are `docker compose up -d`
+  and so on, without `-f` options; an overlay such as Memgraph is added to that line.
 - The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
   `GET /.well-known/dataregium`, and `/.well-known/kontroll` answers the same as an alias; `server.name` in it says
   `Dataregium OpenCDE server`. The Compose project is named `dataregium`; an installation that keeps its volumes from

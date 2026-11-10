@@ -23,8 +23,9 @@ opna gáttir eða leigja þjón.
 3. Ræstu:
 
    ```sh
-   docker compose -f compose.yaml -f compose.tunnel.yaml up -d
-   docker compose -f compose.yaml -f compose.tunnel.yaml exec api opencde seed
+   # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.tunnel.yaml
+   docker compose up -d
+   docker compose exec api opencde seed
    ```
 
 Jaðar gangsins lýkur TLS; þjónninn treystir compose-netinu sem milliþjóni

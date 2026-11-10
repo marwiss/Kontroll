@@ -57,8 +57,8 @@ others use.
 Start the server and load the demonstration data:
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build --wait
+docker compose exec api opencde seed
 ```
 
 The first command takes a few minutes the first time and returns when the server
@@ -170,10 +170,10 @@ Each row quotes the screen as it reads with the English names.
 | What you see | Why | What to do |
 |---|---|---|
 | `Cannot connect to the Docker daemon`, `error during connect` or `docker: command not found` | Docker is not running | Start Docker Desktop, wait until it says it is running, and run the command again |
-| `dependency failed to start: container dataregium-graph-1 is unhealthy` | A password of fewer than 16 characters, which Neo4j refuses (`docker compose -f compose.yaml -f compose.dev.yaml logs graph` says `A password must be at least 16 characters`), or a database volume left by an earlier installation with another password | Correct the password and run the `up` command again. For the old volume, see [Start over](#start-over) |
+| `dependency failed to start: container dataregium-graph-1 is unhealthy` | A password of fewer than 16 characters, which Neo4j refuses (`docker compose logs graph` says `A password must be at least 16 characters`), or a database volume left by an earlier installation with another password | Correct the password and run the `up` command again. For the old volume, see [Start over](#start-over) |
 | `port is already allocated`, `Ports are not available` or `address already in use` | Another program holds 8000, 7484 or 7697, perhaps an earlier Dataregium (`docker ps` shows it) | Stop it, or set other ports with `OPENCDE_DEV_PORT`, `OPENCDE_DEV_NEO4J_HTTP_PORT` and `OPENCDE_DEV_NEO4J_BOLT_PORT` in `.env` and use your port instead of 8000 from then on |
 | The containers of another folder are replaced | Two checkouts on one machine share the Compose project name `dataregium` | Give the second one `COMPOSE_PROJECT_NAME=dataregium-2` and other `OPENCDE_DEV_*` ports in its `.env` |
-| `the database is not empty` | `opencde seed` has already run and printed the passwords then | Get a new password with `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde user set-password inspection_manager`, or [start over](#start-over) |
+| `the database is not empty` | `opencde seed` has already run and printed the passwords then | Get a new password with `docker compose exec api opencde user set-password inspection_manager`, or [start over](#start-over) |
 | `python` is not found, or the Microsoft Store opens | The command has another name on this machine | Use `py` or `python3` |
 | A list of files instead of the app | The web server runs in the outer folder | Stop it with Ctrl+C and start it in the folder that holds `index.html` |
 | An old version of the app, or something else entirely | Something else answers on port 8080; on Windows a second web server can start on the same port without an error | Use another port, `python -m http.server 8090 --bind 127.0.0.1`, and open `http://127.0.0.1:8090/` |
@@ -181,14 +181,14 @@ Each row quotes the screen as it reads with the English names.
 | *Could not reach 127.0.0.1:8000 …* | Dataregium is not running, or the address is mistyped | <http://127.0.0.1:8000/readyz> must answer. The address is `http://127.0.0.1:8000` with nothing after it |
 | *The server does not let the app register itself …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` is not `true` | Change `.env`, run the `up` command again, and press *Add source* again |
 | *The registration failed:* … `Redirect URIs to http://localhost are not allowed here` | The app was opened on `localhost`, which the server does not accept as the way back | Open `http://127.0.0.1:8080/` and add the source there |
-| *The registration failed:* … `rate_limited` | More than 60 registrations within an hour; every *Add source* with an empty *Client id* is one | `docker compose -f compose.yaml -f compose.dev.yaml restart api` empties the counter |
+| *The registration failed:* … `rate_limited` | More than 60 registrations within an hour; every *Add source* with an empty *Client id* is one | `docker compose restart api` empties the counter |
 | *Internet access for … is not allowed.* | *Deny* was pressed | Allow it under *Manage*, *Workspace*, *Internet access*, and try again |
 | *The browser blocked the sign-in window …* | The browser's pop-up blocker | Allow pop-ups for `http://127.0.0.1:8080` and press *Sign in* again |
 | In the pop-up: *Cannot continue* and *Unknown client.* | The server has forgotten the app's registration, usually after `down -v` | Close the pop-up and reload the app, since *Sign in* otherwise keeps spinning for five minutes. Delete the source with the cross beside it under *Added sources* and add it again |
 | In the pop-up: *Cannot continue* and *The redirect URI is not registered for this client.* | *Client id* was filled in, for instance from the output of `opencde seed` | Close the pop-up and reload the app. Delete the source with the cross beside it under *Added sources* and add it again with *Client id* empty |
 | In the pop-up: *The user name or password is not correct.* | Every user has their own password from `opencde seed` | Use the right one, or get a new one as above |
 | *Too many failed attempts for this user name …* | Five wrong passwords in a row make the server wait, at most 15 minutes | Wait for as long as it says, and use the password from `opencde seed` |
-| *The form has expired. Please try again.* on `/signin`, or in the pop-up *Cannot continue* and *The sign-in form has expired or was tampered with. Start again.*, although you just opened the page. `docker compose -f compose.yaml -f compose.dev.yaml logs api` shows `foreign_service_worker_removed` | A service worker in your browser from another web app that once ran on `http://127.0.0.1:8000`, for instance one started with `python -m http.server` without a port. It answers with old copies of Dataregium's pages | Wait a few seconds, until the page has reloaded by itself, and try again, since Dataregium removes such a worker. If the message stays, remove it by hand: `about:debugging#/runtime/this-firefox` in Firefox, `edge://serviceworker-internals` in Edge, `chrome://serviceworker-internals` in Chrome; find `127.0.0.1:8000` and choose *Unregister*. Every browser has its own, also one built into an editor. A private window has none, which shows quickly whether this is the cause. Keep other apps off port 8000 |
+| *The form has expired. Please try again.* on `/signin`, or in the pop-up *Cannot continue* and *The sign-in form has expired or was tampered with. Start again.*, although you just opened the page. `docker compose logs api` shows `foreign_service_worker_removed` | A service worker in your browser from another web app that once ran on `http://127.0.0.1:8000`, for instance one started with `python -m http.server` without a port. It answers with old copies of Dataregium's pages | Wait a few seconds, until the page has reloaded by itself, and try again, since Dataregium removes such a worker. If the message stays, remove it by hand: `about:debugging#/runtime/this-firefox` in Firefox, `edge://serviceworker-internals` in Edge, `chrome://serviceworker-internals` in Chrome; find `127.0.0.1:8000` and choose *Unregister*. Every browser has its own, also one built into an editor. A private window has none, which shows quickly whether this is the cause. Keep other apps off port 8000 |
 | *You are not a member of any project on the server.* | You signed in as `admin`, who is in no project | Press *Sign out* and then *Sign in* as `inspection_manager` |
 | *Sign in* keeps spinning | The pop-up was closed before the sign-in was finished | Reload the page |
 | The pop-up says *Kopiera adressen … / Copy the address …* | It could not reach the app's window, which was perhaps closed or reloaded meanwhile | Close the pop-up and press *Sign in* again |
@@ -196,11 +196,10 @@ Each row quotes the screen as it reads with the English names.
 
 ## Start over
 
-In the folder you started from (or anywhere, with `-p dataregium` in place of the
-two `-f` options):
+In the folder you started from (or anywhere, with `-p dataregium`):
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v
+docker compose down -v
 ```
 
 This deletes the database and the files of the demonstration. Then run the `up` and

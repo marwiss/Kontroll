@@ -54,8 +54,8 @@ Stillingarnar eru til að prófa Dataregium á eigin tölvu, ekki fyrir þjón s
 Ræstu þjóninn og hladdu inn sýnigögnum:
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build --wait
+docker compose exec api opencde seed
 ```
 
 Fyrri skipunin tekur nokkrar mínútur í fyrsta sinn og lýkur þegar þjónninn er í gangi. Sú
@@ -165,10 +165,10 @@ Hver lína vitnar í skjáinn eins og hann lítur út með íslensku heitunum.
 | Þetta sérðu | Hvers vegna | Gerðu svona |
 |---|---|---|
 | `Cannot connect to the Docker daemon`, `error during connect` eða `docker: command not found` | Docker er ekki í gangi | Ræstu Docker Desktop, bíddu þar til það segist vera í gangi og keyrðu skipunina aftur |
-| `dependency failed to start: container dataregium-graph-1 is unhealthy` | Lykilorð með færri en 16 stafi, sem Neo4j hafnar (`docker compose -f compose.yaml -f compose.dev.yaml logs graph` segir `A password must be at least 16 characters`), eða gagnagrunnsbindi frá fyrri uppsetningu með öðru lykilorði | Leiðréttu lykilorðið og keyrðu `up`-skipunina aftur. Um gamla bindið, sjá [Byrjaðu aftur](#byrjaðu-aftur) |
+| `dependency failed to start: container dataregium-graph-1 is unhealthy` | Lykilorð með færri en 16 stafi, sem Neo4j hafnar (`docker compose logs graph` segir `A password must be at least 16 characters`), eða gagnagrunnsbindi frá fyrri uppsetningu með öðru lykilorði | Leiðréttu lykilorðið og keyrðu `up`-skipunina aftur. Um gamla bindið, sjá [Byrjaðu aftur](#byrjaðu-aftur) |
 | `port is already allocated`, `Ports are not available` eða `address already in use` | Annað forrit heldur 8000, 7484 eða 7697, kannski fyrri Dataregium (`docker ps` sýnir það) | Stöðvaðu það, eða gefðu upp aðrar gáttir með `OPENCDE_DEV_PORT`, `OPENCDE_DEV_NEO4J_HTTP_PORT` og `OPENCDE_DEV_NEO4J_BOLT_PORT` í `.env` og notaðu þína gátt í stað 8000 upp frá því |
 | Gámum úr annarri möppu er skipt út | Tvö eintök á einni tölvu deila Compose-verkefnisheitinu `dataregium` | Gefðu því síðara `COMPOSE_PROJECT_NAME=dataregium-2` og aðrar `OPENCDE_DEV_*`-gáttir í `.env` þess |
-| `the database is not empty` | `opencde seed` hefur þegar keyrt og prentaði lykilorðin þá | Fáðu nýtt lykilorð með `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde user set-password inspection_manager`, eða [byrjaðu aftur](#byrjaðu-aftur) |
+| `the database is not empty` | `opencde seed` hefur þegar keyrt og prentaði lykilorðin þá | Fáðu nýtt lykilorð með `docker compose exec api opencde user set-password inspection_manager`, eða [byrjaðu aftur](#byrjaðu-aftur) |
 | `python` finnst ekki, eða Microsoft Store opnast | Skipunin heitir eitthvað annað á þessari tölvu | Notaðu `py` eða `python3` |
 | Skráalisti í stað forritsins | Vefþjónninn keyrir í ytri möppunni | Stöðvaðu hann með Ctrl+C og ræstu hann í möppunni þar sem `index.html` er |
 | Gömul útgáfa forritsins, eða eitthvað allt annað | Eitthvað annað svarar á gátt 8080; á Windows getur annar vefþjónn ræst á sömu gátt án villu | Notaðu aðra gátt, `python -m http.server 8090 --bind 127.0.0.1`, og opnaðu `http://127.0.0.1:8090/` |
@@ -176,14 +176,14 @@ Hver lína vitnar í skjáinn eins og hann lítur út með íslensku heitunum.
 | *Náðist ekki í 127.0.0.1:8000 …* | Dataregium er ekki í gangi, eða vistfangið er rangt skrifað | <http://127.0.0.1:8000/readyz> verður að svara. Vistfangið er `http://127.0.0.1:8000` án nokkurs á eftir |
 | *Þjónninn leyfir ekki að forritið skrái sig sjálft …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` er ekki `true` | Breyttu `.env`, keyrðu `up`-skipunina aftur og ýttu aftur á *Bæta við uppsprettu* |
 | *Skráning mistókst:* … `Redirect URIs to http://localhost are not allowed here` | Forritið var opnað á `localhost`, sem þjónninn samþykkir ekki sem leið til baka | Opnaðu `http://127.0.0.1:8080/` og bættu uppsprettunni við þar |
-| *Skráning mistókst:* … `rate_limited` | Fleiri en 60 skráningar innan klukkustundar; hvert *Bæta við uppsprettu* með tómt *Biðlaraauðkenni (client id)* er ein | `docker compose -f compose.yaml -f compose.dev.yaml restart api` núllstillir teljarann |
+| *Skráning mistókst:* … `rate_limited` | Fleiri en 60 skráningar innan klukkustundar; hvert *Bæta við uppsprettu* með tómt *Biðlaraauðkenni (client id)* er ein | `docker compose restart api` núllstillir teljarann |
 | *Netaðgangur fyrir … er ekki leyfður.* | Ýtt var á *Hafna* | Leyfðu það undir *Umsjón*, *Vinnusvæði*, *Netaðgangur* og reyndu aftur |
 | *Vafrinn lokaði á innskráningargluggann …* | Sprettigluggavörn vafrans | Leyfðu sprettiglugga fyrir `http://127.0.0.1:8080` og ýttu aftur á *Skrá inn* |
 | Í sprettiglugganum: *Ekki er hægt að halda áfram* og *Óþekktur biðlari.* | Þjónninn hefur gleymt skráningu forritsins, oftast eftir `down -v` | Lokaðu glugganum og endurhladdu forritið, því annars snýst *Skrá inn* í fimm mínútur. Eyddu uppsprettunni með krossinum við hliðina á henni undir *Viðbættar uppsprettur* og bættu henni við aftur |
 | Í sprettiglugganum: *Ekki er hægt að halda áfram* og *Þetta redirect-URI er ekki skráð fyrir þennan biðlara.* | *Biðlaraauðkenni (client id)* var fyllt út, til dæmis úr úttaki `opencde seed` | Lokaðu glugganum og endurhladdu forritið. Eyddu uppsprettunni með krossinum við hliðina á henni undir *Viðbættar uppsprettur* og bættu henni við aftur með tómt auðkenni |
 | Í sprettiglugganum: *Notandanafnið eða lykilorðið er ekki rétt.* | Hver notandi hefur eigið lykilorð frá `opencde seed` | Notaðu rétt lykilorð, eða fáðu nýtt eins og að ofan |
 | *Of margar misheppnaðar tilraunir fyrir þetta notandanafn …* | Fimm röng lykilorð í röð láta þjóninn bíða, í mesta lagi 15 mínútur | Bíddu eins lengi og stendur og notaðu lykilorðið frá `opencde seed` |
-| *Eyðublaðið er útrunnið. Reyndu aftur.* á `/signin`, eða í sprettiglugganum *Ekki er hægt að halda áfram* og *Innskráningareyðublaðið er útrunnið eða hefur verið átt við það. Byrjaðu aftur.*, þótt þú hafir rétt opnað síðuna. `docker compose -f compose.yaml -f compose.dev.yaml logs api` sýnir `foreign_service_worker_removed` | Service worker í vafranum þínum frá öðru vefforriti sem einhvern tíma hefur keyrt á `http://127.0.0.1:8000`, til dæmis ræst með `python -m http.server` án gáttar. Hann svarar með gömlum afritum af síðum Dataregium | Bíddu í nokkrar sekúndur þar til síðan hefur endurhlaðist sjálf og reyndu aftur, því Dataregium fjarlægir slíkan worker. Ef skilaboðin hverfa ekki skaltu fjarlægja hann handvirkt: `about:debugging#/runtime/this-firefox` í Firefox, `edge://serviceworker-internals` í Edge, `chrome://serviceworker-internals` í Chrome; finndu `127.0.0.1:8000` og veldu *Unregister*. Hver vafri hefur sinn eigin, líka sá sem er innbyggður í ritil. Einkagluggi hefur engan, sem sýnir fljótt hvort þetta er orsökin. Haltu öðrum forritum frá gátt 8000 |
+| *Eyðublaðið er útrunnið. Reyndu aftur.* á `/signin`, eða í sprettiglugganum *Ekki er hægt að halda áfram* og *Innskráningareyðublaðið er útrunnið eða hefur verið átt við það. Byrjaðu aftur.*, þótt þú hafir rétt opnað síðuna. `docker compose logs api` sýnir `foreign_service_worker_removed` | Service worker í vafranum þínum frá öðru vefforriti sem einhvern tíma hefur keyrt á `http://127.0.0.1:8000`, til dæmis ræst með `python -m http.server` án gáttar. Hann svarar með gömlum afritum af síðum Dataregium | Bíddu í nokkrar sekúndur þar til síðan hefur endurhlaðist sjálf og reyndu aftur, því Dataregium fjarlægir slíkan worker. Ef skilaboðin hverfa ekki skaltu fjarlægja hann handvirkt: `about:debugging#/runtime/this-firefox` í Firefox, `edge://serviceworker-internals` í Edge, `chrome://serviceworker-internals` í Chrome; finndu `127.0.0.1:8000` og veldu *Unregister*. Hver vafri hefur sinn eigin, líka sá sem er innbyggður í ritil. Einkagluggi hefur engan, sem sýnir fljótt hvort þetta er orsökin. Haltu öðrum forritum frá gátt 8000 |
 | *Þú ert ekki þátttakandi í neinu verkefni á þjóninum.* | Þú skráðir þig inn sem `admin`, sem er ekki í neinu verkefni | Ýttu á *Skrá út* og svo á *Skrá inn* sem `inspection_manager` |
 | *Skrá inn* heldur áfram að snúast | Glugganum var lokað áður en innskráningu var lokið | Endurhladdu síðuna |
 | Glugginn segir *Kopiera adressen … / Copy the address …* | Hann náði ekki í glugga forritsins, sem var kannski lokað eða endurhlaðið á meðan | Lokaðu glugganum og ýttu aftur á *Skrá inn* |
@@ -191,10 +191,10 @@ Hver lína vitnar í skjáinn eins og hann lítur út með íslensku heitunum.
 
 ## Byrjaðu aftur
 
-Í möppunni sem þú ræstir úr (eða hvar sem er, með `-p dataregium` í stað `-f`-rofanna tveggja):
+Í möppunni sem þú ræstir úr (eða hvar sem er, með `-p dataregium`):
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v
+docker compose down -v
 ```
 
 Það eyðir gagnagrunninum og skrám sýningarinnar. Keyrðu síðan `up`- og `seed`-skipanirnar

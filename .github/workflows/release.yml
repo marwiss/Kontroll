@@ -59,6 +59,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          file: docker/Dockerfile
           load: true
           tags: ${{ env.IMAGE }}:scan
           cache-from: type=gha
@@ -92,6 +93,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          file: docker/Dockerfile
           load: true
           build-args: OPENCDE_GHERKIN=1
           tags: ${{ env.IMAGE }}:scan-gherkin
@@ -115,6 +117,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -130,6 +133,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: OPENCDE_GHERKIN=1

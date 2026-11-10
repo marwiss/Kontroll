@@ -42,7 +42,7 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 
 ## Backups
 
-The `backup` sidecar of `compose.prod.yaml` does not apply here. Schedule
+The `backup` sidecar of `docker/compose.prod.yaml` does not apply here. Schedule
 `opencde backup /data/backups` (a cron job or a scheduled task on the platform)
 and copy the folder to object storage; Aura has its own snapshots as well.
 
@@ -58,7 +58,8 @@ OPENCDE_GRAPH_PASSWORD=<from Aura>
 ```
 
 ```bash
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.external-db.yaml
+docker compose up -d
 ```
 
 The API and the backup sidecar then use that database. For Memgraph, also set

@@ -40,9 +40,9 @@ til `OPENCDE_DOMAIN`. Kopiér det ud (stierne er Caddys layout):
 ```sh
 D=cde.example.org
 mkdir -p certs/bolt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.crt" certs/bolt/public.crt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.key" certs/bolt/private.key
 chmod 644 certs/bolt/public.crt certs/bolt/private.key
 ```
@@ -63,7 +63,8 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 Start derefter med overlejringen tilføjet til din sædvanlige kommando:
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml
+docker compose up -d
 ```
 
 Åbn kun firewallen for porten mod de adresser, der har brug for den (et
@@ -78,14 +79,14 @@ officielle drivere forbinder med databasebrugeren og kodeordet.
 
 ## 3. Luk den igen
 
-Fjern `compose.bolt.yaml` fra kommandolinjen, ryd
+Fjern `docker/compose.bolt.yaml` fra `COMPOSE_FILE`, ryd
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og kør `up -d` igen. Porten
 forsvinder fra værten, og `bolt` bliver igen `null` i kapabilitetsdokumentet.
 Rotér databasekodeordet bagefter, hvis det blev delt bredere end tiltænkt.
 
 ## Memgraph
 
-Med `compose.memgraph.yaml` udgiver den samme overlejring porten, men
+Med `docker/compose.memgraph.yaml` udgiver den samme overlejring porten, men
 TLS-indstillingerne ovenfor er Neo4js. Tilføj i stedet Memgraphs flag til dens
 `command` (`--bolt-cert-file=/certs/bolt/public.crt
 --bolt-key-file=/certs/bolt/private.key`), og montér den samme mappe; Memgraph

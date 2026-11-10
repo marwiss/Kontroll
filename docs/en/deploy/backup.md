@@ -30,7 +30,7 @@ server.
 
 ## In Docker Compose
 
-`compose.prod.yaml` runs a `backup` service that calls `opencde backup /backups`
+`docker/compose.prod.yaml` runs a `backup` service that calls `opencde backup /backups`
 once a day and keeps the newest 14 folders in the `backups` volume. Copy that
 volume somewhere else (another host, object storage); a backup on the same disk
 as the data is only half a backup:
@@ -44,7 +44,7 @@ An installation that kept the old project name has the volume as `kontroll_backu
 
 To restore on a fresh host, start the stack, copy a backup folder into the
 `api` container (or mount it) and run
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /path --force`.
+`docker compose exec api opencde restore /path --force`.
 
 ## Test your restore
 

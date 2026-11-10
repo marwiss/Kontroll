@@ -39,9 +39,9 @@ Med produktionsöverlagringen har Caddy redan ett Let's Encrypt-certifikat för
 ```sh
 D=cde.example.org
 mkdir -p certs/bolt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.crt" certs/bolt/public.crt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.key" certs/bolt/private.key
 chmod 644 certs/bolt/public.crt certs/bolt/private.key
 ```
@@ -62,7 +62,8 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 Starta sedan med överlagringen tillagd i ditt vanliga kommando:
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml
+docker compose up -d
 ```
 
 Öppna brandväggen för porten bara mot de adresser som behöver den (ett
@@ -77,14 +78,14 @@ officiella drivrutinerna ansluter med databasanvändaren och lösenordet.
 
 ## 3. Stäng den igen
 
-Ta bort `compose.bolt.yaml` från kommandoraden, töm
+Ta bort `docker/compose.bolt.yaml` ur `COMPOSE_FILE`, töm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env` och kör `up -d` igen. Porten
 försvinner från värden och `bolt` blir `null` igen i kapabilitetsdokumentet.
 Rotera databaslösenordet efteråt om det delades bredare än avsett.
 
 ## Memgraph
 
-Med `compose.memgraph.yaml` publicerar samma överlagring porten, men
+Med `docker/compose.memgraph.yaml` publicerar samma överlagring porten, men
 TLS-inställningarna ovan är Neo4js. Lägg i stället till Memgraphs flaggor i
 dess `command` (`--bolt-cert-file=/certs/bolt/public.crt
 --bolt-key-file=/certs/bolt/private.key`) och montera samma katalog; Memgraph

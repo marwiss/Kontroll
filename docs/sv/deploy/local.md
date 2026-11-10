@@ -13,8 +13,8 @@ Allt körs i Docker på din dator; ingenting går att nå utifrån.
 git clone https://github.com/marwiss/Dataregium.git
 cd Dataregium
 uv run opencde init --dev                                 # skriver .env med nya hemligheter
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `opencde seed` skapar demonstrationsanvändare (en administratör och en
@@ -28,17 +28,17 @@ en gång.
 | Administration | <http://127.0.0.1:8000/admin> (logga in som administratören) |
 | Beredskap | <http://127.0.0.1:8000/readyz> |
 | Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
-| Serverlogg | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
+| Serverlogg | `docker compose logs -f api` |
 
 Utvecklingsöverlagringen publicerar Neo4j på 7484/7697 i stället för
 standardportarna 7474/7687, som en annan Neo4j på samma dator ofta upptar.
 Ändra portarna med `OPENCDE_DEV_*` i `.env`. Två utcheckningar på samma dator
-delar Compose-projektnamnet `dataregium` (`compose.yaml` sätter det); ge den
+delar Compose-projektnamnet `dataregium` (`docker/compose.yaml` sätter det); ge den
 andra `COMPOSE_PROJECT_NAME=dataregium-2` och andra portar i sin `.env`.
 
 En installation som gjordes när projektet ännu hette Kontroll har sitt data i
 volymer som heter `kontroll_…`. Den behåller dem med
-`COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går före namnet i `compose.yaml`;
+`COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går före namnet i `docker/compose.yaml`;
 utan det startar nästa `up` ett nytt projekt med tomma volymer.
 
 ## Utan Docker för servern
@@ -58,7 +58,8 @@ utvecklingsöverlagringens Bolt-port.
 ## Memgraph i stället för Neo4j
 
 ```sh
-docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d --build
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.memgraph.yaml:docker/compose.dev.yaml
+docker compose up -d --build
 ```
 
 Sätt `OPENCDE_GRAPH_DIALECT=memgraph` och `OPENCDE_GRAPH_USER=memgraph` i
@@ -88,5 +89,5 @@ visa serversidan av appens anrop. Hela checklistan finns i
 ## Börja om från början
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v   # tar bort volymerna: databas och filer
+docker compose down -v   # tar bort volymerna: databas och filer
 ```

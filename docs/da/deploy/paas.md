@@ -6,12 +6,12 @@ bekvem måde at køre serveren på, når du allerede bruger en af dem.
 
 ## Compose-fil
 
-Brug `compose.yaml` sammen med `compose.prod.yaml` **uden tjenesten `proxy`**:
+Brug `docker/compose.yaml` sammen med `docker/compose.prod.yaml` **uden tjenesten `proxy`**:
 platformens egen proxy (Traefik i Coolify og Dokploy) terminerer TLS. Det
 enkleste er en lille overstyringsfil ved siden af dem:
 
 ```yaml
-# compose.paas.yaml
+# docker/compose.paas.yaml
 services:
   proxy:
     profiles: ["disabled"]
@@ -22,7 +22,7 @@ services:
       traefik.http.services.opencde.loadbalancer.server.port: "8000"
 ```
 
-og udrul `compose.yaml compose.prod.yaml compose.paas.yaml` som én stak.
+og udrul `docker/compose.yaml docker/compose.prod.yaml docker/compose.paas.yaml` som én stak.
 
 ## Miljø
 

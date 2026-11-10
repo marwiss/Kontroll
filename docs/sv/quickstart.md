@@ -56,8 +56,8 @@ server som andra använder.
 Starta servern och lägg in demodata:
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build --wait
+docker compose exec api opencde seed
 ```
 
 Det första kommandot tar några minuter första gången och är klart när servern kör.
@@ -170,10 +170,10 @@ Varje rad citerar skärmen som den ser ut med de svenska namnen.
 | Det här ser du | Varför | Gör så här |
 |---|---|---|
 | `Cannot connect to the Docker daemon`, `error during connect` eller `docker: command not found` | Docker är inte igång | Starta Docker Desktop, vänta tills det säger att det kör, och kör kommandot igen |
-| `dependency failed to start: container dataregium-graph-1 is unhealthy` | Ett lösenord på färre än 16 tecken, som Neo4j vägrar (`docker compose -f compose.yaml -f compose.dev.yaml logs graph` säger `A password must be at least 16 characters`), eller en databasvolym kvar från en tidigare installation med ett annat lösenord | Rätta lösenordet och kör `up`-kommandot igen. För den gamla volymen, se [Börja om](#börja-om) |
+| `dependency failed to start: container dataregium-graph-1 is unhealthy` | Ett lösenord på färre än 16 tecken, som Neo4j vägrar (`docker compose logs graph` säger `A password must be at least 16 characters`), eller en databasvolym kvar från en tidigare installation med ett annat lösenord | Rätta lösenordet och kör `up`-kommandot igen. För den gamla volymen, se [Börja om](#börja-om) |
 | `port is already allocated`, `Ports are not available` eller `address already in use` | Ett annat program har 8000, 7484 eller 7697, kanske en tidigare Dataregium (`docker ps` visar det) | Stoppa det, eller ange andra portar med `OPENCDE_DEV_PORT`, `OPENCDE_DEV_NEO4J_HTTP_PORT` och `OPENCDE_DEV_NEO4J_BOLT_PORT` i `.env` och använd din port i stället för 8000 från och med då |
 | Containrarna från en annan mapp ersätts | Två utcheckningar på en dator delar Compose-projektnamnet `dataregium` | Ge den andra `COMPOSE_PROJECT_NAME=dataregium-2` och andra `OPENCDE_DEV_*`-portar i dess `.env` |
-| `the database is not empty` | `opencde seed` har redan körts och skrev ut lösenorden då | Hämta ett nytt lösenord med `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde user set-password inspection_manager`, eller [börja om](#börja-om) |
+| `the database is not empty` | `opencde seed` har redan körts och skrev ut lösenorden då | Hämta ett nytt lösenord med `docker compose exec api opencde user set-password inspection_manager`, eller [börja om](#börja-om) |
 | `python` hittas inte, eller Microsoft Store öppnas | Kommandot heter något annat på den här datorn | Använd `py` eller `python3` |
 | En fillista i stället för appen | Webbservern kör i den yttre mappen | Stoppa den med Ctrl+C och starta den i mappen där `index.html` ligger |
 | En gammal version av appen, eller något helt annat | Något annat svarar på port 8080; på Windows kan en andra webbserver starta på samma port utan fel | Använd en annan port, `python -m http.server 8090 --bind 127.0.0.1`, och öppna `http://127.0.0.1:8090/` |
@@ -181,14 +181,14 @@ Varje rad citerar skärmen som den ser ut med de svenska namnen.
 | *Kunde inte nå 127.0.0.1:8000 …* | Dataregium kör inte, eller adressen är felskriven | <http://127.0.0.1:8000/readyz> måste svara. Adressen är `http://127.0.0.1:8000` utan något efter |
 | *Servern tillåter inte att appen registrerar sig själv …* | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` är inte `true` | Ändra `.env`, kör `up`-kommandot igen och tryck *Lägg till källa* igen |
 | *Registreringen misslyckades:* … `Redirect URIs to http://localhost are not allowed here` | Appen öppnades på `localhost`, som servern inte godtar som väg tillbaka | Öppna `http://127.0.0.1:8080/` och lägg till källan där |
-| *Registreringen misslyckades:* … `rate_limited` | Fler än 60 registreringar inom en timme; varje *Lägg till källa* med tomt *Klient-id* är en | `docker compose -f compose.yaml -f compose.dev.yaml restart api` nollställer räknaren |
+| *Registreringen misslyckades:* … `rate_limited` | Fler än 60 registreringar inom en timme; varje *Lägg till källa* med tomt *Klient-id* är en | `docker compose restart api` nollställer räknaren |
 | *Internetåtkomst för … är inte tillåten.* | *Neka* trycktes | Tillåt det under *Hantera*, *Arbetsyta*, *Internetåtkomst*, och försök igen |
 | *Webbläsaren blockerade inloggningsfönstret …* | Webbläsarens popup-blockering | Tillåt popup-fönster för `http://127.0.0.1:8080` och tryck *Logga in* igen |
 | I popup-fönstret: *Kan inte fortsätta* och *Okänd klient.* | Servern har glömt appens registrering, oftast efter `down -v` | Stäng fönstret och ladda om appen, eftersom *Logga in* annars snurrar i fem minuter. Ta bort källan med krysset bredvid den under *Tillagda källor* och lägg till den igen |
 | I popup-fönstret: *Kan inte fortsätta* och *Redirect-URI:n är inte registrerad för den här klienten.* | *Klient-id* fylldes i, till exempel från utskriften av `opencde seed` | Stäng fönstret och ladda om appen. Ta bort källan med krysset bredvid den under *Tillagda källor* och lägg till den igen med tomt *Klient-id* |
 | I popup-fönstret: *Användarnamnet eller lösenordet är inte korrekt.* | Varje användare har sitt eget lösenord från `opencde seed` | Använd rätt lösenord, eller hämta ett nytt enligt ovan |
 | *För många misslyckade försök för det här användarnamnet …* | Fem felaktiga lösenord i rad får servern att vänta, högst 15 minuter | Vänta så länge det står, och använd lösenordet från `opencde seed` |
-| *Formuläret har gått ut. Försök igen.* på `/signin`, eller i popup-fönstret *Kan inte fortsätta* och *Inloggningsformuläret har gått ut eller manipulerats. Börja om.*, trots att du nyss öppnade sidan. `docker compose -f compose.yaml -f compose.dev.yaml logs api` visar `foreign_service_worker_removed` | En service worker i din webbläsare från en annan webbapp som en gång kört på `http://127.0.0.1:8000`, till exempel startad med `python -m http.server` utan port. Den svarar med gamla kopior av Dataregiums sidor | Vänta några sekunder tills sidan har laddat om sig själv och försök igen, eftersom Dataregium tar bort en sådan worker. Om meddelandet finns kvar, ta bort den för hand: `about:debugging#/runtime/this-firefox` i Firefox, `edge://serviceworker-internals` i Edge, `chrome://serviceworker-internals` i Chrome; leta upp `127.0.0.1:8000` och välj *Unregister*. Varje webbläsare har sin egen, även en som är inbyggd i en editor. Ett privat fönster har ingen, vilket snabbt visar om det här är orsaken. Håll andra appar borta från port 8000 |
+| *Formuläret har gått ut. Försök igen.* på `/signin`, eller i popup-fönstret *Kan inte fortsätta* och *Inloggningsformuläret har gått ut eller manipulerats. Börja om.*, trots att du nyss öppnade sidan. `docker compose logs api` visar `foreign_service_worker_removed` | En service worker i din webbläsare från en annan webbapp som en gång kört på `http://127.0.0.1:8000`, till exempel startad med `python -m http.server` utan port. Den svarar med gamla kopior av Dataregiums sidor | Vänta några sekunder tills sidan har laddat om sig själv och försök igen, eftersom Dataregium tar bort en sådan worker. Om meddelandet finns kvar, ta bort den för hand: `about:debugging#/runtime/this-firefox` i Firefox, `edge://serviceworker-internals` i Edge, `chrome://serviceworker-internals` i Chrome; leta upp `127.0.0.1:8000` och välj *Unregister*. Varje webbläsare har sin egen, även en som är inbyggd i en editor. Ett privat fönster har ingen, vilket snabbt visar om det här är orsaken. Håll andra appar borta från port 8000 |
 | *Du är inte medlem i något projekt på servern.* | Du loggade in som `admin`, som inte är med i något projekt | Tryck *Logga ut* och sedan *Logga in* som `inspection_manager` |
 | *Logga in* snurrar och snurrar | Fönstret stängdes innan inloggningen var klar | Ladda om sidan |
 | Fönstret säger *Kopiera adressen … / Copy the address …* | Det kunde inte nå appens fönster, som kanske stängdes eller laddades om under tiden | Stäng fönstret och tryck *Logga in* igen |
@@ -196,11 +196,10 @@ Varje rad citerar skärmen som den ser ut med de svenska namnen.
 
 ## Börja om
 
-I mappen du startade från (eller var som helst, med `-p dataregium` i stället för de
-två `-f`-flaggorna):
+I mappen du startade från (eller var som helst, med `-p dataregium`):
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v
+docker compose down -v
 ```
 
 Det raderar databasen och demons filer. Kör sedan `up`- och `seed`-kommandona i

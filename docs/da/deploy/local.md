@@ -13,8 +13,8 @@ Alt kører i Docker på din maskine; intet kan nås udefra.
 git clone https://github.com/marwiss/Dataregium.git
 cd Dataregium
 uv run opencde init --dev                                 # skriver .env med nye hemmeligheder
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `opencde seed` opretter demonstrationsbrugere (en administrator og en bruger
@@ -27,18 +27,18 @@ en offentlig OAuth2-klient og udskriver kodeordene én gang.
 | Administration | <http://127.0.0.1:8000/admin> (log ind som administratoren) |
 | Parathed | <http://127.0.0.1:8000/readyz> |
 | Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
-| Serverlog | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
+| Serverlog | `docker compose logs -f api` |
 
 Udviklingsoverlejringen udgiver Neo4j på 7484/7697 i stedet for
 standardportene 7474/7687, som en anden Neo4j på samme maskine ofte optager.
 Skift portene med `OPENCDE_DEV_*` i `.env`. To checkouts på samme maskine deler
-Compose-projektnavnet `dataregium` (`compose.yaml` sætter det); giv det andet
+Compose-projektnavnet `dataregium` (`docker/compose.yaml` sætter det); giv det andet
 `COMPOSE_PROJECT_NAME=dataregium-2` og andre porte i sin `.env`.
 
 En installation, der blev lavet, mens projektet stadig hed Kontroll, har sine
 data i volumener med navnet `kontroll_…`. Den beholder dem med
 `COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går forud for navnet i
-`compose.yaml`; uden det starter næste `up` et nyt projekt med tomme volumener.
+`docker/compose.yaml`; uden det starter næste `up` et nyt projekt med tomme volumener.
 
 ## Uden Docker til serveren
 
@@ -57,7 +57,8 @@ udviklingsoverlejringens Bolt-port.
 ## Memgraph i stedet for Neo4j
 
 ```sh
-docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d --build
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.memgraph.yaml:docker/compose.dev.yaml
+docker compose up -d --build
 ```
 
 Sæt `OPENCDE_GRAPH_DIALECT=memgraph` og `OPENCDE_GRAPH_USER=memgraph` i `.env`,
@@ -86,5 +87,5 @@ vise serversiden af appens kald. Den fulde tjekliste er
 ## Ren tavle
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v   # fjerner volumerne: database og filer
+docker compose down -v   # fjerner volumerne: database og filer
 ```
