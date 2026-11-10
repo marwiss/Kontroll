@@ -257,6 +257,7 @@ brugðist við eða þýtt, meðan `message` er áfram ensk setning fyrir fólk:
 | `reauthentication_required` | 403 | Hættuleg stjórnunaraðgerð og innskráningin er eldri en tíu mínútur | Veittu heimild aftur, endurtaktu svo kallið |
 | `not_found` | 404 | Engin slík auðlind, auðlind utan verkefna notandans, eða eiginleiki sem er óvirkur (skráning, beiðnaskrá, stjórnunarforritaskil) | Sýndu skilaboðin, endurhladdu lista |
 | `conflict` | 409 | Guid sem er þegar til, eða tvítekinn tengill | Sæktu aftur |
+| `version_conflict` | 412 | Upphleðslan gaf `base_version_index` og skjalið hefur þegar nýrri útgáfu | Sæktu nýjustu útgáfuna, sameinaðu og hladdu upp aftur |
 | `payload_too_large` | 413 | Meginmál beiðninnar fer yfir mörk þjónsins, eða BCF-tvíundarskrá fer yfir `max_image_bytes`/`max_upload_bytes` | Lagaðu beiðnina |
 | `upload_too_large` | 413 | Valin skrá eða hluti fer yfir upphalsmörkin (`max_size_in_bytes` í upphalsfyrirmælunum) | Segðu notandanum mörkin |
 | `rate_limited` | 429 | Of margar beiðnir frá einu vistfangi; `Retry-After` segir hvenær | Bíddu og reyndu aftur |

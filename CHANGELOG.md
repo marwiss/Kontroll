@@ -10,6 +10,9 @@ the commit history.
 
 ## Unreleased
 
+- An upload can say which version it builds on: `base_version_index` on a file entry of
+  `POST /documents/1.0/upload-documents` (an extension). The completion answers `412 version_conflict` when the
+  document already has a newer version, and the new version's metadata carries `base_version_index`.
 - The `IfcModel` node records which form IFC-LPG converted the model in (`geometry`: `skeleton`, `blocks` or
   `nodes`); the skeleton is the default since IFC-LPG 1.0.0 of 2026-11-10, with points for coordinate lists.
 - A clash check between two IFC document versions of a project, as an extension of the Documents API:

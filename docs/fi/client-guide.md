@@ -267,6 +267,7 @@ kääntää, kun `message` pysyy englanninkielisenä lauseena ihmisille:
 | `reauthentication_required` | 403 | Vaarallinen hallintatoiminto ja kirjautuminen on yli kymmenen minuuttia vanha | Valtuuta uudelleen, toista sitten kutsu |
 | `not_found` | 404 | Resurssia ei ole, resurssi on käyttäjän projektien ulkopuolella, tai toiminto on pois päältä (rekisteröinti, pyyntöloki, hallintarajapinta) | Näytä viesti, lataa listat uudelleen |
 | `conflict` | 409 | Guid on jo olemassa, tai linkki on päällekkäinen | Hae uudelleen |
+| `version_conflict` | 412 | Lähetys antoi `base_version_index`:n, ja dokumentilla on jo uudempi versio | Hae uusin versio, yhdistä ja lähetä uudelleen |
 | `payload_too_large` | 413 | Pyynnön runko ylittää palvelimen rajan, tai BCF-binääri ylittää `max_image_bytes`/`max_upload_bytes` | Korjaa pyyntö |
 | `upload_too_large` | 413 | Valittu tiedosto tai osa ylittää lähetysrajan (`max_size_in_bytes` lähetysohjeissa) | Kerro käyttäjälle raja |
 | `rate_limited` | 429 | Liian monta pyyntöä yhdestä osoitteesta; `Retry-After` kertoo milloin | Odota ja yritä uudelleen |

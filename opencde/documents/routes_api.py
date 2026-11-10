@@ -36,6 +36,7 @@ from opencde.documents.repository import DocumentsDep, VersionRecord, default_me
 from opencde.documents.schemas import (
     DocumentDiscoverySessionInitialization,
     DocumentMetadata,
+    DocumentMetadataEntry,
     DocumentQuery,
     DocumentQueryResult,
     DocumentsToUpload,
@@ -63,7 +64,7 @@ from opencde.documents.sessions import (
     UploadSessionsDep,
 )
 from opencde.documents.validation import metadata_entries as validation_metadata
-from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
+from opencde.errors import CODE_UPLOAD_TOO_LARGE, CODE_VERSION_CONFLICT, ApiError
 from opencde.etag import etag_for, matches
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
@@ -140,7 +141,10 @@ async def upload_documents(
             "size_in_bytes": None,
             "state": "pending",
             "version_index": None,
+            "base_version_index": item.base_version_index,
         }
+        if item.base_version_index is not None and not item.document_id:
+            raise HTTPException(400, f"base_version_index of '{item.session_file_id}' needs a document_id")
         if item.document_id:
             latest = await documents.latest(user_id=principal.user_id, document_id=_document_id(item.document_id))
             if latest is None:
@@ -288,6 +292,17 @@ async def _complete(
     project_id = session.project_id or item.get("project_id")
     if not project_id:
         raise HTTPException(400, "No project was chosen for this upload")
+    base_version = item.get("base_version_index")
+    if base_version is not None:
+        # The upload builds on a version: it is refused when someone else has added one since (412).
+        latest = await documents.latest(user_id=session.user_id, document_id=str(item["document_id"]))
+        if latest is None or latest.version_index != int(base_version):
+            raise ApiError(
+                412,
+                f"The upload builds on version {base_version}, but the document's latest version is "
+                f"{latest.version_index if latest else 'unknown'}",
+                code=CODE_VERSION_CONFLICT,
+            )
     version_id = new_id()
     target = make_key("documents", version_id)
     try:
@@ -314,6 +329,11 @@ async def _complete(
                 sha256=sha256,
                 author=session.username,
                 project_name=project_name,
+            )
+            + (
+                [DocumentMetadataEntry(name="base_version_index", value=[str(base_version)], data_type="integer32")]
+                if base_version is not None
+                else []
             ),
         )
     except BaseException:

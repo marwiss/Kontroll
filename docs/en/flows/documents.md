@@ -40,6 +40,9 @@ sequenceDiagram
   response starts with whitespace to keep the connection open.
 * `document_id` in a file entry makes the upload a new version of that
   document; the title is kept, the version index increases.
+* `base_version_index` in a file entry (an extension) says which version the
+  upload builds on: the completion answers `412 version_conflict` when the
+  document already has a newer one, and the version's metadata records the base.
 
 ## Selection and download
 

@@ -256,6 +256,7 @@ på eller oversette, mens `message` forblir en engelsk setning for mennesker:
 | `reauthentication_required` | 403 | En farlig administrasjonshandling, og innloggingen er eldre enn ti minutter | Autoriser igjen, gjenta deretter kallet |
 | `not_found` | 404 | Ingen slik ressurs, en ressurs utenfor brukerens prosjekter, eller en funksjon som er av (registrering, forespørselslogg, administrasjons-API) | Vis meldingen, last listene på nytt |
 | `conflict` | 409 | En guid som allerede finnes, eller en duplisert lenke | Hent igjen |
+| `version_conflict` | 412 | Opplastingen oppga `base_version_index`, og dokumentet har allerede en nyere versjon | Hent den nyeste versjonen, slå sammen og last opp igjen |
 | `payload_too_large` | 413 | Forespørselens kropp er over serverens grense, eller en BCF-binær er over `max_image_bytes`/`max_upload_bytes` | Rett forespørselen |
 | `upload_too_large` | 413 | En valgt fil eller del er over opplastingsgrensen (`max_size_in_bytes` i opplastingsinstruksjonene) | Fortell brukeren grensen |
 | `rate_limited` | 429 | For mange forespørsler fra én adresse; `Retry-After` sier når | Vent og prøv igjen |

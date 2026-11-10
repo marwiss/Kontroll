@@ -42,6 +42,9 @@ sequenceDiagram
   yhteyden pitämiseksi auki.
 * `document_id` tiedostomerkinnässä tekee lähetyksestä kyseisen asiakirjan
   uuden version; otsikko säilyy, versioindeksi kasvaa.
+* `base_version_index` tiedostomerkinnässä (laajennus) kertoo, mihin versioon
+  lähetys perustuu: viimeistely vastaa `412 version_conflict`, kun dokumentilla
+  on jo uudempi, ja version metatiedot kirjaavat perustan.
 
 ## Valinta ja lataus
 

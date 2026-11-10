@@ -140,6 +140,14 @@ class FileToUpload(DocumentsModel):
     file_name: str = Field(min_length=1, max_length=MAX_NAME)
     session_file_id: str = Field(min_length=1, max_length=MAX_ID)
     document_id: str | None = Field(None, min_length=1, max_length=MAX_ID)
+    base_version_index: int | None = Field(
+        None,
+        ge=1,
+        le=1_000_000_000,
+        description="Extension: the version of `document_id` this upload builds on. The completion answers 412 "
+        "`version_conflict` when the document already has a newer version, and the new version's metadata records the "
+        "base.",
+    )
 
 
 class UploadDocuments(DocumentsModel):

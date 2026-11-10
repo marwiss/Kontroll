@@ -42,6 +42,9 @@ sequenceDiagram
   med blankteikn for å halde sambandet ope.
 * `document_id` i ein filpost gjer opplastinga til ein ny versjon av det
   dokumentet; tittelen blir halden på, versjonsindeksen aukar.
+* `base_version_index` i ein filpost (ei utviding) seier kva versjon
+  opplastinga byggjer på: fullføringa svarar `412 version_conflict` når
+  dokumentet alt har ein nyare, og metadataa til versjonen oppgjev basen.
 
 ## Utval og nedlasting
 

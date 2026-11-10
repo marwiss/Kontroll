@@ -42,6 +42,9 @@ sequenceDiagram
   að halda tengingunni opinni.
 * `document_id` í skráarfærslu gerir upphalið að nýrri útgáfu þess skjals;
   titillinn helst, útgáfuvísirinn hækkar.
+* `base_version_index` í skráarfærslu (viðbót) segir á hvaða útgáfu
+  upphleðslan byggir: frágangurinn svarar `412 version_conflict` þegar skjalið
+  hefur þegar nýrri, og lýsigögn útgáfunnar skrá grunninn.
 
 ## Val og niðurhal
 

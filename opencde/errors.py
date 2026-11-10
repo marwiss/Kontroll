@@ -43,6 +43,7 @@ CODE_FORBIDDEN = "forbidden"  # 403: the role does not allow the action
 CODE_REAUTHENTICATION_REQUIRED = "reauthentication_required"  # 403: a fresh sign-in is needed (administration)
 CODE_NOT_FOUND = "not_found"  # 404: absent, outside the user's projects, or a feature that is off
 CODE_CONFLICT = "conflict"  # 409: a guid that already exists
+CODE_VERSION_CONFLICT = "version_conflict"  # 412: the upload builds on a version that is no longer the latest
 CODE_PAYLOAD_TOO_LARGE = "payload_too_large"  # 413: the request body is over the server's limit
 CODE_UPLOAD_TOO_LARGE = "upload_too_large"  # 413: a chosen file or part is over the upload limit
 CODE_RATE_LIMITED = "rate_limited"  # 429
@@ -55,6 +56,7 @@ CODES_BY_STATUS = {
     403: CODE_FORBIDDEN,
     404: CODE_NOT_FOUND,
     409: CODE_CONFLICT,
+    412: CODE_VERSION_CONFLICT,
     413: CODE_PAYLOAD_TOO_LARGE,
     429: CODE_RATE_LIMITED,
     500: CODE_INTERNAL_ERROR,
