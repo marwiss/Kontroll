@@ -22,7 +22,9 @@ the commit history.
   shared instance from different GlobalIds collide. The `412 version_conflict` of an approval carries
   `conflict_details` beside `conflicts`: per conflict the key, the proposal's own locator, what the base held
   (`base`), what the latest version holds (`theirs`), what the proposal sets (`ours`) and the version that changed it.
-  IFC-LPG is locked at 0ef6b64.
+- IFC-LPG's form version 2: a styled item (`IfcStyledItem`) is always a node in the skeleton form, so that every
+  style can be changed, and a path reaches a mesh's style and layer from an instance in a block; new conversions
+  carry `form_version` 2, and models converted before keep form 1. IFC-LPG is locked at 6a8e2cb.
 
 ## 3.0.0 — 2026-11-10
 

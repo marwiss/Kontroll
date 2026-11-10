@@ -282,6 +282,7 @@ muuttaa siellä. Se ei voi olla tuotteiden ominaisuuksia, koska suuri osa siitä
 tuotteiden yhteistä. Asetuksella `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` jokaisesta
 instanssista tulee sen sijaan solmu, moninkertaisella koolla ja tuontiajalla; kyselyt
 kestivät suunnilleen yhtä kauan mittauksissa.
+Tyylitelty kohde (`IfcStyledItem`) on aina solmu, jotta jokaista tyyliä voidaan muuttaa, ja `Model`-solmun `form_version` kertoo graafin muodon (2 IFC-LPG:n 2026-11-10 julkaisusta alkaen).
 
 | Tiedostossa | Graafissa |
 |---|---|

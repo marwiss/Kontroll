@@ -272,6 +272,7 @@ be properties of the products, since much of it is shared between them. With
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` every instance becomes a node instead, at
 several times the size and the import time; queries took about as long in
 the measurements.
+A styled item (`IfcStyledItem`) is always a node, so that every style can be changed, and `form_version` on the `Model` says which shape the graph has (2 since IFC-LPG's release of 2026-11-10).
 
 | In the file | In the graph |
 |---|---|

@@ -276,6 +276,7 @@ produktene, siden mye av det deles mellom dem. Med
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` blir hver instans en node i stedet, til flere
 ganger størrelsen og importtiden; spørringer tok omtrent like lang tid i
 målingene.
+Et stilsatt element (`IfcStyledItem`) er alltid en node, slik at hver stil kan endres, og `form_version` på `Model` sier hvilken form grafen har (2 siden IFC-LPGs utgivelse 2026-11-10).
 
 | I filen | I grafen |
 |---|---|

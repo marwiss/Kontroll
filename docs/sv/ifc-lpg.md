@@ -277,6 +277,7 @@ egenskaper på produkterna, eftersom mycket av det delas mellan dem. Med
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` blir varje instans en nod i stället, till
 flera gånger storleken och importtiden; frågor tog ungefär lika lång tid i
 mätningarna.
+En stilsatt post (`IfcStyledItem`) är alltid en nod, så att varje stil kan ändras, och `form_version` på `Model` anger vilken form grafen har (2 sedan IFC-LPG:s utgåva 2026-11-10).
 
 | I filen | I grafen |
 |---|---|

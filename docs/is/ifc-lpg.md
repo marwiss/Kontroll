@@ -270,6 +270,7 @@ vörunna, því að stór hluti þess er sameiginlegur með þeim. Með
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
 margfaldri stærð og innflutningstíma; fyrirspurnir tóku álíka langan tíma í
 mælingunum.
+Stílað atriði (`IfcStyledItem`) er alltaf hnútur, svo að hægt er að breyta hverjum stíl, og `form_version` á `Model` segir hvaða lögun netið hefur (2 frá útgáfu IFC-LPG 2026-11-10).
 
 | Í skránni | Í grafinu |
 |---|---|
