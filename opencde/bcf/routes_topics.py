@@ -47,6 +47,9 @@ async def topics_get(
     """Topics of the project; ``$filter``, ``$orderby``, ``$top`` and ``$skip`` as in BCF 3.2.1."""
     compiled = odata.compile(TOPIC_FIELDS, TOPIC_ORDERABLE, TOPIC_DEFAULT_ORDER)
     found = await topics.search(user_id=ctx.user_id, project_id=ctx.project_id, compiled=compiled)
+    await odata.say_if_cut(
+        compiled, len(found), lambda: topics.count(user_id=ctx.user_id, project_id=ctx.project_id, compiled=compiled)
+    )
     statuses = await _statuses(ctx, projects) if include_authorization else []
     return [with_authorization(topic, ctx, statuses, include_authorization) for topic in found]
 

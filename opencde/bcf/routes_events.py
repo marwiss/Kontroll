@@ -29,23 +29,29 @@ def _compiled(odata: ODataParams) -> Compiled:
     return odata.compile(events.EVENT_FIELDS, events.EVENT_ORDERABLE, events.EVENT_DEFAULT_ORDER)
 
 
+async def _events(graph: Graph, odata: ODataParams, **where: Any) -> list[dict[str, Any]]:
+    """The events ``where`` names, and the headers of a list the server's limit cut (F14 a)."""
+    compiled = _compiled(odata)
+    found = await events.query(graph, compiled=compiled, **where)
+    await odata.say_if_cut(compiled, len(found), lambda: events.count(graph, compiled=compiled, **where))
+    return found
+
+
 async def of_project(
     ctx: ProjectContext, graph: Graph, odata: ODataParams, kind: str, left_out: frozenset[str]
 ) -> list[dict[str, Any]]:
-    return await events.query(
-        graph, user_id=ctx.user_id, project_id=ctx.project_id, kind=kind, compiled=_compiled(odata), left_out=left_out
-    )
+    return await _events(graph, odata, user_id=ctx.user_id, project_id=ctx.project_id, kind=kind, left_out=left_out)
 
 
 async def of_topic(
     topic: TopicContext, graph: Graph, odata: ODataParams, left_out: frozenset[str]
 ) -> list[dict[str, Any]]:
-    return await events.query(
+    return await _events(
         graph,
+        odata,
         user_id=topic.user_id,
         project_id=topic.project_id,
         kind="topic",
-        compiled=_compiled(odata),
         topic_guid=topic.guid,
         left_out=left_out,
     )
@@ -62,12 +68,12 @@ async def of_comment(
     guid = parse_guid(comment_id, "Comment")
     if await comments.get(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid, guid=guid) is None:
         raise HTTPException(404, "Comment not found")
-    return await events.query(
+    return await _events(
         graph,
+        odata,
         user_id=topic.user_id,
         project_id=topic.project_id,
         kind="comment",
-        compiled=_compiled(odata),
         topic_guid=topic.guid,
         comment_guid=guid,
         left_out=left_out,

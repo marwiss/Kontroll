@@ -40,9 +40,10 @@ def with_authorization(comment: CommentGET, ctx: ProjectContext, include: bool) 
 
 async def found_comments(topic: TopicContext, comments: CommentRepository, odata: ODataParams) -> list[CommentGET]:
     compiled = odata.compile(COMMENT_FIELDS, COMMENT_ORDERABLE, COMMENT_DEFAULT_ORDER)
-    return await comments.search(
-        user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid, compiled=compiled
-    )
+    where = {"user_id": topic.user_id, "project_id": topic.project_id, "topic_guid": topic.guid}
+    found = await comments.search(**where, compiled=compiled)
+    await odata.say_if_cut(compiled, len(found), lambda: comments.count(**where, compiled=compiled))
+    return found
 
 
 async def found_comment(topic: TopicContext, comment_id: str, comments: CommentRepository) -> CommentGET:

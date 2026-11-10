@@ -133,11 +133,27 @@ class TopicRepository:
         self.graph = graph
         self.id_prefix = id_prefix
 
-    async def search(self, *, user_id: str, project_id: str, compiled: Compiled) -> list[TopicGET]:
-        rows = await self.graph.run(
-            f"""
+    @staticmethod
+    def _matching(compiled: Compiled) -> str:
+        return f"""
             MATCH (:User {{id: $user_id}})-[:MEMBER_OF]->(p:Project {{project_id: $project_id}})-[:HAS_TOPIC]->(t:Topic)
             WHERE true {compiled.where_clause()}
+            """
+
+    async def count(self, *, user_id: str, project_id: str, compiled: Compiled) -> int:
+        """How many topics the options match, before ``$top`` and ``$skip``."""
+        row = await self.graph.one(
+            self._matching(compiled) + "RETURN count(t) AS total",
+            user_id=user_id,
+            project_id=project_id,
+            **compiled.params,
+        )
+        return int(row["total"]) if row else 0
+
+    async def search(self, *, user_id: str, project_id: str, compiled: Compiled) -> list[TopicGET]:
+        rows = await self.graph.run(
+            self._matching(compiled)
+            + f"""
             RETURN properties(t) AS topic
             ORDER BY {compiled.order_by}
             SKIP $skip LIMIT $limit

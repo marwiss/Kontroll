@@ -159,6 +159,42 @@ def _row_to_event(row: dict[str, Any], left_out: frozenset[str]) -> dict[str, An
     return body
 
 
+def _matching(compiled: Compiled) -> str:
+    return f"""
+        MATCH (:User {{id: $user_id}})-[:MEMBER_OF]->(p:Project {{project_id: $project_id}})-[:HAS_EVENT]->(e:Event)
+        WHERE e.kind = $kind
+          AND ($topic_guid IS NULL OR e.topic_guid = $topic_guid)
+          AND ($comment_guid IS NULL OR e.comment_guid = $comment_guid)
+          AND any(action IN e.action_types WHERE NOT action IN $left_out)
+          {compiled.where_clause()}
+        """
+
+
+async def count(
+    graph: Graph,
+    *,
+    user_id: str,
+    project_id: str,
+    kind: str,
+    compiled: Compiled,
+    topic_guid: str | None = None,
+    comment_guid: str | None = None,
+    left_out: frozenset[str] = frozenset(),
+) -> int:
+    """How many events ``query`` matches, before ``$top`` and ``$skip``."""
+    row = await graph.one(
+        _matching(compiled) + "RETURN count(e) AS total",
+        user_id=user_id,
+        project_id=project_id,
+        kind=kind,
+        topic_guid=topic_guid,
+        comment_guid=comment_guid,
+        left_out=sorted(left_out),
+        **compiled.params,
+    )
+    return int(row["total"]) if row else 0
+
+
 async def query(
     graph: Graph,
     *,
@@ -173,13 +209,8 @@ async def query(
     """Events of a project (optionally one topic or comment), filtered and ordered by OData options, without the
     actions of ``left_out`` and without the events that then have none left."""
     rows = await graph.run(
-        f"""
-        MATCH (:User {{id: $user_id}})-[:MEMBER_OF]->(p:Project {{project_id: $project_id}})-[:HAS_EVENT]->(e:Event)
-        WHERE e.kind = $kind
-          AND ($topic_guid IS NULL OR e.topic_guid = $topic_guid)
-          AND ($comment_guid IS NULL OR e.comment_guid = $comment_guid)
-          AND any(action IN e.action_types WHERE NOT action IN $left_out)
-          {compiled.where_clause()}
+        _matching(compiled)
+        + f"""
         RETURN properties(e) AS event
         ORDER BY {compiled.order_by}
         SKIP $skip LIMIT $limit
