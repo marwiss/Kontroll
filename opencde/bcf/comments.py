@@ -71,12 +71,29 @@ class CommentRepository:
         self.graph = graph
         self.topics = topics
 
-    async def search(self, *, user_id: str, project_id: str, topic_guid: str, compiled: Compiled) -> list[CommentGET]:
-        rows = await self.graph.run(
-            f"""
+    @staticmethod
+    def _matching(compiled: Compiled) -> str:
+        return f"""
             MATCH (:User {{id: $user_id}})-[:MEMBER_OF]->(:Project {{project_id: $project_id}})
                   -[:HAS_TOPIC]->(:Topic {{guid: $topic_guid}})-[:HAS_COMMENT]->(c:Comment)
             WHERE true {compiled.where_clause()}
+            """
+
+    async def count(self, *, user_id: str, project_id: str, topic_guid: str, compiled: Compiled) -> int:
+        """How many comments of the topic the options match, before ``$top`` and ``$skip``."""
+        row = await self.graph.one(
+            self._matching(compiled) + "RETURN count(c) AS total",
+            user_id=user_id,
+            project_id=project_id,
+            topic_guid=topic_guid,
+            **compiled.params,
+        )
+        return int(row["total"]) if row else 0
+
+    async def search(self, *, user_id: str, project_id: str, topic_guid: str, compiled: Compiled) -> list[CommentGET]:
+        rows = await self.graph.run(
+            self._matching(compiled)
+            + f"""
             RETURN properties(c) AS comment
             ORDER BY {compiled.order_by}
             SKIP $skip LIMIT $limit
