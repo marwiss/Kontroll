@@ -144,6 +144,9 @@ that redirect, not only against the form's own address.
   or viewpoints to receive an `authorization` object per entity.
 - Collections accept OData: `$filter` (e.g. `topic_status eq 'Open' and
   labels/any(l: l eq 'Safety')`), `$orderby`, `$top`, `$skip`.
+- A list without `$top`, or with a larger one than 1000, holds at most 1000
+  entries. When more match, the answer carries `X-Total-Count` with their number and
+  `Link: <…>; rel="next"` with the address of the rest (an extension).
 - `PUT` replaces the whole object: send every field you want to keep.
 - Images in viewpoints are base64 PNG or JPEG; the server checks the bytes.
 - Every `GET` carries an `ETag`; `If-None-Match` answers `304`.
@@ -223,6 +226,9 @@ act on or translate, while `message` stays an English sentence for people:
 ```json
 {"message": "This operation needs the 'admin' scope", "code": "insufficient_scope"}
 ```
+
+The API document (`/openapi.json`) says `400` with this body for a request the
+server cannot read, as the server answers, where FastAPI itself would say `422`.
 
 | `code` | Status | When | What a client does |
 |---|---|---|---|
