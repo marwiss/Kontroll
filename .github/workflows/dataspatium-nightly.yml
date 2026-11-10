@@ -18,7 +18,7 @@ env:
   UV_FROZEN: "1"
   # The Dataspatium release that pairs with this Dataregium: the same number (README, "Dataregium and Dataspatium").
   # By commit, because a release's tag goes away when the next release of its major number is out.
-  DATASPATIUM_REF: 008cc34d138fea2fc66a07cfebbc868b2d6841ff # v3.0.0
+  DATASPATIUM_REF: 36a085560a01e2a8746772c7d640a284e08d7997 # v3.0.0, released again 2026-11-10
   # Demo data only; the database lives for this job.
   SEED_PASSWORD: demo-password-for-ci-only
 

@@ -8,9 +8,10 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 3.0.0 — 2026-11-08
+## 3.0.0 — 2026-11-10
 
-The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of
+2026-11-08 is withdrawn and its notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, and IFC-LPG as a library. Works
 with Dataspatium 3.0.0.
