@@ -40,7 +40,7 @@ services:
       - no-new-privileges:true
 
   api:
-    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-3.0.0}
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-2.0.0}
     build:
       context: ..
       dockerfile: docker/Dockerfile

@@ -43,7 +43,7 @@ services:
       - no-new-privileges:true
 
   backup:
-    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-3.0.0}
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-2.0.0}
     restart: unless-stopped
     depends_on:
       graph:

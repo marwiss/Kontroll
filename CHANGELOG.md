@@ -8,9 +8,10 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 2.0.0 — 2026-11-07
+## 2.0.0 — 2026-11-10
 
-The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
+Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 2.0.0; the release of
+2026-11-07 is withdrawn and its notes are folded in here. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
 project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
 and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
 Dataspatium's, and this release takes the first number again. No history is rewritten: the
@@ -19,7 +20,8 @@ speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws
 
 - The Docker files live in `docker/`: the Compose files, the Dockerfile and the Caddyfile. `.env` names the
   Compose files to combine (`COMPOSE_FILE`, written by `opencde init`), so the commands are `docker compose up -d`
-  and so on, without `-f` options; an overlay such as Memgraph is added to that line.
+  and so on, without `-f` options; an overlay such as Memgraph is added to that line. The files run on Podman too, and
+  the image tag `latest` follows the 3 series only.
 - The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
   `GET /.well-known/dataregium`, and `/.well-known/kontroll` answers the same as an alias; `server.name` in it says
   `Dataregium OpenCDE server`. The Compose project is named `dataregium`; an installation that keeps its volumes from
