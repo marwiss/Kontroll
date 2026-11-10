@@ -22,9 +22,7 @@ __pycache__/
 .venv/
 build/
 dist/
-.pytest_cache/
-.ruff_cache/
-.ty_cache/
+.cache/
 .coverage
 htmlcov/
 
@@ -39,9 +37,6 @@ Thumbs.db
 test-results/
 playwright-report/
 
-# Schemathesis
-.schemathesis/
-
 # The signed-in scan's plan with its values, and its reports
-.zap/authenticated-filled.yaml
-.zap/zap-authenticated.*
+tests/security/zap/authenticated-filled.yaml
+tests/security/zap/zap-authenticated.*

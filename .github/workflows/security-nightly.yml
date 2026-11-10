@@ -53,23 +53,23 @@ jobs:
           docker compose exec -T api opencde seed --password demo-password-for-zap-only > seed.txt
           echo "CLIENT_ID=$(awk '/client +public/ {print $3}' seed.txt)" >> "$GITHUB_ENV"
       - name: Sign in
-        run: uv run python .zap/credentials.py http://127.0.0.1:8000 "$CLIENT_ID" demo-password-for-zap-only
+        run: uv run python tests/security/zap/credentials.py http://127.0.0.1:8000 "$CLIENT_ID" demo-password-for-zap-only
       - name: The scan
         run: |
-          chmod a+w .zap
-          docker run --rm --network host -v "$PWD/.zap:/zap/wrk:rw" \
+          chmod a+w tests/security/zap
+          docker run --rm --network host -v "$PWD/tests/security/zap:/zap/wrk:rw" \
             -e TARGET=http://127.0.0.1:8000 \
             ghcr.io/zaproxy/zaproxy:2.17.0 zap.sh -cmd -autorun /zap/wrk/authenticated-filled.yaml
       - name: What it reached
-        run: docker compose logs api | uv run python .zap/reached.py
+        run: docker compose logs api | uv run python tests/security/zap/reached.py
       - name: What it found
-        run: uv run python .zap/findings.py .zap/zap-authenticated.json
+        run: uv run python tests/security/zap/findings.py tests/security/zap/zap-authenticated.json
       - name: Keep the report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: zap-signed-in
-          path: .zap/zap-authenticated.*
+          path: tests/security/zap/zap-authenticated.*
           include-hidden-files: true
           if-no-files-found: ignore
       - name: Server log
@@ -138,7 +138,7 @@ jobs:
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
           target: http://127.0.0.1:8000
-          rules_file_name: .zap/rules.tsv
+          rules_file_name: tests/security/zap/rules.tsv
           cmd_options: "-a -j"
           fail_action: true
           allow_issue_writing: false

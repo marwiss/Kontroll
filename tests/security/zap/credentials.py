@@ -3,7 +3,7 @@
 
 ZAP does not fill in variables in a replacer rule, so the values go into a copy of the plan, which git ignores:
 
-    uv run python .zap/credentials.py <server> <public client id> <demo password>
+    uv run python tests/security/zap/credentials.py <server> <public client id> <demo password>
 
 In GitHub Actions they are also masked in the log.
 """
