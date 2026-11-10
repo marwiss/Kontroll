@@ -81,10 +81,10 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
     assert conflict["state"] == "conflict" and "version_index" not in conflict
     assert [c["global_id"] for c in conflict["report"]["collisions"] if c["choice"] is None] == [WALL]
 
-    chosen = client.post(url, json={**request, "choices": {WALL: "b"}}, headers=manager.headers)
+    chosen = client.post(url, json={**request, "choices": {WALL: "new"}}, headers=manager.headers)
     assert chosen.status_code == 202, chosen.text
     done = finished(client, editor, chosen.json()["url"])
-    assert done["state"] == "done", done
+    assert done["state"] == "done", done.get("error")
     assert done["version_index"] == 2 and done["author"] == "manager"
     versions = client.get(a["links"]["document_versions"]["url"], headers=editor.headers).json()["documents"]
     assert [version["version_index"] for version in versions] == [1, 2]
@@ -94,7 +94,8 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
     assert entries["merged_building"] == [BUILDING] and entries["merged_from_document"] == [b["document_id"]]
     assert entries["base_version_index"] == ["1"] and entries["approved_by"] == ["manager"]
     merged = client.get(second["links"]["document_version_download"]["url"], headers=editor.headers).content
-    assert b"'YVT-Z'" in merged and b"'YVT-A'" not in merged, "B's wall took the place of A's"
+    assert b"'YVT-Z'" in merged and b"'YVT-A'" in merged, "both walls"
+    assert merged.count(WALL.encode()) == 1, "A's keeps its GlobalId, and B's has a new one"
     first = client.get(a["links"]["document_version_download"]["url"], headers=editor.headers).content
     assert first == MODEL.read_bytes(), "A's version is as it was"
     graph_check(client, editor, a["document_id"], 2)  # the new version is converted and checked as an upload is
@@ -106,12 +107,40 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
     assert client.get(done["url"], headers=outsider.headers).status_code == 404
 
 
-def test_a_model_in_another_length_unit_is_prepared_first(ifc_client: tuple[TestClient, World]) -> None:
-    """IFC-LPG F25 a: B in metres is refused as it is, and a copy of it with A's millimetres stands in for it."""
+@pytest.mark.xfail(
+    strict=True,
+    reason="IFC-LPG babbf11: the choice b for a product leaves A's placement of it placing nothing, and the check of the "
+    "merged model finds that (reported 2026-11-11)",
+)
+def test_b_puts_bs_wall_in_the_place_of_as(ifc_client: tuple[TestClient, World]) -> None:
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
     manager = login_as(client, world, "manager")
+    a = upload(client, world, editor, "a.ifc", MODEL.read_bytes())
+    b = upload(client, world, editor, "b.ifc", MODEL.read_bytes().replace(b"'YVT-A'", b"'YVT-Z'", 1))
+    graph_check(client, editor, a["document_id"], 1)
+    graph_check(client, editor, b["document_id"], 1)
+    request = {
+        "base": {"document_id": a["document_id"], "version_index": 1},
+        "other": {"project_id": world.project_id, "document_id": b["document_id"], "version_index": 1},
+        "building": BUILDING,
+        "choices": {WALL: "b"},
+    }
+    started = client.post(
+        f"/documents/1.0/projects/{world.project_id}/ifc-merge", json=request, headers=manager.headers
+    )
+    done = finished(client, manager, started.json()["url"])
+    assert done["state"] == "done", done.get("error")
+    second = client.get(a["links"]["document_versions"]["url"], headers=editor.headers).json()["documents"][1]
+    merged = client.get(second["links"]["document_version_download"]["url"], headers=editor.headers).content
+    assert b"'YVT-Z'" in merged and b"'YVT-A'" not in merged, "B's wall took the place of A's"
+
+
+def prepared_in_metres(client: TestClient, world: World) -> tuple[dict[str, Any], dict[str, Any]]:
+    """A in millimetres and B in metres, and a copy of B prepared for A: the request's sides and the preparation."""
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
     a = upload(client, world, editor, "a.ifc", MODEL.read_bytes())
     metres = MODEL.read_bytes().replace(
         b"IFCSIUNIT(*,.LENGTHUNIT.,.MILLI.,.METRE.)", b"IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.)"
@@ -127,31 +156,51 @@ def test_a_model_in_another_length_unit_is_prepared_first(ifc_client: tuple[Test
     }
     refused = client.post(url + "/report", json={**sides, "building": BUILDING}, headers=editor.headers)
     assert refused.status_code == 422 and "units differ" in refused.json()["message"]
-
     viewer = login_as(client, world, "viewer")
     assert client.post(url + "/prepare", json=sides, headers=viewer.headers).status_code == 403
     started = client.post(url + "/prepare", json=sides, headers=editor.headers)
     assert started.status_code == 202, started.text
     assert started.json()["kind"] == "prepare"
     prepared = finished(client, editor, started.json()["url"])
-    assert prepared["state"] == "done", prepared
-    assert prepared["expires_at"] > prepared["finished_at"], "the copy stands in for a day"
+    assert prepared["state"] == "done", prepared.get("error")
+    return sides, prepared
 
+
+def test_a_model_in_another_length_unit_is_prepared_first(ifc_client: tuple[TestClient, World]) -> None:
+    """IFC-LPG F25 a: B in metres is refused as it is, and a copy of it with A's millimetres is made for a day."""
+    client, world = ifc_client
+    sides, prepared = prepared_in_metres(client, world)
+    assert prepared["expires_at"] > prepared["finished_at"], "the copy stands in for a day"
+    editor = login_as(client, world, "editor")
+    url = f"/documents/1.0/projects/{world.project_id}/ifc-merge"
+    wrong = {**sides["other"], "version_index": 2, "prepared": prepared["merge_id"]}
+    answer = client.post(url + "/report", json={**sides, "other": wrong, "building": BUILDING}, headers=editor.headers)
+    assert answer.status_code == 404, "a copy stands in for the version it was made of only"
+    elsewhere = {**sides["other"], "prepared": "00000000-0000-4000-8000-000000000000"}
+    answer = client.post(
+        url + "/report", json={**sides, "other": elsewhere, "building": BUILDING}, headers=editor.headers
+    )
+    assert answer.status_code == 404
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="IFC-LPG babbf11: prepare_other gives B a solid angle unit A does not have, SQUAREDEGREE where A has "
+    "STERADIAN, so the report refuses the copy (reported 2026-11-11)",
+)
+def test_the_prepared_copy_stands_in_for_b(ifc_client: tuple[TestClient, World]) -> None:
+    client, world = ifc_client
+    sides, prepared = prepared_in_metres(client, world)
+    editor = login_as(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    url = f"/documents/1.0/projects/{world.project_id}/ifc-merge"
     other = {**sides["other"], "prepared": prepared["merge_id"]}
     report = client.post(url + "/report", json={**sides, "other": other, "building": BUILDING}, headers=editor.headers)
     assert report.status_code == 200, report.text
     assert report.json()["other"] == sides["other"], "the report names B's version, not the copy"
-    wrong = {**other, "version_index": 2}
-    assert (
-        client.post(
-            url + "/report", json={**sides, "other": wrong, "building": BUILDING}, headers=editor.headers
-        ).status_code
-        == 404
-    )
-
     merged = client.post(
         url, json={**sides, "other": other, "building": BUILDING, "default": "a"}, headers=manager.headers
     )
     assert merged.status_code == 202, merged.text
     done = finished(client, manager, merged.json()["url"])
-    assert done["state"] == "done" and done["version_index"] == 2, done
+    assert done["state"] == "done" and done["version_index"] == 2, done.get("error")

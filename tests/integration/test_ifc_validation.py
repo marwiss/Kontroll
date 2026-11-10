@@ -153,7 +153,7 @@ def test_the_report_warns_of_what_no_global_id_reaches(ifc_client: tuple[TestCli
     loose = [issue for issue in body["issues"] if issue["kind"] == "reachability"]
     assert graph["state"] == "done" and graph["issue_count"] == len(loose) >= 1
     assert [issue["step_id"] for issue in loose] == [9001] and loose[0]["severity"] == "warning"
-    assert "IfcActorRole" in loose[0]["message"] and loose[0]["global_id"] is None
+    assert "IfcActorRole" in loose[0]["message"] and loose[0].get("global_id") is None, "only its STEP id names it"
     assert body["status"] == "warnings" and body["error_count"] == 0, "a warning refuses nothing"
     assert body["issue_count"] == len(body["issues"])
 
