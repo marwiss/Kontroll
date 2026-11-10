@@ -81,8 +81,7 @@ uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.
 Með `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` í `.env` skráir forritið sig
 sjálft í staðinn. CORS leyfir sjálfgefið allan uppruna, svo engrar frekari
 stillingar er þörf; `OPENCDE_REQUEST_LOG_ENABLED=true` lætur `/admin/requests`
-sýna þjónshlið kalla forritsins. Gátlistinn í heild er
-[docs/acceptance.md](../../acceptance.md), kafli C.
+sýna þjónshlið kalla forritsins.
 [Fljótlega byrjunin](../quickstart.md) hefur öll skrefin og bilanaleitartöflu.
 
 ## Hreint borð

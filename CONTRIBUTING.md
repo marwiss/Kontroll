@@ -22,9 +22,7 @@ For a security vulnerability do not open an issue: follow
 When the server and a client disagree, the specification decides
 (`spec/`, pinned revisions in [spec/SOURCES.md](spec/SOURCES.md)). Report a
 specification problem, or a place where the specification is silent, as an
-issue too: the known quirks are listed in
-[docs/dataspatium-coordination.md](docs/dataspatium-coordination.md)
-("Specification quirks"), with the client side's view from Dataspatium.
+issue too.
 
 ## Code changes
 
@@ -66,9 +64,8 @@ The README, the documentation and the web pages exist in English, Swedish,
 Danish, Norwegian (Bokmål and Nynorsk), Finnish and Icelandic: the English
 pages under `docs/en/`, the translations under `docs/<lang>/`. English is the
 source, and a change to a page is made in all seven languages in the same
-commit (`tests/unit/test_docs.py` checks that they keep up). The project logs
-(`acceptance.md`, `dataspatium-coordination.md`), the upstream drafts and
-this file stay in English. Shared terms follow
+commit (`tests/unit/test_docs.py` checks that they keep up). This file stays in
+English. Shared terms follow
 the glossary that Dataregium and [Dataspatium](https://github.com/marwiss/Dataspatium)
 keep together (`presets/i18n-shared.json` there); keep "viewpoint" and the
 API names untranslated, and send corrections of a translation as an issue or
@@ -87,5 +84,4 @@ resources (the quick start, the sample model, anything else) under its own
 licence. The licences are otherwise unchanged, and third-party material
 keeps its own terms (the buildingSMART specification files, the Inter font,
 the dependencies). Dataspatium's `docs/licenser.md` says the same. Keep the
-shared pieces in step. What the two coordinate is in
-[docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
+shared pieces in step.

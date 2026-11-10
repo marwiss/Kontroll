@@ -15,8 +15,7 @@ from the last ten minutes (``FreshAdminPrincipal``: ``403
 reauthentication_required`` otherwise), one-time values (an initial
 password, a client secret) are returned exactly once, and every write
 leaves an audit event with the caller, its client and the request id. The
-resource shapes were agreed with Dataspatium
-(docs/dataspatium-coordination.md, "The administration API"; docs/en/client-guide.md §7).
+resource shapes were agreed with Dataspatium (docs/en/client-guide.md §7).
 """
 
 from __future__ import annotations

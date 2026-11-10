@@ -145,7 +145,7 @@ databasepassord, og ingenting er ope før det er konfigurert.
 - **Status**: alle elleve etappane i planen er gjennomførte (dei tre API-ane,
   administrasjonen, klientbiblioteket, utrulling, IFC-LPG,
   akseptansesjekklista og tryggingsherdinga); bidraget til IfcOpenShell er
-  enno ikkje føreslått (utkast i [docs/upstream/](../upstream/)).
+  enno ikkje føreslått.
 
 <img src="../images/signin.png" alt="Innloggingssida ein klient opnar" width="240">
 <img src="../images/upload.png" alt="Opplastingssida, der brukaren gjev fila tittel og versjon" width="340">
@@ -178,8 +178,7 @@ kjenner dei, merkar dei ikkje. Ein klient treng tre ting:
 
 Så langt er det vist: svara frå serveren blir testa mot skjemaa til buildingSMART ved kvar
 push, og Dataspatium og Python-biblioteket i [client/](../../client/) køyrer mot serveren.
-Uavhengige klientar som Bonsai og ifc-lite har ei ferdig sjekkliste i
-[docs/acceptance.md](../acceptance.md) som enno ikkje er køyrd. Om du prøver ein klient, fortel
+Uavhengige klientar som Bonsai og ifc-lite har ei ferdig sjekkliste som enno ikkje er køyrd. Om du prøver ein klient, fortel
 korleis det gjekk under [Feil og framlegg](#feil-og-framlegg). Når ein klient og ein spesifikasjon ikkje
 stemmer overeins, avgjer spesifikasjonen. [docs/nn/client-guide.md](client-guide.md) er for dei som byggjer
 ein klient.
@@ -236,9 +235,7 @@ ikkje kan bruke, sjå [OpenCDE-API-a og klientane deira](#opencde-api-a-og-klien
 seg: dette repoet buntar ikkje Dataspatium (lisensane er ulike, AGPL her og
 PolyForm Strict der), og README-fila til Dataspatium fortel korleis appen
 blir henta. Klientsida er skildra i README-fila til Dataspatium og
-dokumentasjonen der; akseptansekøyringane til paret står i
-[docs/acceptance.md](../acceptance.md) her, og kva dei to prosjekta samordnar
-står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
+dokumentasjonen der.
 
 ## Lær meir
 
@@ -252,24 +249,17 @@ står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 - [docs/nn/flows/](flows/): sekvensdiagram for OAuth2-, Documents API- og BCF-viewpoint-flytane.
 - [docs/nn/graph-schema.md](graph-schema.md): grafmodellen.
 - [docs/nn/ifc-lpg.md](ifc-lpg.md): den valfrie IFC-LPG-modulen og døme på Cypher-spørjingar.
-- [docs/acceptance.md](../acceptance.md): sjekkliste for visuell akseptanse
-  med uavhengige klientar (Bonsai, ifc-lite, Dataspatium).
-- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): kva
-  Dataregium og Dataspatium deler, og avgjerdene til eigaren.
 - Arkitekturavgjerder som ligg fast: grafdatabase som einaste lager, opake token
   i staden for JWT, portabel Cypher for Neo4j og Memgraph, webgrensesnitt utan
   rammeverk, tryggingskopi på applikasjonsnivå, BCF API 2.1 ved sida av 3.0, ein
   tapsfri IFC-graf som sjølv les og skriv STEP og blir validert når han blir
   skriven, reglane til buildingSMART i eit eige miljø, IFC-LPG som bibliotek,
   kontroll mot IDS-en til prosjektet og namngjevne spørjingar for medlemmer.
-- [docs/upstream/](../upstream/): utkast til sak og pull request for
-  IfcOpenShell (ikkje sende).
 - [spec/SOURCES.md](../../spec/SOURCES.md): dei nøyaktige
   spesifikasjonsversjonane serveren blir testa mot.
 
 Dokumentasjonen finst på dei sju språka i denne README-fila, kvart språk under
-`docs/<språk>/`; engelsk under `docs/en/` er kjelda. Prosjektloggane (akseptanse,
-samordning), utkasta til IfcOpenShell og CONTRIBUTING blir haldne på engelsk.
+`docs/<språk>/`; engelsk under `docs/en/` er kjelda. CONTRIBUTING er på engelsk.
 
 ### Vidare lesing
 

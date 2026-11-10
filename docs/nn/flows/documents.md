@@ -76,7 +76,7 @@ flytane frå nettlesaren (`src/api/families/opencde.js`): han opnar utvalssida
 til serveren i eit popup-vindauge og importerer dei valde filene, og lastar
 opp datasett, filer og arbeidsområdepakkar i delar med opplastingssida til
 serveren for metadata; live-suitene køyrer desse flytane mot
-utviklingsstakken ([acceptance.md](../../acceptance.md)).
+utviklingsstakken.
 
 ## Kven får gjere kva
 
