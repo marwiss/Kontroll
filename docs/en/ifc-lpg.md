@@ -598,6 +598,14 @@ and converted and checked as an upload is. A's version must be the document's
 latest (412 `version_conflict` otherwise). The capabilities document announces it as
 `ifc_merge`.
 
+Where B's schema or length unit is not A's, the report says so (422), and an
+`editor` or a `manager` first prepares B with `POST …/ifc-merge/prepare` and `base`
+and `other`: a job that makes a copy of B migrated to A's schema and with its lengths
+in A's unit. When it is `done`, its `merge_id` given as `other.prepared` makes the
+copy stand in for B in the report and the merge until `expires_at`, a day later;
+then the server takes it out. Another unit that differs is not converted, and the
+job fails with it.
+
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
 {"base": {"document_id": "…", "version_index": 3},

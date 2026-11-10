@@ -594,6 +594,14 @@ skrifað út sem næsta útgáfa, með útgáfu A sem foreldri og `merged_from_d
 eins og upphal. Útgáfa A verður að vera nýjasta útgáfa skjalsins (annars 412
 `version_conflict`). Getuskjalið tilkynnir hana sem `ifc_merge`.
 
+Þar sem skema eða lengdareining B er ekki sú sama og A segir skýrslan það (422), og
+`editor` eða `manager` undirbýr fyrst B með `POST …/ifc-merge/prepare` og `base` og
+`other`: verk sem gerir afrit af B, flutt yfir í skema A og með lengdir sínar í
+einingu A. Þegar það er `done` lætur `merge_id` þess, gefið sem `other.prepared`,
+afritið koma í stað B í skýrslunni og sameiningunni þar til `expires_at`, sólarhring
+síðar; þá fjarlægir þjónninn það. Önnur eining sem er ólík er ekki umreiknuð, og
+verkið mistekst á henni.
+
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
 {"base": {"document_id": "…", "version_index": 3},

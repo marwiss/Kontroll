@@ -599,6 +599,14 @@ konverteres og kontrolleres som en opplasting. As versjon må være dokumentets 
 (ellers 412 `version_conflict`). Kapabilitetsdokumentet annonserer den som
 `ifc_merge`.
 
+Der Bs skjema eller lengdeenhet ikke er As, sier rapporten det (422), og en
+`editor` eller `manager` forbereder først B med `POST …/ifc-merge/prepare` og `base`
+og `other`: en jobb som lager en kopi av B migrert til As skjema og med lengdene i
+As enhet. Når den er `done`, gjør dens `merge_id`, gitt som `other.prepared`, at
+kopien står for B i rapporten og sammenslåingen til `expires_at`, et døgn senere;
+deretter fjerner serveren den. En annen enhet som er forskjellig, konverteres ikke,
+og jobben feiler med den.
+
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
 {"base": {"document_id": "…", "version_index": 3},

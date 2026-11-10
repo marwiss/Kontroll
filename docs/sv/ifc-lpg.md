@@ -604,6 +604,14 @@ och konverteras och kontrolleras som en uppladdning. A:s version måste vara
 dokumentets senaste (annars 412 `version_conflict`). Kapabilitetsdokumentet
 annonserar den som `ifc_merge`.
 
+Där B:s schema eller längdenhet inte är A:s säger rapporten det (422), och en
+`editor` eller `manager` förbereder först B med `POST …/ifc-merge/prepare` och `base`
+och `other`: ett jobb som gör en kopia av B migrerad till A:s schema och med sina
+längder i A:s enhet. När det är `done` gör dess `merge_id`, givet som
+`other.prepared`, att kopian står för B i rapporten och sammanfogningen till
+`expires_at`, ett dygn senare; sedan tar servern bort den. En annan enhet som skiljer
+sig konverteras inte, och jobbet misslyckas med den.
+
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
 {"base": {"document_id": "…", "version_index": 3},

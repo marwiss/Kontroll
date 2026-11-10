@@ -608,6 +608,14 @@ konvertert og kontrollert som ei opplasting. Versjonen til A må vere den siste 
 dokumentet (elles 412 `version_conflict`). Kapabilitetsdokumentet annonserer ho som
 `ifc_merge`.
 
+Der skjemaet eller lengdeeininga til B ikkje er As, seier rapporten det (422), og
+ein `editor` eller `manager` førebur først B med `POST …/ifc-merge/prepare` og `base`
+og `other`: ein jobb som lagar ein kopi av B migrert til skjemaet til A og med
+lengdene i eininga til A. Når han er `done`, gjer `merge_id`-en hans, gjeven som
+`other.prepared`, at kopien står for B i rapporten og samanslåinga til `expires_at`,
+eit døgn seinare; deretter fjernar serveren han. Ei anna eining som er ulik, blir
+ikkje konvertert, og jobben feilar med henne.
+
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
 {"base": {"document_id": "…", "version_index": 3},

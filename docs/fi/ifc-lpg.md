@@ -613,6 +613,14 @@ se kirjoitetaan seuraavaksi versioksi, A:n versio vanhempanaan ja metatiedoissaa
 tarkistetaan kuten lähetys. A:n version on oltava asiakirjan uusin (muuten 412
 `version_conflict`). Kyvykkyysdokumentti ilmoittaa sen nimellä `ifc_merge`.
 
+Jos B:n skeema tai pituusyksikkö ei ole A:n, raportti kertoo sen (422), ja
+`editor` tai `manager` valmistelee ensin B:n kutsulla `POST …/ifc-merge/prepare`
+kentillä `base` ja `other`: työ tekee B:stä kopion, joka on siirretty A:n skeemaan ja
+jonka pituudet ovat A:n yksikössä. Kun työ on `done`, sen `merge_id` kentässä
+`other.prepared` panee kopion B:n paikalle raportissa ja yhdistämisessä hetkeen
+`expires_at` asti, vuorokauden ajan; sen jälkeen palvelin poistaa sen. Muuta eroavaa
+yksikköä ei muunneta, ja työ epäonnistuu sen vuoksi.
+
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
 {"base": {"document_id": "…", "version_index": 3},
