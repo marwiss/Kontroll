@@ -3,7 +3,7 @@
 
 Prints how the requests were answered, per area, and fails unless the session and tokens worked and went on working:
 
-    docker compose logs api | uv run python .zap/reached.py
+    docker compose logs api | uv run python tests/security/zap/reached.py
 """
 
 from __future__ import annotations

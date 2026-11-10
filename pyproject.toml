@@ -113,6 +113,7 @@ ifc-lpg = { git = "https://github.com/marwiss/IFC-LPG", rev = "cdbee63b91453f442
 # ---------------------------------------------------------------------------
 
 [tool.ruff]
+cache-dir = ".cache/ruff"
 line-length = 120
 target-version = "py311"
 src = ["opencde", "client", "tests"]
@@ -144,12 +145,13 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "f
 "opencde/cli.py" = ["T20"]                        # the CLI talks to a terminal
 "client/opencde_client/__main__.py" = ["T20"]     # so does the client's command line
 "docs/examples/**" = ["T20"]                      # examples print their results
-".zap/*.py" = ["T20"]                             # they hand their results to the job through standard output
+"tests/security/zap/*.py" = ["T20"]                           # they hand their results to the job through standard output
 
 [tool.ruff.lint.isort]
 known-first-party = ["opencde", "opencde_client"]
 
 [tool.pytest.ini_options]
+cache_dir = ".cache/pytest"
 testpaths = ["tests", "client/tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

@@ -1,9 +1,9 @@
 # This file was generated with the assistance of an AI coding tool.
 """Read the authenticated scan's report and fail on what matters.
 
-Everything is listed; medium and high risks fail the job unless ``.zap/rules.tsv`` ignores them with its reason:
+Everything is listed; medium and high risks fail the job unless ``tests/security/zap/rules.tsv`` ignores them with its reason:
 
-    uv run python .zap/findings.py .zap/zap-authenticated.json
+    uv run python tests/security/zap/findings.py tests/security/zap/zap-authenticated.json
 """
 
 from __future__ import annotations

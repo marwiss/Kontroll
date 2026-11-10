@@ -8,6 +8,7 @@ start a real Neo4j, and optionally Memgraph, with testcontainers.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -18,6 +19,8 @@ from opencde.main import create_app
 from opencde.settings import Settings
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+# Hypothesis (Schemathesis) keeps its examples with the other tool caches, not in a folder of its own.
+os.environ.setdefault("HYPOTHESIS_STORAGE_DIRECTORY", str(REPO_ROOT / ".cache" / "hypothesis"))
 SPEC_DIR = REPO_ROOT / "spec"
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
