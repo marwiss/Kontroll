@@ -6,7 +6,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from neo4j.exceptions import ClientError as Neo4jClientError
 from neo4j.exceptions import TransientError
 
 from opencde.accounts.roles import Role, comment_actions, project_actions, topic_actions, viewpoint_actions
