@@ -6,7 +6,7 @@
 
 *Dataregiumin nimi oli Kontroll 8. marraskuuta 2026 asti.*
 
-*Tämä on Dataregium 2.0.0:n README. Uusin julkaisu, 3.0.0, on kuvattu [main-haaran READMEssä](https://github.com/marwiss/Dataregium/blob/main/docs/fi/README.md).*
+*Tämä on Dataregium 1.0.0:n README. Uusin julkaisu, 3.0.0, on kuvattu [main-haaran READMEssä](https://github.com/marwiss/Dataregium/blob/main/docs/fi/README.md).*
 
 Dataregium on palvelin, johon rakennushanke kokoaa mallinsa, asiakirjansa ja
 asiansa, jotta kaikki hankkeessa työskentelevät käyttävät samaa aineistoa ja näkevät
@@ -17,8 +17,8 @@ päättää, kuka saa kirjautua ja mitä kukin saa tehdä kussakin projektissa.
 
 Teknisesti Dataregium on palvelin buildingSMARTin avoimille **OpenCDE-rajapinnoille**
 (Foundation API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0), ja se on rakennettu
-Neo4j- tai Memgraph-graafitietokannan päälle. 2.0.0:ssa jokaisesta ladatusta IFC-mallista tulee graafi IFC-LPG-moduulin avulla, yhdistettynä asioiden
-näkymien rakennusosiin. Palvelin kirjoitettiin
+Neo4j- tai Memgraph-graafitietokannan päälle. 1.0.0 on asiakirjapalvelin, jossa ovat Foundation API ja Documents API; asiat ja mallit graafina tulevat
+2.0.0:ssa. Palvelin kirjoitettiin
 alusta uudelleen vuoden 2023 tutkimusprototyypin pohjalta niin, että tietoturva on
 ensimmäinen vaatimus, ja mikä tahansa määrityksiä noudattava asiakas voi muodostaa
 yhteyden.
@@ -57,19 +57,18 @@ Docker ja Podman ovat ohjelmia, jotka käynnistävät kontteja. Pika-aloitus kä
 kaksi: palvelimen ja sen tietokannan.
 
 1. **Lataa.** Hae koodi gitillä tai ZIP-tiedostona GitHubin kohdasta *Code > Download
-   ZIP*. Alla oleva komento hakee haaran `release-2`, joka on 2.0.0; `main` on 3.0.0 ja
-   `release-1` on 1.0.0.
+   ZIP*. Alla oleva komento hakee haaran `release-1`, joka on 1.0.0; `release-2` on 2.0.0 ja
+   `main` on 3.0.0.
 
    ```sh
-   git clone --branch release-2 https://github.com/marwiss/Dataregium.git
+   git clone --branch release-1 https://github.com/marwiss/Dataregium.git
    cd Dataregium
    ```
 
 2. **Määritä.** Kopioi `.env.example` tiedostoksi `.env`, joka sisältää palvelimen
    asetukset, ja aseta `OPENCDE_GRAPH_PASSWORD` omaksi vähintään 16 merkin
-   salasanaksi. Jos haluat kokeilla Dataspatiumin ja mallien kanssa, aseta myös
-   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true` ja
-   `OPENCDE_IFC_LPG_ENABLED=true`; [Dataspatiumin pika-aloitus](quickstart.md) kertoo
+   salasanaksi. Jos haluat kokeilla Dataspatiumin kanssa, aseta myös
+   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` ja `OPENCDE_REQUEST_LOG_ENABLED=true`; [Dataspatiumin pika-aloitus](quickstart.md) kertoo
    miksi. Jokainen asetus selitetään tiedostossa [.env.example](../../.env.example).
 3. **Käynnistä.** Samat compose-tiedostot toimivat Dockerin ja Podmanin kanssa; valitse se, joka sinulla on:
 
@@ -99,7 +98,7 @@ kaksi: palvelimen ja sen tietokannan.
    <summary><b>Ilman konttia</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # asentaa Python 3.13:n ja kaikki riippuvuudet, IFC-LPG mukaan lukien
+   uv sync                          # asentaa Python 3.13:n ja kaikki riippuvuudet
    uv run opencde doctor            # tarkistaa määritykset ja tietokannan
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -143,8 +142,7 @@ kaksi: palvelimen ja sen tietokannan.
 
    </details>
 
-   Komento luo esittelykäyttäjät, projektit, asiakkaat ja yhden asian, ja kun
-   IFC-LPG on käytössä, myös esimerkkimallin graafina. Salasanat tulostetaan kerran.
+   Komento luo esittelykäyttäjät, projektit, asiakkaat ja esimerkkimallin asiakirjana. Salasanat tulostetaan kerran.
    Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja avaa `/admin`.
 6. **Yhdistä asiakas.** Rekisteröi sovelluksesi kohdassa *Asiakkaat* (tai anna sen
    rekisteröityä itse, kun `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se
@@ -182,16 +180,15 @@ tietokannan salasanaa, eikä mikään ole auki ennen kuin se on määritetty.
 
 ### Teknisesti osaavalle
 
-- **Image**: `ghcr.io/marwiss/opencdeserver:2.0.0` amd64:lle ja arm64:lle, Trivyllä skannattu ja SBOM:n
+- **Image**: `ghcr.io/marwiss/opencdeserver:1.0.0` amd64:lle ja arm64:lle, Trivyllä skannattu ja SBOM:n
   kanssa; `OPENCDE_IMAGE_TAG` valitsee compose-tiedostoissa, ja 3-sarjan tagi on `3.0.0`.
 - **Compose**: `docker/compose.yaml` sekä lisäkerrokset kehitykseen, tuotantoon Caddyn kanssa,
   Memgraphille, ulkoiselle tietokannalle, Boltille TLS:n kanssa ja tunnelille. `COMPOSE_FILE` tiedostossa `.env`
   valitsee ne, joten komennot ovat ilman `-f`:ää.
-- **Ilman konttia**: Python 3.11 tai uudempi uv:n kanssa (testattu versioilla 3.11,
-  3.13 ja 3.14), `uv sync --extra ifc-lpg`, ja Neo4j 5.26 tai Memgraph 3.14
-  osoitteessa `OPENCDE_GRAPH_URI`.
-- **Tärkeimmät asetukset**: `OPENCDE_APIS` valitsee rajapinnat (oletuksena kaikki kolme);
-  `OPENCDE_IFC_LPG_ENABLED=true` ottaa graafin käyttöön; `OPENCDE_ENVIRONMENT` on `development` tai `production`.
+- **Ilman konttia**: Python 3.11 tai uudempi uv:n kanssa (testattu versioilla 3.11, 3.13 ja 3.14),
+  `uv sync`, ja Neo4j 5.26 tai Memgraph 3.14 osoitteessa `OPENCDE_GRAPH_URI`.
+- **Tärkeimmät asetukset**: `OPENCDE_APIS` valitsee rajapinnat ja on 1.0.0:ssa `["documents"]`, joten
+  BCF API ei ole käytössä; `OPENCDE_ENVIRONMENT` on `development` tai `production`.
 - **Päätepisteet**: `/.well-known/dataregium` (versio ja käytössä olevat laajennukset),
   `/foundation/versions`, `/openapi.json` ja `/docs`, `/healthz` ja `/readyz`, `/admin/api` (ylläpito) ja
   `/manage/1.0` (projektin ylläpito).
@@ -276,16 +273,7 @@ saman Dataspatium-version kanssa.
   jäseniä, vaihtaa heidän roolejaan ja nimeää projektin uudelleen olematta palvelimen
   ylläpitäjä.
 
-### Lisäksi versiossa 2 (Dataspatium 2:n kanssa)
-
-- **Mallia koskevat asiat** (BCF API 3.0 ja 2.1): kysymykset ja huomautukset
-  kommentteineen, kuvineen ja näkymineen, jotka osoittavat rakennusosia, suodattimineen
-  ja tapahtumalokeineen, validoituina buildingSMARTin skeemoja vasten.
-- **Malli graafina** (IFC-LPG-moduuli, joka otetaan käyttöön asetuksella
-  `OPENCDE_IFC_LPG_ENABLED`): ladatusta IFC-mallista tulee graafi tietokantaan,
-  yhdistettynä asioiden näkymien rakennusosiin (katso [IFC-LPG](ifc-lpg.md)).
-
-Mitä versiossa 3 on lisäksi, kerrotaan [main-haaran READMEssä](https://github.com/marwiss/Dataregium/blob/main/docs/fi/README.md#mitä-voit-tehdä).
+Mitä versioissa 2 ja 3 on lisäksi, kerrotaan [main-haaran READMEssä](https://github.com/marwiss/Dataregium/blob/main/docs/fi/README.md#mitä-voit-tehdä).
 
 <img src="../images/upload.png" alt="Lataussivu, jolla käyttäjä antaa tiedostolle otsikon ja version" width="340">
 
@@ -327,20 +315,15 @@ ajettu. Jos kokeilet jotakin asiakasta, kerro, miten kävi, kohdassa
 Dataspatium on sovellus, jossa työskentelet, ja Dataregium on palvelin, jossa projektin
 yhteinen aineisto on. [Dataspatium](https://github.com/marwiss/Dataspatium) toimii
 kokonaan selaimessa, ja nämä kaksi on kehitetty toimimaan yhdessä. Sama julkaisunumero
-tarkoittaa, että ne toimivat yhdessä: Dataspatium 2.0.0 toimii Dataregium 2.0.0:n kanssa
+tarkoittaa, että ne toimivat yhdessä: Dataspatium 1.0.0 toimii Dataregium 1.0.0:n kanssa
 ([pika-aloitus](quickstart.md)).
 
 Dataspatium lisää Dataregium-palvelimen lähteeksi: sovellus löytää rajapinnat polun
-`/foundation/versions` kautta, kirjautuu OAuth2 authorization code -kululla ja PKCE:llä
-ja rekisteröi itsensä julkiseksi asiakkaaksi, kun dynaaminen rekisteröinti on
-käytössä, luettelee projektin mallit ja asiakirjat, lukee ja kirjoittaa BCF-asioita
-kommentteineen ja 3D-näkymästään otettuine viewpointeineen ja lataa tietojoukkoja,
-tiedostoja ja työtilapaketteja Documents API:n kautta. Ylläpitäjä voi kysellä IFC-graafia Cypherillä palvelimen lukevan päätepisteen kautta tai Boltin kautta,
-jos ylläpitäjä on avannut sen tarkoituksella. Sovellus lähettää
-jokaisen kutsun mukana `X-Request-ID`:n, jotta tämän palvelimen pyyntöloki ja
-sovelluksen loki näyttävät saman keskustelun, lukee palvelimen kyvykkyysasiakirjan
-nähdäkseen, mitkä laajennukset ovat käytössä, ja reagoi virhekoodeihin, jotka palvelin
-lisää virhevastauksiinsa.
+`/foundation/versions` kautta, kirjautuu OAuth2 authorization code -kululla ja PKCE:llä ja rekisteröi itsensä
+julkiseksi asiakkaaksi, kun dynaaminen rekisteröinti on käytössä. Se valitsee asiakirjoja palvelimen sivuilla,
+saa ne tietojoukkoina ja lataa tietojoukkoja, tiedostoja ja työtilapaketteja Documents API:n kautta. Sovellus
+lähettää jokaisen kutsun mukana `X-Request-ID`:n, jotta tämän palvelimen pyyntöloki ja sovelluksen loki
+näyttävät saman keskustelun, ja reagoi virhekoodeihin, jotka palvelin lisää virhevastauksiinsa.
 
 Näin ne liittyvät toisiinsa:
 
@@ -348,26 +331,17 @@ Näin ne liittyvät toisiinsa:
 flowchart LR
     subgraph app ["Dataspatium, selaimessa"]
         source["Lähde ja kirjautuminen"]
-        issues["Asiat 3D-näkymässä"]
         files["Mallit ja asiakirjat"]
-        queries["Kyselyt IFC-graafiin"]
         log["Sovelluksen loki"]
-        admin["Kortti Hallinta"]
     end
     subgraph server ["Dataregium, palvelin"]
         foundation["Foundation API, OAuth2"]
-        bcf["BCF API"]
         documents["Documents API"]
-        ifcgraph[("IFC-graafi")]
         requests["Pyyntöloki"]
-        adminapi["Hallinta-API"]
     end
     source <--> foundation
-    issues <--> bcf
     files <--> documents
-    queries --> ifcgraph
     log <-- "X-Request-ID" --> requests
-    admin --> adminapi
 ```
 
 Merkittyjä laajennuksia lukuun ottamatta kaikki, mitä Dataspatium tekee palvelimen
@@ -422,18 +396,13 @@ Dokumentaatio on tämän README:n seitsemällä kielellä, kukin kieli hakemisto
 
 ## Rajoitukset lyhyesti
 
-- IFC-LPG-moduuli on pois käytöstä, kunnes `OPENCDE_IFC_LPG_ENABLED=true`, eikä ilman sitä mistään mallista tule
-  graafia.
-- Palvelin toteuttaa BCF API 3.0:n ja 2.1:n, ei 1.0:aa, jonka resurssit näyttävät erilaisilta.
-- Projektin vienti BCFzip-tiedostona jätetään asiakkaille; palvelin tallentaa asiat, kommentit ja viewpointit niin
-  kuin rajapinta ne määrittelee.
+- 1.0.0 tarjoaa Foundation API:n ja Documents API:n; asiat BCF API:n kautta ja mallit graafina kuuluvat 2.0.0:aan ja
+  3.0.0:aan.
 - Neo4j:n ja Memgraphin yhteisöversioista puuttuvat vain lukuoikeuden tietokantakäyttäjät, joten avoin Bolt-portti
   antaa täyden pääsyn sille, jolla on salasana. Portti pysyy suljettuna, ellei ylläpitäjä julkaise sitä
-  tarkoituksella; ylläpitorajapinnan lukeva graafikysely (`OPENCDE_GRAPH_QUERY_ENABLED`) antaa Cypherin ilman porttia.
-- IFC-LPG-tuonti toimii erillisessä prosessissa muisti- ja aikarajoin (`OPENCDE_IFC_LPG_*`); hyvin suuret mallit
-  hylätään sen sijaan, että ne jäisivät puoliksi tuoduiksi.
+  tarkoituksella.
 - Verkkosivut ovat kirjautumista, ylläpitoa, lataamista ja asiakirjojen valintaa varten; loppukäyttäjät
-  työskentelevät asiakkaassa, kuten Dataspatiumissa tai Bonsaissa.
+  työskentelevät asiakkaassa, kuten Dataspatiumissa.
 - Sivut ovat tämän README:n seitsemällä kielellä (vaihda jokaisen sivun alareunasta); komentorivi ja rajapintojen
   virheilmoitukset ovat englanniksi.
 - Ei vielä ulkoista arviointia. OAuch- ja testssl-ajot ovat ylläpitäjän vaiheita ennen tuotantoon ottamista.
@@ -441,21 +410,20 @@ Dokumentaatio on tämän README:n seitsemällä kielellä, kukin kieli hakemisto
 ## Henkilötiedot
 
 Joka ylläpitää Dataregiumia muille, on tämän rekisterinpitäjä. Palvelin tallentaa käyttäjätilit (käyttäjänimi, nimi,
-valinnainen sähköposti, salasanan tiiviste), projektijäsenyydet, asiat ja kommentit kirjoittajien nimineen, ladatut
-tiedostot lataajineen, IFC-graafin tiedoston omistushistorioineen ja tarkastuslokin siitä, kuka teki mitä ja mistä
-osoitteesta. Salasanat, tunnisteet ja salaisuudet tallennetaan vain tiivisteinä. Tunnisteet, istunnot,
-latausistunnot ja käyttämättömät itse rekisteröityneet asiakkaat vanhenevat, ja palvelin siivoaa ne; tarkastuslokia
-karsii ylläpitäjä. Ylläpitäjä poistaa tilin kohdassa `/admin/users`, ja sen istunnot ja tunnisteet poistuvat
-samalla; nimi jää henkilön kirjoittamiin asioihin, kunnes ne poistetaan. Tarkastusloki viedään CSV-muodossa, BCF- ja
-asiakirjatiedot rajapintojen kautta ja koko tietokanta komennolla `opencde backup`. Se, mitä Dataspatium tallentaa
-selaimeen, kerrotaan sovelluksen omassa dokumentaatiossa.
+valinnainen sähköposti, salasanan tiiviste), projektijäsenyydet, ladatut tiedostot lataajineen ja tarkastuslokin
+siitä, kuka teki mitä ja mistä osoitteesta. Salasanat, tunnisteet ja salaisuudet tallennetaan vain tiivisteinä.
+Tunnisteet, istunnot, latausistunnot ja käyttämättömät itse rekisteröityneet asiakkaat vanhenevat, ja palvelin
+siivoaa ne; tarkastuslokia karsii ylläpitäjä. Ylläpitäjä poistaa tilin kohdassa `/admin/users`, ja sen istunnot ja
+tunnisteet poistuvat samalla. Tarkastusloki viedään CSV-muodossa, asiakirjat Documents API:n kautta ja koko
+tietokanta komennolla `opencde backup`. Se, mitä Dataspatium tallentaa selaimeen, kerrotaan sovelluksen omassa
+dokumentaatiossa.
 
 ## Uudemmat julkaisut
 
-Dataregium 3.0.0, joka tehtiin yhdessä Dataspatium 3.0.0:n kanssa, tekee IFC-graafista häviöttömän, tarkistaa
-jokaisen latauksen IFC-skeemaa, buildingSMARTin sääntöjä ja projektin IDS:ää vasten ja tuo nimetyt kyselyt,
-vertailut ja törmäystarkastuksen, versiot muutosehdotuksineen, jotka kokeillaan ja hyväksytään, geometrian glTF:nä ja
-paikallisen moottorin. Se on haarassa `main` ja imagessa `3.0.0`, ja se on kuvattu [main-haaran READMEssä](https://github.com/marwiss/Dataregium/blob/main/docs/fi/README.md).
+Dataregium 2.0.0 lisää BCF API 3.0:n ja 2.1:n asioineen ja viewpointteineen sekä IFC-LPG-moduulin, joka tekee
+graafin jokaisesta ladatusta mallista. 3.0.0 tekee lisäksi graafista häviöttömän, tarkistaa lataukset ja tuo kyselyt,
+vertailut, versiot muutosehdotuksineen, geometrian glTF:nä ja paikallisen moottorin. 2.0.0 on haarassa `release-2` ja
+3.0.0 haarassa `main`; molemmat on kuvattu [main-haaran READMEssä](https://github.com/marwiss/Dataregium/blob/main/docs/fi/README.md).
 
 ## Virheet ja ehdotukset
 

@@ -6,7 +6,7 @@
 
 *Dataregium hét Kontroll til 8. nóvember 2026.*
 
-*Þetta er README fyrir Dataregium 2.0.0. Nýjasta útgáfan, 3.0.0, er lýst í [README á main](https://github.com/marwiss/Dataregium/blob/main/docs/is/README.md).*
+*Þetta er README fyrir Dataregium 1.0.0. Nýjasta útgáfan, 3.0.0, er lýst í [README á main](https://github.com/marwiss/Dataregium/blob/main/docs/is/README.md).*
 
 Dataregium er þjónn þar sem byggingarverkefni safnar saman líkönum sínum, skjölum og
 málum, svo að allir í verkefninu vinni út frá sömu gögnum og sjái sömu sögu. Þú vinnur
@@ -17,8 +17,7 @@ gera í hverju verkefni.
 
 Tæknilega er Dataregium þjónn fyrir opin **OpenCDE-forritaskil** buildingSMART
 (Foundation API 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), byggður á
-netgagnagrunninum Neo4j eða Memgraph. Í 2.0.0 verður hvert upphlaðið IFC-líkan að neti með IFC-LPG-einingunni, tengt byggingarhlutunum í
-sjónarhornum málanna. Þjónninn var endurskrifaður frá grunni út frá
+netgagnagrunninum Neo4j eða Memgraph. 1.0.0 er skjalaþjónn með Foundation API og Documents API; mál og líkön sem net koma í 2.0.0. Þjónninn var endurskrifaður frá grunni út frá
 rannsóknarfrumgerð frá 2023, með öryggi sem fyrstu kröfu, og hver biðlari sem fylgir
 forskriftunum getur tengst.
 
@@ -55,19 +54,18 @@ Gámur er fullpakkað forrit sem keyrir aðskilið á tölvunni, og Docker og Po
 forrit sem ræsa gáma. Fljótlega byrjunin ræsir tvo: þjóninn og gagnagrunn hans.
 
 1. **Sækja.** Sæktu kóðann með git, eða sem ZIP-skrá undir *Code > Download ZIP* á
-   GitHub. Skipunin hér fyrir neðan sækir greinina `release-2`, sem er 2.0.0; `main` er 3.0.0 og
-   `release-1` er 1.0.0.
+   GitHub. Skipunin hér fyrir neðan sækir greinina `release-1`, sem er 1.0.0; `release-2` er 2.0.0 og
+   `main` er 3.0.0.
 
    ```sh
-   git clone --branch release-2 https://github.com/marwiss/Dataregium.git
+   git clone --branch release-1 https://github.com/marwiss/Dataregium.git
    cd Dataregium
    ```
 
 2. **Stilla.** Afritaðu `.env.example` í `.env`, skrána með stillingum þjónsins, og
    settu `OPENCDE_GRAPH_PASSWORD` sem eigið lykilorð með að minnsta kosti 16 stöfum.
-   Ef þú vilt prófa með Dataspatium og líkönum skaltu líka setja
-   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true` og
-   `OPENCDE_IFC_LPG_ENABLED=true`; [fljótlega byrjunin með Dataspatium](quickstart.md)
+   Ef þú vilt prófa með Dataspatium skaltu líka setja
+   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` og `OPENCDE_REQUEST_LOG_ENABLED=true`; [fljótlega byrjunin með Dataspatium](quickstart.md)
    útskýrir hvers vegna. Hver stilling er útskýrð í [.env.example](../../.env.example).
 3. **Ræsa.** Sömu compose-skrár virka með Docker og Podman; veldu það sem þú hefur:
 
@@ -97,7 +95,7 @@ forrit sem ræsa gáma. Fljótlega byrjunin ræsir tvo: þjóninn og gagnagrunn 
    <summary><b>Án gáms</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # setur upp Python 3.13 og öll ósjálfstæði, með IFC-LPG
+   uv sync                          # setur upp Python 3.13 og öll ósjálfstæði
    uv run opencde doctor            # athugar stillingar og gagnagrunn
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -140,8 +138,7 @@ forrit sem ræsa gáma. Fljótlega byrjunin ræsir tvo: þjóninn og gagnagrunn 
 
    </details>
 
-   Skipunin býr til sýninotendur, verkefni, biðlara og eitt mál, og með IFC-LPG
-   virkt líka sýnilíkan sem net. Lykilorðin eru prentuð einu sinni. Skráðu þig inn á
+   Skipunin býr til sýninotendur, verkefni, biðlara og sýnilíkan sem skjal. Lykilorðin eru prentuð einu sinni. Skráðu þig inn á
    <http://127.0.0.1:8000/signin> sem `admin` og opnaðu `/admin`.
 6. **Tengja biðlara.** Skráðu forritið þitt undir *Biðlarar* (eða leyfðu því að skrá
    sig sjálft þegar `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og beindu því að
@@ -179,14 +176,14 @@ en það hefur verið stillt.
 
 ### Fyrir þau sem kunna tæknina
 
-- **Mynd (image)**: `ghcr.io/marwiss/opencdeserver:2.0.0` fyrir amd64 og arm64, skönnuð með Trivy og
+- **Mynd (image)**: `ghcr.io/marwiss/opencdeserver:1.0.0` fyrir amd64 og arm64, skönnuð með Trivy og
   með SBOM; `OPENCDE_IMAGE_TAG` velur í compose-skránum, og 3-röðin hefur merkið `3.0.0`.
 - **Compose**: `docker/compose.yaml` auk laga fyrir þróun, rekstur með Caddy, Memgraph, ytri
   gagnagrunn, Bolt með TLS og göng. `COMPOSE_FILE` í `.env` velur þau, svo skipanirnar eru án `-f`.
-- **Án gáms**: Python 3.11 eða nýrra með uv (prófað á 3.11, 3.13 og 3.14),
-  `uv sync --extra ifc-lpg`, og Neo4j 5.26 eða Memgraph 3.14 á `OPENCDE_GRAPH_URI`.
-- **Helstu stillingar**: `OPENCDE_APIS` velur forritaskilin (öll þrjú sjálfgefið);
-  `OPENCDE_IFC_LPG_ENABLED=true` virkjar netið; `OPENCDE_ENVIRONMENT` er `development` eða `production`.
+- **Án gáms**: Python 3.11 eða nýrra með uv (prófað á 3.11, 3.13 og 3.14), `uv sync`, og Neo4j 5.26
+  eða Memgraph 3.14 á `OPENCDE_GRAPH_URI`.
+- **Helstu stillingar**: `OPENCDE_APIS` velur forritaskilin og er `["documents"]` í 1.0.0, svo BCF API
+  er óvirkt; `OPENCDE_ENVIRONMENT` er `development` eða `production`.
 - **Endapunktar**: `/.well-known/dataregium` (útgáfan og viðbæturnar sem eru virkar),
   `/foundation/versions`, `/openapi.json` og `/docs`, `/healthz` og `/readyz`, `/admin/api` (stjórnun) og
   `/manage/1.0` (verkefnastjórnun).
@@ -261,16 +258,7 @@ Orðin sem þessi README notar, á daglegu máli; allur orðalistinn er í
   meðlimi, breytir hlutverkum þeirra og endurnefnir verkefnið, án þess að vera
   stjórnandi þjónsins.
 
-### Einnig í útgáfu 2 (með Dataspatium 2)
-
-- **Mál um líkanið** (BCF API 3.0 og 2.1): spurningar og athugasemdir með ummælum,
-  myndum og sjónarhornum sem benda á byggingarhluta, með síum og atburðaannál,
-  sannprófuð gagnvart skemum buildingSMART.
-- **Líkanið sem net** (IFC-LPG-einingin, virkjuð með `OPENCDE_IFC_LPG_ENABLED`):
-  upphlaðið IFC-líkan verður að neti í gagnagrunninum, tengt byggingarhlutunum í
-  sjónarhornum málanna (sjá [IFC-LPG](ifc-lpg.md)).
-
-Það sem einnig er í útgáfu 3 kemur fram í [README á main](https://github.com/marwiss/Dataregium/blob/main/docs/is/README.md#hvað-þú-getur-gert).
+Það sem einnig er í útgáfu 2 og 3 kemur fram í [README á main](https://github.com/marwiss/Dataregium/blob/main/docs/is/README.md#hvað-þú-getur-gert).
 
 <img src="../images/upload.png" alt="Upphleðslusíðan, þar sem notandinn gefur skránni titil og útgáfu" width="340">
 
@@ -309,19 +297,15 @@ segðu frá hvernig gekk undir [Villur og tillögur](#villur-og-tillögur). Þeg
 Dataspatium er forritið sem þú vinnur í, og Dataregium er þjónninn þar sem
 sameiginleg gögn verkefnisins eru geymd. [Dataspatium](https://github.com/marwiss/Dataspatium)
 keyrir alfarið í vafranum, og þau tvö eru þróuð til að vinna saman. Sama útgáfunúmer
-þýðir að þau virka saman: Dataspatium 2.0.0 virkar með Dataregium 2.0.0
+þýðir að þau virka saman: Dataspatium 1.0.0 virkar með Dataregium 1.0.0
 ([fljótleg byrjun](quickstart.md)).
 
-Dataspatium bætir Dataregium-þjóni við sem gagnalind: forritið finnur forritaskilin í
-gegnum `/foundation/versions`, skráir sig inn með OAuth2 authorization code og PKCE og
-skráir sig sjálft sem opinberan biðlara þegar kvik skráning er virk, sýnir líkön og
-skjöl verkefnisins, les og skrifar BCF-mál með athugasemdum og sjónarhornum úr
-þrívíddarsýn sinni og hleður upp gagnasöfnum, skrám og vinnusvæðispökkum í gegnum
-Documents API. Stjórnandi getur spurt IFC-netið með Cypher í gegnum lesendapunkt þjónsins, eða yfir Bolt þar sem
-rekstraraðilinn hefur opnað það viljandi. Forritið
-sendir `X-Request-ID` með hverju kalli, svo að beiðnaannállinn hér og annállinn í
-forritinu sýni sama samtalið, les getuskjal þjónsins til að sjá hvaða viðbætur eru
-virkar og bregst við villukóðunum sem þjónninn setur í villusvör sín.
+Dataspatium bætir Dataregium-þjóni við sem gagnalind: forritið finnur forritaskilin í gegnum
+`/foundation/versions`, skráir sig inn með OAuth2 authorization code og PKCE og skráir sig sjálft sem opinberan
+biðlara þegar kvik skráning er virk. Það velur skjöl á síðum þjónsins, fær þau sem gagnasöfn og hleður upp
+gagnasöfnum, skrám og vinnusvæðispökkum í gegnum Documents API. Forritið sendir `X-Request-ID` með hverju kalli,
+svo að beiðnaannállinn hér og annállinn í forritinu sýni sama samtalið, og bregst við villukóðunum sem þjónninn
+setur í villusvör sín.
 
 Svona hanga þau saman:
 
@@ -329,26 +313,17 @@ Svona hanga þau saman:
 flowchart LR
     subgraph app ["Dataspatium, í vafranum"]
         source["Uppspretta og innskráning"]
-        issues["Mál í þrívíddarsýn"]
         files["Líkön og skjöl"]
-        queries["Fyrirspurnir á IFC-grafið"]
         log["Skráin í forritinu"]
-        admin["Spjaldið Stjórnun"]
     end
     subgraph server ["Dataregium, þjónninn"]
         foundation["Foundation API, OAuth2"]
-        bcf["BCF API"]
         documents["Documents API"]
-        ifcgraph[("IFC-graf")]
         requests["Beiðnaskrá"]
-        adminapi["Stjórnunar-API"]
     end
     source <--> foundation
-    issues <--> bcf
     files <--> documents
-    queries --> ifcgraph
     log <-- "X-Request-ID" --> requests
-    admin --> adminapi
 ```
 
 Fyrir utan merktu viðbæturnar fer allt sem Dataspatium gerir gagnvart þjóninum í
@@ -404,17 +379,11 @@ enskan undir `docs/en/` er frumtextinn. CONTRIBUTING er á ensku.
 
 ## Takmarkanir í stuttu máli
 
-- IFC-LPG-einingin er óvirk þar til `OPENCDE_IFC_LPG_ENABLED=true`, og án hennar verður ekkert líkan að neti.
-- Þjónninn útfærir BCF API 3.0 og 2.1, ekki 1.0, þar sem tilföngin líta öðruvísi út.
-- Útflutningur verkefnis sem BCFzip er látinn biðlurunum eftir; þjónninn geymir mál, athugasemdir og sjónarhorn eins
-  og forritaskilin skilgreina þau.
+- 1.0.0 býður Foundation API og Documents API; mál í gegnum BCF API og líkön sem net tilheyra 2.0.0 og 3.0.0.
 - Samfélagsútgáfur Neo4j og Memgraph hafa ekki gagnagrunnsnotendur með lesaðgang eingöngu, svo opin Bolt-gátt veitir
-  fullan aðgang þeim sem hefur lykilorðið. Gáttin er áfram lokuð nema stjórnandinn birti hana viljandi; lesandi
-  netfyrirspurn stjórnunarforritaskilanna (`OPENCDE_GRAPH_QUERY_ENABLED`) gefur Cypher án gáttarinnar.
-- IFC-LPG-innflutningurinn keyrir í aðskildu ferli með minnis- og tímamörkum (`OPENCDE_IFC_LPG_*`); mjög stórum
-  líkönum er hafnað í stað þess að þau verði hálfinnflutt.
+  fullan aðgang þeim sem hefur lykilorðið. Gáttin er áfram lokuð nema stjórnandinn birti hana viljandi.
 - Vefsíðurnar eru fyrir innskráningu, stjórnun, upphleðslu og val á skjölum; endanotendur vinna í biðlara eins og
-  Dataspatium eða Bonsai.
+  Dataspatium.
 - Síðurnar eru á sjö tungumálum þessarar README (skipt neðst á hverri síðu); skipanalínan og villuboð
   forritaskilanna eru á ensku.
 - Engin ytri úttekt enn. OAuch- og testssl-keyrslurnar eru skref rekstraraðilans fyrir uppsetningu í rekstur.
@@ -422,21 +391,19 @@ enskan undir `docs/en/` er frumtextinn. CONTRIBUTING er á ensku.
 ## Persónuupplýsingar
 
 Sá sem rekur Dataregium fyrir aðra er ábyrgðaraðili þessa. Þjónninn geymir notendaaðganga (notandanafn, nafn,
-valfrjálst netfang, tætigildi lykilorðs), verkefnaaðild, mál og athugasemdir með nöfnum höfunda, upphlaðnar skrár með
-þeim sem hlóð þeim upp, IFC-netið með eignarsögu skrárinnar og endurskoðunarannál yfir það hver gerði hvað og frá
-hvaða vistfangi. Lykilorð, tókar og leyndarmál eru aðeins geymd sem tætigildi. Tókar, lotur, upphleðslulotur og
-ónotaðir sjálfskráðir biðlarar renna út og þjónninn hreinsar þá; rekstraraðilinn grisjar endurskoðunarannálinn.
-Stjórnandi eyðir aðgangi undir `/admin/users`, og lotur hans og tókar fylgja með; nafnið stendur eftir á málunum sem
-viðkomandi skrifaði þar til þeim er eytt. Endurskoðunarannállinn er fluttur út sem CSV, BCF- og skjalagögn í gegnum
-forritaskilin og allur gagnagrunnurinn með `opencde backup`. Hvað Dataspatium geymir í vafranum kemur fram í eigin
-skjölun forritsins.
+valfrjálst netfang, tætigildi lykilorðs), verkefnaaðild, upphlaðnar skrár með þeim sem hlóð þeim upp og
+endurskoðunarannál yfir það hver gerði hvað og frá hvaða vistfangi. Lykilorð, tókar og leyndarmál eru aðeins geymd
+sem tætigildi. Tókar, lotur, upphleðslulotur og ónotaðir sjálfskráðir biðlarar renna út og þjónninn hreinsar þá;
+rekstraraðilinn grisjar endurskoðunarannálinn. Stjórnandi eyðir aðgangi undir `/admin/users`, og lotur hans og tókar
+fylgja með. Endurskoðunarannállinn er fluttur út sem CSV, skjölin í gegnum Documents API og allur gagnagrunnurinn
+með `opencde backup`. Hvað Dataspatium geymir í vafranum kemur fram í eigin skjölun forritsins.
 
 ## Nýrri útgáfur
 
-Dataregium 3.0.0, gerð með Dataspatium 3.0.0, gerir IFC-netið taplaust, prófar hverja upphleðslu gagnvart IFC-skemanu,
-reglum buildingSMART og IDS verkefnisins og býður nefndar fyrirspurnir, samanburð og árekstrarprófun, útgáfur með
-breytingatillögum sem eru prófaðar og samþykktar, rúmfræðina sem glTF og staðbundna vél. Hún er á greininni `main` og
-í myndinni `3.0.0`, og henni er lýst í [README á main](https://github.com/marwiss/Dataregium/blob/main/docs/is/README.md).
+Dataregium 2.0.0 bætir við BCF API 3.0 og 2.1 með málum og sjónarhornum og IFC-LPG-einingunni, sem gerir net úr hverju
+upphlöðnu líkani. 3.0.0 gerir auk þess netið taplaust, prófar upphleðslurnar og býður fyrirspurnir, samanburð,
+útgáfur með breytingatillögum, rúmfræðina sem glTF og staðbundna vél. 2.0.0 er á greininni `release-2` og 3.0.0 á
+`main`; báðum er lýst í [README á main](https://github.com/marwiss/Dataregium/blob/main/docs/is/README.md).
 
 ## Villur og tillögur
 

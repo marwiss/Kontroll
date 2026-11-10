@@ -6,7 +6,7 @@
 
 *Dataregium hed Kontroll indtil 8. november 2026.*
 
-*Dette er README for Dataregium 2.0.0. Den seneste udgivelse, 3.0.0, beskrives i [README på main](https://github.com/marwiss/Dataregium/blob/main/docs/da/README.md).*
+*Dette er README for Dataregium 1.0.0. Den seneste udgivelse, 3.0.0, beskrives i [README på main](https://github.com/marwiss/Dataregium/blob/main/docs/da/README.md).*
 
 Dataregium er en server, hvor et byggeprojekt samler sine modeller, dokumenter og
 sager, så alle i projektet arbejder ud fra det samme grundlag og ser den samme
@@ -17,8 +17,7 @@ bestemmer, hvem der må logge ind, og hvad hver enkelt må gøre i hvert projekt
 
 Teknisk er Dataregium en server for buildingSMARTs åbne **OpenCDE-API'er**
 (Foundation API 1.0, BCF API 3.0 og 2.1 samt Documents API 1.0), bygget på
-grafdatabasen Neo4j eller Memgraph. I 2.0.0 bliver hver uploadet IFC-model en graf gennem modulet IFC-LPG, knyttet til bygningsdelene i
-sagernes visninger. Serveren blev skrevet om fra bunden ud fra
+grafdatabasen Neo4j eller Memgraph. 1.0.0 er en dokumentserver med Foundation API og Documents API; sager og modeller som graf kommer i 2.0.0. Serveren blev skrevet om fra bunden ud fra
 en forskningsprototype fra 2023, med sikkerhed som det første krav, og enhver klient,
 der følger specifikationerne, kan forbinde sig.
 
@@ -56,19 +55,18 @@ Docker og Podman er programmer, der starter containere. Den hurtige start starte
 to: serveren og dens database.
 
 1. **Download.** Hent koden med git, eller som ZIP-fil under *Code > Download ZIP*
-   på GitHub. Kommandoen nedenfor henter grenen `release-2`, som er 2.0.0; `main` er 3.0.0, og
-   `release-1` er 1.0.0.
+   på GitHub. Kommandoen nedenfor henter grenen `release-1`, som er 1.0.0; `release-2` er 2.0.0, og
+   `main` er 3.0.0.
 
    ```sh
-   git clone --branch release-2 https://github.com/marwiss/Dataregium.git
+   git clone --branch release-1 https://github.com/marwiss/Dataregium.git
    cd Dataregium
    ```
 
 2. **Indstil.** Kopiér `.env.example` til `.env`, filen med serverens
    indstillinger, og sæt `OPENCDE_GRAPH_PASSWORD` til din egen adgangskode på
-   mindst 16 tegn. Skal du prøve med Dataspatium og modeller, så sæt også
-   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true`
-   og `OPENCDE_IFC_LPG_ENABLED=true`; [den hurtige start med Dataspatium](quickstart.md)
+   mindst 16 tegn. Skal du prøve med Dataspatium, så sæt også
+   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` og `OPENCDE_REQUEST_LOG_ENABLED=true`; [den hurtige start med Dataspatium](quickstart.md)
    forklarer hvorfor. Hver indstilling er forklaret i [.env.example](../../.env.example).
 3. **Start.** De samme compose-filer virker med Docker og med Podman; vælg den, du har:
 
@@ -98,7 +96,7 @@ to: serveren og dens database.
    <summary><b>Uden container</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # installerer Python 3.13 og alle afhængigheder, med IFC-LPG
+   uv sync                          # installerer Python 3.13 og alle afhængigheder
    uv run opencde doctor            # kontrollerer konfigurationen og databasen
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -141,8 +139,7 @@ to: serveren og dens database.
 
    </details>
 
-   Kommandoen opretter demobrugere, projekter, klienter og en sag, og med IFC-LPG
-   slået til også en eksempelmodel som graf. Adgangskoderne udskrives én gang. Log
+   Kommandoen opretter demobrugere, projekter, klienter og en eksempelmodel som dokument. Adgangskoderne udskrives én gang. Log
    ind på <http://127.0.0.1:8000/signin> som `admin` og åbn `/admin`.
 6. **Forbind en klient.** Registrér din app under *Klienter* (eller lad den
    registrere sig selv, når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) og peg den
@@ -180,14 +177,14 @@ at starte uden en offentlig `https`-adresse og en databaseadgangskode, og intet 
 
 ### For den teknisk kyndige
 
-- **Image**: `ghcr.io/marwiss/opencdeserver:2.0.0` til amd64 og arm64, scannet med Trivy og med
+- **Image**: `ghcr.io/marwiss/opencdeserver:1.0.0` til amd64 og arm64, scannet med Trivy og med
   SBOM; `OPENCDE_IMAGE_TAG` vælger i compose-filerne, og 3-serien har tagget `3.0.0`.
 - **Compose**: `docker/compose.yaml` plus overlejringer til udvikling, produktion med Caddy, Memgraph,
   en ekstern database, Bolt med TLS og en tunnel. `COMPOSE_FILE` i `.env` vælger dem, så kommandoerne er uden `-f`.
-- **Uden container**: Python 3.11 eller nyere med uv (afprøvet på 3.11, 3.13 og
-  3.14), `uv sync --extra ifc-lpg`, og Neo4j 5.26 eller Memgraph 3.14 på `OPENCDE_GRAPH_URI`.
-- **De vigtigste indstillinger**: `OPENCDE_APIS` vælger API'erne (alle tre som standard);
-  `OPENCDE_IFC_LPG_ENABLED=true` slår grafen til; `OPENCDE_ENVIRONMENT` er `development` eller `production`.
+- **Uden container**: Python 3.11 eller nyere med uv (afprøvet på 3.11, 3.13 og 3.14), `uv sync`, og
+  Neo4j 5.26 eller Memgraph 3.14 på `OPENCDE_GRAPH_URI`.
+- **De vigtigste indstillinger**: `OPENCDE_APIS` vælger API'erne og er `["documents"]` i 1.0.0, så
+  BCF API er slået fra; `OPENCDE_ENVIRONMENT` er `development` eller `production`.
 - **Endepunkter**: `/.well-known/dataregium` (versionen og de udvidelser, der er slået til),
   `/foundation/versions`, `/openapi.json` og `/docs`, `/healthz` og `/readyz`, `/admin/api` (administration) og
   `/manage/1.0` (projektadministration).
@@ -265,16 +262,7 @@ med den samme version af Dataspatium.
   medlemmer, skifter deres roller og omdøber projektet, uden at være
   serveradministrator.
 
-### Også i version 2 (med Dataspatium 2)
-
-- **Sager om modellen** (BCF API 3.0 og 2.1): spørgsmål og bemærkninger med
-  kommentarer, billeder og visninger, der udpeger bygningsdele, med filtre og en
-  hændelseslog, valideret mod buildingSMARTs skemaer.
-- **Modellen som graf** (IFC-LPG-modulet, slået til med `OPENCDE_IFC_LPG_ENABLED`):
-  en uploadet IFC-model bliver til en graf i databasen, knyttet til bygningsdelene i
-  sagernes visninger (se [IFC-LPG](ifc-lpg.md)).
-
-Det, der også findes i version 3, står i [README på main](https://github.com/marwiss/Dataregium/blob/main/docs/da/README.md#hvad-du-kan).
+Det, der også findes i version 2 og 3, står i [README på main](https://github.com/marwiss/Dataregium/blob/main/docs/da/README.md#hvad-du-kan).
 
 <img src="../images/upload.png" alt="Upload-siden, hvor brugeren giver filen titel og version" width="340">
 
@@ -314,19 +302,15 @@ bygger en klient.
 Dataspatium er den app, du arbejder i, og Dataregium er den server, hvor projektets
 fælles grundlag ligger. [Dataspatium](https://github.com/marwiss/Dataspatium) kører
 helt i browseren, og de to er udviklet til at arbejde sammen. Det samme
-udgivelsesnummer betyder, at de virker sammen: Dataspatium 2.0.0 virker med
-Dataregium 2.0.0 ([hurtig start](quickstart.md)).
+udgivelsesnummer betyder, at de virker sammen: Dataspatium 1.0.0 virker med
+Dataregium 1.0.0 ([hurtig start](quickstart.md)).
 
 Dataspatium tilføjer en Dataregium-server som kilde: appen opdager API'erne gennem
-`/foundation/versions`, logger ind med OAuth2 authorization code og PKCE og
-registrerer sig selv som offentlig klient, når dynamisk registrering er slået til,
-viser projektets modeller og dokumenter, læser og skriver BCF-sager med kommentarer
-og viewpoints taget fra sin 3D-visning og uploader datasæt, filer og
-arbejdsområdepakker gennem Documents API. En administrator kan forespørge IFC-grafen med Cypher gennem serverens læsende endepunkt, eller over
-Bolt, hvor operatøren bevidst har åbnet den. Appen sender `X-Request-ID` med hvert
-kald, så forespørgselsloggen her og loggen i appen viser den samme samtale, læser
-serverens kapabilitetsdokument for at se, hvilke udvidelser der er slået til, og
-reagerer på de fejlkoder, serveren lægger i sine fejlsvar.
+`/foundation/versions`, logger ind med OAuth2 authorization code og PKCE og registrerer sig selv som offentlig
+klient, når dynamisk registrering er slået til. Den vælger dokumenter på serverens sider, får dem som datasæt og
+uploader datasæt, filer og arbejdsområdepakker gennem Documents API. Appen sender `X-Request-ID` med hvert kald,
+så forespørgselsloggen her og loggen i appen viser den samme samtale, og reagerer på de fejlkoder, serveren
+lægger i sine fejlsvar.
 
 Sådan hænger de sammen:
 
@@ -334,26 +318,17 @@ Sådan hænger de sammen:
 flowchart LR
     subgraph app ["Dataspatium, i browseren"]
         source["Kilde og login"]
-        issues["Sager i 3D-visningen"]
         files["Modeller og dokumenter"]
-        queries["Forespørgsler mod IFC-grafen"]
         log["Loggen i appen"]
-        admin["Kortet Administration"]
     end
     subgraph server ["Dataregium, serveren"]
         foundation["Foundation API, OAuth2"]
-        bcf["BCF API"]
         documents["Documents API"]
-        ifcgraph[("IFC-graf")]
         requests["Forespørgselslog"]
-        adminapi["Administrations-API"]
     end
     source <--> foundation
-    issues <--> bcf
     files <--> documents
-    queries --> ifcgraph
     log <-- "X-Request-ID" --> requests
-    admin --> adminapi
 ```
 
 Bortset fra de markerede udvidelser går alt, hvad Dataspatium gør mod serveren,
@@ -406,18 +381,12 @@ Dokumentationen findes på denne README's syv sprog, hvert sprog under
 
 ## Begrænsninger i korte træk
 
-- IFC-LPG-modulet er slået fra, indtil `OPENCDE_IFC_LPG_ENABLED=true`, og uden det bliver ingen model en graf.
-- Serveren implementerer BCF API 3.0 og 2.1, ikke 1.0, hvis ressourcer ser anderledes ud.
-- Eksport af et projekt som BCFzip overlades til klienterne; serveren gemmer sager, kommentarer og viewpoints, som
-  API'et definerer dem.
+- 1.0.0 tilbyder Foundation API og Documents API; sager gennem BCF API og modeller som graf hører til 2.0.0 og 3.0.0.
 - Community-udgaverne af Neo4j og Memgraph mangler databasebrugere med kun læseadgang, så en eksponeret Bolt-port
   giver fuld adgang til den, der har adgangskoden. Porten forbliver lukket, medmindre administratoren bevidst
-  publicerer den; administrations-API'ets læsende grafforespørgsel (`OPENCDE_GRAPH_QUERY_ENABLED`) giver Cypher uden
-  porten.
-- IFC-LPG-importen kører i en separat proces med hukommelses- og tidsgrænser (`OPENCDE_IFC_LPG_*`); meget store
-  modeller afvises i stedet for at blive efterladt halvt importeret.
+  publicerer den.
 - Websiderne er til login, administration, upload og valg af dokumenter; slutbrugere arbejder i en klient som
-  Dataspatium eller Bonsai.
+  Dataspatium.
 - Siderne findes på denne README's syv sprog (skift nederst på hver side); kommandolinjen og API'ernes
   fejlmeddelelser er på engelsk.
 - Ingen ekstern gennemgang endnu. OAuch- og testssl-kørslerne er operatørens trin før en produktionsudrulning.
@@ -425,20 +394,19 @@ Dokumentationen findes på denne README's syv sprog, hvert sprog under
 ## Personoplysninger
 
 Den, der driver Dataregium for andre, er dataansvarlig for dette. Serveren gemmer brugerkonti (brugernavn, navn,
-valgfri e-mail, adgangskodehash), projektmedlemskaber, sager og kommentarer med forfatternes navne, uploadede filer
-med uploaderen, IFC-grafen med filens ejerhistorik og en revisionslog over, hvem der gjorde hvad og fra hvilken
-adresse. Adgangskoder, tokens og hemmeligheder gemmes kun som hashes. Tokens, sessioner, upload-sessioner og ubrugte
-selvregistrerede klienter udløber og ryddes op af serveren; revisionsloggen beskæres af operatøren. En administrator
-sletter en konto under `/admin/users`, og dens sessioner og tokens følger med; navnet står tilbage på de sager,
-personen skrev, indtil de slettes. Revisionsloggen eksporteres som CSV, BCF- og dokumentdata gennem API'erne og hele
-databasen med `opencde backup`. Hvad Dataspatium gemmer i browseren, står i appens egen dokumentation.
+valgfri e-mail, adgangskodehash), projektmedlemskaber, uploadede filer med uploaderen og en revisionslog over, hvem
+der gjorde hvad og fra hvilken adresse. Adgangskoder, tokens og hemmeligheder gemmes kun som hashes. Tokens,
+sessioner, upload-sessioner og ubrugte selvregistrerede klienter udløber og ryddes op af serveren; revisionsloggen
+beskæres af operatøren. En administrator sletter en konto under `/admin/users`, og dens sessioner og tokens følger
+med. Revisionsloggen eksporteres som CSV, dokumenterne gennem Documents API og hele databasen med `opencde backup`.
+Hvad Dataspatium gemmer i browseren, står i appens egen dokumentation.
 
 ## Nyere udgivelser
 
-Dataregium 3.0.0, lavet sammen med Dataspatium 3.0.0, gør IFC-grafen tabsfri, kontrollerer hver upload mod
-IFC-skemaet, buildingSMARTs regler og projektets IDS og giver navngivne forespørgsler, sammenligninger og
-kollisionskontrol, versioner med ændringsforslag, der prøves og godkendes, geometrien som glTF og en lokal motor. Den
-ligger på grenen `main` og i imaget `3.0.0`, og den beskrives i [README på main](https://github.com/marwiss/Dataregium/blob/main/docs/da/README.md).
+Dataregium 2.0.0 tilføjer BCF API 3.0 og 2.1 med sager og viewpoints og IFC-LPG-modulet, der laver en graf af hver
+uploadet model. 3.0.0 gør desuden grafen tabsfri, kontrollerer uploadene og giver forespørgsler, sammenligninger,
+versioner med ændringsforslag, geometrien som glTF og en lokal motor. 2.0.0 ligger på grenen `release-2` og 3.0.0
+på `main`; begge beskrives i [README på main](https://github.com/marwiss/Dataregium/blob/main/docs/da/README.md).
 
 ## Fejl og forslag
 
