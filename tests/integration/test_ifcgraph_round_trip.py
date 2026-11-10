@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -288,7 +289,8 @@ def test_a_lost_block_stops_the_export(graph_target: GraphTarget, clean_database
         finally:
             await graph.close()
 
-    assert "of the 98 instances" in asyncio.run(work())
+    # the number of instances in blocks depends on IFC-LPG's form (98 with geometry in blocks, fewer in the skeleton)
+    assert re.search(r"of the \d+ instances", asyncio.run(work()))
 
 
 @BOTH_FORMS

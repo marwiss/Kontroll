@@ -22,7 +22,7 @@ def _project() -> dict:
 def test_the_graph_side_is_always_installed_and_the_workers_come_with_the_extra() -> None:
     project = _project()
     assert any(requirement.startswith("ifc-lpg>=") for requirement in project["dependencies"])
-    assert project["optional-dependencies"]["ifc-lpg"] == ["ifc-lpg[ifcopenshell]>=1.0.0"]
+    assert project["optional-dependencies"]["ifc-lpg"] == ["ifc-lpg[ifcopenshell]>=1.0.0", "ifcclash>=0.9.0"]
     assert '"--extra ifc-lpg"' in (ROOT / "docker" / "Dockerfile").read_text(encoding="utf-8"), (
         "the image has the workers"
     )
