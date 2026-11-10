@@ -156,6 +156,17 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 if settings.offers("documents") and settings.offers("bcf-3.0")
                 else {"enabled": False}
             ),
+            "ifc_merge": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/projects/{project_id}/ifc-merge",
+                    "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report",
+                    "choices": ["a", "b", "new"],
+                    "roles": ["manager"],
+                }
+                if settings.ifcgraph_enabled and settings.offers("documents")
+                else {"enabled": False}
+            ),
             "graph_query": (
                 {
                     "enabled": True,

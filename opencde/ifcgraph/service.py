@@ -40,6 +40,7 @@ from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 from opencde.graph.graph import Graph
 from opencde.graph.schema import rebuild_point_indexes
 from opencde.ids import new_id
+from opencde.ifcgraph import merging
 from opencde.ifcgraph.gltf import LODS, build_glb
 from opencde.logging import get_logger
 from opencde.settings import Settings
@@ -181,6 +182,7 @@ class IfcGraphService:
         running in another process, so it is given up only when twice the time limit has passed since it started.
         """
         await self.tidy_workcopy()
+        await merging.resume(self)
         await self.graph.run(
             """
             MATCH (m:Model {state: $done}) WHERE m.spatial_pending IS NOT NULL AND m.done_at < $given_up
@@ -192,7 +194,7 @@ class IfcGraphService:
         rows = await self.graph.run(
             """
             MATCH (m:Model)
-            WHERE m.state = $queued OR (m.state = $running AND m.running_at < $given_up)
+            WHERE (m.state = $queued OR (m.state = $running AND m.running_at < $given_up)) AND m.merge_of IS NULL
             RETURN m.id AS id, m.storage_key AS storage_key, m.file_name AS file_name, m.state AS state
             """,
             queued=STATE_QUEUED,

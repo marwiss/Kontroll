@@ -35,6 +35,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_diff",
         "ifc_geometry",
         "ifc_changes",
+        "ifc_merge",
         "graph_query",
     }
     assert extensions["dynamic_client_registration"] == {
@@ -67,6 +68,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "roles": ["manager"],
         "formats": ["ifczip", "zip"],
     }, "a manager publishes a version (F9 a)"
+    assert extensions["ifc_merge"] == {"enabled": False}, "the merge needs the IFC-LPG module"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0
