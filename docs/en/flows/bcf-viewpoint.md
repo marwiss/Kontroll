@@ -2,7 +2,7 @@
 
 How a client files a topic with a view of the model, and how someone else opens the
 same view. This is BCF API 3.0, sections 3.2 (topics) and 3.5 (viewpoints). The
-example [create_topic.py](../examples/create_topic.py) does the first half with the
+example [create_topic.py](../../examples/create_topic.py) does the first half with the
 client library.
 
 ```mermaid

@@ -265,10 +265,10 @@ og það sem verkefnin tvö samræma er í
 - [spec/SOURCES.md](../../spec/SOURCES.md): nákvæmar útgáfur forskriftanna
   sem þjónninn er prófaður gegn.
 
-Skjölunin er til á sjö tungumálum þessarar README-skrár: enska undir `docs/`,
-hin undir `docs/<tungumál>/`. Verkefnaskrárnar (samþykkt, yfirlit, samræming),
-arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru höfð
-á ensku.
+Skjölunin er til á sjö tungumálum þessarar README-skrár, hvert tungumál undir
+`docs/<tungumál>/`; enskan undir `docs/en/` er frumtextinn. Verkefnaskrárnar
+(samþykkt, samræming), uppköstin fyrir IfcOpenShell og CONTRIBUTING eru höfð á
+ensku.
 
 ### Frekari lestur
 

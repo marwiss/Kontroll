@@ -213,9 +213,9 @@ med Ctrl+C.
 
 ## Nästa steg
 
-- [docs/client-guide.md](client-guide.md) för API:erna,
+- [docs/sv/client-guide.md](client-guide.md) för API:erna,
   kapabilitetsdokumentet och felkoderna.
 - [docs/acceptance.md](../acceptance.md) för checklistorna paret testas med,
   och [docs/dataspatium-coordination.md](../dataspatium-coordination.md) för
   vad de två projekten samordnar.
-- [docs/deploy/](deploy/) när servern ska köras för andra.
+- [docs/sv/deploy/](deploy/) när servern ska köras för andra.

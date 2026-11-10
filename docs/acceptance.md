@@ -21,7 +21,7 @@ maintainers, and the project owner decides whether and how to send it.
 |---|---|
 | Browser clients on the same machine (Dataspatium, ifc-lite) | the development stack on `http://127.0.0.1:8000` |
 | Desktop clients on the same machine (Bonsai) | `http://127.0.0.1:8000` when the client accepts http; otherwise a tunnel |
-| Anything on another machine | a public https URL through a tunnel ([docs/deploy/tunnel.md](deploy/tunnel.md)) or a deployed server |
+| Anything on another machine | a public https URL through a tunnel ([docs/en/deploy/tunnel.md](en/deploy/tunnel.md)) or a deployed server |
 
 Start the development stack and load the demonstration data:
 
@@ -158,7 +158,7 @@ the address the server redirected to.
 |---|---|---|
 | C1 | *Inhämta* → add a database source → family "OpenCDE (BCF, Documents)" with the server URL and the client id | Dataspatium asks for consent to contact the host once; discovery lists foundation 1.0, bcf 3.0 and documents 1.0; the connector is created without a secret |
 | C2 | Sign in (popup) | The popup shows the server's sign-in page; after consent it closes by itself, the view shows the user name and the project picker with the user's projects |
-| C3 | Fetch topics, comments, components, events and files for *Building permit* | Five tables; the components table has one row per selected or coloured element with `ifc_guid`, `role` and `color`; the events table has one row per action; the files table shows the uploaded IFC, with its `ifc_project` when the IFC-graph module is enabled ([docs/ifc-lpg.md](ifc-lpg.md)) |
+| C3 | Fetch topics, comments, components, events and files for *Building permit* | Five tables; the components table has one row per selected or coloured element with `ifc_guid`, `role` and `color`; the events table has one row per action; the files table shows the uploaded IFC, with its `ifc_project` when the IFC-graph module is enabled ([docs/en/ifc-lpg.md](en/ifc-lpg.md)) |
 | C4 | Save the topics table as a dataset and refresh it later | The dataset records the source (connector, project, table); refreshing fetches again through the family and the row count follows the server |
 | C5 | "Hämta dokument" | A popup with the server's selection page; the chosen IFC is downloaded and imported as a model dataset; the element GUIDs match the `ifc_guid` column of the components table, so the two datasets can be joined in Dataspatium |
 | C6 | Cancel the selection page | Dataspatium reports the cancellation, no error |

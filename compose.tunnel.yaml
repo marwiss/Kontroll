@@ -6,7 +6,7 @@
 #      and copy the token into .env as TUNNEL_TOKEN. Set OPENCDE_PUBLIC_URL=https://<hostname>.
 #   2. docker compose -f compose.yaml -f compose.tunnel.yaml up -d
 #
-# See docs/deploy/tunnel.md (also for Tailscale Funnel and ngrok).
+# See docs/en/deploy/tunnel.md (also for Tailscale Funnel and ngrok).
 
 services:
   api:

@@ -64,7 +64,7 @@ uv run poe security              # ruff, bandit and pip-audit; CI adds gitleaks,
 
 The README, the documentation and the web pages exist in English, Swedish,
 Danish, Norwegian (Bokmål and Nynorsk), Finnish and Icelandic: the English
-pages under `docs/`, the translations under `docs/<lang>/`. English is the
+pages under `docs/en/`, the translations under `docs/<lang>/`. English is the
 source, and a change to a page is made in all seven languages in the same
 commit (`tests/unit/test_docs.py` checks that they keep up). The project logs
 (`acceptance.md`, `dataspatium-coordination.md`), the upstream drafts and
