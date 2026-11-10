@@ -135,9 +135,11 @@ def test_the_report_warns_of_what_no_global_id_reaches(ifc_client: tuple[TestCli
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
+    # A loose actor role is a node of its own; a loose point would be kept among the geometry in a block, which IFC-LPG
+    # does not list.
     head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)  # the end of the data section
-    data = head + b"#9001=IFCCARTESIANPOINT((9.,9.,9.));\r\n" + b"ENDSEC;" + tail
-    version = upload(client, world, editor, "loose_point.ifc", data)
+    data = head + b"#9001=IFCACTORROLE(.ARCHITECT.,$,$);\r\n" + b"ENDSEC;" + tail
+    version = upload(client, world, editor, "loose_role.ifc", data)
     checked(client, editor, version)
     report_url = f"http://testserver/documents/1.0/documents/{version['document_id']}/versions/1/ifc-validation"
     deadline = time.monotonic() + 240
@@ -151,7 +153,7 @@ def test_the_report_warns_of_what_no_global_id_reaches(ifc_client: tuple[TestCli
     loose = [issue for issue in body["issues"] if issue["kind"] == "reachability"]
     assert graph["state"] == "done" and graph["issue_count"] == len(loose) >= 1
     assert [issue["step_id"] for issue in loose] == [9001] and loose[0]["severity"] == "warning"
-    assert "IfcCartesianPoint" in loose[0]["message"] and loose[0]["global_id"] is None
+    assert "IfcActorRole" in loose[0]["message"] and loose[0]["global_id"] is None
     assert body["status"] == "warnings" and body["error_count"] == 0, "a warning refuses nothing"
     assert body["issue_count"] == len(body["issues"])
 

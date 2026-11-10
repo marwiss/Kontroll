@@ -32,8 +32,9 @@ def ifc_client(graph_target: GraphTarget, clean_database: None, tmp_path: Any) -
 
 
 def loose_model() -> bytes:
+    """The model with a loose actor role: a node, where a loose point would be kept among the geometry in a block."""
     head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)  # the end of the data section
-    return head + b"#9001=IFCCARTESIANPOINT((9.,9.,9.));\r\n" + b"ENDSEC;" + tail
+    return head + b"#9001=IFCACTORROLE(.ARCHITECT.,$,$);\r\n" + b"ENDSEC;" + tail
 
 
 def graph_check(client: TestClient, session: Session, document_id: str, version_index: int) -> dict[str, Any]:
