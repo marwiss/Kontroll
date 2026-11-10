@@ -46,6 +46,11 @@ sequenceDiagram
 * A project may refuse files with validation errors: the completion then
   answers `422 ifc_validation_failed` with the report's address, and
   `POST …/projects/{id}/ifc-precheck` checks a file without storing it.
+* A confidential client an administrator has approved for it (*May upload
+  documents without the browser page* on the client's page) uploads headless:
+  `project_id` in the request, with `title` and `version_number` per file,
+  skips the page, and the instructions are at `upload-sessions/{id}/instructions`
+  at once; every such upload is in the audit log. 403 for any other client.
 
 ## Selection and download
 

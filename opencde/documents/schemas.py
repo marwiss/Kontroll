@@ -20,6 +20,8 @@ MAX_NAME = 255
 MAX_ID = 128
 MAX_FILES = 100
 MAX_QUERY_IDS = 1000
+MAX_TITLE = 200
+MAX_VERSION_NUMBER = 50
 _HTTP_URL = re.compile(r"^https?://[^\s]+$", re.IGNORECASE)
 _EXTENSION = re.compile(r"^\.[A-Za-z0-9]{1,16}$")
 
@@ -140,6 +142,12 @@ class FileToUpload(DocumentsModel):
     file_name: str = Field(min_length=1, max_length=MAX_NAME)
     session_file_id: str = Field(min_length=1, max_length=MAX_ID)
     document_id: str | None = Field(None, min_length=1, max_length=MAX_ID)
+    title: str | None = Field(
+        None, min_length=1, max_length=MAX_TITLE, description="Extension, headless upload: the title."
+    )
+    version_number: str | None = Field(
+        None, min_length=1, max_length=MAX_VERSION_NUMBER, description="Extension, headless upload: the version number."
+    )
     base_version_index: int | None = Field(
         None,
         ge=1,
@@ -154,6 +162,13 @@ class UploadDocuments(DocumentsModel):
     callback: CallbackLink
     server_context: str | None = Field(None, max_length=MAX_ID)
     files: list[FileToUpload] = Field(min_length=1, max_length=MAX_FILES)
+    project_id: str | None = Field(
+        None,
+        max_length=MAX_ID,
+        description="Extension, headless upload: the project the files go to, so that the browser page is skipped. Only "
+        "for a confidential client an administrator approved for it; the answer's `upload_ui_url` is then not needed, "
+        "and the instructions are at `upload-sessions/{id}/instructions` (`upload_documents_url`).",
+    )
 
 
 class DocumentUploadSessionInitialization(DocumentsModel):

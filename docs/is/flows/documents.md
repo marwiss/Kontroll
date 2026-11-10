@@ -48,6 +48,12 @@ sequenceDiagram
 * Verkefni getur hafnað skrám með sannprófunarvillum: frágangurinn svarar þá
   `422 ifc_validation_failed` með heimilisfangi skýrslunnar, og
   `POST …/projects/{id}/ifc-precheck` prófar skrá án þess að vista hana.
+* Trúnaðarbiðlari sem kerfisstjóri hefur samþykkt til þess (*Má hlaða upp
+  skjölum án vafrasíðunnar* á síðu biðlarans) hleður upp án síðunnar:
+  `project_id` í beiðninni, með `title` og `version_number` á hverja skrá,
+  sleppir síðunni, og leiðbeiningarnar eru strax á
+  `upload-sessions/{id}/instructions`; hvert slíkt upphal er í
+  endurskoðunarskránni. 403 fyrir hvern annan biðlara.
 
 ## Val og niðurhal
 

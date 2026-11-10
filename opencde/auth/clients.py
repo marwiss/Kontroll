@@ -53,6 +53,7 @@ class Client:
     last_used_at: str | None = None  # the latest token issuance
     pending: bool = False  # self-registered and waiting for an administrator, disabled until then
     pkce_optional: bool = False  # a confidential client that may sign in without PKCE
+    headless_uploads: bool = False  # a confidential client that may upload documents without the browser page
 
     @property
     def is_confidential(self) -> bool:
@@ -77,12 +78,14 @@ def _client(row: dict[str, Any]) -> Client:
         last_used_at=row.get("last_used_at"),
         pending=bool(row.get("pending_approval", False)),
         pkce_optional=bool(row.get("pkce_optional", False)),
+        headless_uploads=bool(row.get("headless_uploads", False)),
     )
 
 
 FIELDS = (
     "c {.client_id, .name, .description, .url, .redirect_uris, .is_public, .disabled, .created_at, .created_by, "
-    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at, .pending_approval, .pkce_optional}"
+    ".dynamic, .expires_at, .software_id, .software_version, .last_used_at, .pending_approval, .pkce_optional, "
+    ".headless_uploads}"
 )
 
 
@@ -169,6 +172,7 @@ class ClientRepository:
         software_version: str | None = None,
         pending: bool = False,
         pkce_optional: bool = False,
+        headless_uploads: bool = False,
     ) -> tuple[Client, str | None]:
         """Create a client. Returns the client and, for confidential clients, the secret (shown once).
 
@@ -180,6 +184,8 @@ class ClientRepository:
             raise ClientError("client name: 1-200 characters", key="error.client.name_length", max=200)
         if pkce_optional and public:
             raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
+        if headless_uploads and public:
+            raise ClientError("a public client cannot upload headless", key="error.client.public_no_headless")
         if client_id is not None:
             if not is_uuid(client_id):
                 raise ClientError("client_id must be a UUID", key="error.client.id_uuid")
@@ -193,7 +199,7 @@ class ClientRepository:
                 disabled: $pending, pending_approval: $pending, created_at: $now, created_by: $created_by,
                 dynamic: $dynamic,
                 expires_at: $expires_at, software_id: $software_id, software_version: $software_version,
-                pkce_optional: $pkce_optional
+                pkce_optional: $pkce_optional, headless_uploads: $headless_uploads
             }})
             RETURN {FIELDS} AS client
             """,
@@ -212,6 +218,7 @@ class ClientRepository:
             software_version=(software_version or "").strip()[:50] or None,
             pending=pending,
             pkce_optional=pkce_optional,
+            headless_uploads=headless_uploads,
         )
         if row is None:  # CREATE always returns a row; this guards the type checker and a broken driver
             raise ClientError("client was not created", key="error.client.not_created")
@@ -264,9 +271,14 @@ class ClientRepository:
         redirect_uris: list[str] | None = None,
         disabled: bool | None = None,
         pkce_optional: bool | None = None,
+        headless_uploads: bool | None = None,
     ) -> Client:
-        if pkce_optional and (client := await self.get(client_id)) is not None and client.is_public:
-            raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
+        if pkce_optional or headless_uploads:
+            client = await self.get(client_id)
+            if client is not None and client.is_public:
+                if pkce_optional:
+                    raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
+                raise ClientError("a public client cannot upload headless", key="error.client.public_no_headless")
         row = await self.graph.one(
             f"""
             MATCH (c:Client {{client_id: $id}})
@@ -276,6 +288,7 @@ class ClientRepository:
                 c.redirect_uris = coalesce($redirect_uris, c.redirect_uris),
                 c.disabled = coalesce($disabled, c.disabled),
                 c.pkce_optional = coalesce($pkce_optional, c.pkce_optional),
+                c.headless_uploads = coalesce($headless_uploads, c.headless_uploads),
                 c.pending_approval = CASE WHEN $disabled = false THEN false ELSE c.pending_approval END
             RETURN {FIELDS} AS client
             """,
@@ -286,6 +299,7 @@ class ClientRepository:
             redirect_uris=self._clean_redirects(redirect_uris) if redirect_uris is not None else None,
             disabled=disabled,
             pkce_optional=pkce_optional,
+            headless_uploads=headless_uploads,
         )
         if row is None:
             raise ClientError("no such client", key="error.client.not_found")

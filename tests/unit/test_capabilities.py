@@ -29,6 +29,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_queries",
         "ifc_clash",
         "ifc_precheck",
+        "headless_uploads",
         "ifc_diff",
         "ifc_changes",
         "graph_query",

@@ -48,6 +48,11 @@ sequenceDiagram
 * Et projekt kan afvise filer med valideringsfejl: afslutningen svarer så
   `422 ifc_validation_failed` med rapportens adresse, og
   `POST …/projects/{id}/ifc-precheck` kontrollerer en fil uden at gemme den.
+* En konfidentiel klient, som en administrator har godkendt til det (*Må uploade
+  dokumenter uden websiden* på klientens side), uploader hovedløst: `project_id`
+  i anmodningen, med `title` og `version_number` pr. fil, springer siden over,
+  og instruktionerne er straks på `upload-sessions/{id}/instructions`; hver
+  sådan upload står i revisionsloggen. 403 for enhver anden klient.
 
 ## Valg og download
 

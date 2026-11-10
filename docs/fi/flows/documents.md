@@ -48,6 +48,12 @@ sequenceDiagram
 * Projekti voi hylätä tiedostot, joissa on validointivirheitä: viimeistely
   vastaa silloin `422 ifc_validation_failed` ja raportin osoitteen, ja
   `POST …/projects/{id}/ifc-precheck` tarkistaa tiedoston tallentamatta sitä.
+* Luottamuksellinen asiakas, jonka ylläpitäjä on hyväksynyt siihen (*Saa
+  lähettää dokumentteja ilman selainsivua* asiakkaan sivulla), lähettää ilman
+  sivua: `project_id` pyynnössä sekä `title` ja `version_number` tiedostoa
+  kohden ohittavat sivun, ja ohjeet ovat heti osoitteessa
+  `upload-sessions/{id}/instructions`; jokainen tällainen lähetys on
+  tarkastuslokissa. 403 kaikille muille asiakkaille.
 
 ## Valinta ja lataus
 

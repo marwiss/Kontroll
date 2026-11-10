@@ -109,6 +109,7 @@ def _client(client: Client) -> dict[str, Any]:
         "software_id": client.software_id,
         "software_version": client.software_version,
         "pkce_optional": client.pkce_optional,
+        "headless_uploads": client.headless_uploads,
     }
 
 
@@ -651,6 +652,9 @@ class ClientCreate(BaseModel):
     description: str | None = Field(None, max_length=MAX_DESCRIPTION)
     url: str | None = Field(None, max_length=2000)
     pkce_optional: bool = False
+    headless_uploads: bool = Field(
+        False, description="A confidential client that may upload documents without the browser page (OB-39)."
+    )
 
 
 class ClientUpdate(BaseModel):
@@ -660,6 +664,7 @@ class ClientUpdate(BaseModel):
     redirect_uris: list[str] | None = Field(None, max_length=10)
     disabled: bool | None = None
     pkce_optional: bool | None = None
+    headless_uploads: bool | None = None
 
 
 @router.post("/clients", status_code=201, summary="Administration (extension): register a client")
@@ -675,6 +680,7 @@ async def create_client(
             url=body.url,
             created_by=principal.user_id,
             pkce_optional=body.pkce_optional,
+            headless_uploads=body.headless_uploads,
         )
     except ClientError as exc:
         raise _bad_request(exc) from None
@@ -708,6 +714,7 @@ async def update_client(
             redirect_uris=body.redirect_uris,
             disabled=body.disabled,
             pkce_optional=body.pkce_optional,
+            headless_uploads=body.headless_uploads,
         )
     except ClientError as exc:
         raise _bad_request(exc) from None

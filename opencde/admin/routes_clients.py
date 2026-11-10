@@ -91,6 +91,7 @@ async def client_create(request: Request, admin: AdminDep, clients: ClientsDep, 
             url=text(data, "url", max_length=2000) or None,
             created_by=admin.user.id,
             pkce_optional=flag(data, "pkce_optional"),
+            headless_uploads=flag(data, "headless_uploads"),
         )
     except ClientError as exc:
         return render(
@@ -144,6 +145,7 @@ async def client_action(
                 redirect_uris=lines(data, "redirect_uris", max_items=10, max_length=2000),
                 disabled=disabled,
                 pkce_optional=flag(data, "pkce_optional"),
+                headless_uploads=flag(data, "headless_uploads"),
             )
             if disabled and not client.disabled:
                 await tokens.revoke_all_for_client(client.client_id)

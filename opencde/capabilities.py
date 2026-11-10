@@ -91,6 +91,11 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 if settings.ifcgraph_enabled and settings.ifcgraph_clash_enabled and settings.offers("documents")
                 else {"enabled": False}
             ),
+            "headless_uploads": {
+                "enabled": settings.offers("documents"),
+                "url": "/documents/1.0/upload-documents",
+                "for": "confidential clients an administrator approved",
+            },
             "ifc_diff": (
                 {
                     "enabled": True,

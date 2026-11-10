@@ -25,11 +25,12 @@ import anyio
 from fastapi import APIRouter, HTTPException, Path, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from opencde import audit
 from opencde.accounts.roles import project_actions
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.auth.tokens import Principal
 from opencde.bcf.binary import file_response, receive_upload
-from opencde.deps import SettingsDep, StorageDep, UsersDep
+from opencde.deps import ClientsDep, GraphDep, SettingsDep, StorageDep, UsersDep, client_ip
 from opencde.documents.assembly import AssemblyError, assemble
 from opencde.documents.links import api_base, part_ranges, precheck_url, validation_report_url
 from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata
@@ -56,6 +57,7 @@ from opencde.documents.sessions import (
     FILE_DONE,
     FILE_PARTS,
     STATE_CANCELLED,
+    STATE_METADATA,
     STATE_NEW,
     STATE_SELECTED,
     STATE_UPLOADING,
@@ -125,13 +127,25 @@ def _versions_payload(records: list[VersionRecord], base: str) -> list[DocumentV
     response_model_exclude_none=True,
 )
 async def upload_documents(
+    request: Request,
     principal: DocumentsPrincipal,
     body: UploadDocuments,
     sessions: UploadSessionsDep,
     documents: DocumentsDep,
     settings: SettingsDep,
+    users: UsersDep,
+    clients: ClientsDep,
+    graph: GraphDep,
 ) -> DocumentUploadSessionInitialization:
-    """The client names the files and its callback; the user continues in the browser at ``upload_ui_url``."""
+    """The client names the files and its callback; the user continues in the browser at ``upload_ui_url``.
+
+    With `project_id` (an extension) a confidential client an administrator approved for headless uploads names
+    the project and the titles itself: the page is skipped, the session is ready for the instructions, and the
+    upload is in the audit log. 403 for any other client.
+    """
+    headless = body.project_id is not None
+    if headless:
+        await _may_upload_headless(clients, users, principal, body)
     ids = [item.session_file_id for item in body.files]
     if len(set(ids)) != len(ids):
         raise HTTPException(400, "session_file_id values must be unique")
@@ -149,6 +163,12 @@ async def upload_documents(
             "version_index": None,
             "base_version_index": item.base_version_index,
         }
+        if headless:
+            entry.update(
+                title=item.title or item.file_name,
+                version_number=item.version_number or "1",
+                project_id=body.project_id,
+            )
         if item.base_version_index is not None and not item.document_id:
             raise HTTPException(400, f"base_version_index of '{item.session_file_id}' needs a document_id")
         if item.document_id:
@@ -162,8 +182,10 @@ async def upload_documents(
                 version_number=str(latest.version_index + 1),
                 project_id=latest.project_id,
             )
+            if headless and latest.project_id != body.project_id:
+                raise HTTPException(400, f"document_id of '{item.session_file_id}' belongs to another project")
         files.append(entry)
-    _, token = await sessions.create(
+    session_id, token = await sessions.create(
         user_id=principal.user_id,
         username=principal.username,
         callback_url=body.callback.url,
@@ -171,6 +193,16 @@ async def upload_documents(
         server_context=body.server_context,
         files=files,
     )
+    if headless:
+        await sessions.update(session_id, state=STATE_METADATA, project_id=body.project_id, files=files)
+        await audit.record(
+            graph,
+            "documents.headless_upload",
+            actor=principal.user_id,
+            client_id=principal.client_id,
+            ip=client_ip(request),
+            details={"project_id": body.project_id, "files": [item.file_name for item in body.files]},
+        )
     return DocumentUploadSessionInitialization(
         upload_ui_url=f"{api_base(settings)}/upload-ui/{token}",
         expires_in=settings.documents_session_ttl_seconds,
@@ -385,6 +417,17 @@ async def _complete(
             checked=checked,
         )
     return record.to_model(base)
+
+
+async def _may_upload_headless(clients: Any, users: Any, principal: Principal, body: UploadDocuments) -> None:
+    """Only a confidential client an administrator approved, for a member who may add documents (OB-39)."""
+    client = await clients.get(principal.client_id)
+    if client is None or client.is_public or not client.headless_uploads:
+        raise HTTPException(403, "This client may not upload without the browser page")
+    if not is_uuid(body.project_id or ""):
+        raise HTTPException(400, "project_id must be a UUID")
+    body.project_id = normalize_guid(body.project_id or "")
+    await _may_upload(users, principal.user_id, body.project_id)
 
 
 async def _project(documents: DocumentsDep, project_id: str) -> dict[str, Any]:

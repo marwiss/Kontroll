@@ -10,6 +10,10 @@ the commit history.
 
 ## Unreleased
 
+- Headless uploads: a confidential client an administrator approved for it (*May upload documents without the
+  browser page*, also `headless_uploads` in the administration API) names `project_id` and the titles in
+  `POST /documents/1.0/upload-documents` and goes straight to the instructions; every such upload is in the audit
+  log as `documents.headless_upload`. Announced as `headless_uploads` in the capabilities document.
 - The working copy: with `OPENCDE_WORKCOPY_GRAPH_URI` a second graph, Memgraph in memory, holds the head model of
   every document too, imported from the same records, and answers the named queries for it; the archive keeps
   every version. `docker/compose.workcopy.yaml` adds the Memgraph; `GET …/ifc-queries` says `workcopy`, `/readyz`

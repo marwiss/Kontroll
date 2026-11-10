@@ -24,6 +24,7 @@ from opencde.deps import ProjectsDep, SettingsDep, StorageDep, UsersDep
 from opencde.documents.assembly import store_stream
 from opencde.documents.links import api_base, with_query
 from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata
+from opencde.documents.schemas import MAX_TITLE, MAX_VERSION_NUMBER
 from opencde.documents.sessions import (
     STATE_CANCELLED,
     STATE_METADATA,
@@ -63,8 +64,6 @@ VersionIndex = Annotated[int, Path(alias="version_index", ge=1, le=1_000_000_000
 UPLOAD_PURPOSE = "documents-upload"
 SELECT_PURPOSE = "documents-select"
 BROWSER_UPLOAD_PURPOSE = "documents-browser-upload"
-MAX_TITLE = 200
-MAX_VERSION_NUMBER = 50
 ISSUES_SHOWN = 100  # errors against the IFC schema listed on a version's page; the report has them all
 
 # Browser uploads from the selection page are multipart bodies, streamed by the form parser.
