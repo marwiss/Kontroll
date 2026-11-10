@@ -142,8 +142,6 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   stjórnunin, biðlarasafnið, uppsetning í rekstur, IFC-LPG,
   samþykktargátlistinn og öryggisherðingin); framlagið til IfcOpenShell hefur
   ekki enn verið lagt fram (uppköst í [docs/upstream/](../upstream/)).
-  [docs/inventory.md](../inventory.md) sýnir hvað frumgerðin frá 2023 gerði og
-  hvar hver aðgerð stendur í nýja kóðanum.
 
 <img src="../images/signin.png" alt="Innskráningarsíðan sem biðlari opnar" width="240">
 <img src="../images/upload.png" alt="Upphleðslusíðan, þar sem notandinn gefur skránni titil og útgáfu" width="340">
@@ -249,18 +247,14 @@ og það sem verkefnin tvö samræma er í
 - [docs/is/flows/](flows/): runurit fyrir OAuth2-, Documents API- og BCF-sjónarhornsferlin.
 - [docs/is/graph-schema.md](graph-schema.md): graflíkanið.
 - [docs/is/ifc-lpg.md](ifc-lpg.md): valkvæða IFC-LPG-einingin og dæmi um Cypher-fyrirspurnir.
-- [docs/is/ui-styleguide.md](ui-styleguide.md): reglur um síður þjónsins og merkið.
 - [docs/acceptance.md](../acceptance.md): gátlisti fyrir sjónræna samþykkt
   með óháðum biðlurum (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvað
   Dataregium og Dataspatium eiga sameiginlegt og ákvarðanir eigandans.
-- [docs/inventory.md](../inventory.md): yfirlit yfir virkni frumgerðarinnar
-  frá 2023 og staða í endurskrifinu, með athugasemdum um sérkenni forskriftanna.
-- [docs/adr/](../adr/): arkitektúrákvarðanir (grafgagnagrunnur, ógegnsæir tókar,
-  flytjanlegt Cypher, vefviðmót án umgjarða, safnstefna).
-- [docs/is/security/](security/): ógnarlíkan, varnir tengdar prófunum,
-  OWASP ASVS stigs 2-gátlistinn, persónuupplýsingar og varðveisla, og hvernig
-  skannarnir eru keyrðir.
+- Arkitektúrákvarðanir sem standa: grafgagnagrunnur sem eina geymslan,
+  ógegnsæir tókar í stað JWT, flytjanlegt Cypher fyrir Neo4j og Memgraph,
+  vefviðmót án umgjarða, öryggisafrit á forritsstigi, BCF API 2.1 við hlið 3.0,
+  og þróun hér með framlagi til IfcOpenShell síðar.
 - [docs/upstream/](../upstream/): uppköst að máli og pull request fyrir
   IfcOpenShell (ekki send).
 - [spec/SOURCES.md](../../spec/SOURCES.md): nákvæmar útgáfur forskriftanna
@@ -299,9 +293,24 @@ arkitektúrákvarðanirnar, uppköstin fyrir IfcOpenShell og CONTRIBUTING eru h�
   endanotendur vinna í biðlara eins og Dataspatium eða Bonsai.
 - Síðurnar eru til á sjö tungumálum þessarar README-skrár (skiptu neðst á hverri
   síðu); skipanalínan og villuboð forritaskilanna eru á ensku.
-- Engin ytri úttekt enn. OAuch- og testssl-keyrslurnar í
-  [docs/is/security/pentest-howto.md](security/pentest-howto.md) eru skref
+- Engin ytri úttekt enn. OAuch- og testssl-keyrslurnar eru skref
   rekstraraðilans fyrir uppsetningu í rekstur.
+
+## Persónuupplýsingar
+
+Sá sem rekur Dataregium fyrir aðra er ábyrgðaraðili þessara gagna. Þjónninn
+geymir notendareikninga (notandanafn, nafn, valfrjálst netfang, tætigildi
+lykilorðs), verkefnisaðild, mál og athugasemdir með nöfnum höfunda, upphlaðnar
+skrár með þeim sem hlóð upp, IFC-grafið með eigendasögu skrárinnar og
+endurskoðunarskrá yfir hver gerði hvað og frá hvaða vistfangi. Lykilorð, tókar
+og leyndarmál eru aðeins geymd sem tætigildi. Tókar, setur, upphleðslusetur og
+ónotaðir sjálfskráðir biðlarar renna út og þjónninn hreinsar þá;
+rekstraraðilinn grisjar endurskoðunarskrána. Stjórnandi eyðir reikningi undir
+`/admin/users`, og setur hans og tókar fylgja með; nafnið stendur áfram á
+málunum sem viðkomandi skrifaði þar til þeim er eytt. Endurskoðunarskráin er
+flutt út sem CSV, BCF- og skjalagögn um forritaskilin og allur gagnagrunnurinn
+með `opencde backup`. Hvað Dataspatium geymir í vafranum stendur í skjölun
+forritsins sjálfs.
 
 ## Villur og tillögur
 

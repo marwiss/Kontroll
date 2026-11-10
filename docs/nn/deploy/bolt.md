@@ -80,8 +80,7 @@ dei offisielle drivarane koplar til med databasebrukaren og passordet.
 Fjern `compose.bolt.yaml` frå kommandolinja, tøm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og køyr `up -d` igjen. Porten
 forsvinn frå verten, og `bolt` går tilbake til `null` i kapabilitetsdokumentet.
-Roter databasepassordet etterpå om det vart delt breiare enn tenkt
-(`docs/nn/security/controls.md`).
+Roter databasepassordet etterpå om det vart delt breiare enn tenkt.
 
 ## Memgraph
 

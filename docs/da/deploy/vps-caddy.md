@@ -74,8 +74,7 @@ og OAuth2-klienter, dine programmer har brug for.
 - Behold `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false`, medmindre du har brug for
   selvbetjent klientregistrering (Foundation API 2.2.3); registrér klienter i
   `/admin`.
-- Rotér den hemmelige nøgle og databasekodeordet efter din politik
-  (`docs/da/security/controls.md`), genstart, og log ind igen.
+- Rotér den hemmelige nøgle og databasekodeordet efter din politik, genstart, og log ind igen.
 - Kør `testssl.sh https://cde.example.org`, og tjek
   <https://observatory.mozilla.org> efter den første start.
 - Firewall: tillad kun 22 (fra dine adresser), 80 og 443.

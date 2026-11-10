@@ -15,8 +15,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 LANGUAGES = ("sv", "da", "nb", "nn", "fi", "is")
 # Project logs, decisions and drafts are written for developers and stay in English.
-ENGLISH_ONLY_PAGES = {"acceptance.md", "inventory.md", "dataspatium-coordination.md"}
-ENGLISH_ONLY_FOLDERS = {"adr", "upstream", "examples", "images", "en", *LANGUAGES}
+ENGLISH_ONLY_PAGES = {"acceptance.md", "dataspatium-coordination.md"}
+ENGLISH_ONLY_FOLDERS = {"upstream", "examples", "images", "en", *LANGUAGES}
 
 FENCED = re.compile(r"^[ \t]*```.*?^[ \t]*```[ \t]*$", re.DOTALL | re.MULTILINE)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
@@ -66,7 +66,7 @@ def shape(text: str) -> dict[str, object]:
 
 def test_the_english_pages_are_found() -> None:
     pages = english_pages()
-    assert {"client-guide.md", "quickstart.md", "deploy/local.md", "security/controls.md"} <= set(pages)
+    assert {"client-guide.md", "quickstart.md", "deploy/local.md", "architecture.md"} <= set(pages)
     assert not ENGLISH_ONLY_PAGES & set(pages)
 
 

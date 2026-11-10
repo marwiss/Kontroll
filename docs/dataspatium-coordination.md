@@ -205,7 +205,7 @@ Documents API documents, so the server has no BCFzip export of its own.
 
 What the app keeps in the browser and what the server stores, and for how long,
 is described in two halves, cross-linked in each language:
-`docs/security/personal-data.md` here and `docs/sakerhet.md` there.
+the README's "Personal data" section here and `docs/sakerhet.md` there.
 
 ## The administration API
 
@@ -252,7 +252,7 @@ returned once). `docs/client-guide.md` §7 documents it and
 
 The owner decided on 2026-11-06 that a client that implements only 2.1 must be able to connect, and that Dataspatium
 and the Python client speak 2.1 too, so that it is tried from both ends. The
-reasoning is in [ADR 0008](adr/0008-bcf-api-2-1-next-to-3-0.md). This is what the server promises, everything under
+reasoning is in ADR 0008. This is what the server promises, everything under
 `/bcf/2.1` unless it says otherwise, and on the same data as 3.0.
 
 | What | What a client of 2.1 gets |

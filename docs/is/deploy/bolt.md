@@ -80,8 +80,7 @@ opinberu reklarnir tengjast með gagnagrunnsnotandanum og lykilorðinu.
 Fjarlægðu `compose.bolt.yaml` úr skipanalínunni, hreinsaðu
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` í `.env` og keyrðu `up -d` aftur. Gáttin
 hverfur af hýslinum og `bolt` verður aftur `null` í getuskjalinu. Skiptu um
-lykilorð gagnagrunnsins eftir á ef því var deilt víðar en ætlað var
-(`docs/is/security/controls.md`).
+lykilorð gagnagrunnsins eftir á ef því var deilt víðar en ætlað var.
 
 ## Memgraph
 

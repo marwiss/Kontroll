@@ -72,8 +72,7 @@ OAuth2 clients your applications need.
 - The API allows 600 requests a minute per address. Everyone behind one address shares them, so raise the limit for a large office, for example `OPENCDE_RATE_LIMIT_API=3000/minute`. The same goes for the 10 sign-in attempts a minute, `OPENCDE_RATE_LIMIT_SIGN_IN=60/minute`; the wait per user name stops guessing anyway.
 - Keep `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` unless you need self-service
   client registration (Foundation API 2.2.3); register clients in `/admin`.
-- Rotate the secret key and database password per your policy
-  (`docs/security/controls.md`), restart, and re-sign in.
+- Rotate the secret key and database password per your policy, restart, and re-sign in.
 - Run `testssl.sh https://cde.example.org` and check
   <https://observatory.mozilla.org> after the first start.
 - Firewall: allow 22 (from your addresses), 80 and 443 only.

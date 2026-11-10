@@ -142,8 +142,6 @@ databasepassord, og ingenting er ope før det er konfigurert.
   administrasjonen, klientbiblioteket, utrulling, IFC-LPG,
   akseptansesjekklista og tryggingsherdinga); bidraget til IfcOpenShell er
   enno ikkje føreslått (utkast i [docs/upstream/](../upstream/)).
-  [docs/inventory.md](../inventory.md) viser kva prototypen frå 2023 gjorde og
-  kvar kvar funksjon står i den nye koden.
 
 <img src="../images/signin.png" alt="Innloggingssida ein klient opnar" width="240">
 <img src="../images/upload.png" alt="Opplastingssida, der brukaren gjev fila tittel og versjon" width="340">
@@ -250,18 +248,14 @@ står i [docs/dataspatium-coordination.md](../dataspatium-coordination.md).
 - [docs/nn/flows/](flows/): sekvensdiagram for OAuth2-, Documents API- og BCF-viewpoint-flytane.
 - [docs/nn/graph-schema.md](graph-schema.md): grafmodellen.
 - [docs/nn/ifc-lpg.md](ifc-lpg.md): den valfrie IFC-LPG-modulen og døme på Cypher-spørjingar.
-- [docs/nn/ui-styleguide.md](ui-styleguide.md): reglar for sidene til serveren og merket.
 - [docs/acceptance.md](../acceptance.md): sjekkliste for visuell akseptanse
   med uavhengige klientar (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): kva
   Dataregium og Dataspatium deler, og avgjerdene til eigaren.
-- [docs/inventory.md](../inventory.md): funksjonsinventar over prototypen frå
-  2023 og status i omskrivinga, med merknader om særdrag i spesifikasjonane.
-- [docs/adr/](../adr/): arkitekturavgjerder (grafdatabase, opake tokens,
-  portabel Cypher, webgrensesnitt utan rammeverk, repostrategi).
-- [docs/nn/security/](security/): trugsmålsmodell, kontrollar knytte til
-  testar, OWASP ASVS nivå 2-sjekklista, personopplysningar og lagringstid, og
-  korleis skannarane blir køyrde.
+- Arkitekturavgjerder som ligg fast: grafdatabase som einaste lager, opake token
+  i staden for JWT, portabel Cypher for Neo4j og Memgraph, webgrensesnitt utan
+  rammeverk, tryggingskopi på applikasjonsnivå, BCF API 2.1 ved sida av 3.0, og
+  utvikling her med eit bidrag til IfcOpenShell seinare.
 - [docs/upstream/](../upstream/): utkast til sak og pull request for
   IfcOpenShell (ikkje sende).
 - [spec/SOURCES.md](../../spec/SOURCES.md): dei nøyaktige
@@ -300,9 +294,23 @@ haldne på engelsk.
   sluttbrukarar arbeider i ein klient som Dataspatium eller Bonsai.
 - Sidene finst på dei sju språka i denne README-fila (byt nedst på kvar side);
   kommandolinja og feilmeldingane frå API-ane er på engelsk.
-- Ingen ekstern revisjon enno. OAuch- og testssl-køyringane i
-  [docs/nn/security/pentest-howto.md](security/pentest-howto.md) er stega
+- Ingen ekstern revisjon enno. OAuch- og testssl-køyringane er stega
   operatøren tek før ei produksjonsutrulling.
+
+## Personopplysningar
+
+Den som driv Dataregium for andre, er behandlingsansvarleg for desse dataa.
+Serveren lagrar brukarkontoar (brukarnamn, namn, valfri e-post, passordhash),
+prosjektmedlemskap, saker og kommentarar med namna til forfattarane, opplasta
+filer med opplastar, IFC-grafen med eigarhistorikken til fila og ein
+revisjonslogg over kven som gjorde kva og frå kva adresse. Passord, token og
+løyndommar blir berre lagra som hashar. Token, økter, opplastingsøkter og
+ubrukte sjølvregistrerte klientar går ut og blir rydda av serveren;
+revisjonsloggen blir skoren ned av operatøren. Ein administrator slettar ein
+konto under `/admin/users`, og øktene og tokena følgjer med; namnet står att på
+sakene personen skreiv til dei blir sletta. Revisjonsloggen blir eksportert som
+CSV, BCF- og dokumentdata gjennom API-a og heile databasen med `opencde backup`.
+Kva Dataspatium lagrar i nettlesaren, står i dokumentasjonen til appen.
 
 ## Feil og framlegg
 

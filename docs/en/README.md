@@ -140,8 +140,6 @@ password, and nothing is open until it is configured.
   the administration, the client library, deployment, IFC-LPG, the acceptance
   checklist and the security hardening); the contribution to IfcOpenShell has
   not been proposed yet (drafts in [docs/upstream/](../upstream/)).
-  [docs/inventory.md](../inventory.md) records what the 2023 prototype did
-  and where each function stands in the new code.
 
 <img src="../images/signin.png" alt="The sign-in page a client opens" width="240">
 <img src="../images/upload.png" alt="The upload page, where the user gives the file a title and a version" width="340">
@@ -249,18 +247,14 @@ coordinate is in
 - [docs/flows/](../flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [docs/graph-schema.md](../graph-schema.md): the graph model.
 - [docs/ifc-lpg.md](../ifc-lpg.md): the optional IFC-LPG module and example Cypher queries.
-- [docs/ui-styleguide.md](../ui-styleguide.md): rules for the server's pages and the mark.
 - [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
   independent clients (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): what
   Dataregium and Dataspatium share, and the owner's decisions.
-- [docs/inventory.md](../inventory.md): functional inventory of the 2023
-  prototype and status in the rewrite, plus notes on specification quirks.
-- [docs/adr/](../adr/): architecture decision records (graph backend,
-  opaque tokens, portable Cypher, vanilla web UI, repository strategy).
-- [docs/security/](../security/): threat model, controls mapped to tests,
-  the OWASP ASVS Level 2 checklist, personal data and retention, and how to
-  run the scanners.
+- Architecture decisions that stand: a graph database as the only store, opaque
+  tokens instead of JWT, portable Cypher for Neo4j and Memgraph, a web UI without
+  frameworks, application-level backup, BCF API 2.1 beside 3.0, and development
+  here with a contribution to IfcOpenShell later.
 - [docs/upstream/](../upstream/): drafts of the issue and pull request for
   IfcOpenShell (not sent).
 - [spec/SOURCES.md](../../spec/SOURCES.md): the exact specification revisions the
@@ -268,8 +262,7 @@ coordinate is in
 
 The documentation exists in the seven languages of this README: English under
 `docs/`, the others under `docs/<language>/`. The project logs (acceptance,
-inventory, coordination), the architecture decisions, the upstream drafts and
-CONTRIBUTING are kept in English.
+coordination), the upstream drafts and CONTRIBUTING are kept in English.
 
 ### Further reading
 
@@ -299,9 +292,24 @@ CONTRIBUTING are kept in English.
   end users work in a client such as Dataspatium or Bonsai.
 - The pages exist in the seven languages of this README (switch at the foot of
   every page); the command line and the APIs' error messages are in English.
-- No external audit yet. The OAuch and testssl runs described in
-  [docs/security/pentest-howto.md](../security/pentest-howto.md) are the
-  operator's steps before a production deployment.
+- No external audit yet. The OAuch and testssl runs are the operator's
+  steps before a production deployment.
+
+## Personal data
+
+Whoever runs Dataregium for others is the controller of this data. The server
+stores user accounts (user name, full name, optional e-mail, password hash),
+project memberships, topics and comments with their authors' names, uploaded
+files with their uploader, the IFC graph with the file's owner history, and an
+audit log of who did what and from which address. Passwords, tokens and secrets
+are stored as hashes only. Tokens, sessions, upload sessions and unused
+self-registered clients expire and are cleaned by the server; the audit log is
+pruned by the operator. An administrator deletes an account under
+`/admin/users`, and its sessions and tokens go with it; the name stays on the
+topics the person wrote until they are deleted. The audit log exports as CSV,
+BCF and document data through the APIs, and the whole database with
+`opencde backup`. What Dataspatium keeps in the browser is in the app's own
+documentation.
 
 ## Bugs and suggestions
 

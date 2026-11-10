@@ -15,8 +15,8 @@ own.
 Replaces the 2023 prototype in `src/opencdeserver` with a new implementation
 of the buildingSMART OpenCDE APIs: Foundation API 1.0, BCF API 3.0 and 2.1, and
 Documents API 1.0, with a web administration UI and an optional IFC-graph
-module. Same purpose and functionality as the prototype (see
-`docs/inventory.md` for the function-by-function mapping), modern
+module. Same purpose and functionality as the prototype (mapped
+function by function in the maintainer's inventory), modern
 dependencies, specification conformance tests and security as the first
 requirement. Discussed in #<issue number>.
 
@@ -67,7 +67,8 @@ LGPL-3.0-or-later.
   `AGENTS.md` asks.
 - Behaviour follows the pinned specification revisions in `spec/SOURCES.md`;
   the places where the specification's README examples and JSON schemas
-  disagree are listed in `docs/inventory.md` §10 with the decision taken.
+  disagree are listed in `docs/dataspatium-coordination.md` ("Specification
+  quirks") with the decision taken.
 - No cosmetic changes outside `src/opencdeserver`.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

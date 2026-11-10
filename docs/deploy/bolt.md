@@ -82,7 +82,7 @@ Remove `compose.bolt.yaml` from the command line, clear
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` in `.env`, and run `up -d` again. The port
 disappears from the host and `bolt` goes back to `null` in the capabilities
 document. Rotate the database password afterwards if it was shared more
-widely than intended (`docs/security/controls.md`).
+widely than intended.
 
 ## Memgraph
 

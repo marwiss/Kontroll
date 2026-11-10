@@ -81,8 +81,7 @@ officielle drivere forbinder med databasebrugeren og kodeordet.
 Fjern `compose.bolt.yaml` fra kommandolinjen, ryd
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og kør `up -d` igen. Porten
 forsvinder fra værten, og `bolt` bliver igen `null` i kapabilitetsdokumentet.
-Rotér databasekodeordet bagefter, hvis det blev delt bredere end tiltænkt
-(`docs/da/security/controls.md`).
+Rotér databasekodeordet bagefter, hvis det blev delt bredere end tiltænkt.
 
 ## Memgraph
 
