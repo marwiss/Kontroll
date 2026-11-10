@@ -79,7 +79,8 @@ Value = Item | list[Item | list[Item]]
 
 
 class Change(_Strict):
-    """One attribute of one instance: set to a value, or an aggregate's member added or removed."""
+    """One attribute of one instance: set to a value, or an aggregate's member added or removed; or an instance that
+    only its STEP id names, deleted (IFC-LPG F13 a: what no GlobalId reaches)."""
 
     step_id: int | None = Field(
         None,
@@ -94,9 +95,15 @@ class Change(_Strict):
         description="From the rooted entity to the instance changed, in IFC's attribute names with indexes; absent "
         "when the rooted entity itself is changed.",
     )
-    attribute: str = Field(pattern=ATTRIBUTE, max_length=100, description="The attribute changed, by its IFC name.")
-    op: Literal["set", "add", "remove"] = Field(
-        description="`set` gives the attribute a value; `add` and `remove` change one member of an aggregate."
+    attribute: str | None = Field(
+        None,
+        pattern=ATTRIBUTE,
+        max_length=100,
+        description="The attribute changed, by its IFC name; none for `delete`.",
+    )
+    op: Literal["set", "add", "remove", "delete"] = Field(
+        description="`set` gives the attribute a value; `add` and `remove` change one member of an aggregate; "
+        "`delete` removes an instance named by its STEP id that nothing refers to."
     )
     index: int | None = Field(None, ge=0, description="The member added before, or removed; `add` appends without.")
     old: Value = Field(None, description="The value before, as the proposer saw it; checked when the change is tried.")
@@ -114,6 +121,14 @@ class Change(_Strict):
             raise ValueError("name the instance by step_id or by guid, not both and not neither")
         if self.path is not None and self.guid is None:
             raise ValueError("a path starts from a guid")
+        if self.op == "delete":
+            if self.step_id is None:
+                raise ValueError("delete names an instance by its step_id: one that no GlobalId reaches")
+            if self.attribute is not None or self.index is not None or self.new is not None or self.copy_:
+                raise ValueError("delete takes no attribute, index, new value or copy")
+            return self
+        if self.attribute is None:
+            raise ValueError("set, add and remove name the attribute they change")
         if self.op == "remove" and self.index is None and self.old is None:
             raise ValueError("remove names the member by index or by its old value")
         return self

@@ -60,7 +60,7 @@ def test_what_is_not_a_change_set_is_named_without_the_data() -> None:
     ]
     assert problems(change_set(changes=[{"step_id": 1, "attribute": "name", "op": "move"}])) == [
         "changes.0.attribute: String should match pattern '^[A-Z][A-Za-z0-9]*$'",
-        "changes.0.op: Input should be 'set', 'add' or 'remove'",
+        "changes.0.op: Input should be 'set', 'add', 'remove' or 'delete'",
     ]
     path_without_guid = change_set(changes=[{"step_id": 1, "path": "Items[0]", "attribute": "Name", "op": "set"}])
     assert problems(path_without_guid) == ["changes.0: Value error, a path starts from a guid"]
@@ -87,7 +87,7 @@ def test_the_schema_names_itself_and_holds_the_example() -> None:
     assert schema["properties"]["changes"]["maxItems"] == MAX_CHANGES
     change = schema["$defs"]["Change"]
     assert set(change["properties"]) == {"step_id", "guid", "path", "attribute", "op", "index", "old", "new", "copy"}
-    assert change["properties"]["op"]["enum"] == ["set", "add", "remove"]
+    assert change["properties"]["op"]["enum"] == ["set", "add", "remove", "delete"]
     assert json.loads(json.dumps(schema)) == schema, "plain JSON"
     assert all(
         "Reference" in ref
@@ -98,3 +98,12 @@ def test_the_schema_names_itself_and_holds_the_example() -> None:
         or "Provenance" in ref
         for ref in schema["$defs"]
     )
+
+
+def test_a_deletion_names_an_instance_by_its_step_id_and_nothing_else() -> None:
+    """IFC-LPG F13 a: what no GlobalId reaches is named by its STEP id alone, and a deletion changes no attribute."""
+    deleting = change_set(changes=[{"step_id": 9001, "op": "delete"}])
+    assert problems(deleting) == []
+    assert problems(change_set(changes=[{"guid": GUID, "op": "delete"}])), "a rooted entity is not deleted this way"
+    assert problems(change_set(changes=[{"step_id": 9001, "attribute": "Coordinates", "op": "delete"}]))
+    assert problems(change_set(changes=[{"step_id": 99, "op": "set", "new": "no attribute"}])), "set names one"

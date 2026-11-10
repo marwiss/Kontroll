@@ -460,6 +460,14 @@ the form.
 }
 ```
 
+`delete` removes an instance named by its STEP id that nothing refers to, such as one that no GlobalId reaches;
+an instance something still refers to is skipped and named in the trial. The server proposes such a change set
+itself with `POST /documents/1.0/projects/{id}/ifc-unreachable` and the version as `document_id` and
+`version_index`: it makes a topic whose snippet deletes every instance that the version's check `graph` finds out of
+reach, and the change set is tried and approved like any other, so the version it came from keeps the instances. The
+answer names the topic, how many instances it deletes and where the trial is; `404` when the version has no
+converted model, and `409` when nothing in it is out of reach.
+
 When the IFC-LPG module is on, the server tries every change set as it is
 uploaded: a worker applies the changes to the base version's file, the result
 goes through the checks an upload gets (the IFC schema, buildingSMART's rules

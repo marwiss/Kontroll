@@ -472,6 +472,14 @@ ehdotusta kokeiltaessa, seuraavassa vaiheessa; tänään palvelin pitää muodon
 }
 ```
 
+`delete` poistaa STEP-tunnisteellaan osoitetun instanssin, johon mikään ei viittaa, kuten sellaisen, jota mikään GlobalId
+ei tavoita; instanssi, johon jokin vielä viittaa, ohitetaan ja mainitaan kokeilussa. Palvelin ehdottaa itse tällaista
+muutosjoukkoa pyynnöllä `POST /documents/1.0/projects/{id}/ifc-unreachable`, jossa versio annetaan kenttinä
+`document_id` ja `version_index`: se luo asian, jonka snippet poistaa jokaisen instanssin, jonka version tarkistus
+`graph` löytää ulottumattomiin, ja muutosjoukko kokeillaan ja hyväksytään kuten muutkin, joten versio, josta se tuli,
+säilyttää instanssit. Vastaus nimeää asian, kuinka monta instanssia se poistaa ja missä kokeilu on; `404`, kun
+versiolla ei ole muunnettua mallia, ja `409`, kun mikään siinä ei ole ulottumattomissa.
+
 Kun IFC-LPG-moduuli on käytössä, palvelin kokeilee jokaista muutosjoukkoa sitä
 lähetettäessä: työprosessi soveltaa muutokset perustaversion tiedostoon, tulos
 käy läpi lähetyksen tarkistukset (IFC-skeema, buildingSMARTin säännöt ja

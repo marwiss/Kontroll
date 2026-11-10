@@ -464,6 +464,14 @@ når forslaget prøves, det neste steget; i dag holder serveren formen.
 }
 ```
 
+`delete` fjerner en instans som pekes ut med STEP-id-en sin, og som ingenting refererer til, som en som ingen GlobalId
+når; en instans som noe fortsatt refererer til, hoppes over og nevnes i prøvingen. Serveren foreslår selv et slikt
+endringssett med `POST /documents/1.0/projects/{id}/ifc-unreachable` og versjonen som `document_id` og
+`version_index`: den lager en sak der snippeten fjerner hver instans som versjonens kontroll `graph` finner utenfor
+rekkevidde, og endringssettet prøves og godkjennes som alle andre, slik at versjonen det kom fra, beholder
+instansene. Svaret navngir saken, hvor mange instanser det fjerner, og hvor prøvingen finnes; `404` når versjonen ikke
+har noen konvertert modell, og `409` når ingenting i den er utenfor rekkevidde.
+
 Når IFC-LPG-modulen er på, prøver serveren hvert endringssett når det lastes
 opp: en arbeider bruker endringene på basisversjonens fil, resultatet går
 gjennom kontrollene en opplasting får (IFC-skjemaet, buildingSMARTs regler og

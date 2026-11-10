@@ -400,6 +400,30 @@ class IfcGraphService:
         except Exception as exc:
             log.warning("ifcgraph_findings_failed", model_id=model_id, error=type(exc).__name__)
 
+    async def model_of_version(
+        self, *, user_id: str, project_id: str, document_id: str, version_index: int
+    ) -> dict[str, Any] | None:
+        """The converted model of a document version in a project the user is a member of, the latest when there are
+        several; its ``id`` and ``file_name``, or None."""
+        return await self.graph.one(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
+                  -[:HAS_MODEL]->(m:Model {document_id: $document_id, version_index: $version_index, state: $done})
+            RETURN m.id AS id, m.file_name AS file_name
+            ORDER BY m.created_at DESC LIMIT 1
+            """,
+            user_id=user_id,
+            project_id=project_id,
+            document_id=document_id,
+            version_index=version_index,
+            done=STATE_DONE,
+        )
+
+    async def unreached(self, model_id: str) -> list[dict[str, Any]]:
+        """The instances of a converted model that no GlobalId reaches, forward or backward, as ``{"step",
+        "ifc_class"}`` (IFC-LPG F13 a)."""
+        return await unreachable(self.graph, model_id)
+
     async def geometry(
         self, *, model_id: str, lod: str = "full", classes: tuple[str, ...] = (), storey: str | None = None
     ) -> tuple[Path, str] | None:

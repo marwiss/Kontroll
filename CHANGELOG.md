@@ -13,6 +13,10 @@ the commit history.
 - The report of a version gets the check `graph` once its model is converted: an instance that nothing with a
   GlobalId reaches is a warning of the kind `reachability`, with its STEP id, and a product whose shape the geometry
   pass could not build is an issue of the kind `geometry`. Neither refuses the file. IFC-LPG is pinned at 8177587.
+- A change set can delete an instance named by its STEP id that nothing refers to (the op `delete`); one that
+  something still refers to is skipped and named in the trial. `POST /documents/1.0/projects/{id}/ifc-unreachable`
+  makes the server propose such a change set for a version: a BCF topic that deletes every instance no GlobalId
+  reaches, tried and approved like any other.
 
 ## 3.0.0 — 2026-11-10
 

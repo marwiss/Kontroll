@@ -158,3 +158,20 @@ def test_the_worker_reads_what_the_changes_point_at_in_the_change_sets_form(tmp_
     assert values[4]["value"]["type"] == "IfcLabel" and values[4]["value"]["value"] == "3"
     assert "error" in values[5] and "error" in values[6]
     assert not (tmp_path / "out.ifc").exists(), "nothing is written"
+
+
+def test_an_instance_nothing_refers_to_is_deleted_and_one_still_referred_to_is_not(tmp_path: Path) -> None:
+    """IFC-LPG F13 a: what no GlobalId reaches can be deleted by its STEP id, never what something refers to."""
+    import ifcopenshell
+
+    head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)
+    base = tmp_path / "loose.ifc"
+    base.write_bytes(head + b"#9001=IFCCARTESIANPOINT((9.,9.,9.));\r\n" + b"ENDSEC;" + tail)
+    out = tmp_path / "out.ifc"
+    summary = apply_all(base, [{"step_id": 9001, "op": "delete"}, {"step_id": 196, "op": "delete"}], out)
+    assert summary["applied"] == 1 and summary["touched"] == [9001]
+    assert summary["problems"] == [{"change": 1, "error": "#196 is still referred to; remove what refers to it first"}]
+    model = ifcopenshell.open(str(out))
+    with pytest.raises(RuntimeError):
+        model.by_id(9001)
+    assert model.by_id(196).is_a("IfcCartesianPoint")

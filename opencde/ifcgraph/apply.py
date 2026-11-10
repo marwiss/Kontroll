@@ -13,7 +13,8 @@ for the conflicts of an approval.
 An instance is named by its STEP id, or by a GlobalId and a path from the rooted entity in IFC's attribute names with
 indexes, inverse attributes included. ``set`` gives an attribute a value, ``add`` and ``remove`` change one member of
 an aggregate, and ``copy`` changes a copy of the instance, re-pointed from the last forward step of the path, so
-that an instance several share stays as it was for the others.
+that an instance several share stays as it was for the others. ``delete`` removes an instance named by its STEP id,
+and only when nothing refers to it, so that no reference is left hanging.
 """
 
 from __future__ import annotations
@@ -149,6 +150,8 @@ def _copied(model: Any, entity: Any, last: tuple[Any, str, int | None] | None) -
 def apply_one(model: Any, change: dict[str, Any]) -> int:
     """Apply one change; returns the STEP id of the instance changed."""
     entity, last = _find(model, change)
+    if change["op"] == "delete":
+        return _delete(model, entity)
     attribute = str(change["attribute"])
     if attribute in _inverse_names(model, entity):
         raise CannotApply(f"{attribute} is an inverse attribute; change the relationship instead")
@@ -189,6 +192,16 @@ def apply_one(model: Any, change: dict[str, Any]) -> int:
     return int(entity.id())
 
 
+def _delete(model: Any, entity: Any) -> int:
+    """Remove an instance that nothing refers to; one that is still referred to is skipped, as IFC-LPG's
+    ``delete_nodes`` refuses it in the graph."""
+    step = int(entity.id())
+    if model.get_inverse(entity):
+        raise CannotApply(f"#{step} is still referred to; remove what refers to it first")
+    model.remove(entity)
+    return step
+
+
 def value_of(entity: Any, attribute: str) -> Any:
     """What an attribute holds, in the change set's value form: an enumeration as ``{"enum"}``, an instance with a
     GlobalId as ``{"guid"}`` and any other as ``{"step_id"}``, a typed value as ``{"type", "value"}``."""
@@ -221,6 +234,9 @@ def read_values(base: Path, changes: list[dict[str, Any]]) -> list[dict[str, Any
     for change in changes:
         try:
             entity, _ = _find(model, change)
+            if change.get("op") == "delete":  # what a deletion points at is the instance itself, while it is there
+                values.append({"value": {"step_id": int(entity.id())}})
+                continue
             values.append({"value": value_of(entity, str(change["attribute"]))})
         except CannotApply as exc:
             values.append({"error": str(exc)[:300]})

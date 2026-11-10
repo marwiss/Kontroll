@@ -457,6 +457,14 @@ reynd, næsta skref; í dag heldur þjónninn forminu.
 }
 ```
 
+`delete` fjarlægir tilvik sem bent er á með STEP-auðkenni sínu og ekkert vísar til, eins og tilvik sem ekkert GlobalId
+nær; tilvik sem eitthvað vísar enn til er sleppt og nefnt í prófuninni. Þjónninn leggur sjálfur til slíkt
+breytingasafn með `POST /documents/1.0/projects/{id}/ifc-unreachable` og útgáfunni sem `document_id` og
+`version_index`: hann býr til mál þar sem snippet fjarlægir hvert tilvik sem prófunin `graph` á útgáfunni finnur utan
+seilingar, og breytingasafnið er prófað og samþykkt eins og önnur, svo útgáfan sem það kom úr heldur tilvikunum.
+Svarið nefnir málið, hve mörg tilvik það fjarlægir og hvar prófunin er; `404` þegar útgáfan hefur ekkert umbreytt
+líkan, og `409` þegar ekkert í henni er utan seilingar.
+
 Þegar IFC-LPG-einingin er á reynir þjónninn hvert breytingasett þegar því er
 hlaðið upp: vinnsluferli beitir breytingunum á skrá grunnútgáfunnar,
 niðurstaðan fer í gegnum prófanirnar sem upphal fær (IFC-skemað, reglur
