@@ -26,6 +26,7 @@ is not tied to any one application.
 - [Dataregium and Dataspatium](#dataregium-and-dataspatium)
 - [Learn more](#learn-more)
 - [Limitations in brief](#limitations-in-brief)
+- [Personal data](#personal-data)
 - [Next in the 3 series](#next-in-the-3-series)
 - [Bugs and suggestions](#bugs-and-suggestions)
 - [Development](#development)
@@ -311,7 +312,7 @@ under `docs/<language>/`; English under `docs/en/` is the source. CONTRIBUTING i
 
 - [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) and [Documents API](https://github.com/buildingSMART/documents-API):
   the specifications the server follows.
-- [IFC](https://github.com/buildingSMART/IFC4.x-development): the file format for building models.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): the file format for building models, and [IDS](https://github.com/buildingSMART/IDS): requirement specifications that models are checked against.
 - [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): today's best practice for security in OAuth 2.0, and
   [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), the draft that gathers it.
 - [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (apps on a computer or phone) and

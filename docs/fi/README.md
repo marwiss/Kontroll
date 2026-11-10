@@ -27,6 +27,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 - [Dataregium ja Dataspatium](#dataregium-ja-dataspatium)
 - [Lue lisää](#lue-lisää)
 - [Rajoitukset lyhyesti](#rajoitukset-lyhyesti)
+- [Henkilötiedot](#henkilötiedot)
 - [Seuraavaksi 3-sarjassa](#seuraavaksi-3-sarjassa)
 - [Virheet ja ehdotukset](#virheet-ja-ehdotukset)
 - [Kehitys](#kehitys)
@@ -326,7 +327,7 @@ CONTRIBUTING on englanniksi.
 
 - [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) ja [Documents API](https://github.com/buildingSMART/documents-API):
   määrittelyt, joita palvelin noudattaa.
-- [IFC](https://github.com/buildingSMART/IFC4.x-development): rakennusmallien tiedostomuoto.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): rakennusmallien tiedostomuoto, ja [IDS](https://github.com/buildingSMART/IDS): vaatimusmäärittelyt, joita vasten malleja tarkistetaan.
 - [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): nykyiset parhaat käytännöt OAuth 2.0:n turvallisuudelle, ja
   [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), luonnos, joka kokoaa ne.
 - [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (sovellukset tietokoneessa tai puhelimessa) ja

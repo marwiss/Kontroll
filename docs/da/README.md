@@ -26,6 +26,7 @@ ikke er bundet til et bestemt program.
 - [Dataregium og Dataspatium](#dataregium-og-dataspatium)
 - [Lær mere](#lær-mere)
 - [Begrænsninger i korte træk](#begrænsninger-i-korte-træk)
+- [Personoplysninger](#personoplysninger)
 - [Det næste i 3-serien](#det-næste-i-3-serien)
 - [Fejl og forslag](#fejl-og-forslag)
 - [Udvikling](#udvikling)
@@ -312,7 +313,7 @@ Dokumentationen findes på denne READMEs syv sprog, hvert sprog under
 
 - [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) og [Documents API](https://github.com/buildingSMART/documents-API):
   specifikationerne, serveren følger.
-- [IFC](https://github.com/buildingSMART/IFC4.x-development): filformatet til bygningsmodeller.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): filformatet til bygningsmodeller, og [IDS](https://github.com/buildingSMART/IDS): kravspecifikationer, som modeller kontrolleres mod.
 - [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): dagens bedste praksis for sikkerhed i OAuth 2.0, og
   [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), udkastet, der samler den.
 - [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (apps på computer eller telefon) og

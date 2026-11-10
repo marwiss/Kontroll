@@ -26,6 +26,7 @@ bundinn við eitt tiltekið forrit.
 - [Dataregium og Dataspatium](#dataregium-og-dataspatium)
 - [Lærðu meira](#lærðu-meira)
 - [Takmarkanir í stuttu máli](#takmarkanir-í-stuttu-máli)
+- [Persónuupplýsingar](#persónuupplýsingar)
 - [Næst í 3-röðinni](#næst-í-3-röðinni)
 - [Villur og tillögur](#villur-og-tillögur)
 - [Þróun](#þróun)
@@ -309,7 +310,7 @@ Skjölunin er til á sjö tungumálum þessarar README-skrár, hvert tungumál u
 
 - [BCF API](https://github.com/buildingSMART/BCF-API), [Foundation API](https://github.com/buildingSMART/foundation-API) og [Documents API](https://github.com/buildingSMART/documents-API):
   forskriftirnar sem þjónninn fylgir.
-- [IFC](https://github.com/buildingSMART/IFC4.x-development): skráarsniðið fyrir byggingarlíkön.
+- [IFC](https://github.com/buildingSMART/IFC4.x-development): skráarsniðið fyrir byggingarlíkön, og [IDS](https://github.com/buildingSMART/IDS): kröfulýsingar sem líkön eru prófuð gegn.
 - [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700): bestu starfsvenjur nútímans um öryggi í OAuth 2.0, og
   [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/), drögin sem safna þeim saman.
 - [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) (PKCE), [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) (forrit í tölvu eða síma) og
