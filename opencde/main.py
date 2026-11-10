@@ -38,7 +38,7 @@ from opencde.documents import routes_queries as documents_queries
 from opencde.documents import routes_ui as documents_ui
 from opencde.documents import routes_unreachable as documents_unreachable
 from opencde.documents import routes_validation as documents_validation
-from opencde.errors import install_error_handlers
+from opencde.errors import install_error_handlers, install_openapi_errors
 from opencde.etag import ETagMiddleware
 from opencde.foundation import routes as foundation_routes
 from opencde.graph.cleanup import ExpiryCleaner
@@ -164,6 +164,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     )
 
     install_error_handlers(app)
+    install_openapi_errors(app)
     install_page_handlers(app)
     install_rate_limiting(
         app,

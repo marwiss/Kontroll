@@ -128,6 +128,43 @@ def _summarize_validation(exc: RequestValidationError) -> str:
     return "Invalid request. " + "; ".join(parts)
 
 
+ERROR_SCHEMA = {
+    "title": "Error",
+    "type": "object",
+    "description": "The OpenCDE error body (Foundation API), with the server's stable `code` beside the message.",
+    "properties": {"message": {"type": "string"}, "code": {"type": "string"}},
+    "required": ["message"],
+}
+
+
+def install_openapi_errors(app: FastAPI) -> None:
+    """The API document says what the server answers to a request it cannot read: ``400`` with the error body, where
+    FastAPI writes ``422`` with its own validation schema (F13 b, S-2)."""
+    original = app.openapi
+
+    def openapi() -> dict[str, Any]:
+        if app.openapi_schema:
+            return app.openapi_schema
+        schema = original()
+        invalid = {
+            "description": "Invalid request: a parameter or the body does not have the expected form",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}},
+        }
+        for item in schema.get("paths", {}).values():
+            for operation in item.values():
+                responses = operation.get("responses", {}) if isinstance(operation, dict) else {}
+                if "HTTPValidationError" in str(responses.get("422", "")):
+                    del responses["422"]
+                    responses.setdefault("400", invalid)
+        components = schema.setdefault("components", {}).setdefault("schemas", {})
+        for name in ("HTTPValidationError", "ValidationError"):
+            components.pop(name, None)
+        components["Error"] = ERROR_SCHEMA
+        return schema
+
+    app.openapi = openapi  # ty: ignore[invalid-assignment]  (FastAPI documents replacing it)
+
+
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(StarletteHTTPException)
     async def _http_exception(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
