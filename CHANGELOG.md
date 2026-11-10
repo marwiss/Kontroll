@@ -10,6 +10,10 @@ the commit history.
 
 ## 1.0.0 — 2026-11-10
 
+Released again on 2026-11-10 from the 2.0.0 of the same day, in step with Dataspatium 1.0.0; the release earlier
+that day is withdrawn. It now has the administration of a project by its managers, a production stack that starts
+without an e-mail address and the longer waits for Memgraph's storage, as 2.0.0 has.
+
 The 1 series: a document server for Dataspatium 1. It is the 2.0.0 code with `OPENCDE_APIS=["documents"]` set by the
 image, by `opencde init` and in `.env.example`, so a server offers the Foundation API and the Documents API only;
 `OPENCDE_APIS` in `.env` turns the BCF APIs on. A
