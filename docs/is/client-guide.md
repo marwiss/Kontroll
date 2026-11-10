@@ -55,6 +55,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve"},
+    "ifc_merge": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-merge", "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report", "choices": ["a", "b", "new"], "roles": ["manager"]},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -236,6 +237,9 @@ skrá, `.ifczip` fyrir IFC-skrá og `.zip` fyrir aðra skrá, og lýsigögn útg
 `published_by` og `publication`. Útgáfa er gefin út einu sinni, og ekki á meðan verið er að prófa hana eða eftir að
 prófunin fann villur. `GET …/publication` sýnir hverjum meðlimi hver gaf hana út og hvenær, og
 `…/publication/download` skilar þjöppuðu skránni.
+
+Bygging úr öðru líkani kemur inn í líkan verkefnisins sem næsta útgáfa þess með `ifc_merge`, fyrst með
+skýrslu og vali fyrir hvern hlut sem er ólíkur. Sjá [ifc-lpg.md](ifc-lpg.md#bygging-inn-í-annað-líkan).
 
 ## 5. Að tengja atvikaskrá þína við þjónsins
 

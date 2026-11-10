@@ -579,6 +579,38 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
  "mode": "intersection", "tolerance": 0.001}
 ```
 
+## En byggnad in i en annan modell
+
+En byggnad ur en modell kommer in i ett annat projekts modell som nästa version av
+dess dokument; de två modellerna ändras inte. Modell A är en version i det här
+projektet, modell B en version i vilket projekt som helst som anroparen är medlem i,
+och båda ska vara konverterade, med samma schema och längdenhet.
+`POST /documents/1.0/projects/{project_id}/ifc-merge/report` visar varje medlem av
+båda projekten vad som skulle hända: hur många objekt och instanser som följer med,
+objekten med ett GlobalId som båda har (`collisions`, med `same` och det `choice`
+som gäller), sambanden som lämnas utanför för att de bara pekar ut ur byggnaden, och
+A:s kontexter och placeringar som används. Där innehållet i ett sådant objekt
+skiljer sig görs ett val för det: `a` behåller A:s, `b` sätter B:s i dess ställe, och
+`new` behåller båda, B:s med ett nytt GlobalId; `default` ger ett val för alla.
+
+En `manager` i projektet startar sammanfogningen med `POST …/ifc-merge` och samma
+kropp. Den körs som ett jobb i konverteringskön, och svarets `url` ger dess
+tillstånd: `conflict` med objekten som ännu saknar val, `failed` med orsaken, eller
+`done` med `version_index`, den nya versionen av A:s dokument. Den sammanfogade
+modellen kontrolleras först mot A och B och får inte ha någon anmärkning som de
+saknar; sedan skrivs den ut som nästa version, med A:s version som förälder och
+`merged_from_document`, `merged_from_version` och `merged_building` i sin metadata,
+och konverteras och kontrolleras som en uppladdning. A:s version måste vara
+dokumentets senaste (annars 412 `version_conflict`). Kapabilitetsdokumentet
+annonserar den som `ifc_merge`.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-merge
+{"base": {"document_id": "…", "version_index": 3},
+ "other": {"project_id": "…", "document_id": "…", "version_index": 1},
+ "building": "3AMeTOOFsdVLZuNV0$27s5", "choices": {"1Xezbq735AdBO_4DerG66G": "b"}}
+```
+
 ## Arbetskopian
 
 Bredvid arkivet kan servern hålla en arbetskopia: en andra graf, Memgraph i

@@ -588,6 +588,38 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
  "mode": "intersection", "tolerance": 0.001}
 ```
 
+## Rakennus toiseen malliin
+
+Yhden mallin rakennus tulee toisen projektin malliin sen asiakirjan seuraavana
+versiona; kumpikaan malli ei muutu. Malli A on tämän projektin versio, malli B
+minkä tahansa sellaisen projektin versio, jonka jäsen kutsuja on, ja molempien on
+oltava muunnettuja, samalla skeemalla ja pituusyksiköllä.
+`POST /documents/1.0/projects/{project_id}/ifc-merge/report` kertoo kummankin
+projektin jäsenelle, mitä tapahtuisi: kuinka monta objektia ja instanssia tulee
+mukana, objektit, joilla on molemmissa sama GlobalId (`collisions`, kentillä `same`
+ja voimassa oleva `choice`), suhteet, jotka jätetään pois, koska ne osoittavat vain
+rakennuksen ulkopuolelle, sekä A:n kontekstit ja sijoitukset, joita käytetään. Kun
+tällaisen objektin sisältö eroaa, sille tehdään valinta: `a` pitää A:n objektin, `b`
+panee B:n objektin sen tilalle ja `new` pitää molemmat, B:n objektin uudella
+GlobalId:llä; `default` antaa yhden valinnan kaikille.
+
+Projektin `manager` käynnistää yhdistämisen kutsulla `POST …/ifc-merge` samalla
+rungolla. Se ajetaan työnä muunnosjonossa, ja vastauksen `url` antaa sen tilan:
+`conflict` objekteineen, joilta valinta vielä puuttuu, `failed` syineen tai `done`
+kentällä `version_index`, A:n asiakirjan uusi versio. Yhdistetty malli tarkistetaan
+ensin A:ta ja B:tä vasten, eikä siinä saa olla huomautusta, jota niissä ei ole; sitten
+se kirjoitetaan seuraavaksi versioksi, A:n versio vanhempanaan ja metatiedoissaan
+`merged_from_document`, `merged_from_version` ja `merged_building`, ja muunnetaan ja
+tarkistetaan kuten lähetys. A:n version on oltava asiakirjan uusin (muuten 412
+`version_conflict`). Kyvykkyysdokumentti ilmoittaa sen nimellä `ifc_merge`.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-merge
+{"base": {"document_id": "…", "version_index": 3},
+ "other": {"project_id": "…", "document_id": "…", "version_index": 1},
+ "building": "3AMeTOOFsdVLZuNV0$27s5", "choices": {"1Xezbq735AdBO_4DerG66G": "b"}}
+```
+
 ## Työkopio
 
 Arkiston rinnalla palvelin voi pitää työkopiota: toista graafia, Memgraphia

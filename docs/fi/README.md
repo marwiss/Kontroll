@@ -313,6 +313,9 @@ saman Dataspatium-version kanssa.
 - **Julkaisu**: `manager` julkaisee version, jonka tarkistus ei löytänyt virheitä, ja
   palvelin tallentaa sen yhtenä kokonaisena `.ifczip`-tiedostona, jonka kaikki projektissa
   voivat ladata.
+- **Rakennus toiseen malliin**: yhden mallin rakennus tulee toisen projektin malliin
+  sen seuraavana versiona, ensin raportti siitä, mitä tulee mukana, ja valinta
+  jokaiselle objektille, joka molemmilla on eri muodossa; sen tekee `manager`.
 - **Geometria glTF:nä**: jokainen versio binäärisenä glTF:nä jaetuin meshein ja yksi
   solmu rakennusosaa kohti, sekä laatikko rakennusosaa kohti graafissa läheisyyttä
   koskevia kysymyksiä varten.

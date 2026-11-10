@@ -302,6 +302,9 @@ version of Dataspatium.
   the latest version and of the proposal.
 - **Publishing**: a `manager` publishes a version whose check found no errors, and the
   server keeps it as one whole `.ifczip` that everyone in the project can download.
+- **A building into another model**: the building of one model comes into another
+  project's model as its next version, with a report first of what comes along and
+  a choice for each object both have in different forms; a `manager` makes it.
 - **The geometry as glTF**: every version as binary glTF with shared meshes and one
   node per building element, and a box per building element in the graph for
   questions about what is near.

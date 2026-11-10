@@ -54,6 +54,7 @@ of probing:
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve"},
+    "ifc_merge": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-merge", "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report", "choices": ["a", "b", "new"], "roles": ["manager"]},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -230,6 +231,9 @@ archive, `.ifczip` for an IFC file and `.zip` for another, and the version's met
 `published_by` and `publication`. A version is published once, and not while it is being checked or after the check
 found errors. `GET …/publication` tells every member who published it and when, and `…/publication/download` gives
 the archive.
+
+A building of another model comes into a model of the project as its next version with `ifc_merge`, with a
+report first and a choice for each object that differs. See [ifc-lpg.md](ifc-lpg.md#a-building-into-another-model).
 
 ## 5. Correlating your log with the server's
 

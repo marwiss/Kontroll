@@ -572,6 +572,39 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
  "mode": "intersection", "tolerance": 0.001}
 ```
 
+## A building into another model
+
+A building of one model comes into another project's model as the next version of
+its document; the two models do not change. Model A is a version of this project,
+model B a version of any project the caller is a member of, and both must be
+converted, with the same schema and length unit.
+`POST /documents/1.0/projects/{project_id}/ifc-merge/report` tells any member of
+both projects what would happen: how many objects and instances come along, the
+objects with a GlobalId that both have (`collisions`, with `same` and the `choice`
+that holds), the relationships left out because they point outside the building
+alone, and the contexts and placements of A that are used. Where the content of such
+an object differs, a choice is made for it: `a` keeps A's, `b` puts B's in its
+place, and `new` keeps both, B's with a new GlobalId; `default` gives one choice for
+all of them.
+
+A `manager` of the project starts the merge with `POST …/ifc-merge` and the same
+body. It runs as a job in the conversion queue, and the answer's `url` gives its
+state: `conflict` with the objects that still lack a choice, `failed` with the
+reason, or `done` with `version_index`, the new version of A's document. The merged
+model is first checked against A and B and may have no issue that they lack; then it
+is written out as the next version, with A's version as its parent and
+`merged_from_document`, `merged_from_version` and `merged_building` in its metadata,
+and converted and checked as an upload is. A's version must be the document's
+latest (412 `version_conflict` otherwise). The capabilities document announces it as
+`ifc_merge`.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-merge
+{"base": {"document_id": "…", "version_index": 3},
+ "other": {"project_id": "…", "document_id": "…", "version_index": 1},
+ "building": "3AMeTOOFsdVLZuNV0$27s5", "choices": {"1Xezbq735AdBO_4DerG66G": "b"}}
+```
+
 ## The working copy
 
 Beside the archive, the server can keep a working copy: a second graph,

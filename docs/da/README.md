@@ -301,6 +301,9 @@ med den samme version af Dataspatium.
   versions og forslagets værdi.
 - **Publicering**: en `manager` publicerer en version, hvis kontrol ikke fandt fejl, og
   serveren gemmer den som én hel `.ifczip`, som alle i projektet kan downloade.
+- **En bygning ind i en anden model**: bygningen fra én model kommer ind i et andet
+  projekts model som dens næste version, med en rapport først om, hvad der følger med,
+  og et valg for hvert objekt, som begge har i forskellig form; en `manager` gør det.
 - **Geometrien som glTF**: hver version som binær glTF med delte meshes og en node
   pr. bygningsdel, og en kasse pr. bygningsdel i grafen til spørgsmål om, hvad der er nær.
 - **En lokal motor og din egen region**: Dataregium på din egen computer bag

@@ -570,6 +570,37 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
  "mode": "intersection", "tolerance": 0.001}
 ```
 
+## Bygging inn í annað líkan
+
+Bygging úr einu líkani kemur inn í líkan annars verkefnis sem næsta útgáfa skjals
+þess; hvorugt líkanið breytist. Líkan A er útgáfa í þessu verkefni, líkan B útgáfa í
+hvaða verkefni sem er sem kallandinn er meðlimur í, og bæði verða að vera umbreytt,
+með sama skema og lengdareiningu.
+`POST /documents/1.0/projects/{project_id}/ifc-merge/report` sýnir hverjum meðlimi
+beggja verkefna hvað myndi gerast: hve margir hlutir og tilvik fylgja með, hlutirnir
+með GlobalId sem bæði hafa (`collisions`, með `same` og því `choice` sem gildir),
+venslin sem eru skilin eftir af því að þau vísa aðeins út úr byggingunni, og
+samhengi og staðsetningar A sem eru notuð. Þar sem innihald slíks hlutar er ólíkt er
+valið fyrir hann: `a` heldur hlut A, `b` setur hlut B í hans stað, og `new` heldur
+báðum, hlut B með nýtt GlobalId; `default` gefur eitt val fyrir þá alla.
+
+`manager` verkefnisins ræsir sameininguna með `POST …/ifc-merge` og sama meginmáli.
+Hún keyrir sem verk í umbreytingarbiðröðinni, og `url` svarsins gefur stöðu hennar:
+`conflict` með hlutunum sem enn vantar val, `failed` með ástæðunni, eða `done` með
+`version_index`, nýju útgáfunni af skjali A. Sameinaða líkanið er fyrst prófað
+gagnvart A og B og má ekki hafa neina athugasemd sem þau hafa ekki; síðan er það
+skrifað út sem næsta útgáfa, með útgáfu A sem foreldri og `merged_from_document`,
+`merged_from_version` og `merged_building` í lýsigögnum sínum, og umbreytt og prófað
+eins og upphal. Útgáfa A verður að vera nýjasta útgáfa skjalsins (annars 412
+`version_conflict`). Getuskjalið tilkynnir hana sem `ifc_merge`.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-merge
+{"base": {"document_id": "…", "version_index": 3},
+ "other": {"project_id": "…", "document_id": "…", "version_index": 1},
+ "building": "3AMeTOOFsdVLZuNV0$27s5", "choices": {"1Xezbq735AdBO_4DerG66G": "b"}}
+```
+
 ## Vinnueintakið
 
 Við hlið safnsins getur þjónninn haldið vinnueintaki: öðru grafi, Memgraph í

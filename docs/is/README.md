@@ -296,6 +296,9 @@ Orðin sem þessi README notar, á daglegu máli; allur orðalistinn er í
   nýjustu útgáfunnar og tillögunnar.
 - **Að gefa út**: `manager` gefur út útgáfu þar sem prófunin fann engar villur, og
   þjónninn geymir hana sem eina heila `.ifczip`-skrá sem allir í verkefninu geta halað niður.
+- **Bygging inn í annað líkan**: bygging úr einu líkani kemur inn í líkan annars
+  verkefnis sem næsta útgáfa þess, fyrst með skýrslu um hvað fylgir með og vali fyrir
+  hvern hlut sem bæði hafa í ólíkri mynd; `manager` gerir það.
 - **Rúmfræðin sem glTF**: hver útgáfa sem tvíundar-glTF með samnýttum möskvum og einum
   hnút á hvern byggingarhluta, og kassi á hvern byggingarhluta í netinu fyrir
   spurningar um hvað er nálægt.

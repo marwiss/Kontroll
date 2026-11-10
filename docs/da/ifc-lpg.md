@@ -576,6 +576,38 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
  "mode": "intersection", "tolerance": 0.001}
 ```
 
+## En bygning ind i en anden model
+
+En bygning fra én model kommer ind i et andet projekts model som den næste version
+af dets dokument; de to modeller ændres ikke. Model A er en version i dette projekt,
+model B en version i et hvilket som helst projekt, som kalderen er medlem af, og
+begge skal være konverteret, med samme skema og længdeenhed.
+`POST /documents/1.0/projects/{project_id}/ifc-merge/report` viser ethvert medlem af
+begge projekter, hvad der ville ske: hvor mange objekter og instanser der følger med,
+objekterne med et GlobalId, som begge har (`collisions`, med `same` og det `choice`,
+der gælder), de relationer, der udelades, fordi de kun peger ud af bygningen, og A's
+kontekster og placeringer, der bruges. Hvor indholdet af et sådant objekt er
+forskelligt, træffes et valg for det: `a` beholder A's, `b` sætter B's i stedet, og
+`new` beholder begge, B's med et nyt GlobalId; `default` giver ét valg for dem alle.
+
+En `manager` i projektet starter sammenfletningen med `POST …/ifc-merge` og samme
+krop. Den kører som et job i konverteringskøen, og svarets `url` giver dens tilstand:
+`conflict` med de objekter, der stadig mangler et valg, `failed` med årsagen, eller
+`done` med `version_index`, den nye version af A's dokument. Den sammenflettede model
+kontrolleres først mod A og B og må ikke have nogen anmærkning, som de ikke har;
+derefter skrives den ud som den næste version, med A's version som forælder og
+`merged_from_document`, `merged_from_version` og `merged_building` i sine metadata,
+og konverteres og kontrolleres som en upload. A's version skal være dokumentets
+seneste (ellers 412 `version_conflict`). Kapabilitetsdokumentet annoncerer den som
+`ifc_merge`.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-merge
+{"base": {"document_id": "…", "version_index": 3},
+ "other": {"project_id": "…", "document_id": "…", "version_index": 1},
+ "building": "3AMeTOOFsdVLZuNV0$27s5", "choices": {"1Xezbq735AdBO_4DerG66G": "b"}}
+```
+
 ## Arbejdskopien
 
 Ved siden af arkivet kan serveren holde en arbejdskopi: en anden graf,
