@@ -148,8 +148,7 @@ mikään ole auki ennen kuin se on määritetty.
 - **Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
   rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-LPG,
   hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
-  IfcOpenShelliin ei ole vielä ehdotettu (luonnokset kansiossa
-  [docs/upstream/](../upstream/)
+  IfcOpenShelliin ei ole vielä ehdotettu.
 
 <img src="../images/signin.png" alt="Kirjautumissivu, jonka asiakas avaa" width="240">
 <img src="../images/upload.png" alt="Lataussivu, jolla käyttäjä antaa tiedostolle otsikon ja version" width="340">
@@ -184,7 +183,7 @@ niitä, ei huomaa niitä. Asiakas tarvitsee kolme asiaa:
 Näin pitkälle tämä on osoitettu: palvelimen vastaukset testataan buildingSMARTin skeemoja
 vasten jokaisella pushilla, ja Dataspatium ja Python-kirjasto kansiossa [client/](../../client/)
 ajetaan palvelinta vasten. Riippumattomille asiakkaille, kuten Bonsaille ja ifc-litelle, on
-valmis tarkistuslista tiedostossa [docs/acceptance.md](../acceptance.md), mutta sitä ei ole vielä
+valmis tarkistuslista, mutta sitä ei ole vielä
 ajettu. Jos kokeilet jotakin asiakasta, kerro, miten kävi, kohdassa
 [Virheet ja ehdotukset](#virheet-ja-ehdotukset). Kun asiakas ja määrittely ovat ristiriidassa, määrittely ratkaisee.
 [docs/fi/client-guide.md](client-guide.md) on tarkoitettu asiakkaan rakentajille.
@@ -243,10 +242,7 @@ asiakas ei voisi käyttää, katso [OpenCDE-rajapinnat ja niiden asiakkaat](#ope
 Dataspatiumia mukaansa (lisenssit eroavat, AGPL täällä ja PolyForm Strict
 siellä), ja Dataspatiumin README kertoo, miten sovellus ladataan.
 Asiakaspuoli kuvataan Dataspatiumin README-tiedostossa ja sen
-dokumentaatiossa; parin hyväksymisajot ovat täällä tiedostossa
-[docs/acceptance.md](../acceptance.md), ja se, mitä kaksi projektia
-sovittavat yhteen, on tiedostossa
-[docs/dataspatium-coordination.md](../dataspatium-coordination.md).
+dokumentaatiossa.
 
 ## Lue lisää
 
@@ -260,24 +256,17 @@ sovittavat yhteen, on tiedostossa
 - [docs/fi/flows/](flows/): OAuth2-, Documents API- ja BCF-näkymäkulkujen sekvenssikaaviot.
 - [docs/fi/graph-schema.md](graph-schema.md): graafimalli.
 - [docs/fi/ifc-lpg.md](ifc-lpg.md): valinnainen IFC-LPG-moduuli ja esimerkkejä Cypher-kyselyistä.
-- [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
-  tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
-- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
-  Dataregium ja Dataspatium jakavat sekä omistajan päätökset.
 - Arkkitehtuuripäätökset, jotka pysyvät: graafitietokanta ainoana
   tallennuspaikkana, läpinäkymättömät tokenit JWT:n sijaan, siirrettävä Cypher
   Neo4j:lle ja Memgraphille, kehyksetön selainkäyttöliittymä, varmuuskopiointi
   sovellustasolla, BCF API 2.1 version 3.0 rinnalla sekä kehitys täällä ja
   myöhemmin osallistuminen IfcOpenShelliin.
-- [docs/upstream/](../upstream/): luonnokset IfcOpenShellin issueksi ja pull
-  requestiksi (ei lähetetty).
 - [spec/SOURCES.md](../../spec/SOURCES.md): tarkat spesifikaatioversiot,
   joita vastaan palvelin testataan.
 
 Dokumentaatio on tämän README-tiedoston seitsemällä kielellä, kukin kieli
 hakemistossa `docs/<kieli>/`; englanti hakemistossa `docs/en/` on lähde.
-Projektilokit (hyväksyntä, yhteensovitus), IfcOpenShell-luonnokset ja
-CONTRIBUTING pidetään englanniksi.
+CONTRIBUTING on englanniksi.
 
 ### Lisälukemista
 

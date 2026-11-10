@@ -139,7 +139,7 @@ password, and nothing is open until it is configured.
 - **Status**: all eleven stages of the plan are implemented (the three APIs,
   the administration, the client library, deployment, IFC-LPG, the acceptance
   checklist and the security hardening); the contribution to IfcOpenShell has
-  not been proposed yet (drafts in [docs/upstream/](../upstream/)).
+  not been proposed yet.
 
 <img src="../images/signin.png" alt="The sign-in page a client opens" width="240">
 <img src="../images/upload.png" alt="The upload page, where the user gives the file a title and a version" width="340">
@@ -173,7 +173,7 @@ know them does not notice them. A client needs three things:
 How far this has been shown: the server's answers are tested against buildingSMART's
 schemas on every push, and Dataspatium and the Python library in [client/](../../client/) run
 against the server. Independent clients such as Bonsai and ifc-lite have a prepared
-checklist in [docs/acceptance.md](../acceptance.md) that has not been run yet. If you try a
+checklist that has not been run yet. If you try a
 client, tell us how it went under [Bugs and suggestions](#bugs-and-suggestions). When a client and a
 specification disagree, the specification decides. [docs/en/client-guide.md](client-guide.md) is for those
 who build a client.
@@ -230,10 +230,7 @@ cannot use, see [The OpenCDE APIs and their clients](#the-opencde-apis-and-their
 separately: this repository does not bundle Dataspatium (the licences differ,
 AGPL here and PolyForm Strict there), and Dataspatium's README says how to
 download it. The client side is described in Dataspatium's README and its
-documentation; the acceptance runs of the pair are in
-[docs/acceptance.md](../acceptance.md) here, and what the two projects
-coordinate is in
-[docs/dataspatium-coordination.md](../dataspatium-coordination.md).
+documentation.
 
 ## Learn more
 
@@ -247,23 +244,15 @@ coordinate is in
 - [docs/en/flows/](flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [docs/en/graph-schema.md](graph-schema.md): the graph model.
 - [docs/en/ifc-lpg.md](ifc-lpg.md): the optional IFC-LPG module and example Cypher queries.
-- [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
-  independent clients (Bonsai, ifc-lite, Dataspatium).
-- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): what
-  Dataregium and Dataspatium share, and the owner's decisions.
 - Architecture decisions that stand: a graph database as the only store, opaque
   tokens instead of JWT, portable Cypher for Neo4j and Memgraph, a web UI without
   frameworks, application-level backup, BCF API 2.1 beside 3.0, and development
   here with a contribution to IfcOpenShell later.
-- [docs/upstream/](../upstream/): drafts of the issue and pull request for
-  IfcOpenShell (not sent).
 - [spec/SOURCES.md](../../spec/SOURCES.md): the exact specification revisions the
   server is tested against.
 
 The documentation exists in the seven languages of this README, each language
-under `docs/<language>/`; English under `docs/en/` is the source. The project
-logs (acceptance, coordination), the upstream drafts and CONTRIBUTING are kept
-in English.
+under `docs/<language>/`; English under `docs/en/` is the source. CONTRIBUTING is in English.
 
 ### Further reading
 

@@ -350,7 +350,7 @@ med udsagnets første 500 tegn, aldrig parametrene.
 udvikles sammen med denne server; dens OpenCDE-kilde (login, BCF-tabeller,
 Documents API, grafforespørgsler, request-id'er) er et gennemarbejdet
 eksempel på alt ovenstående, og dens live-testsuiter kører mod
-udviklingsstakken (se [acceptance.md](../acceptance.md)).
+udviklingsstakken.
 
 - `uv run opencde seed` fylder en tom database med demobrugere og projekter
   (kodeordene udskrives én gang), eksempelmodellen `three_walls_gtin.ifc`

@@ -75,8 +75,7 @@ sequenceDiagram
 flytene fra nettleseren (`src/api/families/opencde.js`): den åpner serverens
 utvalgsside i et popup-vindu og importerer de valgte filene, og laster opp
 datasett, filer og arbeidsområdepakker i deler med serverens opplastingsside
-for metadata; live-suitene dets kjører disse flytene mot utviklingsstakken
-([acceptance.md](../../acceptance.md)).
+for metadata; live-suitene dets kjører disse flytene mot utviklingsstakken.
 
 ## Hvem får gjøre hva
 

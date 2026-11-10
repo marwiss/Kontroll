@@ -354,7 +354,7 @@ Kvart kall, avvist eller ikkje, legg att ei revisjonshending
 som blir utvikla saman med denne serveren; OpenCDE-kjelda der (innlogging,
 BCF-tabellar, Documents API, grafspørjingar, request-id-ar) er eit
 gjennomarbeidd døme på alt ovanfor, og live-testsuitene køyrer mot
-utviklingsstakken (sjå [acceptance.md](../acceptance.md)).
+utviklingsstakken.
 
 - `uv run opencde seed` fyller ein tom database med demobrukarar og prosjekt
   (passorda blir skrivne ut éin gong), dømemodellen `three_walls_gtin.ifc`

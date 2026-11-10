@@ -82,8 +82,7 @@ uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.
 Kun `.env`-tiedostossa on `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, sovellus
 rekisteröi itsensä. CORS sallii oletuksena kaikki alkuperät, joten muita
 asetuksia ei tarvita; `OPENCDE_REQUEST_LOG_ENABLED=true` antaa
-`/admin/requests`-sivun näyttää sovelluksen kutsujen palvelinpuolen. Koko
-tarkistuslista on [docs/acceptance.md](../../acceptance.md), osa C.
+`/admin/requests`-sivun näyttää sovelluksen kutsujen palvelinpuolen.
 [Pika-aloituksessa](../quickstart.md) on kaikki vaiheet ja vianmääritystaulukko.
 
 ## Puhtaalta pöydältä

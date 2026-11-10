@@ -214,7 +214,4 @@ Ctrl+C.
 
 - [docs/en/client-guide.md](client-guide.md) for the APIs, the capabilities
   document and the error codes.
-- [docs/acceptance.md](../acceptance.md) for the checklists the pair is tested
-  with, and [docs/dataspatium-coordination.md](../dataspatium-coordination.md)
-  for what the two projects coordinate.
 - [docs/en/deploy/](deploy/) when the server is to run for others.

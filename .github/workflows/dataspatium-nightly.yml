@@ -1,11 +1,9 @@
 name: Nightly pair test with Dataspatium
 
-# Dataspatium's automated live suite (checklist C of docs/acceptance.md and
-# more: discovery, PKCE sign-in, the BCF tables, both Documents API flows, the
+# Dataspatium's automated live suite (discovery, PKCE sign-in, the BCF tables, both Documents API flows, the
 # IFC graph over Bolt, the request log through the administration API) against
 # this server's development stack, with the Dataspatium release that pairs with
-# this Dataregium. "Tests across the repositories" in
-# docs/dataspatium-coordination.md describes it. The
+# this Dataregium. The
 # helpers in Dataspatium's tools/ play the user at the server's own pages.
 
 on:

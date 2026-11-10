@@ -141,7 +141,7 @@ databaslösenord, och inget är öppet förrän det har konfigurerats.
 - **Status**: alla elva etapper i planen är genomförda (de tre API:erna,
   administrationen, klientbiblioteket, driftsättning, IFC-LPG,
   acceptanschecklistan och säkerhetshärdningen); bidraget till IfcOpenShell
-  är ännu inte föreslaget (utkast i [docs/upstream/](docs/upstream/)).
+  är ännu inte föreslaget.
 
 <img src="docs/images/signin.png" alt="Inloggningssidan som en klient öppnar" width="240">
 <img src="docs/images/upload.png" alt="Uppladdningssidan, där användaren ger filen titel och version" width="340">
@@ -174,8 +174,7 @@ märker dem inte. En klient behöver tre saker:
 
 Så långt är det visat: serverns svar provas mot buildingSMARTs scheman vid varje push,
 och Dataspatium och Python-biblioteket i [client/](client/) körs mot servern. Oberoende
-klienter som Bonsai och ifc-lite har en färdig checklista i
-[docs/acceptance.md](docs/acceptance.md) som ännu inte är körd. Om du provar en klient, berätta
+klienter som Bonsai och ifc-lite har en färdig checklista som ännu inte är körd. Om du provar en klient, berätta
 hur det gick under [Fel och förslag](#fel-och-förslag). När en klient och en specifikation inte
 stämmer överens avgör specifikationen. [docs/sv/client-guide.md](docs/sv/client-guide.md) är till för den som bygger
 en klient.
@@ -233,9 +232,7 @@ inte kan använda, se [OpenCDE-API:erna och deras klienter](#opencde-apierna-och
 installeras var för sig: det här repot buntar inte Dataspatium (licenserna
 skiljer sig, AGPL här och PolyForm Strict där), och Dataspatiums README
 beskriver hur appen hämtas. Klientsidan beskrivs i Dataspatiums README och
-dess dokumentation; parets acceptanskörningar står i
-[docs/acceptance.md](docs/acceptance.md) här, och vad de två projekten samordnar
-står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
+dess dokumentation.
 
 ## Lär dig mer
 
@@ -249,22 +246,15 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 - [docs/sv/flows/](docs/sv/flows/): sekvensdiagram för OAuth2-, Documents API- och BCF-viewpoint-flödena.
 - [docs/sv/graph-schema.md](docs/sv/graph-schema.md): grafmodellen.
 - [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md): den valfria IFC-LPG-modulen och exempel på Cypher-frågor.
-- [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans med
-  oberoende klienter (Bonsai, ifc-lite, Dataspatium).
-- [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): vad
-  Dataregium och Dataspatium delar och ägarens beslut.
 - Arkitekturbeslut som ligger fast: grafdatabas som enda lager, opaka token i
   stället för JWT, portabel Cypher för Neo4j och Memgraph, webbgränssnitt utan
   ramverk, säkerhetskopia på applikationsnivå, BCF API 2.1 bredvid 3.0, och
   utveckling här med bidrag till IfcOpenShell senare.
-- [docs/upstream/](docs/upstream/): utkast till ärende och pull request för
-  IfcOpenShell (inte skickade).
 - [spec/SOURCES.md](spec/SOURCES.md): de exakta specifikationsversioner
   som servern testas mot.
 
 Dokumentationen finns på den här README-filens sju språk, varje språk under
-`docs/<språk>/`; engelskan under `docs/en/` är källan. Projektloggarna (acceptans,
-samordning), utkasten till IfcOpenShell och CONTRIBUTING hålls på engelska.
+`docs/<språk>/`; engelskan under `docs/en/` är källan. CONTRIBUTING är på engelska.
 
 ### Vidare läsning
 

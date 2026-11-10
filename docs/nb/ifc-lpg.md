@@ -165,8 +165,7 @@ Neo4j-kilden sin over Bolt (WebSocket på Bolt-porten) når operatøren
 eksponerer databasen, slik utviklingsoverlegget gjør på `127.0.0.1:7697`.
 Dataregium-arbeidsområdet dets bruker mønstrene ovenfor (modeller, klasser,
 komponenter via `SAME_AS`, den siste ferdige modellen per dokument);
-spørringene ligger i Dataspatiums dokumentasjon (`docs/grafer.md`), og
-live-kjøringene er listet i [acceptance.md](../acceptance.md). En
+spørringene ligger i Dataspatiums dokumentasjon (`docs/grafer.md`). En
 produksjonsserver publiserer ikke Bolt; administrasjons-API-ets grafspørring
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gir
 administratorer lesende Cypher uten porten. Appen tegner også

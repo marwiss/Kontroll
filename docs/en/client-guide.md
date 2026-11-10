@@ -344,8 +344,7 @@ of the statement, never the parameters.
 [Dataspatium](https://github.com/marwiss/Dataspatium) is the browser client
 developed together with this server; its OpenCDE source (sign-in, BCF tables,
 Documents API, graph queries, request ids) is a worked example of everything
-above, and its live test suites run against the development stack
-(see [acceptance.md](../acceptance.md)).
+above, and its live test suites run against the development stack.
 
 - `uv run opencde seed` fills an empty database with demo users and
   projects (passwords are printed once), the sample model

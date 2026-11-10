@@ -363,7 +363,7 @@ ovat lauseen ensimmäiset 500 merkkiä, eivät koskaan parametrit.
 kanssa kehitettävä selainasiakas; sen OpenCDE-lähde (kirjautuminen,
 BCF-taulukot, Documents API, graafikyselyt, request-id:t) on työstetty
 esimerkki kaikesta edellä olevasta, ja sen live-testisarjat ajetaan
-kehityspinoa vasten (katso [acceptance.md](../acceptance.md)).
+kehityspinoa vasten.
 
 - `uv run opencde seed` täyttää tyhjän tietokannan demokäyttäjillä ja
   -projekteilla (salasanat tulostetaan kerran), esimerkkimallilla

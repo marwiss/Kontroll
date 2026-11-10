@@ -159,8 +159,7 @@ Neo4j-uppsprettu sína yfir Bolt (WebSocket á Bolt-gáttinni) þegar
 rekstraraðilinn opnar gagnagrunninn, eins og þróunaryfirlagið gerir á
 `127.0.0.1:7697`. Dataregium-vinnusvæði þess notar mynstrin að ofan (líkön,
 flokka, einingar um `SAME_AS`, nýjasta lokna líkanið á hvert skjal);
-fyrirspurnirnar eru í skjölun Dataspatium (`docs/grafer.md`), og lifandi
-keyrslurnar eru taldar upp í [acceptance.md](../acceptance.md).
+fyrirspurnirnar eru í skjölun Dataspatium (`docs/grafer.md`).
 Framleiðsluþjónn birtir ekki Bolt; graffyrirspurn stjórnunarforritaskilanna
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gefur
 stjórnendum lesandi Cypher án gáttarinnar. Forritið teiknar líka grafið, í

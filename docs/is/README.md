@@ -141,7 +141,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
 - **Staða**: öll ellefu stig áætlunarinnar eru útfærð (forritaskilin þrjú,
   stjórnunin, biðlarasafnið, uppsetning í rekstur, IFC-LPG,
   samþykktargátlistinn og öryggisherðingin); framlagið til IfcOpenShell hefur
-  ekki enn verið lagt fram (uppköst í [docs/upstream/](../upstream/)).
+  ekki enn verið lagt fram.
 
 <img src="../images/signin.png" alt="Innskráningarsíðan sem biðlari opnar" width="240">
 <img src="../images/upload.png" alt="Upphleðslusíðan, þar sem notandinn gefur skránni titil og útgáfu" width="340">
@@ -174,8 +174,7 @@ eru valfrjálsar, svo að biðlari sem þekkir þær ekki verður ekki var við 
 
 Svo langt hefur þetta verið sýnt: svör þjónsins eru prófuð gagnvart skemum buildingSMART við
 hvert push, og Dataspatium og Python-safnið í [client/](../../client/) keyra gagnvart þjóninum.
-Óháðir biðlarar eins og Bonsai og ifc-lite hafa tilbúinn gátlista í
-[docs/acceptance.md](../acceptance.md) sem hefur ekki enn verið keyrður. Ef þú prófar biðlara,
+Óháðir biðlarar eins og Bonsai og ifc-lite hafa tilbúinn gátlista sem hefur ekki enn verið keyrður. Ef þú prófar biðlara,
 segðu frá hvernig gekk undir [Villur og tillögur](#villur-og-tillögur). Þegar biðlari og forskrift stangast
 á ræður forskriftin. [docs/is/client-guide.md](client-guide.md) er fyrir þá sem smíða biðlara.
 
@@ -230,10 +229,7 @@ um OpenCDE-forritaskilin þrjú, svo að forritið notar ekkert sem annar biðla
 getur ekki notað, sjá [OpenCDE-forritaskilin og biðlarar þeirra](#opencde-forritaskilin-og-biðlarar-þeirra). Vörurnar tvær eru settar
 upp hvor fyrir sig: þetta safn pakkar Dataspatium ekki með (leyfin eru ólík,
 AGPL hér og PolyForm Strict þar), og README Dataspatium lýsir hvernig forritið
-er sótt. Biðlarahliðinni er lýst í README Dataspatium og skjölun þess;
-samþykktarkeyrslur parsins eru hér í [docs/acceptance.md](../acceptance.md),
-og það sem verkefnin tvö samræma er í
-[docs/dataspatium-coordination.md](../dataspatium-coordination.md).
+er sótt. Biðlarahliðinni er lýst í README Dataspatium og skjölun þess.
 
 ## Lærðu meira
 
@@ -247,23 +243,15 @@ og það sem verkefnin tvö samræma er í
 - [docs/is/flows/](flows/): runurit fyrir OAuth2-, Documents API- og BCF-sjónarhornsferlin.
 - [docs/is/graph-schema.md](graph-schema.md): graflíkanið.
 - [docs/is/ifc-lpg.md](ifc-lpg.md): valkvæða IFC-LPG-einingin og dæmi um Cypher-fyrirspurnir.
-- [docs/acceptance.md](../acceptance.md): gátlisti fyrir sjónræna samþykkt
-  með óháðum biðlurum (Bonsai, ifc-lite, Dataspatium).
-- [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvað
-  Dataregium og Dataspatium eiga sameiginlegt og ákvarðanir eigandans.
 - Arkitektúrákvarðanir sem standa: grafgagnagrunnur sem eina geymslan,
   ógegnsæir tókar í stað JWT, flytjanlegt Cypher fyrir Neo4j og Memgraph,
   vefviðmót án umgjarða, öryggisafrit á forritsstigi, BCF API 2.1 við hlið 3.0,
   og þróun hér með framlagi til IfcOpenShell síðar.
-- [docs/upstream/](../upstream/): uppköst að máli og pull request fyrir
-  IfcOpenShell (ekki send).
 - [spec/SOURCES.md](../../spec/SOURCES.md): nákvæmar útgáfur forskriftanna
   sem þjónninn er prófaður gegn.
 
 Skjölunin er til á sjö tungumálum þessarar README-skrár, hvert tungumál undir
-`docs/<tungumál>/`; enskan undir `docs/en/` er frumtextinn. Verkefnaskrárnar
-(samþykkt, samræming), uppköstin fyrir IfcOpenShell og CONTRIBUTING eru höfð á
-ensku.
+`docs/<tungumál>/`; enskan undir `docs/en/` er frumtextinn. CONTRIBUTING er á ensku.
 
 ### Frekari lestur
 

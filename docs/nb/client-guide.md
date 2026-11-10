@@ -349,7 +349,7 @@ Hvert kall, avvist eller ikke, etterlater en revisjonshendelse
 som utvikles sammen med denne serveren; dens OpenCDE-kilde (innlogging,
 BCF-tabeller, Documents API, grafspørringer, request-id-er) er et
 gjennomarbeidet eksempel på alt ovenfor, og dens live-testsuiter kjører mot
-utviklingsstakken (se [acceptance.md](../acceptance.md)).
+utviklingsstakken.
 
 - `uv run opencde seed` fyller en tom database med demobrukere og prosjekter
   (passordene skrives ut én gang), eksempelmodellen `three_walls_gtin.ifc`

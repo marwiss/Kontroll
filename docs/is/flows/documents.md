@@ -75,8 +75,7 @@ sequenceDiagram
 vafranum (`src/api/families/opencde.js`): það opnar valsíðu þjónsins í
 sprettiglugga og flytur inn völdu skrárnar, og hleður upp gagnasöfnum, skrám
 og vinnusvæðispökkum í hlutum með upphalssíðu þjónsins fyrir lýsigögnin;
-lifandi svítur þess keyra þessi ferli gegn þróunarstaflanum
-([acceptance.md](../../acceptance.md)).
+lifandi svítur þess keyra þessi ferli gegn þróunarstaflanum.
 
 ## Hver má hvað
 

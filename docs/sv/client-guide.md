@@ -354,7 +354,7 @@ Varje anrop, avvisat eller inte, lämnar en revisionshändelse
 som utvecklas tillsammans med den här servern; dess OpenCDE-källa
 (inloggning, BCF-tabeller, Documents API, graffrågor, request-id:n) är ett
 utarbetat exempel på allt ovan, och dess live-testsviter körs mot
-utvecklingsstacken (se [acceptance.md](../acceptance.md)).
+utvecklingsstacken.
 
 - `uv run opencde seed` fyller en tom databas med demoanvändare och projekt
   (lösenorden skrivs ut en gång), exempelmodellen `three_walls_gtin.ifc` som

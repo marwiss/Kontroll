@@ -211,7 +211,4 @@ For å stoppe utan å slette noko utelèt du `-v`, og webserveren stoppar du med
 
 - [docs/nn/client-guide.md](client-guide.md) om API-ane,
   kapabilitetsdokumentet og feilkodane.
-- [docs/acceptance.md](../acceptance.md) om sjekklistene paret blir testa
-  med, og [docs/dataspatium-coordination.md](../dataspatium-coordination.md)
-  om kva dei to prosjekta samordnar.
 - [docs/nn/deploy/](deploy/) når serveren skal køyre for andre.
