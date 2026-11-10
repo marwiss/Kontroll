@@ -47,6 +47,7 @@ anpassar sig i stället för att prova sig fram:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
@@ -221,6 +222,9 @@ En fil kan kontrolleras innan den laddas upp, ett tillägg som annonseras som
 En ändring av en modell föreslås som ett BCF-ärende vars `bim_snippet` är ett
 ändringsset, en form som annonseras som `ifc_changes`. Se
 [ifc-lpg.md](ifc-lpg.md#ändringsset).
+
+Två IFC-versioner jämförs element för element med `ifc_diff`, efter GlobalId
+och sökväg. Se [ifc-lpg.md](ifc-lpg.md#jämföra-två-versioner).
 
 ## 5. Korrelera din logg med serverns
 

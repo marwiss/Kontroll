@@ -22,6 +22,7 @@ from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
 from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
+from opencde.ifcgraph.diff import MAX_ENTRIES as DIFF_MAX_ENTRIES
 from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
 from opencde.ifcgraph.queries import QUERIES
 from opencde.settings import Settings
@@ -84,6 +85,15 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "max_clashes": settings.ifcgraph_clash_max_clashes,
                 }
                 if settings.ifcgraph_enabled and settings.ifcgraph_clash_enabled and settings.offers("documents")
+                else {"enabled": False}
+            ),
+            "ifc_diff": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}",
+                    "max_entries": DIFF_MAX_ENTRIES,
+                }
+                if settings.ifcgraph_enabled and settings.offers("documents")
                 else {"enabled": False}
             ),
             "ifc_precheck": (

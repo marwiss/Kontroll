@@ -10,6 +10,10 @@ the commit history.
 
 ## Unreleased
 
+- Two IFC versions are compared element by element: `GET /documents/1.0/documents/{id}/versions/{index}/ifc-diff/{other}`
+  (an extension announced as `ifc_diff`; `?other_document_id=` for another document of the project) answers with
+  what was added, removed and changed, by GlobalId and path, computed on request; the version's page shows the
+  same as lists.
 - A version built on another is a node with its parent: `parent_version_index` and a `DERIVED_FROM` link, on a
   version approved from a change set and on an upload with `base_version_index`. A version approved from a
   change set carries `approved_by`, `change_set_id` and the changes, which

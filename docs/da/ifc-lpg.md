@@ -496,6 +496,27 @@ uploadet som hel fil svarer `404` dér. Hver version er stadig en hel fil,
 hentet som før; `opencde ifc-lpg prune` fjerner ældre versioners grafer, da
 hovedversionen og kæden af ændringssæt siger, hvad der ændrede sig.
 
+## Sammenligne to versioner
+
+Et medlem sammenligner to IFC-versioner element for element med det samme
+bearer-token som Documents API: en version med en anden af samme dokument,
+eller med `?other_document_id=` en version af et andet dokument i projektet.
+Arbejderen parrer de rodfæstede entiteter efter GlobalId og svarer med
+`added` (kun den anden har dem), `removed` (kun denne har dem) og `changed` (i
+begge, med attributter, der afviger), hvert element angivet med GlobalId,
+klasse, navn og etage, og for et ændret de stier, der afviger, med gammel og
+ny værdi: en direkte attribut ved sit navn, en egenskab som `Pset.Property`,
+`ObjectPlacement` (4×4-matricen), `Representation` (et fingeraftryk af
+formen), `Container` (etagen) og `Type`. Relationer og egenskabssæt foldes
+ind i de elementer, de hører til, og hver liste rummer højst 10.000 elementer.
+Forskellen beregnes på forespørgsel og gemmes aldrig; en stor model tager et
+stykke tid. Versionens side tilbyder den samme sammenligning som lister, og
+kapabilitetsdokumentet annoncerer den som `ifc_diff`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}
+```
+
 ## Kollisionskontrol
 
 Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,

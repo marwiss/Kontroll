@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "components.html" import user_nav %}
+{% block title %}{{ t("docs.diff.title", a=a.version_number, b=b.version_number) }} · {{ product }}{% endblock %}
+{% block nav %}{{ user_nav(web_user, signout_token) }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h1 class="card__title">{{ t("docs.diff.title", a=a.version_number, b=b.version_number) }}</h1>
+  <p class="card__lead">{{ a.title }}{% if b.document_id != a.document_id %} · {{ b.title }}{% endif %} · {{ a.project_name }}</p>
+  <dl class="facts">
+    <dt>{{ t("docs.diff.added") }}</dt><dd>{{ report.added|length }}</dd>
+    <dt>{{ t("docs.diff.removed") }}</dt><dd>{{ report.removed|length }}</dd>
+    <dt>{{ t("docs.diff.changed") }}</dt><dd>{{ report.changed|length }}</dd>
+    <dt>{{ t("docs.diff.same") }}</dt><dd>{{ report.same }}</dd>
+  </dl>
+  {% if report.truncated %}<p class="muted">{{ t("docs.diff.truncated") }}</p>{% endif %}
+  <div class="cluster">
+    <a class="btn btn--secondary" href="{{ back_url }}">{{ t("docs.diff.back", version=a.version_number) }}</a>
+  </div>
+</section>
+
+{% if report.changed %}
+<section class="card">
+  <h2>{{ t("docs.diff.changed") }}</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">{{ t("docs.diff.element") }}</th><th scope="col">GlobalId</th><th scope="col">{{ t("docs.diff.attribute") }}</th><th scope="col">{{ t("docs.diff.old") }}</th><th scope="col">{{ t("docs.diff.new") }}</th></tr></thead>
+      <tbody>
+        {% for element in report.changed %}{% for attribute in element.attributes %}
+        <tr>
+          <td>{% if loop.first %}{{ element.type }}{% if element.name %} {{ element.name }}{% endif %}{% if element.storey %}<br><span class="muted">{{ element.storey }}</span>{% endif %}{% endif %}</td>
+          <td>{% if loop.first %}<code>{{ element.guid }}</code>{% endif %}</td>
+          <td><code>{{ attribute.path }}</code></td>
+          <td><code>{{ attribute.old|tojson if attribute.old is not string else attribute.old }}</code></td>
+          <td><code>{{ attribute.new|tojson if attribute.new is not string else attribute.new }}</code></td>
+        </tr>
+        {% endfor %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+{% for heading, elements in ((t("docs.diff.added"), report.added), (t("docs.diff.removed"), report.removed)) %}
+{% if elements %}
+<section class="card">
+  <h2>{{ heading }}</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">{{ t("docs.diff.element") }}</th><th scope="col">GlobalId</th><th scope="col">{{ t("docs.diff.storey") }}</th></tr></thead>
+      <tbody>
+        {% for element in elements %}
+        <tr><td>{{ element.type }}{% if element.name %} {{ element.name }}{% endif %}</td><td><code>{{ element.guid }}</code></td><td>{{ element.storey or "" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endfor %}
+{% endblock %}

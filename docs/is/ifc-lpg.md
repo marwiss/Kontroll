@@ -491,6 +491,27 @@ upp sem heilli skrá svarar `404` þar. Hver útgáfa er enn heil skrá, sótt e
 og áður; `opencde ifc-lpg prune` fjarlægir gröf eldri útgáfna, því að
 aðalútgáfan og keðja breytingasettanna segja hvað breyttist.
 
+## Að bera saman tvær útgáfur
+
+Þátttakandi ber saman tvær IFC-útgáfur einingu fyrir einingu, með sama
+bearer-tákni og Documents API: útgáfu við aðra útgáfu sama skjals, eða með
+`?other_document_id=` útgáfu annars skjals í verkefninu. Vinnsluferlið parar
+rótfestu einingarnar eftir GlobalId og svarar með `added` (aðeins hin hefur
+þær), `removed` (aðeins þessi hefur þær) og `changed` (í báðum, með eigindum
+sem eru ólíkar), hver eining nefnd með GlobalId, flokki, nafni og hæð, og
+fyrir breytta einingu slóðirnar sem eru ólíkar með gamla og nýja gildinu: bein
+eigind með nafni sínu, eiginleiki sem `Pset.Property`, `ObjectPlacement`
+(4×4-fylkið), `Representation` (fingrafar lögunarinnar), `Container` (hæðin)
+og `Type`. Vensl og eiginleikasöfn eru felld inn í einingarnar sem þau
+tilheyra, og hver listi geymir mest 10.000 einingar. Munurinn er reiknaður
+eftir beiðni og aldrei vistaður; stórt líkan tekur sinn tíma. Síða
+útgáfunnar býður sömu samanburð sem lista, og getuskjalið tilkynnir hann sem
+`ifc_diff`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}
+```
+
 ## Árekstrarprófun
 
 Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með

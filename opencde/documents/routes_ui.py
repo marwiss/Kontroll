@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 import anyio
-from fastapi import APIRouter, HTTPException, Path, Request
+from fastapi import APIRouter, HTTPException, Path, Query, Request
 from fastapi.responses import RedirectResponse, Response
 
 from opencde.accounts.roles import project_actions
@@ -519,6 +519,7 @@ async def document_details(
     web_user: WebUserDep,
     documents: DocumentsDep,
     settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
 ) -> Response:
     if web_user is None:
         return signin_redirect(request)
@@ -558,12 +559,65 @@ async def document_details(
             validation_issues=validation.issues[:ISSUES_SHOWN] if validation else [],
             validation_url=f"{request.url.path}/ifc-validation",
             download_url=f"{request.url.path}/download",
+            diff_url=f"{request.url.path}/ifc-diff"
+            if ifcgraph is not None and ifcgraph.wants(record.file_name)
+            else None,
+            other_versions=[
+                v
+                for v in versions
+                if v.version_index != record.version_index and ifcgraph is not None and ifcgraph.wants(v.file_name)
+            ],
             dataspatium_link=dataspatium_link(
                 settings,
                 project_id=record.project_id,
                 document_id=record.document_id,
                 version_index=record.version_index,
             ),
+        ),
+    )
+
+
+@router.get("/documents/{document_id}/versions/{version_index}/details/ifc-diff")
+async def document_details_diff(
+    request: Request,
+    document_id: DocumentId,
+    version_index: VersionIndex,
+    web_user: WebUserDep,
+    documents: DocumentsDep,
+    ifcgraph: IfcGraphDep,
+    other: Annotated[int, Query(ge=1, le=1_000_000_000)],
+) -> Response:
+    """The difference between this version and another of the same document, as lists (ADR 0021)."""
+    if web_user is None:
+        return signin_redirect(request)
+    if web_user.user.must_change_password:
+        return password_change_redirect(request)
+    if not is_uuid(document_id) or ifcgraph is None:
+        raise HTTPException(404, "Document version not found")
+    a = await documents.version(
+        user_id=web_user.user.id, document_id=normalize_guid(document_id), version_index=version_index
+    )
+    b = await documents.version(user_id=web_user.user.id, document_id=normalize_guid(document_id), version_index=other)
+    if a is None or b is None or a.version_index == b.version_index:
+        raise HTTPException(404, "Document version not found")
+    if not ifcgraph.wants(a.file_name) or not ifcgraph.wants(b.file_name):
+        raise HTTPException(400, "Only IFC files are compared")
+    try:
+        report = await ifcgraph.diff(a=(a.storage_key, a.file_name), b=(b.storage_key, b.file_name))
+    except RuntimeError:
+        return _message(
+            request, web_user, tr(request, "docs.diff.failed_title"), tr(request, "docs.diff.failed"), status_code=400
+        )
+    return render(
+        request,
+        "documents/diff.html",
+        page_context(
+            request,
+            web_user,
+            a=a,
+            b=b,
+            report=report,
+            back_url=request.url.path.removesuffix("/ifc-diff"),
         ),
     )
 

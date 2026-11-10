@@ -737,6 +737,31 @@ class IfcGraphService:
         except (OSError, ValueError):
             return None
 
+    async def diff(self, *, a: tuple[str, str], b: tuple[str, str]) -> dict[str, Any]:
+        """The difference between two stored IFC files, element by element (``diff.py``), computed now.
+
+        Each side is a storage key and a file name. The worker runs behind the conversion queue's lock, as the
+        checks do, and the answer is never stored (ADR 0021).
+        """
+        async with self._lock:
+            with tempfile.TemporaryDirectory(prefix="ifcdiff-") as tmp:
+                workdir = Path(tmp)
+                (workdir / "a").mkdir()
+                (workdir / "b").mkdir()
+                source_a = await asyncio.to_thread(self._prepare_input, a[0], a[1], workdir / "a")
+                source_b = await asyncio.to_thread(self._prepare_input, b[0], b[1], workdir / "b")
+                command = [
+                    sys.executable,
+                    "-m",
+                    "opencde.ifcgraph.diff",
+                    str(source_a),
+                    str(source_b),
+                    "--memory-mb",
+                    str(self.settings.ifcgraph_memory_mb),
+                ]
+                answer = await self._in_a_process(command, "the comparison")
+            return dict(json.loads(answer.strip().splitlines()[-1]))
+
     async def proposal(self, *, user_id: str, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The trial of a topic's change set, for a member of the project, its issues unpacked; None without one."""
         row = await self.graph.one(

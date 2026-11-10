@@ -499,6 +499,27 @@ hel fil, hämtad som förut; `opencde ifc-lpg prune` tar bort äldre versioners
 grafer, eftersom huvudversionen och kedjan av ändringsset säger vad som
 ändrades.
 
+## Jämföra två versioner
+
+En medlem jämför två IFC-versioner element för element, med samma bearer-token
+som Documents API: en version med en annan av samma dokument, eller med
+`?other_document_id=` en version av ett annat dokument i projektet.
+Arbetaren parar de rotade entiteterna efter GlobalId och svarar med `added`
+(bara den andra har dem), `removed` (bara den här har dem) och `changed` (i
+båda, med attribut som skiljer sig), varje element angivet med GlobalId,
+klass, namn och våning, och för ett ändrat de sökvägar som skiljer sig med
+gammalt och nytt värde: ett direkt attribut med sitt namn, en egenskap som
+`Pset.Property`, `ObjectPlacement` (4×4-matrisen), `Representation` (ett
+fingeravtryck av formen), `Container` (våningen) och `Type`. Samband och
+egenskapsmängder vävs in i elementen de hör till, och varje lista håller högst
+10 000 element. Skillnaden räknas fram på begäran och lagras aldrig; en stor
+modell tar en stund. Versionens sida erbjuder samma jämförelse som listor, och
+kapabilitetsdokumentet annonserar den som `ifc_diff`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}
+```
+
 ## Krocktest
 
 En medlem jämför två IFC-dokumentversioner i ett projekt med avseende på

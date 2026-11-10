@@ -502,6 +502,27 @@ lasta opp som heil fil svarar `404` der. Kvar versjon er framleis ei heil fil,
 henta som før; `opencde ifc-lpg prune` fjernar grafane til eldre versjonar,
 sidan hovudversjonen og kjeda av endringssett seier kva som vart endra.
 
+## Samanlikne to versjonar
+
+Ein medlem samanliknar to IFC-versjonar element for element, med same
+bearer-token som Documents API: ein versjon med ein annan av same dokument,
+eller med `?other_document_id=` ein versjon av eit anna dokument i prosjektet.
+Arbeidaren parar dei rotfesta entitetane etter GlobalId og svarar med `added`
+(berre den andre har dei), `removed` (berre denne har dei) og `changed` (i
+begge, med attributt som skil seg), kvart element oppgjeve med GlobalId,
+klasse, namn og etasje, og for eit endra dei stiane som skil seg, med gammal
+og ny verdi: eit direkte attributt ved namnet sitt, ein eigenskap som
+`Pset.Property`, `ObjectPlacement` (4×4-matrisa), `Representation` (eit
+fingeravtrykk av forma), `Container` (etasjen) og `Type`. Relasjonar og
+eigenskapssett blir folda inn i elementa dei høyrer til, og kvar liste held
+høgst 10 000 element. Skilnaden blir rekna ut på førespurnad og aldri lagra;
+ein stor modell tek ei stund. Sida til versjonen tilbyr den same samanlikninga
+som lister, og kapabilitetsdokumentet annonserer henne som `ifc_diff`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}
+```
+
 ## Kollisjonskontroll
 
 Ein medlem samanliknar to IFC-dokumentversjonar i eit prosjekt for kollisjonar,

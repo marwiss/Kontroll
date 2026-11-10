@@ -491,6 +491,27 @@ still a whole file, downloaded as before; `opencde ifc-lpg prune` removes the
 graphs of older versions, since the head version and the chain of change sets
 tell what changed.
 
+## Comparing two versions
+
+A member compares two IFC versions element by element, with the same bearer
+token as the Documents API: a version with another of the same document, or
+with `?other_document_id=` a version of another document of the project. The
+worker pairs the rooted entities by GlobalId and answers with `added` (only
+the other has them), `removed` (only this one has them) and `changed` (in
+both, with attributes that differ), each element named by GlobalId, class,
+name and storey, and for a changed one the paths that differ with the old and
+the new value: a direct attribute by its name, a property as `Pset.Property`,
+`ObjectPlacement` (the 4 by 4 matrix), `Representation` (a fingerprint of the
+shape), `Container` (the storey) and `Type`. Relationships and property sets
+are folded into the elements they belong to, and each list keeps at most
+10,000 elements. The difference is computed on request and never stored; a
+large model takes a while. The version's page offers the same comparison as
+lists, and the capabilities document announces it as `ifc_diff`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}
+```
+
 ## Clash check
 
 A member compares two IFC document versions of a project for clashes, with the

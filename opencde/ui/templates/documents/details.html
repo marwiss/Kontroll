@@ -30,6 +30,15 @@
     <a class="btn btn--primary" href="{{ download_url }}">{{ t("docs.details.download") }}</a>
     {% if dataspatium_link %}<a class="btn btn--secondary" href="{{ dataspatium_link }}" rel="noopener">{{ t("common.open_in_dataspatium") }}</a>{% endif %}
   </div>
+  {% if diff_url and other_versions %}
+  <form method="get" action="{{ diff_url }}" class="cluster">
+    <label for="other">{{ t("docs.diff.compare_with") }}</label>
+    <select id="other" name="other">
+      {% for version in other_versions %}<option value="{{ version.version_index }}">{{ t("common.version") }} {{ version.version_number }}</option>{% endfor %}
+    </select>
+    <button class="btn btn--secondary" type="submit">{{ t("docs.diff.compare") }}</button>
+  </form>
+  {% endif %}
 </section>
 
 {% if validation and validation_issues %}

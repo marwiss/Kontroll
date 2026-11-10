@@ -506,6 +506,28 @@ kokonainen tiedosto, ladattavissa kuten ennen; `opencde ifc-lpg prune` poistaa
 vanhempien versioiden graafit, koska pääversio ja muutosjoukkojen ketju
 kertovat, mikä muuttui.
 
+## Kahden version vertailu
+
+Jäsen vertaa kahta IFC-versiota elementti kerrallaan samalla
+bearer-tunnuksella kuin Documents API: versiota saman dokumentin toiseen
+versioon tai parametrilla `?other_document_id=` projektin toisen dokumentin
+versioon. Työprosessi parittaa juurrutetut entiteetit GlobalId:n mukaan ja
+vastaa kentillä `added` (vain toisella on ne), `removed` (vain tällä on ne) ja
+`changed` (molemmissa, mutta attribuutit eroavat); jokainen elementti nimetään
+GlobalId:llä, luokalla, nimellä ja kerroksella, ja muuttuneesta luetellaan
+eroavat polut vanhoine ja uusine arvoineen: suora attribuutti nimellään,
+ominaisuus muodossa `Pset.Property`, `ObjectPlacement` (4×4-matriisi),
+`Representation` (muodon sormenjälki), `Container` (kerros) ja `Type`.
+Suhteet ja ominaisuusjoukot sulautetaan elementteihin, joihin ne kuuluvat, ja
+kukin luettelo pitää enintään 10 000 elementtiä. Ero lasketaan pyynnöstä eikä
+sitä koskaan tallenneta; suuri malli vie hetken. Version sivu tarjoaa saman
+vertailun luetteloina, ja kyvykkyysdokumentti ilmoittaa sen nimellä
+`ifc_diff`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}
+```
+
 ## Törmäystarkastus
 
 Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla
