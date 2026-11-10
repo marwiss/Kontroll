@@ -24,6 +24,7 @@ from urllib.parse import urlsplit
 import typer
 
 from opencde import __version__
+from opencde.settings import LOOPBACK_HOSTS
 
 app = typer.Typer(no_args_is_help=True, help="Dataregium OpenCDE server.", rich_markup_mode="markdown")
 user_app = typer.Typer(no_args_is_help=True, help="Manage users and their project roles.")
@@ -93,6 +94,8 @@ def serve(
     import uvicorn
 
     settings = _settings()  # fail fast on bad configuration, before the socket opens
+    if settings.is_local and host not in LOOPBACK_HOSTS:
+        raise _fail(f"the local engine listens on the loopback only, not on {host} (ADR 0023)")
     uvicorn.run(
         "opencde.asgi:app",
         host=host,
@@ -170,13 +173,20 @@ def _say_what_comes_next(url: str, *, dev: bool) -> None:
 @app.command()
 def init(
     dev: Annotated[bool, typer.Option("--dev", help="Local development on http://127.0.0.1:8000.")] = False,
+    local: Annotated[
+        bool, typer.Option("--local", help="The local engine on this computer, for Dataspatium (ADR 0023).")
+    ] = False,
     public_url: Annotated[str | None, typer.Option(help="Public https URL of the server (production).")] = None,
     force: Annotated[bool, typer.Option(help="Overwrite an existing .env.")] = False,
     path: Annotated[Path, typer.Option(help="Where to write the file.")] = Path(".env"),
 ) -> None:
-    """Write a .env file with fresh secrets. Without --dev or --public-url it asks, then says what comes next."""
+    """Write a .env file with fresh secrets. Without --dev, --local or --public-url it asks, then says what comes
+    next."""
     if path.exists() and not force:
         raise _fail(f"{path} exists; use --force to overwrite")
+    if local:
+        _write_local_env(path)
+        return
     extra: list[str] = []
     guided = not dev and not public_url
     if guided:
@@ -225,6 +235,36 @@ def init(
         _say_what_comes_next(url, dev=dev)
         return
     typer.echo("        next: docker compose up -d --build" if dev else "        next: see docs/en/deploy/vps-caddy.md")
+
+
+def _write_local_env(path: Path) -> None:
+    """The local engine's .env (ADR 0023): loopback only, random passwords, the origins Dataspatium comes from."""
+    lines = [
+        "# Written by `opencde init --local`: the local engine on this computer. Keep this file private.",
+        "OPENCDE_ENVIRONMENT=local",
+        "OPENCDE_PUBLIC_URL=http://127.0.0.1:8000",
+        f"OPENCDE_SECRET_KEY={secrets.token_urlsafe(48)}",
+        "OPENCDE_GRAPH_DIALECT=neo4j",
+        "OPENCDE_GRAPH_URI=bolt://graph:7687",
+        "OPENCDE_GRAPH_USER=neo4j",
+        f"OPENCDE_GRAPH_PASSWORD={secrets.token_urlsafe(24)}",
+        "OPENCDE_LOG_LEVEL=INFO",
+        "OPENCDE_LOG_JSON=false",
+        # Where Dataspatium runs: from a file (origin null), from a local http server, or from GitHub Pages.
+        'OPENCDE_CORS_ORIGINS=["null", "http://127.0.0.1:8080", "https://marwiss.github.io"]',
+        'OPENCDE_TRUSTED_PROXIES=["127.0.0.1"]',
+        "OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true",
+        "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true",
+        "OPENCDE_IFC_LPG_ENABLED=true",
+        "NEO4J_HEAP=1g",
+        "NEO4J_PAGECACHE=512m",
+        "OPENCDE_LOCAL_PORT=8000",
+        "COMPOSE_PATH_SEPARATOR=:",
+        "COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    typer.secho(f"OK      wrote {path}", fg=typer.colors.GREEN)
+    typer.echo("        next: docker compose up -d, then add http://127.0.0.1:8000 as a source in Dataspatium")
 
 
 @app.command()

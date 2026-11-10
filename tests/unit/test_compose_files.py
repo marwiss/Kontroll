@@ -47,6 +47,15 @@ def test_the_stack_has_its_database_by_default(tmp_path: Path) -> None:
     assert services["api"]["depends_on"]["graph"]["condition"] == "service_healthy"
 
 
+def test_the_local_engine_publishes_the_api_on_the_loopback_only(tmp_path: Path) -> None:
+    services = _config(tmp_path, "compose.local.yaml")
+    assert services["api"]["environment"]["OPENCDE_ENVIRONMENT"] == "local"
+    assert services["api"]["environment"]["OPENCDE_PUBLIC_URL"] == "http://127.0.0.1:8000"
+    (published,) = services["api"]["ports"]
+    assert published["host_ip"] == "127.0.0.1" and published["published"] == "8000"
+    assert "ports" not in services["graph"], "the database is never published"
+
+
 def test_an_external_database_leaves_the_container_out(tmp_path: Path) -> None:
     address = "neo4j+s://xxxx.databases.neo4j.io"
     services = _config(

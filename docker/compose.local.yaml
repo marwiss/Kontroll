@@ -1,0 +1,14 @@
+# The local engine (ADR 0023): Dataregium on a person's own computer, for Dataspatium on the same machine.
+# The API is published on 127.0.0.1 only, the database is never published, the image is pulled as
+# released, and the server runs in the local environment: it answers only requests whose Host is
+# the loopback, allows only the origins .env names, and needs the random passwords `opencde init
+# --local` wrote. Combine with compose.yaml:
+#   COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml
+
+services:
+  api:
+    ports:
+      - "127.0.0.1:${OPENCDE_LOCAL_PORT:-8000}:8000"
+    environment:
+      OPENCDE_ENVIRONMENT: local
+      OPENCDE_PUBLIC_URL: "http://127.0.0.1:${OPENCDE_LOCAL_PORT:-8000}"

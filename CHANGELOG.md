@@ -10,6 +10,11 @@ the commit history.
 
 ## Unreleased
 
+- The local engine: `OPENCDE_ENVIRONMENT=local` for Dataregium on a person's own computer behind Dataspatium
+  (ADR 0023). The server keeps to the loopback (public URL, interface, a `421` for any other `Host`), needs a
+  database password and a secret key, names its CORS origins and answers Chrome's Private Network Access
+  preflight. `opencde init --local` writes the `.env`, and `docker/compose.local.yaml` publishes the API on
+  127.0.0.1 only.
 - An approved change set gives its topic a viewpoint that selects the changed elements, so that the topic shows
   in 3D what the version changed.
 - Two named queries more: `entity?global_id=` gives one rooted entity with every literal attribute and what it

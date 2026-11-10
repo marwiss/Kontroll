@@ -33,6 +33,18 @@ def test_the_direct_ways_ask_nothing(tmp_path: Path) -> None:
     assert _env(production)["OPENCDE_DOMAIN"] == "cde.example.org"
 
 
+def test_the_local_engine_gets_random_passwords_and_named_origins(tmp_path: Path) -> None:
+    local = tmp_path / "local.env"
+    done = CliRunner().invoke(app, ["init", "--local", "--path", str(local)])
+    assert done.exit_code == 0, done.output
+    env = _env(local)
+    assert env["OPENCDE_ENVIRONMENT"] == "local" and env["OPENCDE_PUBLIC_URL"] == "http://127.0.0.1:8000"
+    assert len(env["OPENCDE_GRAPH_PASSWORD"]) >= 24 and len(env["OPENCDE_SECRET_KEY"]) >= 48
+    assert "*" not in env["OPENCDE_CORS_ORIGINS"] and "null" in env["OPENCDE_CORS_ORIGINS"]
+    assert env["COMPOSE_FILE"] == "docker/compose.yaml:docker/compose.local.yaml"
+    assert "Dataspatium" in done.output
+
+
 def test_without_a_terminal_it_says_what_to_give(tmp_path: Path) -> None:
     done = CliRunner().invoke(app, ["init", "--path", str(tmp_path / ".env")])
     assert done.exit_code != 0 and "--public-url" in done.output and not (tmp_path / ".env").exists()

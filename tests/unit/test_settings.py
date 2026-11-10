@@ -65,6 +65,25 @@ def test_a_generated_key_is_kept_in_the_data_directory(tmp_path: Path) -> None:
     assert elsewhere.secret_key.get_secret_value() != first.secret_key.get_secret_value()
 
 
+LOCAL = {"environment": "local", "graph_password": "secret-enough", "secret_key": "k" * 40, "cors_origins": ["null"]}
+
+
+def test_the_local_engine_keeps_to_the_loopback_and_names_its_origins() -> None:
+    local = _settings(**LOCAL, public_url="http://127.0.0.1:8000")
+    assert local.is_local and not local.is_production
+    assert _settings(**LOCAL, public_url="http://localhost:8000").is_local
+    with pytest.raises(ValidationError, match="loopback"):
+        _settings(**LOCAL, public_url="http://engine.example")
+    with pytest.raises(ValidationError, match="CORS_ORIGINS"):
+        _settings(**{**LOCAL, "cors_origins": ["*"]}, public_url="http://localhost:8000")
+    with pytest.raises(ValidationError, match="GRAPH_PASSWORD"):
+        _settings(**{**LOCAL, "graph_password": ""}, public_url="http://127.0.0.1:8000")
+    with pytest.raises(ValidationError, match="SECRET_KEY"):
+        _settings(**{**LOCAL, "secret_key": "short"}, public_url="http://127.0.0.1:8000")
+    with pytest.raises(ValidationError, match="BOLT_URL"):
+        _settings(**LOCAL, public_url="http://127.0.0.1:8000", graph_public_bolt_url="bolt://localhost:7697")
+
+
 def test_graph_uri_scheme_is_checked() -> None:
     with pytest.raises(ValidationError, match="OPENCDE_GRAPH_URI"):
         _settings(environment="development", graph_uri="http://localhost:7687")

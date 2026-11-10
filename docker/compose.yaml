@@ -1,6 +1,7 @@
 # Base stack: the API and a Neo4j Community database on a private network.
 # Nothing is published to the host here. Combine with one of:
 #   compose.dev.yaml       local development on http://127.0.0.1:8000
+#   compose.local.yaml     the local engine on a person's computer, for Dataspatium (opencde init --local)
 #   compose.prod.yaml      production behind Caddy with automatic TLS and nightly backups
 #   compose.tunnel.yaml    public https through a Cloudflare Tunnel for client tests
 #   compose.memgraph.yaml  Memgraph instead of Neo4j (add to any of the above)

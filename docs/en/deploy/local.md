@@ -85,6 +85,29 @@ needed; `OPENCDE_REQUEST_LOG_ENABLED=true` lets `/admin/requests` show the
 server side of the app's calls.
 The [quick start](../quickstart.md) has the complete steps and a troubleshooting table.
 
+## The local engine
+
+Dataregium can run on a person's own computer as the engine behind Dataspatium
+for models larger than a browser tab holds (ADR 0023). `opencde init --local`
+writes a `.env` for that, and `OPENCDE_ENVIRONMENT=local` makes the server
+keep to it: the public URL must be the loopback, a database password and a
+secret key are required, the CORS origins must be named (`*` is refused), no
+database address may be published, and `opencde serve` refuses any interface
+but the loopback. A request whose `Host` is not `127.0.0.1`, `localhost` or
+`::1` is answered `421`, before anything else, so that a page on the internet
+cannot reach the engine through a name of its own that resolves to the
+loopback. A public page that asks in its preflight
+(`Access-Control-Request-Private-Network: true`) is allowed when its origin is
+named. OAuth2 with PKCE is required locally as everywhere. The origins the
+file writes are `null` (Dataspatium opened from a file), `http://127.0.0.1:8080`
+(a local http server) and `https://marwiss.github.io`; drop `null` when the
+app runs from an http origin.
+
+```sh
+uv run opencde init --local   # .env: OPENCDE_ENVIRONMENT=local, random passwords, the origins Dataspatium comes from
+docker compose up -d          # the API on http://127.0.0.1:8000 only; the database is never published
+```
+
 ## Podman
 
 The Compose files work with Podman as well as Docker: the images have full names,

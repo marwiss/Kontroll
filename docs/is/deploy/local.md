@@ -85,6 +85,28 @@ stillingar er þörf; `OPENCDE_REQUEST_LOG_ENABLED=true` lætur `/admin/requests
 sýna þjónshlið kalla forritsins.
 [Fljótlega byrjunin](../quickstart.md) hefur öll skrefin og bilanaleitartöflu.
 
+## Staðbundna vélin
+
+Dataregium getur keyrt á eigin tölvu sem vélin að baki Dataspatium fyrir líkön
+stærri en vafraflipi rúmar (ADR 0023). `opencde init --local` skrifar `.env`
+fyrir það, og `OPENCDE_ENVIRONMENT=local` lætur þjóninn halda sig við það:
+opinbera heimilisfangið verður að vera loopback, gagnagrunnslykilorð og
+leynilykill eru krafin, CORS-uppruna verður að nefna (`*` er hafnað), ekkert
+gagnagrunnsheimilisfang má birta, og `opencde serve` hafnar öðrum tengiflötum en
+loopback. Beiðni þar sem `Host` er ekki `127.0.0.1`, `localhost` eða `::1` er
+svarað með `421` á undan öllu öðru, svo að síða á netinu nái ekki vélinni gegnum
+eigið nafn sem vísar á loopback. Opinber síða sem spyr í forbeiðni sinni
+(`Access-Control-Request-Private-Network: true`) er leyfð þegar uppruni hennar
+er nefndur. OAuth2 með PKCE er krafist staðbundið eins og alls staðar.
+Upprunarnir sem skráin skrifar eru `null` (Dataspatium opnað úr skrá),
+`http://127.0.0.1:8080` (staðbundinn http-þjónn) og `https://marwiss.github.io`;
+fjarlægðu `null` þegar forritið keyrir frá http-uppruna.
+
+```sh
+uv run opencde init --local   # .env: OPENCDE_ENVIRONMENT=local, random passwords, the origins Dataspatium comes from
+docker compose up -d          # the API on http://127.0.0.1:8000 only; the database is never published
+```
+
 ## Podman
 
 Compose-skrárnar virka með Podman jafnt sem Docker: myndirnar hafa full heiti,

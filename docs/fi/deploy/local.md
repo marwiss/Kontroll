@@ -86,6 +86,30 @@ asetuksia ei tarvita; `OPENCDE_REQUEST_LOG_ENABLED=true` antaa
 `/admin/requests`-sivun näyttää sovelluksen kutsujen palvelinpuolen.
 [Pika-aloituksessa](../quickstart.md) on kaikki vaiheet ja vianmääritystaulukko.
 
+## Paikallinen moottori
+
+Dataregium voi toimia omalla tietokoneella Dataspatiumin takana olevana
+moottorina malleille, jotka ovat suurempia kuin selaimen välilehti kantaa
+(ADR 0023). `opencde init --local` kirjoittaa sitä varten `.env`-tiedoston, ja
+`OPENCDE_ENVIRONMENT=local` saa palvelimen pysymään siinä: julkisen osoitteen on
+oltava loopback, tietokannan salasana ja salainen avain vaaditaan,
+CORS-alkuperät on nimettävä (`*` hylätään), tietokannan osoitetta ei saa
+julkaista, ja `opencde serve` kieltäytyy muista liitännöistä kuin loopbackista.
+Pyyntöön, jonka `Host` ei ole `127.0.0.1`, `localhost` tai `::1`, vastataan
+`421` ennen kaikkea muuta, jotta internetissä oleva sivu ei tavoita moottoria
+omalla nimellään, joka osoittaa loopbackiin. Julkinen sivu, joka kysyy
+esitarkistuksessaan (`Access-Control-Request-Private-Network: true`),
+sallitaan, kun sen alkuperä on nimetty. OAuth2 ja PKCE vaaditaan paikallisesti
+kuten kaikkialla. Tiedoston kirjoittamat alkuperät ovat `null` (Dataspatium
+avattuna tiedostosta), `http://127.0.0.1:8080` (paikallinen http-palvelin) ja
+`https://marwiss.github.io`; poista `null`, kun sovellus toimii
+http-alkuperästä.
+
+```sh
+uv run opencde init --local   # .env: OPENCDE_ENVIRONMENT=local, random passwords, the origins Dataspatium comes from
+docker compose up -d          # the API on http://127.0.0.1:8000 only; the database is never published
+```
+
 ## Podman
 
 Compose-tiedostot toimivat Podmanilla yhtä hyvin kuin Dockerilla: imageilla on

@@ -44,13 +44,14 @@ from opencde.middleware import (
     ApiCORSMiddleware,
     BodySizeLimitMiddleware,
     ForeignWorkerMiddleware,
+    LoopbackHostMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
     UnhandledErrorMiddleware,
 )
 from opencde.ratelimit import PathRateLimitMiddleware, install_rate_limiting
 from opencde.requestlog import RequestLogMiddleware, RequestLogWriter
-from opencde.settings import Settings
+from opencde.settings import LOOPBACK_HOSTS, Settings
 from opencde.ui.templating import STATIC_DIR, render
 from opencde.web import account as account_routes
 from opencde.web import routes as web_routes
@@ -170,6 +171,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         ApiCORSMiddleware,
         include_prefixes=("/foundation/", "/bcf/", "/documents/1.0/", "/admin/api/", "/.well-known/"),
         exclude_patterns=documents_ui.PAGE_PATHS,
+        allow_private_network=settings.is_local,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -185,6 +187,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         expose_headers=["ETag", "Location", "Content-Disposition", "X-Request-ID"],
         max_age=600,
     )
+    if settings.is_local:
+        # Added last, so that it is the first layer a request meets (ADR 0023).
+        app.add_middleware(LoopbackHostMiddleware, hosts=LOOPBACK_HOSTS)
     app.add_middleware(
         BodySizeLimitMiddleware,
         max_bytes=settings.max_json_body_bytes,

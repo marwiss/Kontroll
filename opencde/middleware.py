@@ -118,6 +118,33 @@ class ForeignWorkerMiddleware:
         await self.app(scope, receive, send)
 
 
+class LoopbackHostMiddleware:
+    """The local engine answers only requests addressed to the loopback (ADR 0023).
+
+    A page on the internet can make a browser resolve a name of its own to 127.0.0.1 and reach a service on the
+    computer (DNS rebinding); the request then carries that name as Host. Anything but 127.0.0.1, localhost or
+    ::1 is answered 421, before any other layer.
+    """
+
+    def __init__(self, app: ASGIApp, *, hosts: Iterable[str]) -> None:
+        self.app = app
+        self.hosts = frozenset(hosts)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            raw = next((value for name, value in scope.get("headers", []) if name == b"host"), b"")
+            host = raw.decode("latin-1").strip().lower()
+            if host.startswith("["):
+                host = host[1 : host.find("]")] if "]" in host else host
+            else:
+                host = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+            if host not in self.hosts:
+                answer = JSONResponse(error_body(421, "This server answers only on the loopback"), status_code=421)
+                await answer(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
+
 class ApiCORSMiddleware:
     """CORS for the API paths only (Foundation API 1.4). The server's pages are never shared cross-origin.
 
@@ -126,10 +153,18 @@ class ApiCORSMiddleware:
     """
 
     def __init__(
-        self, app: ASGIApp, *, include_prefixes: Iterable[str], exclude_patterns: Iterable[str], **cors_options: Any
+        self,
+        app: ASGIApp,
+        *,
+        include_prefixes: Iterable[str],
+        exclude_patterns: Iterable[str],
+        allow_private_network: bool = False,
+        **cors_options: Any,
     ) -> None:
         self.app = app
-        self.cors = CORSMiddleware(app, **cors_options)
+        # The local engine is a private-network target: Chrome's Private Network Access asks in the preflight
+        # whether a public page may reach it, and Starlette answers with the header when this is on (ADR 0023).
+        self.cors = CORSMiddleware(app, allow_private_network=allow_private_network, **cors_options)
         self.include = tuple(include_prefixes)
         self.exclude = tuple(re.compile(pattern) for pattern in exclude_patterns)
 

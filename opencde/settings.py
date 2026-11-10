@@ -19,6 +19,7 @@ from contextvars import ContextVar
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Self
+from urllib.parse import urlsplit
 
 from limits import parse
 from pydantic import AliasChoices, Field, PrivateAttr, SecretStr, ValidationInfo, field_validator, model_validator
@@ -74,6 +75,8 @@ GRAPH_URI_SCHEMES = ("bolt://", "bolt+s://", "bolt+ssc://", "neo4j://", "neo4j+s
 # A published Bolt address must be encrypted with a certificate clients can verify ("+ssc" trusts anything).
 SECURE_GRAPH_URI_SCHEMES = ("bolt+s://", "neo4j+s://")
 
+#: What the local engine answers to as Host and public URL (ADR 0023).
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 MIN_SECRET_KEY_LENGTH = 32
 MIN_PASSWORD_LENGTH = 12
 SECRET_KEY_FILE = "secret_key"  # a file name under the data directory, not a key  # noqa: S105  # nosec B105
@@ -158,9 +161,11 @@ class Settings(BaseSettings):
         return [(old, IFC_PREFIX + old.removeprefix(OLD_IFC_PREFIX)) for old in self._old_names]
 
     # --- deployment -------------------------------------------------------
-    environment: Literal["development", "test", "production"] = Field(
+    environment: Literal["development", "test", "production", "local"] = Field(
         "production",
-        description="'development' relaxes the https requirement and prints readable logs.",
+        description="'development' relaxes the https requirement and prints readable logs; 'local' is the engine on "
+        "a person's own computer: http on the loopback only, with a Host check, explicit CORS origins and the "
+        "passwords `opencde init --local` wrote (ADR 0023).",
     )
     public_url: str = Field(
         "http://127.0.0.1:8000",
@@ -442,6 +447,24 @@ class Settings(BaseSettings):
                 )
             if self.allow_localhost_redirects:
                 raise ValueError("OPENCDE_ALLOW_LOCALHOST_REDIRECTS is only allowed outside production")
+        elif self.environment == "local":
+            host = urlsplit(self.public_url).hostname or ""
+            if not self.public_url.startswith(("http://", "https://")) or host not in LOOPBACK_HOSTS:
+                raise ValueError(
+                    "OPENCDE_PUBLIC_URL must be the loopback in the local environment, such as http://127.0.0.1:8000"
+                )
+            if not self.graph_password.get_secret_value():
+                raise ValueError("OPENCDE_GRAPH_PASSWORD is required in the local environment (opencde init --local)")
+            if len(self.secret_key.get_secret_value()) < MIN_SECRET_KEY_LENGTH:
+                raise ValueError(
+                    f"OPENCDE_SECRET_KEY must have at least {MIN_SECRET_KEY_LENGTH} characters in the local environment"
+                )
+            if "*" in self.cors_origins:
+                raise ValueError(
+                    "OPENCDE_CORS_ORIGINS must name the origins in the local environment; '*' is not allowed there"
+                )
+            if self.graph_public_bolt_url:
+                raise ValueError("OPENCDE_GRAPH_PUBLIC_BOLT_URL is not used in the local environment")
         elif not self.secret_key.get_secret_value():
             # Development and tests: a generated key, kept in the data directory so that
             # forms and sessions survive a restart and every worker signs the same way.
@@ -453,6 +476,11 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def is_local(self) -> bool:
+        """The engine on a person's own computer (ADR 0023): loopback only, with a Host check."""
+        return self.environment == "local"
 
     def offers(self, api: str) -> bool:
         """Whether the server offers an API: "bcf-3.0", "bcf-2.1", "documents", or "foundation", which comes with

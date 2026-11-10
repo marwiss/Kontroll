@@ -84,6 +84,29 @@ indstilles mere; `OPENCDE_REQUEST_LOG_ENABLED=true` lader `/admin/requests`
 vise serversiden af appens kald.
 [Den hurtige start](../quickstart.md) har alle trin og en fejlfindingstabel.
 
+## Den lokale motor
+
+Dataregium kan køre på ens egen computer som motoren bag Dataspatium for
+modeller, der er større end en browserfane rummer (ADR 0023). `opencde init --local`
+skriver en `.env` til det, og `OPENCDE_ENVIRONMENT=local` får serveren til at
+holde sig til det: den offentlige adresse skal være loopback, databaseadgangskode
+og hemmelig nøgle kræves, CORS-oprindelserne skal navngives (`*` afvises), ingen
+databaseadresse må offentliggøres, og `opencde serve` afviser andre grænseflader
+end loopback. En forespørgsel, hvis `Host` ikke er `127.0.0.1`, `localhost` eller
+`::1`, besvares med `421` før alt andet, så en side på internettet ikke når
+motoren gennem et eget navn, der peger på loopback. En offentlig side, der
+spørger i sin preflight (`Access-Control-Request-Private-Network: true`),
+tillades, når dens oprindelse er navngivet. OAuth2 med PKCE kræves lokalt som
+overalt. Oprindelserne, filen skriver, er `null` (Dataspatium åbnet fra en
+fil), `http://127.0.0.1:8080` (en lokal http-server) og
+`https://marwiss.github.io`; fjern `null`, når appen kører fra en
+http-oprindelse.
+
+```sh
+uv run opencde init --local   # .env: OPENCDE_ENVIRONMENT=local, random passwords, the origins Dataspatium comes from
+docker compose up -d          # the API on http://127.0.0.1:8000 only; the database is never published
+```
+
 ## Podman
 
 Compose-filerne virker med Podman såvel som med Docker: images har fulde navne,
