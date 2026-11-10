@@ -10,6 +10,9 @@ the commit history.
 
 ## Unreleased
 
+- The production overlay starts without `OPENCDE_ACME_EMAIL`: Caddy refused an empty `email` and did not start, so
+  the address was in practice required. The backup sidecar no longer inherits the image's health check, which asked
+  for an API it does not run and showed it as unhealthy.
 - Project administration by its managers (OB-41): a `manager` lists, adds (by exact user name), re-roles and removes
   the members of their project under `/manage/1.0/projects/{id}/members`, with a token holding the new `project`
   scope, which a client asks for explicitly; a project keeps at least one manager (`409 conflict`), the name changes

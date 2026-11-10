@@ -1,6 +1,8 @@
 # Caddy in front of the API (compose.prod.yaml). Automatic HTTPS for OPENCDE_DOMAIN.
+# OPENCDE_CADDY_EMAIL is the whole line "email <address>" from OPENCDE_ACME_EMAIL, or empty without one: an empty
+# `email` would stop Caddy from starting.
 {
-	email {$OPENCDE_ACME_EMAIL}
+	{$OPENCDE_CADDY_EMAIL}
 }
 
 {$OPENCDE_DOMAIN} {
