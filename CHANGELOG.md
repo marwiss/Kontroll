@@ -10,6 +10,11 @@ the commit history.
 
 ## Unreleased
 
+- The form of a proposed change to an IFC model: a change set as the `bim_snippet` of a BCF 3.0 topic, with
+  `snippet_type` `DataregiumIfcChangeSet` (among a new project's values) and the published JSON Schema
+  `GET /documents/1.0/ifc-changes/schema` as its `reference_schema`. `PUT …/topics/{guid}/snippet` holds such a
+  snippet to the schema and answers `400` with what is wrong. The capabilities document announces it as
+  `ifc_changes`. The changes are checked against the model when a proposal is tried, in a later release.
 - A project can refuse uploads with validation errors: *Refuse uploads with validation errors* on its page in the
   administration (`block_on_validation_errors` in the administration API). The checks then run before the file
   becomes a version, and a file with errors is refused with `422 ifc_validation_failed` and the address of its

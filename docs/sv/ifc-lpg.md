@@ -420,6 +420,40 @@ modell, eller en som användaren inte får se, svarar 404, och en vars modell
 fortfarande konverteras svarar 409. Kapabilitetsdokumentet annonserar frågorna
 i `ifc_queries`.
 
+## Ändringsset
+
+En föreslagen ändring av en modell färdas som `bim_snippet` i ett BCF 3.0-ärende
+(ADR 0021): `snippet_type` är `DataregiumIfcChangeSet`, `reference_schema` är
+`GET /documents/1.0/ifc-changes/schema`, som vem som helst får läsa, och själva
+snippeten laddas upp med `PUT …/topics/{guid}/snippet`, där servern håller den
+till schemat och svarar `400` med vad som är fel. Ett nytt projekt tillåter
+snippettypen; en administratör lägger till den bland ett äldre projekts värden.
+Ett ändringsset anger sin basversion, vem som föreslog det, med AI-modellen och
+verktygsanropet där en AI gjorde det, och sina ändringar, var och en på ett
+attribut hos en instans. Instansen anges med sitt STEP-id, eller med ett
+GlobalId och en sökväg från den rotade entiteten i IFC:s attributnamn med
+index. `set` ger attributet ett värde, `add` och `remove` ändrar en medlem i
+ett aggregat, och `copy` begär en kopia av en instans som flera delar, som
+annars ändras för alla. Ett värde är ett skalärt värde, en instans
+(`{"step_id": 120}`, eller ett GlobalId med sökväg), ett typat värde
+(`{"type": "IfcLengthMeasure", "value": 3.2}`), en uppräkning
+(`{"enum": "NOTDEFINED"}`) eller en lista av dem. Kapabilitetsdokumentet
+annonserar formen som `ifc_changes`. Vad ändringarna gör med modellen prövas när
+förslaget prövas, nästa steg; i dag håller servern formen.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "rename_element"},
+  "changes": [
+    {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"},
+    {"guid": "1Xezbq735AdBO_4DerG66G", "path": "IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]",
+     "attribute": "NominalValue", "op": "set", "new": {"type": "IfcLengthMeasure", "value": 3.2}}
+  ]
+}
+```
+
 ## Krocktest
 
 En medlem jämför två IFC-dokumentversioner i ett projekt med avseende på

@@ -29,6 +29,7 @@ PUBLIC = {
     ("GET", "/bcf/2.1/auth"),  # and its authentication information
     ("POST", "/bcf/2.1/oauth2/reg"),  # off unless the operator allows it
     ("GET", "/.well-known/dataregium"),
+    ("GET", "/documents/1.0/ifc-changes/schema"),  # the schema a topic's reference_schema points at
     ("GET", "/.well-known/kontroll"),
 }
 

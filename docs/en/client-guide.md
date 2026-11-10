@@ -48,6 +48,7 @@ of probing:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
+    "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -209,6 +210,9 @@ extension announced as `ifc_clash`. See [ifc-lpg.md](ifc-lpg.md#clash-check).
 A file can be checked before it is uploaded, an extension announced as
 `ifc_precheck`, and a project may refuse files with errors. See
 [ifc-lpg.md](ifc-lpg.md#refusing-files-with-errors-and-checking-a-file-first).
+
+A change to a model is proposed as a BCF topic whose `bim_snippet` is a change
+set, a form announced as `ifc_changes`. See [ifc-lpg.md](ifc-lpg.md#change-sets).
 
 ## 5. Correlating your log with the server's
 

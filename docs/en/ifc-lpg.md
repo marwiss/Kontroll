@@ -413,6 +413,40 @@ model, or one the user may not see, answers 404, and one whose model is still
 being converted answers 409. The capabilities document announces the queries in
 `ifc_queries`.
 
+## Change sets
+
+A proposed change to a model travels as the `bim_snippet` of a BCF 3.0 topic
+(ADR 0021): `snippet_type` is `DataregiumIfcChangeSet`, `reference_schema` is
+`GET /documents/1.0/ifc-changes/schema`, which anyone may read, and the snippet
+itself is uploaded with `PUT …/topics/{guid}/snippet`, where the server holds
+it to the schema and answers `400` with what is wrong. A new project allows the
+snippet type; an administrator adds it to an older project's values. A change
+set names its base version, who proposed it, with the AI model and the tool
+call where an AI did, and its changes, each on one attribute of one instance.
+The instance is named by its STEP id, or by a GlobalId and a path from the
+rooted entity in IFC's attribute names with indexes. `set` gives the attribute
+a value, `add` and `remove` change one member of an aggregate, and `copy` asks
+for a copy of an instance that several share, which otherwise changes for all
+of them. A value is a scalar, an instance (`{"step_id": 120}`, or a GlobalId
+with a path), a typed value (`{"type": "IfcLengthMeasure", "value": 3.2}`), an
+enumeration (`{"enum": "NOTDEFINED"}`) or a list of them. The capabilities
+document announces the form as `ifc_changes`. What the changes do to the model
+is checked when the proposal is tried, the next step; today the server keeps
+the form.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "rename_element"},
+  "changes": [
+    {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"},
+    {"guid": "1Xezbq735AdBO_4DerG66G", "path": "IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]",
+     "attribute": "NominalValue", "op": "set", "new": {"type": "IfcLengthMeasure", "value": 3.2}}
+  ]
+}
+```
+
 ## Clash check
 
 A member compares two IFC document versions of a project for clashes, with the

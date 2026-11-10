@@ -422,6 +422,40 @@ utan modell, eller ein som brukaren ikkje får sjå, svarar 404, og ein der
 modellen framleis blir konvertert, svarar 409. Kapabilitetsdokumentet kunngjer
 spørjingane i `ifc_queries`.
 
+## Endringssett
+
+Ei føreslått endring av ein modell reiser som `bim_snippet` i ei BCF 3.0-sak
+(ADR 0021): `snippet_type` er `DataregiumIfcChangeSet`, `reference_schema` er
+`GET /documents/1.0/ifc-changes/schema`, som kven som helst kan lese, og sjølve
+snippeten blir lasta opp med `PUT …/topics/{guid}/snippet`, der serveren held
+han til skjemaet og svarar `400` med kva som er gale. Eit nytt prosjekt tillèt
+snippettypen; ein administrator legg han til mellom verdiane i eit eldre
+prosjekt. Eit endringssett oppgjev basisversjonen sin, kven som føreslo det, med
+AI-modellen og verktøykallet der ein AI gjorde det, og endringane sine, kvar på
+eitt attributt hos éin instans. Instansen blir oppgjeven med STEP-id-en sin,
+eller med ein GlobalId og ein sti frå den rotfesta entiteten i attributtnamna
+til IFC med indeksar. `set` gjev attributtet ein verdi, `add` og `remove`
+endrar éin medlem av eit aggregat, og `copy` ber om ein kopi av ein instans som
+fleire deler, og som elles blir endra for alle. Ein verdi er ein skalar, ein
+instans (`{"step_id": 120}`, eller ein GlobalId med sti), ein typa verdi
+(`{"type": "IfcLengthMeasure", "value": 3.2}`), ein enumerasjon
+(`{"enum": "NOTDEFINED"}`) eller ei liste av dei. Kapabilitetsdokumentet
+annonserer forma som `ifc_changes`. Kva endringane gjer med modellen, blir
+prøvd når forslaget blir prøvd, det neste steget; i dag held serveren forma.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "rename_element"},
+  "changes": [
+    {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"},
+    {"guid": "1Xezbq735AdBO_4DerG66G", "path": "IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]",
+     "attribute": "NominalValue", "op": "set", "new": {"type": "IfcLengthMeasure", "value": 3.2}}
+  ]
+}
+```
+
 ## Kollisjonskontroll
 
 Ein medlem samanliknar to IFC-dokumentversjonar i eit prosjekt for kollisjonar,

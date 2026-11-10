@@ -26,6 +26,7 @@ from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
 from opencde.documents import routes_api as documents_api
+from opencde.documents import routes_changes as documents_changes
 from opencde.documents import routes_clash as documents_clash
 from opencde.documents import routes_precheck as documents_precheck
 from opencde.documents import routes_queries as documents_queries
@@ -209,6 +210,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.include_router(documents_api.router)
         app.include_router(documents_validation.router)
         app.include_router(documents_precheck.router)
+        app.include_router(documents_changes.router)
         app.include_router(documents_queries.router)
         app.include_router(documents_clash.router)
         app.include_router(documents_ui.router)

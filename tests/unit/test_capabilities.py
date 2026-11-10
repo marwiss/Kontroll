@@ -29,6 +29,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_queries",
         "ifc_clash",
         "ifc_precheck",
+        "ifc_changes",
         "graph_query",
     }
     assert extensions["dynamic_client_registration"] == {
@@ -45,6 +46,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_queries"] == {"enabled": False}, "the queries need the IFC-LPG module"
     assert extensions["ifc_clash"] == {"enabled": False}, "the clash check is off until configured"
     assert extensions["ifc_precheck"] == {"enabled": False}, "the precheck needs the IFC-LPG module"
+    assert extensions["ifc_changes"]["snippet_type"] == "DataregiumIfcChangeSet", "the form of a proposed change"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0

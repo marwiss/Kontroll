@@ -426,6 +426,40 @@ ole mallia tai jota käyttäjä ei saa nähdä, vastaa 404, ja versio, jonka mal
 vielä muunnetaan, vastaa 409. Ominaisuusdokumentti ilmoittaa kyselyt kentässä
 `ifc_queries`.
 
+## Muutosjoukot
+
+Ehdotettu muutos malliin kulkee BCF 3.0 -asian `bim_snippet`-kenttänä
+(ADR 0021): `snippet_type` on `DataregiumIfcChangeSet`, `reference_schema` on
+`GET /documents/1.0/ifc-changes/schema`, jonka kuka tahansa saa lukea, ja itse
+snippet lähetetään kutsulla `PUT …/topics/{guid}/snippet`, jossa palvelin pitää
+sen skeemassa ja vastaa `400` kertoen, mikä on vialla. Uusi projekti sallii
+snippet-tyypin; ylläpitäjä lisää sen vanhemman projektin arvoihin.
+Muutosjoukko nimeää perustaversionsa, ehdottajansa, tekoälymallin ja
+työkalukutsun kun ehdottaja oli tekoäly, sekä muutoksensa, kunkin yhden
+instanssin yhteen attribuuttiin. Instanssi nimetään STEP-tunnisteellaan tai
+GlobalId:llä ja polulla juurrutetusta entiteetistä IFC:n attribuuttinimin ja
+indeksein. `set` antaa attribuutille arvon, `add` ja `remove` muuttavat yhtä
+aggregaatin jäsentä, ja `copy` pyytää kopion usean jakamasta instanssista, joka
+muuten muuttuisi kaikille. Arvo on skalaari, instanssi (`{"step_id": 120}` tai
+GlobalId polkuineen), tyypitetty arvo
+(`{"type": "IfcLengthMeasure", "value": 3.2}`), luetteloarvo
+(`{"enum": "NOTDEFINED"}`) tai näiden lista. Kyvykkyysdokumentti ilmoittaa
+muodon nimellä `ifc_changes`. Se, mitä muutokset tekevät mallille, tarkistetaan
+ehdotusta kokeiltaessa, seuraavassa vaiheessa; tänään palvelin pitää muodon.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "rename_element"},
+  "changes": [
+    {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"},
+    {"guid": "1Xezbq735AdBO_4DerG66G", "path": "IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]",
+     "attribute": "NominalValue", "op": "set", "new": {"type": "IfcLengthMeasure", "value": 3.2}}
+  ]
+}
+```
+
 ## Törmäystarkastus
 
 Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla

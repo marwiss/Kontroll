@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 from opencde import __version__
 from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
+from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
 from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
 from opencde.ifcgraph.queries import QUERIES
@@ -88,6 +89,16 @@ def capabilities(settings: Settings) -> dict[str, Any]:
             "ifc_precheck": (
                 {"enabled": True, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"}
                 if settings.ifcgraph_enabled and settings.ifcgraph_validate_uploads and settings.offers("documents")
+                else {"enabled": False}
+            ),
+            "ifc_changes": (
+                {
+                    "enabled": True,
+                    "schema": SCHEMA_PATH,
+                    "snippet_type": SNIPPET_TYPE,
+                    "max_changes": MAX_CHANGES,
+                }
+                if settings.offers("documents") and settings.offers("bcf-3.0")
                 else {"enabled": False}
             ),
             "graph_query": (

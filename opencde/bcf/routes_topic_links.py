@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import json
 from typing import Annotated, Any
 
+import anyio
 from fastapi import APIRouter, HTTPException, Path, Request, Response
 from fastapi.responses import StreamingResponse
 
@@ -22,8 +24,9 @@ from opencde.bcf.schemas import (
 from opencde.bcf.topic_access import TopicCtx
 from opencde.bcf.topic_links import LinksDep
 from opencde.deps import SettingsDep, StorageDep
+from opencde.documents.changes import MAX_CHANGE_SET_BYTES, SNIPPET_TYPE, problems
 from opencde.ratelimit import RATE_UPLOAD, limiter
-from opencde.storage import make_key
+from opencde.storage import LocalStorage, make_key
 
 router = APIRouter(prefix="/projects/{project_id}/topics/{topic_id}", tags=["BCF API"])
 
@@ -47,12 +50,21 @@ async def snippet_get(topic: TopicCtx, links: LinksDep, storage: StorageDep) -> 
 async def snippet_put(
     request: Request, topic: TopicCtx, links: LinksDep, storage: StorageDep, settings: SettingsDep
 ) -> Response:
-    """Upload the snippet as the request body. The topic's ``bim_snippet`` must already describe it."""
+    """Upload the snippet as the request body. The topic's ``bim_snippet`` must already describe it.
+
+    A snippet of the type `DataregiumIfcChangeSet` is held to the change set's schema
+    (`GET /documents/1.0/ifc-changes/schema`), and 400 says what is wrong with it.
+    """
     topic.require_topic_action("updateBimSnippet")
     if topic.topic.bim_snippet is None:
         raise HTTPException(400, "Set bim_snippet on the topic before uploading the snippet file")
     key = make_key("snippets", topic.guid, "bin")
     size = await receive_upload(request, storage, key, settings.max_upload_bytes)
+    if topic.topic.bim_snippet.snippet_type == SNIPPET_TYPE:
+        found = await anyio.to_thread.run_sync(_change_set_problems, storage, key, size)
+        if found:
+            storage.delete(key)
+            raise HTTPException(400, "The snippet is not a change set: " + "; ".join(found))
     await links.set_snippet(
         project_id=topic.project_id,
         topic_guid=topic.guid,
@@ -62,6 +74,19 @@ async def snippet_put(
         size=size,
     )
     return Response(status_code=200)
+
+
+def _change_set_problems(storage: LocalStorage, key: str, size: int) -> list[str]:
+    """What keeps the stored snippet from being a change set (ADR 0021); empty when nothing does."""
+    if size > MAX_CHANGE_SET_BYTES:
+        return [f"a change set is at most {MAX_CHANGE_SET_BYTES} bytes"]
+    with storage.open_read(key) as handle:
+        raw = handle.read()
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except ValueError:
+        return ["the body is not JSON"]
+    return problems(data)
 
 
 # -- header files (3.3.2, 3.3.3) ----------------------------------------------------------------

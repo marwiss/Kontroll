@@ -50,6 +50,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
+    "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -223,6 +224,10 @@ laajennus ilmoitetaan nimellä `ifc_clash`. Katso [ifc-lpg.md](ifc-lpg.md#törm�
 Tiedoston voi tarkistaa ennen lähettämistä; laajennus ilmoitetaan nimellä
 `ifc_precheck`, ja projekti voi hylätä virheelliset tiedostot. Katso
 [ifc-lpg.md](ifc-lpg.md#virheellisten-tiedostojen-hylkääminen-ja-tiedoston-tarkistaminen-etukäteen).
+
+Muutosta malliin ehdotetaan BCF-asiana, jonka `bim_snippet` on muutosjoukko;
+muoto ilmoitetaan nimellä `ifc_changes`. Katso
+[ifc-lpg.md](ifc-lpg.md#muutosjoukot).
 
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 

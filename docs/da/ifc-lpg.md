@@ -419,6 +419,40 @@ version uden model, eller en som brugeren ikke må se, svarer 404, og en hvis
 model stadig konverteres, svarer 409. Kapabilitetsdokumentet annoncerer
 forespørgslerne i `ifc_queries`.
 
+## Ændringssæt
+
+En foreslået ændring af en model rejser som `bim_snippet` i en BCF 3.0-sag
+(ADR 0021): `snippet_type` er `DataregiumIfcChangeSet`, `reference_schema` er
+`GET /documents/1.0/ifc-changes/schema`, som enhver må læse, og selve snippetten
+uploades med `PUT …/topics/{guid}/snippet`, hvor serveren holder den til
+skemaet og svarer `400` med, hvad der er galt. Et nyt projekt tillader
+snippettypen; en administrator føjer den til et ældre projekts værdier. Et
+ændringssæt angiver sin basisversion, hvem der foreslog det, med AI-modellen og
+værktøjskaldet, hvor en AI gjorde det, og sine ændringer, hver på én attribut
+hos én instans. Instansen angives med sit STEP-id eller med et GlobalId og en
+sti fra den rodfæstede entitet i IFC's attributnavne med indeks. `set` giver
+attributten en værdi, `add` og `remove` ændrer ét medlem af et aggregat, og
+`copy` beder om en kopi af en instans, som flere deler, og som ellers ændres
+for dem alle. En værdi er en skalar, en instans (`{"step_id": 120}` eller et
+GlobalId med sti), en typet værdi (`{"type": "IfcLengthMeasure", "value": 3.2}`),
+en enumeration (`{"enum": "NOTDEFINED"}`) eller en liste af dem.
+Kapabilitetsdokumentet annoncerer formen som `ifc_changes`. Hvad ændringerne
+gør ved modellen, prøves, når forslaget prøves, det næste trin; i dag holder
+serveren formen.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "rename_element"},
+  "changes": [
+    {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"},
+    {"guid": "1Xezbq735AdBO_4DerG66G", "path": "IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]",
+     "attribute": "NominalValue", "op": "set", "new": {"type": "IfcLengthMeasure", "value": 3.2}}
+  ]
+}
+```
+
 ## Kollisionskontrol
 
 Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,

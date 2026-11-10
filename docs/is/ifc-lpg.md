@@ -411,6 +411,40 @@ eða sem notandinn má ekki sjá, svarar 404, og útgáfa þar sem enn er verið
 umbreyta líkaninu svarar 409. Getuskjalið kynnir fyrirspurnirnar í
 `ifc_queries`.
 
+## Breytingasett
+
+Tillaga að breytingu á líkani ferðast sem `bim_snippet` í BCF 3.0-máli
+(ADR 0021): `snippet_type` er `DataregiumIfcChangeSet`, `reference_schema` er
+`GET /documents/1.0/ifc-changes/schema`, sem hver sem er má lesa, og snippetið
+sjálft er sent með `PUT …/topics/{guid}/snippet`, þar sem þjónninn heldur því
+að skemanu og svarar `400` með því sem er rangt. Nýtt verkefni leyfir
+snippet-tegundina; kerfisstjóri bætir henni við gildi eldra verkefnis.
+Breytingasett nefnir grunnútgáfu sína, hver lagði það til, með
+gervigreindarlíkaninu og verkfærakallinu þar sem gervigreind gerði það, og
+breytingar sínar, hverja á einni eigind eins tilviks. Tilvikið er nefnt með
+STEP-auðkenni sínu, eða með GlobalId og slóð frá rótfestu einingunni í
+eigindaheitum IFC með vísum. `set` gefur eigindinni gildi, `add` og `remove`
+breyta einum lið safns, og `copy` biður um afrit af tilviki sem fleiri deila og
+breytist annars fyrir öll. Gildi er einfalt gildi, tilvik (`{"step_id": 120}`,
+eða GlobalId með slóð), gildi af tagi
+(`{"type": "IfcLengthMeasure", "value": 3.2}`), upptalning
+(`{"enum": "NOTDEFINED"}`) eða listi af þeim. Getuskjalið tilkynnir formið sem
+`ifc_changes`. Hvað breytingarnar gera við líkanið er prófað þegar tillagan er
+reynd, næsta skref; í dag heldur þjónninn forminu.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "rename_element"},
+  "changes": [
+    {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"},
+    {"guid": "1Xezbq735AdBO_4DerG66G", "path": "IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]",
+     "attribute": "NominalValue", "op": "set", "new": {"type": "IfcLengthMeasure", "value": 3.2}}
+  ]
+}
+```
+
 ## Árekstrarprófun
 
 Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með

@@ -61,7 +61,7 @@ DEFAULT_EXTENSIONS: dict[str, list[str]] = {
     "topic_type": ["Issue", "Request", "Question", "Information", "Inspection"],
     "topic_status": ["Open", "In progress", "Resolved", "Closed"],
     "topic_label": ["Architecture", "Structural", "MEP", "Safety", "Reuse"],
-    "snippet_type": [".ifc", ".bcf", ".csv", ".json"],
+    "snippet_type": [".ifc", ".bcf", ".csv", ".json", "DataregiumIfcChangeSet"],
     "priority": ["Low", "Medium", "High", "Critical"],
     "stage": ["Design", "Construction", "Completion", "Operation"],
     "custom_information": [],
