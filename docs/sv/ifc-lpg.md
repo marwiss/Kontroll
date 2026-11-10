@@ -472,7 +472,8 @@ sådant ändringsset med `POST /documents/1.0/projects/{id}/ifc-unreachable` och
 `version_index`: den gör ett ärende vars snippet tar bort varje instans som versionens kontroll `graph` finner utom
 räckhåll, och ändringssetet prövas och godkänns som alla andra, så versionen det kom från behåller instanserna. Svaret
 namnger ärendet, hur många instanser det tar bort och var prövningen finns; `404` när versionen inte har någon
-konverterad modell, och `409` när inget i den är utom räckhåll.
+konverterad modell, och `409` när inget i den är utom räckhåll. Kapabilitetsdokumentet listar åtgärderna i
+`ifc_changes.ops` och adressen som `ifc_changes.unreachable_url`.
 
 När IFC-LPG-modulen är på prövar servern varje ändringsset när det laddas upp:
 en arbetare tillämpar ändringarna på basversionens fil, resultatet går genom

@@ -463,7 +463,8 @@ breytingasafn með `POST /documents/1.0/projects/{id}/ifc-unreachable` og útgá
 `version_index`: hann býr til mál þar sem snippet fjarlægir hvert tilvik sem prófunin `graph` á útgáfunni finnur utan
 seilingar, og breytingasafnið er prófað og samþykkt eins og önnur, svo útgáfan sem það kom úr heldur tilvikunum.
 Svarið nefnir málið, hve mörg tilvik það fjarlægir og hvar prófunin er; `404` þegar útgáfan hefur ekkert umbreytt
-líkan, og `409` þegar ekkert í henni er utan seilingar.
+líkan, og `409` þegar ekkert í henni er utan seilingar. Getuskjalið telur upp aðgerðirnar í
+`ifc_changes.ops` og vefslóðina sem `ifc_changes.unreachable_url`.
 
 Þegar IFC-LPG-einingin er á reynir þjónninn hvert breytingasett þegar því er
 hlaðið upp: vinnsluferli beitir breytingunum á skrá grunnútgáfunnar,

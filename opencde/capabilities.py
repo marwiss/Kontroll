@@ -138,6 +138,10 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "tried": settings.ifcgraph_enabled,
                     "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal",
                     "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve",
+                    "ops": ["set", "add", "remove", "delete"],
+                    "unreachable_url": "/documents/1.0/projects/{project_id}/ifc-unreachable"
+                    if settings.ifcgraph_enabled
+                    else None,
                 }
                 if settings.offers("documents") and settings.offers("bcf-3.0")
                 else {"enabled": False}

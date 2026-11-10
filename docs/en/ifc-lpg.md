@@ -466,7 +466,8 @@ itself with `POST /documents/1.0/projects/{id}/ifc-unreachable` and the version 
 `version_index`: it makes a topic whose snippet deletes every instance that the version's check `graph` finds out of
 reach, and the change set is tried and approved like any other, so the version it came from keeps the instances. The
 answer names the topic, how many instances it deletes and where the trial is; `404` when the version has no
-converted model, and `409` when nothing in it is out of reach.
+converted model, and `409` when nothing in it is out of reach. The capabilities document lists the operations
+in `ifc_changes.ops` and the address as `ifc_changes.unreachable_url`.
 
 When the IFC-LPG module is on, the server tries every change set as it is
 uploaded: a worker applies the changes to the base version's file, the result

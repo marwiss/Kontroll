@@ -472,7 +472,8 @@ instans, som noget stadig refererer til, springes over og nævnes i prøvningen.
 `version_index`: den laver en sag, hvis snippet fjerner hver instans, som versionens kontrol `graph` finder uden for
 rækkevidde, og ændringssættet prøves og godkendes som alle andre, så den version, det kom fra, beholder instanserne.
 Svaret navngiver sagen, hvor mange instanser det fjerner, og hvor prøvningen findes; `404`, når versionen ikke har
-nogen konverteret model, og `409`, når intet i den er uden for rækkevidde.
+nogen konverteret model, og `409`, når intet i den er uden for rækkevidde. Kapabilitetsdokumentet viser
+handlingerne i `ifc_changes.ops` og adressen som `ifc_changes.unreachable_url`.
 
 Når IFC-LPG-modulet er slået til, prøver serveren hvert ændringssæt, når det
 uploades: en arbejder anvender ændringerne på basisversionens fil, resultatet

@@ -474,7 +474,8 @@ framlegg om eit slikt endringssett med `POST /documents/1.0/projects/{id}/ifc-un
 `document_id` og `version_index`: han lagar ei sak der snippeten fjernar kvar instans som kontrollen `graph` til
 versjonen finn utanfor rekkjevidd, og endringssettet blir prøvd og godkjent som alle andre, slik at versjonen det kom
 frå, held på instansane. Svaret namngjev saka, kor mange instansar det fjernar, og kvar prøvinga finst; `404` når
-versjonen ikkje har nokon konvertert modell, og `409` når ingenting i han er utanfor rekkjevidd.
+versjonen ikkje har nokon konvertert modell, og `409` når ingenting i han er utanfor rekkjevidd. Kapabilitetsdokumentet
+viser operasjonane i `ifc_changes.ops` og adressa som `ifc_changes.unreachable_url`.
 
 Når IFC-LPG-modulen er på, prøver serveren kvart endringssett når det blir
 lasta opp: ein arbeidar bruker endringane på fila til basisversjonen,
