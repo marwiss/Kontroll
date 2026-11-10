@@ -336,10 +336,10 @@ joka julkaistaan uudelleen sarjan kasvaessa. Seuraavaksi graafista tulee malli,
 jota voi muokata ja jonka versioita voi hallita tietokannassa, ja Dataspatium on
 asiakas, joka muokkaa sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat
 pysyvät sellaisina kuin buildingSMART ne määrittelee; se, mitä sarja lisää, on
-niiden laajennuksia omilla nimillään. Tämä osio kertoo, mikä on päätetty ja mikä
-vain ehdotettu, sille, ihmiselle tai tekoälyagentille, joka vie osan siitä
-eteenpäin. Päätökset on tiivistetty kohdassa [Lue lisää](#lue-lisää), käytännöt
-tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
+niiden laajennuksia omilla nimillään. Tämä osio kertoo, mikä on päätetty, sille,
+ihmiselle tai tekoälyagentille, joka vie osan siitä eteenpäin. Päätökset on
+tiivistetty kohdassa [Lue lisää](#lue-lisää), käytännöt tiedostossa
+[CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
 [docs/fi/ifc-lpg.md](ifc-lpg.md).
 
 ### Päätetty
@@ -393,12 +393,6 @@ tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
   vain, kun mikään GlobalId ei tavoita instanssia; usean jakaman instanssin muutos muuttaa sen kaikille, ja oma kopio
   on pyydettävä erikseen; jokainen muutos kantaa tiedon siitä, kuka sen
   ehdotti, ja mikä tekoälymalli ja työkalukutsu, kun ehdottaja oli tekoäly.
-
-### Ehdotettu, ei päätetty
-
-Ei mitään juuri nyt: versiomalli, oikeudet ja snippetin yksityiskohdat
-päätettiin 2026-11-10, kuten yllä oleva luettelo kertoo. Uudet ehdotukset
-kootaan tähän ennen päätöstä.
 
 ## Virheet ja ehdotukset
 

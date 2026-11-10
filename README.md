@@ -320,11 +320,10 @@ som ges ut igen när den växer. Det som följer gör grafen till en modell som 
 redigeras och versionshanteras i databasen, med Dataspatium som klienten som
 redigerar den och visar dess versioner. De officiella OpenCDE-API:erna förblir
 som buildingSMART definierar dem; det serien lägger till är tillägg till dem,
-under egna namn. Det här avsnittet säger vad som är beslutat och vad som bara är
-föreslaget, för den, människa eller AI-agent, som för en del av det vidare.
-Besluten finns i korthet under [Lär dig mer](#lär-dig-mer), arbetssätten i
-[CONTRIBUTING.md](CONTRIBUTING.md) och IFC-grafen i
-[docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
+under egna namn. Det här avsnittet säger vad som är beslutat, för den, människa
+eller AI-agent, som för en del av det vidare. Besluten finns i korthet under
+[Lär dig mer](#lär-dig-mer), arbetssätten i [CONTRIBUTING.md](CONTRIBUTING.md)
+och IFC-grafen i [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
 
 ### Beslutat
 
@@ -373,12 +372,6 @@ Besluten finns i korthet under [Lär dig mer](#lär-dig-mer), arbetssätten i
   instans som flera delar ändrar den för alla, och en egen kopia måste begäras;
   varje ändring bär vem som föreslog den, och vilken AI-modell och vilket
   verktygsanrop, där en AI gjorde det.
-
-### Föreslaget, inte beslutat
-
-Inget just nu: versionsmodellen, rättigheterna och snippetens detaljer
-beslutades 2026-11-10, som listan ovan säger. Nya förslag samlas här innan de
-beslutas.
 
 ## Fel och förslag
 

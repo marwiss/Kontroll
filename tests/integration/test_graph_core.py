@@ -62,7 +62,12 @@ async def test_the_doctor_counts_the_constraints_on_both_products(graph: Graph) 
 def test_readyz_reports_dialect(client: TestClient, graph_target: GraphTarget) -> None:
     response = client.get("/readyz")
     assert response.status_code == 200
-    assert response.json() == {"status": "ready", "graph": "ok", "dialect": graph_target.dialect.value}
+    assert response.json() == {
+        "status": "ready",
+        "graph": "ok",
+        "dialect": graph_target.dialect.value,
+        "workcopy": "none",
+    }
 
 
 async def test_expired_nodes_are_deleted_in_batches(graph: Graph) -> None:

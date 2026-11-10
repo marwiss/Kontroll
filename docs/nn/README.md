@@ -319,10 +319,10 @@ blir gjeven ut på nytt etter kvart som ho veks. Det som følgjer, gjer grafen t
 ein modell som kan redigerast og versjonshandterast i databasen, med Dataspatium
 som klienten som redigerer han og viser versjonane. Dei offisielle OpenCDE-API-a
 blir verande slik buildingSMART definerer dei; det serien legg til, er
-utvidingar av dei under eigne namn. Denne delen seier kva som er avgjort, og kva
-som berre er føreslått, for den, menneske eller AI-agent, som fører ein del av
-det vidare. Avgjerdene står i korte trekk under [Lær meir](#lær-meir),
-arbeidsmåtane i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
+utvidingar av dei under eigne namn. Denne delen seier kva som er avgjort, for
+den, menneske eller AI-agent, som fører ein del av det vidare. Avgjerdene står i
+korte trekk under [Lær meir](#lær-meir), arbeidsmåtane i
+[CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
 [docs/nn/ifc-lpg.md](ifc-lpg.md).
 
 ### Avgjort
@@ -373,12 +373,6 @@ arbeidsmåtane i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
   ein instans som fleire deler, endrar han for alle, og ein eigen kopi må bedast
   om; kvar endring ber kven som føreslo henne, og kva AI-modell og kva
   verktøykall, der ein AI gjorde det.
-
-### Føreslått, ikkje avgjort
-
-Ingenting akkurat no: versjonsmodellen, rettane og detaljane i snippeten vart
-avgjorde 2026-11-10, slik lista over seier. Nye forslag blir samla her før dei
-blir avgjorde.
 
 ## Feil og framlegg
 

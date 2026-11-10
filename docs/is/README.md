@@ -317,10 +317,9 @@ að líkani sem hægt er að breyta og halda útgáfusögu fyrir í gagnagrunnin
 Dataspatium sem biðlarann sem breytir því og sýnir útgáfurnar. Opinberu
 OpenCDE-forritaskilin haldast eins og buildingSMART skilgreinir þau; það sem
 röðin bætir við eru viðbætur við þau undir eigin heitum. Þessi hluti segir hvað
-er ákveðið og hvað er aðeins lagt til, fyrir þann, manneskju eða
-gervigreindarfulltrúa, sem tekur hluta af því lengra. Ákvarðanirnar eru dregnar
-saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
-[CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafið í
+er ákveðið, fyrir þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af
+því lengra. Ákvarðanirnar eru dregnar saman undir [Lærðu meira](#lærðu-meira),
+vinnureglurnar í [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafið í
 [docs/is/ifc-lpg.md](ifc-lpg.md).
 
 ### Ákveðið
@@ -370,12 +369,6 @@ saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
   fleiri deila breytir því fyrir öll, og biðja þarf sérstaklega um eigið afrit;
   hver breyting ber hver lagði hana til, og hvaða gervigreindarlíkan og
   verkfærakall, þar sem gervigreind gerði það.
-
-### Lagt til, ekki ákveðið
-
-Ekkert í bili: útgáfulíkanið, réttindin og smáatriði snippets voru ákveðin
-2026-11-10, eins og listinn hér að ofan segir. Nýjar tillögur safnast hér áður
-en þær eru ákveðnar.
 
 ## Villur og tillögur
 

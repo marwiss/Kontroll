@@ -318,10 +318,10 @@ number, the series has one release, given out again as it grows. What follows
 turns the graph into a model that can be edited and versioned in the database,
 with Dataspatium as the client that edits it and shows its versions. The
 official OpenCDE APIs stay as buildingSMART defines them; what the series adds
-are extensions to them, under their own names. This section says what is decided
-and what is only proposed, for anyone, person or AI agent, who takes a part of
-it further. The decisions are summarised under [Learn more](#learn-more), the
-conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
+are extensions to them, under their own names. This section says what is
+decided, for anyone, person or AI agent, who takes a part of it further. The
+decisions are summarised under [Learn more](#learn-more), the conventions in
+[CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
 [docs/en/ifc-lpg.md](ifc-lpg.md).
 
 ### Decided
@@ -368,12 +368,6 @@ conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
   to an instance that several share changes it for all of them, and a copy of
   its own has to be asked for; every change carries who proposed it, and which
   AI model and tool call, where an AI did.
-
-### Proposed, not decided
-
-Nothing at the moment: the version model, the rights and the snippet's details
-were decided on 2026-11-10, as the list above says. New proposals are gathered
-here before they are decided.
 
 ## Bugs and suggestions
 
