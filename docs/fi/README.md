@@ -200,7 +200,7 @@ tietokannan salasanaa, eikä mikään ole auki ennen kuin se on määritetty.
   `development`, `production` tai `local` (paikallinen moottori, `opencde init --local`).
 - **Päätepisteet**: `/.well-known/dataregium` (versio ja käytössä olevat laajennukset),
   `/foundation/versions`, `/openapi.json` ja `/docs`, `/healthz` ja `/readyz`,
-  `/admin/api` (ylläpito) ja `/manage/1.0` (projektin ylläpito, 2.0.0:ssa ja 3.0.0:ssa).
+  `/admin/api` (ylläpito) ja `/manage/1.0` (projektin ylläpito).
   3-sarjan laajennukset ovat polussa `/documents/1.0/` (versioiden `ifc-queries`,
   `ifc-diff`, `ifc-changes` ja `ifc-geometry`, projektien `ifc-precheck` ja
   `ifc-clash`) ja BCF 3.0 -asian alla (`snippet` ja `ifc-proposal/approve`).
@@ -283,6 +283,9 @@ saman Dataspatium-version kanssa.
   pyyntöloki.
 - **Asiakaskirjasto** Pythonille ([client/](../../client/)) ajettavine esimerkkeineen,
   ja julkaistu image jokaista käyttöönottoa varten.
+- **Projektin vastuuhenkilöt ylläpitävät projektiaan**: `manager` lisää ja poistaa
+  jäseniä, vaihtaa heidän roolejaan ja nimeää projektin uudelleen olematta palvelimen
+  ylläpitäjä.
 
 ### Lisäksi versiossa 2 (Dataspatium 2:n kanssa)
 
@@ -292,9 +295,6 @@ saman Dataspatium-version kanssa.
 - **Malli graafina** (IFC-LPG-moduuli, joka otetaan käyttöön asetuksella
   `OPENCDE_IFC_LPG_ENABLED`): ladatusta IFC-mallista tulee graafi tietokantaan,
   yhdistettynä asioiden näkymien rakennusosiin (katso [IFC-LPG](ifc-lpg.md)).
-- **Projektin vastuuhenkilöt ylläpitävät projektiaan**: `manager` lisää ja poistaa
-  jäseniä, vaihtaa heidän roolejaan ja nimeää projektin uudelleen olematta palvelimen
-  ylläpitäjä.
 
 ### Lisäksi versiossa 3 (Dataspatium 3:n kanssa)
 
@@ -419,8 +419,8 @@ kuuluvat yhteen:
 
 | Dataregium | Mitä siinä on | Image | Kuuluu yhteen |
 |---|---|---|---|
-| 1.0.0 | Asiakirjapalvelin: Foundation API ja Documents API, verkkoylläpito seitsemällä kielellä ja pyyntöloki. Se on 2.0.0:n koodi, jossa vain Documents API on käytössä (`OPENCDE_APIS`), projektin ylläpitoa edeltäneestä 2.0.0:sta, joten siitä puuttuu se ja se vaatii tuotannossa sähköpostiosoitteen Let's Encryptille | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Lisäksi BCF API 3.0 ja 2.1 samoilla tiedoilla, IFC-LPG-moduuli, joka tekee graafin jokaisesta ladatusta IFC-tiedostosta, ja projektin ylläpito projektin vastuuhenkilölle | `2.0.0` | Dataspatium 2.0.0 |
+| 1.0.0 | Asiakirjapalvelin: Foundation API ja Documents API, verkkoylläpito seitsemällä kielellä, projektin ylläpito projektin vastuuhenkilölle ja pyyntöloki. Se on 2.0.0:n koodi, jossa vain Documents API on käytössä (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
+| 2.0.0 | Lisäksi BCF API 3.0 ja 2.1 samoilla tiedoilla ja IFC-LPG-moduuli, joka tekee graafin jokaisesta ladatusta IFC-tiedostosta | `2.0.0` | Dataspatium 2.0.0 |
 | 3.0.0 | Lisäksi häviötön graafi IFC-LPG-kirjastosta, jokaisen latauksen tarkistus, kyselyt, vertailut ja törmäystarkastus, versiot muutosehdotuksineen, jotka kokeillaan, hyväksytään ja yhdistetään, geometria glTF:nä, paikallinen moottori ja ohjeet pilveen ja nginxille | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lue lisää

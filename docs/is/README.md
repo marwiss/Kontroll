@@ -194,7 +194,7 @@ en það hefur verið stillt.
   eða `local` (staðbundna vélin, `opencde init --local`).
 - **Endapunktar**: `/.well-known/dataregium` (útgáfan og viðbæturnar sem eru virkar),
   `/foundation/versions`, `/openapi.json` og `/docs`, `/healthz` og `/readyz`,
-  `/admin/api` (stjórnun) og `/manage/1.0` (verkefnastjórnun, í 2.0.0 og 3.0.0).
+  `/admin/api` (stjórnun) og `/manage/1.0` (verkefnastjórnun).
   Viðbætur 3-raðarinnar eru undir `/documents/1.0/` (`ifc-queries`, `ifc-diff`,
   `ifc-changes` og `ifc-geometry` útgáfnanna, `ifc-precheck` og `ifc-clash`
   verkefnanna) og undir BCF 3.0-máli (`snippet` og `ifc-proposal/approve`).
@@ -267,6 +267,9 @@ Orðin sem þessi README notar, á daglegu máli; allur orðalistinn er í
   (`/.well-known/dataregium`), stöðugur villukóði í hverju villusvari og beiðnaannáll.
 - **Biðlarasafn** í Python ([client/](../../client/)) með keyranlegum dæmum, og
   útgefin mynd fyrir hverja uppsetningu.
+- **Verkefnastjórar stjórna verkefni sínu**: `manager` bætir við og fjarlægir
+  meðlimi, breytir hlutverkum þeirra og endurnefnir verkefnið, án þess að vera
+  stjórnandi þjónsins.
 
 ### Einnig í útgáfu 2 (með Dataspatium 2)
 
@@ -276,9 +279,6 @@ Orðin sem þessi README notar, á daglegu máli; allur orðalistinn er í
 - **Líkanið sem net** (IFC-LPG-einingin, virkjuð með `OPENCDE_IFC_LPG_ENABLED`):
   upphlaðið IFC-líkan verður að neti í gagnagrunninum, tengt byggingarhlutunum í
   sjónarhornum málanna (sjá [IFC-LPG](ifc-lpg.md)).
-- **Verkefnastjórar stjórna verkefni sínu**: `manager` bætir við og fjarlægir
-  meðlimi, breytir hlutverkum þeirra og endurnefnir verkefnið, án þess að vera
-  stjórnandi þjónsins.
 
 ### Einnig í útgáfu 3 (með Dataspatium 3)
 
@@ -398,8 +398,8 @@ eiga saman:
 
 | Dataregium | Hvað hún hefur | Mynd | Á við |
 |---|---|---|---|
-| 1.0.0 | Skjalaþjónn: Foundation API og Documents API, vefstjórnunin á sjö tungumálum og beiðnaannállinn. Hún er kóði 2.0.0 með aðeins Documents API virkt (`OPENCDE_APIS`), úr 2.0.0 frá því fyrir verkefnastjórnunina, svo hana vantar og hún þarf netfang fyrir Let's Encrypt í rekstri | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Einnig BCF API 3.0 og 2.1 á sömu gögnum, IFC-LPG-eininguna sem gerir net úr hverri upphlaðinni IFC-skrá, og verkefnastjórnunina fyrir verkefnastjórann | `2.0.0` | Dataspatium 2.0.0 |
+| 1.0.0 | Skjalaþjónn: Foundation API og Documents API, vefstjórnunin á sjö tungumálum, verkefnastjórnunin fyrir verkefnastjórann og beiðnaannállinn. Hún er kóði 2.0.0 með aðeins Documents API virkt (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
+| 2.0.0 | Einnig BCF API 3.0 og 2.1 á sömu gögnum og IFC-LPG-eininguna sem gerir net úr hverri upphlaðinni IFC-skrá | `2.0.0` | Dataspatium 2.0.0 |
 | 3.0.0 | Einnig taplausa netið úr safninu IFC-LPG, prófun hverrar upphleðslu, fyrirspurnirnar, samanburðinn og árekstrarprófunina, útgáfur með breytingatillögum sem eru prófaðar, samþykktar og sameinaðar, rúmfræðina sem glTF, staðbundnu vélina og uppskriftirnar fyrir skýið og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lærðu meira

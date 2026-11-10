@@ -198,8 +198,7 @@ nothing is open until it has been configured.
   `development`, `production` or `local` (the local engine, `opencde init --local`).
 - **Endpoints**: `/.well-known/dataregium` (the version and the extensions that are
   on), `/foundation/versions`, `/openapi.json` and `/docs`, `/healthz` and `/readyz`,
-  `/admin/api` (administration) and `/manage/1.0` (project administration, in 2.0.0
-  and 3.0.0). The 3 series' extensions are under `/documents/1.0/` (the versions'
+  `/admin/api` (administration) and `/manage/1.0` (project administration). The 3 series' extensions are under `/documents/1.0/` (the versions'
   `ifc-queries`, `ifc-diff`, `ifc-changes` and `ifc-geometry`, the projects'
   `ifc-precheck` and `ifc-clash`) and under a BCF 3.0 topic (`snippet` and
   `ifc-proposal/approve`).
@@ -274,6 +273,9 @@ version of Dataspatium.
   request log.
 - **A client library** in Python ([client/](../../client/)) with runnable examples,
   and a published image for every deployment.
+- **Project managers administer their project**: a `manager` adds and removes
+  members, changes their roles and renames the project, without being a server
+  administrator.
 
 ### Also in version 2 (with Dataspatium 2)
 
@@ -283,9 +285,6 @@ version of Dataspatium.
 - **The model as a graph** (the IFC-LPG module, turned on with
   `OPENCDE_IFC_LPG_ENABLED`): an uploaded IFC model becomes a graph in the database,
   linked to the building elements in the topics' views (see [IFC-LPG](ifc-lpg.md)).
-- **Project managers administer their project**: a `manager` adds and removes
-  members, changes their roles and renames the project, without being a server
-  administrator.
 
 ### Also in version 3 (with Dataspatium 3)
 
@@ -407,8 +406,8 @@ number go together:
 
 | Dataregium | What it has | Image | Goes with |
 |---|---|---|---|
-| 1.0.0 | A document server: the Foundation API and the Documents API, the web administration in seven languages and the request log. It is the 2.0.0 code with only the Documents API on (`OPENCDE_APIS`), from a 2.0.0 before the project administration, so it lacks that and needs an e-mail address for Let's Encrypt in production | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Also BCF API 3.0 and 2.1 on the same data, the IFC-LPG module that makes a graph of every uploaded IFC file, and the project administration for the project manager | `2.0.0` | Dataspatium 2.0.0 |
+| 1.0.0 | A document server: the Foundation API and the Documents API, the web administration in seven languages, the project administration for the project manager and the request log. It is the 2.0.0 code with only the Documents API on (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
+| 2.0.0 | Also BCF API 3.0 and 2.1 on the same data and the IFC-LPG module that makes a graph of every uploaded IFC file | `2.0.0` | Dataspatium 2.0.0 |
 | 3.0.0 | Also the lossless graph from the IFC-LPG library, the check of every upload, the queries, the comparisons and the clash check, versions with change proposals that are tested, approved and merged, the geometry as glTF, the local engine and the recipes for the cloud and nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Learn more

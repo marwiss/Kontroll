@@ -197,8 +197,7 @@ før det er konfigurert.
   `production` eller `local` (den lokale motoren, `opencde init --local`).
 - **Endepunkter**: `/.well-known/dataregium` (versjonen og utvidelsene som er slått
   på), `/foundation/versions`, `/openapi.json` og `/docs`, `/healthz` og `/readyz`,
-  `/admin/api` (administrasjon) og `/manage/1.0` (prosjektadministrasjon, i 2.0.0 og
-  3.0.0). 3-seriens utvidelser ligger under `/documents/1.0/` (versjonenes
+  `/admin/api` (administrasjon) og `/manage/1.0` (prosjektadministrasjon). 3-seriens utvidelser ligger under `/documents/1.0/` (versjonenes
   `ifc-queries`, `ifc-diff`, `ifc-changes` og `ifc-geometry`, prosjektenes
   `ifc-precheck` og `ifc-clash`) og under en BCF 3.0-sak (`snippet` og
   `ifc-proposal/approve`).
@@ -273,6 +272,9 @@ den samme versjonen av Dataspatium.
   forespørselslogg.
 - **Et klientbibliotek** i Python ([client/](../../client/)) med kjørbare eksempler, og
   et publisert image for hver utrulling.
+- **Prosjektansvarlige administrerer prosjektet sitt**: en `manager` legger til og
+  fjerner medlemmer, bytter rollene deres og gir prosjektet nytt navn, uten å være
+  serveradministrator.
 
 ### Også i versjon 2 (med Dataspatium 2)
 
@@ -282,9 +284,6 @@ den samme versjonen av Dataspatium.
 - **Modellen som graf** (IFC-LPG-modulen, slått på med `OPENCDE_IFC_LPG_ENABLED`): en
   opplastet IFC-modell blir en graf i databasen, knyttet til bygningsdelene i sakenes
   visninger (se [IFC-LPG](ifc-lpg.md)).
-- **Prosjektansvarlige administrerer prosjektet sitt**: en `manager` legger til og
-  fjerner medlemmer, bytter rollene deres og gir prosjektet nytt navn, uten å være
-  serveradministrator.
 
 ### Også i versjon 3 (med Dataspatium 3)
 
@@ -404,8 +403,8 @@ den siste i hver serie rettes. Dataregium og Dataspatium med samme nummer hører
 
 | Dataregium | Hva den har | Image | Hører sammen med |
 |---|---|---|---|
-| 1.0.0 | En dokumentserver: Foundation API og Documents API, nettadministrasjonen på sju språk og forespørselsloggen. Den er 2.0.0-koden med bare Documents API slått på (`OPENCDE_APIS`), fra en 2.0.0 før prosjektadministrasjonen, så den mangler den og krever en e-postadresse til Let's Encrypt i produksjon | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Også BCF API 3.0 og 2.1 på de samme dataene, IFC-LPG-modulen som lager en graf av hver opplastet IFC-fil, og prosjektadministrasjonen for den prosjektansvarlige | `2.0.0` | Dataspatium 2.0.0 |
+| 1.0.0 | En dokumentserver: Foundation API og Documents API, nettadministrasjonen på sju språk, prosjektadministrasjonen for den prosjektansvarlige og forespørselsloggen. Den er 2.0.0-koden med bare Documents API slått på (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
+| 2.0.0 | Også BCF API 3.0 og 2.1 på de samme dataene og IFC-LPG-modulen som lager en graf av hver opplastet IFC-fil | `2.0.0` | Dataspatium 2.0.0 |
 | 3.0.0 | Også den tapsfrie grafen fra biblioteket IFC-LPG, kontrollen av hver opplasting, spørringene, sammenligningene og kollisjonskontrollen, versjoner med endringsforslag som prøves, godkjennes og slås sammen, geometrien som glTF, den lokale motoren og oppskriftene for skyen og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lær mer
