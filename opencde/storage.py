@@ -32,6 +32,7 @@ CATEGORIES = frozenset(
         "snippets",
         "bcf-documents",
         "backups",
+        "published",
     }
 )
 _SUFFIX = re.compile(r"^[a-z0-9]{1,8}$")

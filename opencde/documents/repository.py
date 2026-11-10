@@ -17,6 +17,7 @@ from typing import Annotated, Any
 from fastapi import Depends, HTTPException
 from ifc_lpg.validation import unpack_report
 
+from opencde import audit
 from opencde.deps import GraphDep
 from opencde.documents.links import version_links
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion, FileDescription
@@ -372,6 +373,59 @@ class DocumentRepository:
             "changes": unpack_report(row["change_set"]),
         }
 
+    async def publication(self, *, user_id: str, document_id: str, version_index: int) -> dict[str, Any] | None:
+        """The publication of a version (F9 a), or None while it is not published."""
+        row = await self.graph.one(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                  -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_PUBLICATION]->(pub:Publication)
+            WITH pub ORDER BY pub.published_at LIMIT 1
+            RETURN properties(pub) AS publication
+            """,
+            user_id=user_id,
+            document_id=document_id,
+            version_index=version_index,
+        )
+        return dict(row["publication"]) if row else None
+
+    async def publish(
+        self,
+        *,
+        user_id: str,
+        document_id: str,
+        version_index: int,
+        publication: dict[str, Any],
+        audit_event: dict[str, Any],
+    ) -> bool:
+        """Mark a version published with its stored archive (``id``, ``storage_key``, ``file_name``,
+        ``size_in_bytes``, ``sha256``, ``published_at``, ``published_by``), and the audit event with it in the same
+        transaction; False when it already was."""
+
+        async def work(tx: Tx) -> bool:
+            rows = await tx.run(
+                """
+                MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                      -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
+                OPTIONAL MATCH (v)-[:HAS_PUBLICATION]->(old:Publication)
+                WITH v, old WHERE old IS NULL
+                CREATE (v)-[:HAS_PUBLICATION]->(:Publication {
+                    id: $id, storage_key: $storage_key, file_name: $file_name, size_in_bytes: $size_in_bytes,
+                    sha256: $sha256, published_at: $published_at, published_by: $published_by
+                })
+                RETURN v.id AS id
+                """,
+                user_id=user_id,
+                document_id=document_id,
+                version_index=version_index,
+                **publication,
+            )
+            if not rows:
+                return False
+            await audit.record_in(tx, **audit_event)
+            return True
+
+        return await self.graph.write(work)
+
 
 def default_metadata(
     *, file_name: str, size_in_bytes: int, sha256: str, author: str, project_name: str
@@ -383,6 +437,15 @@ def default_metadata(
         DocumentMetadataEntry(name="sha256", value=[sha256], data_type="string"),
         DocumentMetadataEntry(name="uploaded_by", value=[author], data_type="string"),
         DocumentMetadataEntry(name="project", value=[project_name], data_type="string"),
+    ]
+
+
+def publication_metadata(publication: dict[str, Any], url: str) -> list[DocumentMetadataEntry]:
+    """The entries a published version adds to its metadata (F9 a): when, by whom, and where the publication is."""
+    return [
+        DocumentMetadataEntry(name="published_at", value=[str(publication["published_at"])], data_type="date-time"),
+        DocumentMetadataEntry(name="published_by", value=[str(publication["published_by"])], data_type="string"),
+        DocumentMetadataEntry(name="publication", value=[url], data_type="url"),
     ]
 
 

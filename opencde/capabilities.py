@@ -100,6 +100,16 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 "roles": list(MANAGE_ROLES),
                 "for": "managers of a project",
             },
+            "publication": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication",
+                    "roles": ["manager"],
+                    "formats": ["ifczip", "zip"],
+                }
+                if settings.offers("documents")
+                else {"enabled": False}
+            ),
             "headless_uploads": {
                 "enabled": settings.offers("documents"),
                 "url": "/documents/1.0/upload-documents",

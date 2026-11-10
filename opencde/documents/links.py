@@ -40,6 +40,11 @@ def validation_report_url(base: str, document_id: str, version_index: int) -> st
     return f"{base}/documents/{document_id}/versions/{version_index}/ifc-validation"
 
 
+def publication_url(base: str, document_id: str, version_index: int) -> str:
+    """Where a version's publication is (an extension, ``routes_publication.py``; F9 a)."""
+    return f"{base}/documents/{document_id}/versions/{version_index}/publication"
+
+
 def part_ranges(size: int, part_size: int) -> list[tuple[int, int]]:
     """Inclusive zero-based byte ranges covering ``size`` bytes in parts of at most ``part_size``."""
     if size <= 0 or part_size <= 0:

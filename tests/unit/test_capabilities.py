@@ -30,6 +30,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_clash",
         "ifc_precheck",
         "project_administration",
+        "publication",
         "headless_uploads",
         "ifc_diff",
         "ifc_geometry",
@@ -60,6 +61,12 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "roles": ["viewer", "contributor", "editor", "manager"],
         "for": "managers of a project",
     }, "managers administer their projects (OB-41)"
+    assert extensions["publication"] == {
+        "enabled": True,
+        "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication",
+        "roles": ["manager"],
+        "formats": ["ifczip", "zip"],
+    }, "a manager publishes a version (F9 a)"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0

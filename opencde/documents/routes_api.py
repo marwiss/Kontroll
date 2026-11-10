@@ -32,8 +32,8 @@ from opencde.auth.tokens import Principal
 from opencde.bcf.binary import file_response, receive_upload
 from opencde.deps import ClientsDep, GraphDep, SettingsDep, StorageDep, UsersDep, client_ip
 from opencde.documents.assembly import AssemblyError, assemble
-from opencde.documents.links import api_base, part_ranges, precheck_url, validation_report_url
-from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata
+from opencde.documents.links import api_base, part_ranges, precheck_url, publication_url, validation_report_url
+from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata, publication_metadata
 from opencde.documents.schemas import (
     DocumentDiscoverySessionInitialization,
     DocumentMetadata,
@@ -645,7 +645,8 @@ async def document_metadata(
     documents: DocumentsDep,
     settings: SettingsDep,
 ) -> DocumentMetadata:
-    """The metadata given at upload, and for an IFC file the result of checking it (``ifc_validation_*``)."""
+    """The metadata given at upload, for an IFC file the result of checking it (``ifc_validation_*``), and for a
+    published version when and by whom (``published_*``, ``publication``)."""
     record = await _version(principal, documents, document_id, version_index)
     entries = record.metadata_entries()
     validation = await documents.validation(
@@ -654,6 +655,12 @@ async def document_metadata(
     if validation is not None:
         url = validation_report_url(api_base(settings), record.document_id, record.version_index)
         entries += validation_metadata(validation, url)
+    published = await documents.publication(
+        user_id=principal.user_id, document_id=record.document_id, version_index=record.version_index
+    )
+    if published is not None:
+        url = publication_url(api_base(settings), record.document_id, record.version_index)
+        entries += publication_metadata(published, url)
     return DocumentMetadata(metadata=entries)
 
 
