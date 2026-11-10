@@ -55,7 +55,7 @@ def wait_for_model(graph_target: GraphTarget, database: str | None, timeout: flo
     deadline = time.monotonic() + timeout
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
         while time.monotonic() < deadline:
-            records, _, _ = driver.execute_query("MATCH (m:IfcModel) RETURN properties(m) AS m", database_=database)
+            records, _, _ = driver.execute_query("MATCH (m:Model) RETURN properties(m) AS m", database_=database)
             if records and records[0]["m"].get("state") in ("done", "failed"):
                 return records[0]["m"]
             time.sleep(1.0)
@@ -121,7 +121,7 @@ def test_a_conversion_a_stopped_server_left_behind_starts_over(
             driver.execute_query(
                 """
                 MATCH (p:Project {project_id: $project_id})
-                CREATE (p)-[:HAS_MODEL]->(m:IfcModel {
+                CREATE (p)-[:HAS_MODEL]->(m:Model {
                     id: $id, project_id: $project_id, file_name: 'a.ifc', storage_key: $key, created_at: $now
                 })
                 SET m.state = CASE WHEN $id = 'queued' THEN 'queued' ELSE 'running' END, m += $fields
@@ -134,13 +134,13 @@ def test_a_conversion_a_stopped_server_left_behind_starts_over(
                 database_=settings.database_name,
             )
         driver.execute_query(
-            "CREATE (:IfcEntity {model_id: 'long-gone', GlobalId: 'half-way-through'})",
+            "CREATE (:Entity {model_id: 'long-gone', GlobalId: 'half-way-through'})",
             database_=settings.database_name,
         )
 
         def states() -> dict[str, str]:
             records, _, _ = driver.execute_query(
-                "MATCH (m:IfcModel) RETURN m.id AS id, m.state AS state", database_=settings.database_name
+                "MATCH (m:Model) RETURN m.id AS id, m.state AS state", database_=settings.database_name
             )
             return {record["id"]: record["state"] for record in records}
 
@@ -152,7 +152,7 @@ def test_a_conversion_a_stopped_server_left_behind_starts_over(
                 time.sleep(1.0)
         assert states()["just-started"] == "running", "it may be running in another server process"
         half_way, _, _ = driver.execute_query(
-            "MATCH (e:IfcEntity {GlobalId: 'half-way-through'}) RETURN count(e) AS n", database_=settings.database_name
+            "MATCH (e:Entity {GlobalId: 'half-way-through'}) RETURN count(e) AS n", database_=settings.database_name
         )
         assert half_way[0]["n"] == 0
 
@@ -208,7 +208,7 @@ def test_uploaded_model_becomes_graph_and_components_link(
         database = client.app.state.settings.database_name  # type: ignore[attr-defined]
         rows, _, _ = driver.execute_query(
             """
-            MATCH (c:Component)-[:SAME_AS]->(e:IfcEntity)
+            MATCH (c:Component)-[:SAME_AS]->(e:Entity)
             RETURN c.ifc_guid AS guid, c.gtin AS gtin, e.Name AS name ORDER BY c.position
             """,
             database_=database,
@@ -225,7 +225,7 @@ def test_uploaded_model_becomes_graph_and_components_link(
             database_=database,
         )
         assert [(r["guid"], r["gtin"]) for r in gtins] == [(WALLS[2], "1"), (WALLS[1], "2"), (WALLS[0], "3")]
-        walls, _, _ = driver.execute_query("MATCH (w:IfcEntity:IfcWall) RETURN count(w) AS n", database_=database)
+        walls, _, _ = driver.execute_query("MATCH (w:Entity:IfcWall) RETURN count(w) AS n", database_=database)
         assert walls[0]["n"] == 3
 
 
@@ -275,7 +275,7 @@ def test_components_created_before_the_model_are_linked_when_it_finishes(
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
         while True:
             rows, _, _ = driver.execute_query(
-                "MATCH (c:Component)-[:SAME_AS]->(e:IfcEntity) RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
+                "MATCH (c:Component)-[:SAME_AS]->(e:Entity) RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
                 database_=client.app.state.settings.database_name,  # type: ignore[attr-defined]
             )
             linked = [(r["guid"], r["gtin"]) for r in rows]

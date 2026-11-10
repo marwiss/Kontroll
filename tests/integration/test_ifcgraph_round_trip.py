@@ -102,7 +102,7 @@ async def through_the_graph(graph: Graph, source: Path, workdir: Path, *, as_nod
     records = workdir / "records.jsonl"
     header = write_jsonl(source, records, lossless=True, include_geometry=as_nodes)
     await graph.run(
-        "CREATE (:IfcModel {id: 'model', state: 'done', lossless: true, skipped: $skipped, schema: $schema, ifc_header: $header})",
+        "CREATE (:Model {id: 'model', state: 'done', lossless: true, skipped: $skipped, schema: $schema, ifc_header: $header})",
         skipped=header["skipped"],
         schema=header["schema"],
         header=header["ifc_header"],
@@ -254,13 +254,13 @@ def test_a_model_goes_with_its_blocks(graph_target: GraphTarget, clean_database:
             await apply_schema(graph)
             await through_the_graph(graph, source, tmp_path, as_nodes=False)
             blocks = (await graph.run("MATCH (b:StepBlock) RETURN count(b) AS n"))[0]["n"]
-            texts = await graph.run("MATCH (:IfcModel {id: 'model'})-[:HAS_STEP_BLOCK]->(b) RETURN b.instances AS n")
+            texts = await graph.run("MATCH (:Model {id: 'model'})-[:HAS_STEP_BLOCK]->(b) RETURN b.instances AS n")
             await delete_model_entities(graph, "model")
             after_failure = (await graph.run("MATCH (b:StepBlock) RETURN count(b) AS n"))[0]["n"]
-            await graph.run("MATCH (m:IfcModel {id: 'model'}) DETACH DELETE m")
+            await graph.run("MATCH (m:Model {id: 'model'}) DETACH DELETE m")
             await through_the_graph(graph, source, tmp_path, as_nodes=False)
             await delete_model(graph, "model")
-            left = await graph.run("MATCH (n) WHERE n:StepBlock OR n:IfcEntity OR n:IfcModel RETURN count(n) AS n")
+            left = await graph.run("MATCH (n) WHERE n:StepBlock OR n:Entity OR n:Model RETURN count(n) AS n")
             return blocks, sum(row["n"] for row in texts), after_failure, left[0]["n"]
         finally:
             await graph.close()
@@ -344,7 +344,7 @@ def test_deleting_a_project_leaves_nothing_of_its_models(
             await ProjectRepository(graph).delete(loaded.projects["Building permit"])
             rows = await graph.run(
                 """
-                MATCH (n) WHERE n:IfcEntity OR n:IfcModel OR n:StepBlock OR n:IfcValidation
+                MATCH (n) WHERE n:Entity OR n:Model OR n:StepBlock OR n:IfcValidation
                 RETURN DISTINCT labels(n)[0] AS label
                 """
             )
@@ -370,7 +370,7 @@ def test_the_command_line_writes_a_model_back_and_says_how_it_went(
             await apply_schema(graph)
             loaded = await seeding.seed(graph, storage=storage)
             model = await seeding.build_sample_graph(graph, storage, settings, loaded)
-            await graph.run("CREATE (:IfcModel {id: 'ordinary', state: 'done'})")
+            await graph.run("CREATE (:Model {id: 'ordinary', state: 'done'})")
             return model["id"]
         finally:
             await graph.close()
@@ -460,7 +460,7 @@ def test_a_valid_change_is_reported_as_a_change_and_as_valid(
             id="a reference into a block to nothing",
         ),
         pytest.param(
-            "MATCH (n:IfcEntity {model_id: $id}) WHERE n:IfcMaterialLayerSet OR n:IfcMaterialLayer DETACH DELETE n",
+            "MATCH (n:Entity {model_id: $id}) WHERE n:IfcMaterialLayerSet OR n:IfcMaterialLayer DETACH DELETE n",
             "",
             id="deleted nodes that others refer to",
         ),
@@ -506,8 +506,8 @@ def test_a_model_that_does_not_hold_it_all_is_not_written(
         messages = []
         try:
             await apply_schema(graph)
-            await graph.run("CREATE (:IfcModel {id: 'ordinary', state: 'done'})")
-            await graph.run("CREATE (:IfcModel {id: 'running', state: 'running', lossless: true})")
+            await graph.run("CREATE (:Model {id: 'ordinary', state: 'done'})")
+            await graph.run("CREATE (:Model {id: 'running', state: 'running', lossless: true})")
             for model_id in ("ordinary", "running", "missing"):
                 with pytest.raises(NotExportable) as caught:
                     await service.export(model_id, tmp_path / "out.ifc")

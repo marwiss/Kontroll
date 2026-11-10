@@ -19,7 +19,7 @@ planens etapper lade till dem.
   SHA-256-hashar.
 - Cypher är dialektneutral så att Neo4j och Memgraph beter sig lika (ADR 0003).
   Schema-DDL är den enda produktspecifika texten och ligger i `graph/dialect.py`.
-- Namn: etiketter skrivs i PascalCase (`DocumentVersion`, `IfcModel`),
+- Namn: etiketter skrivs i PascalCase (`DocumentVersion`, `Model`),
   relationstyper med versaler och understreck (`HAS_TOPIC`, `CREATED_BY`, och
   `IS_DEFINED_BY` för IFC-attributrelationerna). Diagrammen nedan ritar bara
   riktiga noder och relationer; en referens som hålls som egenskap
@@ -155,17 +155,17 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Project ||--o{ IfcModel : HAS_MODEL
-    IfcModel ||--o| IfcEntity : HAS_PROJECT
-    IfcModel ||--o{ StepBlock : HAS_STEP_BLOCK
-    IfcEntity }o--o{ IfcEntity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
-    Component }o--o| IfcEntity : SAME_AS
+    Project ||--o{ Model : HAS_MODEL
+    Model ||--o| Entity : HAS_PROJECT
+    Model ||--o{ StepBlock : HAS_STEP_BLOCK
+    Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
+    Component }o--o| Entity : SAME_AS
 ```
 
 | Etikett | Nyckel | Egenskaper | Anteckningar |
 |---|---|---|---|
-| `IfcModel` | `id`, indexerad `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tidsstämplar | En per importerad fil; `state` är `queued`, `running`, `done` eller `failed` |
-| `IfcEntity` + klassetiketter | `id` (`<modell-id>:<step-id>`), indexerad `GlobalId`, `model_id` | `ifc_class`, `step_id`, varje literalt IFC-attribut med namn | Relationer mellan entiteter namnges efter IFC-attributet (framåt och inverst), skrivna som varje relationstyp med versaler och understreck: `IsDefinedBy` blir `IS_DEFINED_BY` |
+| `Model` | `id`, indexerad `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tidsstämplar | En per importerad fil; `state` är `queued`, `running`, `done` eller `failed` |
+| `Entity` + klassetiketter | `id` (`<modell-id>:<step-id>`), indexerad `GlobalId`, `model_id` | `ifc_class`, `step_id`, varje literalt IFC-attribut med namn | Relationer mellan entiteter namnges efter IFC-attributet (framåt och inverst), skrivna som varje relationstyp med versaler och understreck: `IsDefinedBy` blir `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<modell-id>:<första step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konverterad med `OPENCDE_IFC_LPG_LOSSLESS` som inte är noder: utskrivna som STEP i id-ordning och komprimerade. Returnera inte noden hel i en fråga, för `text` skull |
 
 Se [ifc-lpg.md](ifc-lpg.md) för konverteringsreglerna och exempelfrågor.

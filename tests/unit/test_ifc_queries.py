@@ -10,7 +10,7 @@ import pytest
 from opencde.admin.graph_query import check_statement
 from opencde.ifcgraph.queries import QUERIES, InvalidParameters, NamedQuery
 
-SCOPE = "MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:IfcModel)"
+SCOPE = "MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:Model)"
 GIVEN = {"user_id", "document_id", "version_index"}
 
 

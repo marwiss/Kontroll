@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """Housekeeping of imported models for the ``opencde ifcgraph`` commands.
 
-Every upload of an IFC file adds an ``IfcModel`` with its entities, so a project
+Every upload of an IFC file adds an ``Model`` with its entities, so a project
 that receives new versions (or a test suite that uploads the same file again
 and again) accumulates graphs nobody queries. ``prune_models`` removes the
 models that failed and the finished models superseded by a newer finished one
@@ -21,7 +21,7 @@ from opencde.graph.graph import Graph
 async def list_models(graph: Graph, *, project_id: str | None = None) -> list[dict[str, Any]]:
     rows = await graph.run(
         """
-        MATCH (m:IfcModel) WHERE $project IS NULL OR m.project_id = $project
+        MATCH (m:Model) WHERE $project IS NULL OR m.project_id = $project
         RETURN properties(m) AS model ORDER BY m.project_id, m.created_at
         """,
         project=project_id,
@@ -34,7 +34,7 @@ async def superseded_or_failed(graph: Graph, *, project_id: str | None = None) -
     same document (Documents API ``document_id`` or BCF ``bcf_document_guid``) has replaced."""
     rows = await graph.run(
         """
-        MATCH (m:IfcModel)
+        MATCH (m:Model)
         WHERE ($project IS NULL OR m.project_id = $project) AND m.state IN ['done', 'failed']
         WITH coalesce(m.document_id, m.bcf_document_guid, m.id) AS doc, m
         ORDER BY CASE WHEN m.state = 'done' THEN 0 ELSE 1 END, coalesce(m.version_index, 0) DESC,

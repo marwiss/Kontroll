@@ -17,7 +17,7 @@ stages of the plan added them.
 - Secrets (codes, tokens, client secrets) are stored only as SHA-256 hashes.
 - Cypher is dialect-neutral so Neo4j and Memgraph behave the same (ADR 0003).
   Schema DDL is the only product-specific text and lives in `graph/dialect.py`.
-- Names: labels are written in PascalCase (`DocumentVersion`, `IfcModel`),
+- Names: labels are written in PascalCase (`DocumentVersion`, `Model`),
   relationship types in upper case with underscores (`HAS_TOPIC`,
   `CREATED_BY`, and `IS_DEFINED_BY` for the IFC attribute relationships).
   The diagrams below draw only real nodes and relationships; a reference kept
@@ -153,17 +153,17 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Project ||--o{ IfcModel : HAS_MODEL
-    IfcModel ||--o| IfcEntity : HAS_PROJECT
-    IfcModel ||--o{ StepBlock : HAS_STEP_BLOCK
-    IfcEntity }o--o{ IfcEntity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
-    Component }o--o| IfcEntity : SAME_AS
+    Project ||--o{ Model : HAS_MODEL
+    Model ||--o| Entity : HAS_PROJECT
+    Model ||--o{ StepBlock : HAS_STEP_BLOCK
+    Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
+    Component }o--o| Entity : SAME_AS
 ```
 
 | Label | Key | Properties | Notes |
 |---|---|---|---|
-| `IfcModel` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
-| `IfcEntity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse), written like every relationship type in upper case with underscores: `IsDefinedBy` becomes `IS_DEFINED_BY` |
+| `Model` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
+| `Entity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse), written like every relationship type in upper case with underscores: `IsDefinedBy` becomes `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<model id>:<first step id>`) | `first_step`, `instances`, `text` | Instances of a model converted with `OPENCDE_IFC_LPG_LOSSLESS` that are no nodes: written out as STEP in order of id and compressed. Do not return this node whole in a query, for the sake of `text` |
 
 See [ifc-lpg.md](ifc-lpg.md) for the conversion rules and example queries.

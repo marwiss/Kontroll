@@ -41,8 +41,8 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("SelectionSession", "id"),
     ("Event", "id"),
     ("AuditEvent", "id"),
-    ("IfcModel", "id"),
-    ("IfcEntity", "id"),
+    ("Model", "id"),
+    ("Entity", "id"),
     ("StepBlock", "id"),
 )
 
@@ -66,9 +66,9 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("SelectionSession", "expires_at"),
     ("SelectionSession", "token_hash"),
     ("DocumentVersion", "version_index"),
-    ("IfcEntity", "GlobalId"),
-    ("IfcEntity", "model_id"),
-    ("IfcModel", "project_id"),
+    ("Entity", "GlobalId"),
+    ("Entity", "model_id"),
+    ("Model", "project_id"),
     ("RequestLog", "at"),
     ("RequestLog", "expires_at"),
 )
@@ -90,8 +90,33 @@ EXPIRING_LABELS: tuple[str, ...] = (
 )
 
 
+#: IFC-LPG named its own labels without Ifc on 2026-11-10 (its 61a2d69): what was converted before is relabelled
+#: at startup, in batches, so that the queries and the exports find it. Idempotent and cheap once done.
+RENAMED_LABELS: tuple[tuple[str, str], ...] = (("IfcModel", "Model"), ("IfcEntity", "Entity"))
+RELABEL_BATCH = 5000
+
+
+async def relabel_after_the_rename(graph: Graph) -> int:
+    """Give nodes converted before IFC-LPG's rename their new labels. Returns how many nodes changed."""
+    changed = 0
+    for old, new in RENAMED_LABELS:
+        while True:
+            rows = await graph.run(
+                f"MATCH (n:{old}) WITH n LIMIT $batch SET n:{new} REMOVE n:{old} RETURN count(n) AS n",
+                batch=RELABEL_BATCH,
+            )
+            done = int(rows[0]["n"]) if rows else 0
+            changed += done
+            if done < RELABEL_BATCH:
+                break
+    if changed:
+        log.info("labels_renamed", nodes=changed)
+    return changed
+
+
 async def apply_schema(graph: Graph) -> int:
-    """Create missing constraints and indexes. Returns how many statements changed the schema."""
+    """Create missing constraints and indexes, and relabel what IFC-LPG's rename left behind. Returns how many
+    statements changed the schema."""
     changed = 0
     dialect = graph.dialect
     for label, prop in UNIQUE:
@@ -103,4 +128,5 @@ async def apply_schema(graph: Graph) -> int:
         if await graph.ddl(dialect.index(label, prop)):
             changed += 1
     (log.info if changed else log.debug)("schema_applied", dialect=dialect.name.value, changed=changed)
+    await relabel_after_the_rename(graph)
     return changed

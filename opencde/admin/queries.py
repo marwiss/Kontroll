@@ -131,7 +131,7 @@ async def members_by_project(graph: Graph) -> dict[str, list[dict[str, str]]]:
 
 async def model_counts(graph: Graph) -> dict[str, int]:
     """Imported IFC models per project id (every state), plus the total under ``""``."""
-    rows = await graph.run("MATCH (m:IfcModel) RETURN m.project_id AS project_id, count(m) AS n")
+    rows = await graph.run("MATCH (m:Model) RETURN m.project_id AS project_id, count(m) AS n")
     counts = {str(row["project_id"] or ""): int(row["n"]) for row in rows}
     counts[""] = sum(counts.values())
     return counts

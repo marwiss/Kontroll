@@ -10,6 +10,11 @@ the commit history.
 
 ## Unreleased
 
+- IFC-LPG names its own labels without Ifc (its release of 2026-11-10): `Model` and `Entity` instead of `IfcModel`
+  and `IfcEntity`; `StepBlock`, `model_id`, `step_id`, the relationships and the properties are as before, and a
+  `Model` carries `format` (`step`) and `form_version`. The server relabels what was converted before at startup,
+  so nothing needs converting again; Cypher of your own that names `IfcModel` or `IfcEntity` changes to the new
+  names. IFC-LPG is locked at 61a2d69.
 - Headless uploads: a confidential client an administrator approved for it (*May upload documents without the
   browser page*, also `headless_uploads` in the administration API) names `project_id` and the titles in
   `POST /documents/1.0/upload-documents` and goes straight to the instructions; every such upload is in the audit

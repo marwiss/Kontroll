@@ -84,7 +84,7 @@ async def _model_state(
         raise HTTPException(404, "Document version not found")
     rows = await graph.run(
         """
-        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:IfcModel)
+        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:Model)
         WHERE m.document_id = $document_id AND m.version_index = $version_index
         RETURN m.state AS state, m.id AS id ORDER BY m.created_at DESC LIMIT 1
         """,

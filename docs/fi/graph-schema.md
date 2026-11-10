@@ -23,7 +23,7 @@ suunnitelman vaiheet lisäsivät ne.
   samoin (ADR 0003). Skeeman DDL on ainoa tuotekohtainen teksti, ja se on
   tiedostossa `graph/dialect.py`.
 - Nimet: nimiöt kirjoitetaan PascalCase-muodossa (`DocumentVersion`,
-  `IfcModel`), suhdetyypit isoin kirjaimin ja alaviivoin (`HAS_TOPIC`,
+  `Model`), suhdetyypit isoin kirjaimin ja alaviivoin (`HAS_TOPIC`,
   `CREATED_BY`, ja `IS_DEFINED_BY` IFC-attribuuttisuhteille). Alla olevat
   kaaviot piirtävät vain todelliset solmut ja suhteet; ominaisuutena pidetty
   viittaus (`AuditEvent.actor_user_id`, `UploadSession.user_id`) luetellaan
@@ -159,17 +159,17 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Project ||--o{ IfcModel : HAS_MODEL
-    IfcModel ||--o| IfcEntity : HAS_PROJECT
-    IfcModel ||--o{ StepBlock : HAS_STEP_BLOCK
-    IfcEntity }o--o{ IfcEntity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
-    Component }o--o| IfcEntity : SAME_AS
+    Project ||--o{ Model : HAS_MODEL
+    Model ||--o| Entity : HAS_PROJECT
+    Model ||--o{ StepBlock : HAS_STEP_BLOCK
+    Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
+    Component }o--o| Entity : SAME_AS
 ```
 
 | Nimiö | Avain | Ominaisuudet | Huomautukset |
 |---|---|---|---|
-| `IfcModel` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
-| `IfcEntity` + luokkanimiöt | `id` (`<mallin tunnus>:<step-tunnus>`), indeksoitu `GlobalId`, `model_id` | `ifc_class`, `step_id`, jokainen literaali IFC-attribuutti nimellään | Entiteettien väliset suhteet nimetään IFC-attribuutin mukaan (eteen- ja käänteissuuntaan), kirjoitettuina kuten jokainen suhdetyyppi isoin kirjaimin ja alaviivoin: `IsDefinedBy` muuttuu `IS_DEFINED_BY`:ksi |
+| `Model` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
+| `Entity` + luokkanimiöt | `id` (`<mallin tunnus>:<step-tunnus>`), indeksoitu `GlobalId`, `model_id` | `ifc_class`, `step_id`, jokainen literaali IFC-attribuutti nimellään | Entiteettien väliset suhteet nimetään IFC-attribuutin mukaan (eteen- ja käänteissuuntaan), kirjoitettuina kuten jokainen suhdetyyppi isoin kirjaimin ja alaviivoin: `IsDefinedBy` muuttuu `IS_DEFINED_BY`:ksi |
 | `StepBlock` | `id` (`<mallin tunnus>:<ensimmäinen step-tunnus>`) | `first_step`, `instances`, `text` | Asetuksella `OPENCDE_IFC_LPG_LOSSLESS` muunnetun mallin instanssit, jotka eivät ole solmuja: kirjoitettu STEP-muotoon tunnusjärjestyksessä ja pakattu. Älä palauta solmua kokonaisena kyselyssä `text`-kentän vuoksi |
 
 Katso [ifc-lpg.md](ifc-lpg.md) muunnossäännöt ja esimerkkikyselyt.

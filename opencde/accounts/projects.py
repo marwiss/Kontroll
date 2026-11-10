@@ -199,7 +199,7 @@ class ProjectRepository:
         the query below follows, and they are too many for one transaction.
         """
         models = await self.graph.run(
-            "MATCH (:Project {project_id: $id})-[:HAS_MODEL]->(m:IfcModel) RETURN m.id AS id", id=project_id
+            "MATCH (:Project {project_id: $id})-[:HAS_MODEL]->(m:Model) RETURN m.id AS id", id=project_id
         )
         for model in models:
             await delete_model(self.graph, model["id"])

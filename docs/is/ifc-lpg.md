@@ -24,7 +24,7 @@ IfcOpenShell; aukapakkinn `ifc-lpg` bætir við vinnsluferlunum sem þurfa það
 
 1. Documents API-upphali lýkur (eða skrá er hlaðið upp frá valsíðunni, eða
    BCF-verkefnisskjal er póstað) með `.ifc`- eða `.ifczip`-heiti.
-2. Þjónninn býr til `IfcModel`-hnút (staða `queued`) tengdan verkefninu og
+2. Þjónninn býr til `Model`-hnút (staða `queued`) tengdan verkefninu og
    hefur umbreytingu í bakgrunni, eina í einu.
 3. Sérstakt vinnuferli (`python -m ifc_lpg.worker`) les skrána. Það keyrir með tímamörkum
    (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 mínútur), vistfangarýmismörkum á
@@ -32,7 +32,7 @@ IfcOpenShell; aukapakkinn `ifc-lpg` bætir við vinnsluferlunum sem þurfa það
    (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Hrun eða frysting drepur vinnuferlið,
    ekki þjóninn. `.ifczip` er pakkað upp innan stærðarmarka upphalsins.
 4. Færslurnar eru fluttar inn í lotum með `UNWIND … CREATE` (flytjanlegt
-   Cypher, ekkert APOC). `IfcModel` endar í stöðunni `done` með talningum og
+   Cypher, ekkert APOC). `Model` endar í stöðunni `done` með talningum og
    `IfcProject`-guid, eða `failed` með villu.
 5. Umbreyting sem stöðvaður þjónn skildi eftir byrjar upp á nýtt: sú sem bíður í röð um leið og þjónninn er
    kominn aftur, sú sem var í gangi þegar tvöföld tímamörk eru liðin, því að hún gæti verið í gangi í öðru þjónsferli.
@@ -199,8 +199,8 @@ sólarhring. Getuskjalið tilkynnir forprófunina sem `ifc_precheck`.
 
 ## Grafið
 
-Hver eining verður `IfcEntity`-hnútur sem ber flokk sinn og allar yfirgerðir
-sínar sem merkimiða, til dæmis `IfcEntity:IfcWallStandardCase:IfcWall:
+Hver eining verður `Entity`-hnútur sem ber flokk sinn og allar yfirgerðir
+sínar sem merkimiða, til dæmis `Entity:IfcWallStandardCase:IfcWall:
 IfcBuildingElement:IfcElement:IfcProduct:IfcObject:IfcObjectDefinition:IfcRoot`.
 
 | Eiginleiki | Merking |
@@ -264,7 +264,7 @@ uv run opencde ifc-lpg export <líkansauðkenni> model.ifc --verify   # og bera 
 ```
 
 Hnútarnir eru þeir sem fyrirspurnir þurfa. Það sem þeir sleppa er skrifað út sem STEP og
-þjappað í texta á `StepBlock`-hnúta sem hanga á `IfcModel`: það er í grafinu en utan
+þjappað í texta á `StepBlock`-hnúta sem hanga á `Model`: það er í grafinu en utan
 seilingar Cypher, og því er ekki hægt að breyta þar. Það getur ekki verið eiginleikar
 vörunna, því að stór hluti þess er sameiginlegur með þeim. Með
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
@@ -278,7 +278,7 @@ mælingunum.
 | Tagað gildi, `IFCLABEL('3')` | `NominalValue: "3"`, og `NominalValue__type: "IFCLABEL"` við hliðina |
 | Listi af listum af tölum | JSON-texti |
 | Það sem hefur ekkert einfalt form, eins og listi af töguðum gildum | Merkt JSON, með `$json` sem tag |
-| Hausinn | `ifc_header` á `IfcModel` |
+| Hausinn | `ifc_header` á `Model` |
 | Tilvik í blokk | Texti í `StepBlock` |
 
 Skráin er skrifuð úr því sem grafið rúmar, ekki afrituð, svo að eiginleiki eða vensl sem
@@ -311,7 +311,7 @@ IfcOpenShell og því sem ekki eru hnútar er sleppt alveg. Slíkt líkan, eins 
 
 ## Umhirða
 
-Hvert upphal IFC-skrár bætir við `IfcModel` með einingum sínum, svo verkefni
+Hvert upphal IFC-skrár bætir við `Model` með einingum sínum, svo verkefni
 sem fær nýjar útgáfur safnar gröfum sem enginn spyr um. Skipanalínan telur
 þau upp og grisjar; skjölin og skrár þeirra haldast alltaf:
 
@@ -327,7 +327,7 @@ graf á hvert skjal ættu sjálfar að velja nýjasta lokna líkanið, þar sem 
 útgáfur haldast þar til þær eru grisjaðar:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:IfcModel {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -363,7 +363,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Hvert mál sem snertir tiltekinn byggingarhluta.
-MATCH (e:IfcEntity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -580,10 +580,10 @@ spjaldinu IFC-LPG, í gegnum þá fyrirspurn eða yfir Bolt.
 
 - Ein umbreyting í einu; stór líkön fara í biðröð. Sýnilíkanið (248 einingar)
   er flutt inn á um einni sekúndu; 200 MB arkitektalíkan tekur mínútur.
-- `IfcModel`-hnúturinn ber `state`, `entities`, `relationships`, `skipped`,
+- `Model`-hnúturinn ber `state`, `entities`, `relationships`, `skipped`,
   `lossless`, `geometry`, `schema`, `ifc_project_guid`, tímastimpla og `error`. Stjórnendur geta
   skoðað hann í Neo4j Browser eða Memgraph Lab:
-  `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
 - Að eyða verkefni eyðir einingum líkana þess með því.
 - Líkan kemur eins til baka úr báðum gagnagrunnum upp að 224.496 tilvikum og 19 MB, í hverju
   formi sem var mælt. Ekkert stærra hefur verið prófað.

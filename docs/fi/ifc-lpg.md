@@ -27,7 +27,7 @@ IfcOpenShelliä; `ifc-lpg`-lisäosa lisää työprosessit, jotka tarvitsevat sit
 1. Documents API -lähetys valmistuu (tai tiedosto lähetetään valintasivulta,
    tai BCF-projektiasiakirja postataan) nimellä, jonka pääte on `.ifc` tai
    `.ifczip`.
-2. Palvelin luo projektiin liitetyn `IfcModel`-solmun (tila `queued`) ja
+2. Palvelin luo projektiin liitetyn `Model`-solmun (tila `queued`) ja
    käynnistää muunnoksen taustalla, yhden kerrallaan.
 3. Erillinen työprosessi (`python -m ifc_lpg.worker`) lukee
    tiedoston. Se toimii aikarajalla
@@ -37,7 +37,7 @@ IfcOpenShelliä; `ifc-lpg`-lisäosa lisää työprosessit, jotka tarvitsevat sit
    tappaa työprosessin, ei palvelinta. `.ifczip` puretaan lähetyksen
    kokorajan puitteissa.
 4. Tietueet tuodaan erissä `UNWIND … CREATE` -lauseilla (siirrettävä Cypher,
-   ei APOC:ia). `IfcModel` päätyy tilaan `done` lukumäärineen ja
+   ei APOC:ia). `Model` päätyy tilaan `done` lukumäärineen ja
    `IfcProject`-guidin kanssa, tai tilaan `failed` virheen kanssa.
 5. Muunnos, jonka pysäytetty palvelin jätti kesken, alkaa alusta: jonossa oleva heti, kun palvelin on taas
    käynnissä, ja käynnissä ollut, kun kaksinkertainen aikaraja on kulunut, koska se voi olla käynnissä toisessa palvelinprosessissa.
@@ -209,8 +209,8 @@ vuorokauden ajan. Kyvykkyysdokumentti ilmoittaa ennakkotarkistuksen nimellä
 
 ## Graafi
 
-Jokaisesta entiteetistä tulee `IfcEntity`-solmu, joka kantaa luokkaansa ja
-kaikkia ylätyyppejään nimiöinä, esimerkiksi `IfcEntity:IfcWallStandardCase:IfcWall:
+Jokaisesta entiteetistä tulee `Entity`-solmu, joka kantaa luokkaansa ja
+kaikkia ylätyyppejään nimiöinä, esimerkiksi `Entity:IfcWallStandardCase:IfcWall:
 IfcBuildingElement:IfcElement:IfcProduct:IfcObject:IfcObjectDefinition:IfcRoot`.
 
 | Ominaisuus | Merkitys |
@@ -277,7 +277,7 @@ uv run opencde ifc-lpg export <mallin tunnus> model.ifc --verify   # ja vertaa s
 
 Solmut ovat ne, joita kyselyt tarvitsevat. Se, minkä ne jättävät pois, kirjoitetaan
 STEP-muotoon ja pakataan tekstiksi `StepBlock`-solmuihin, jotka riippuvat
-`IfcModel`-solmussa: se on graafissa, mutta Cypherin ulottumattomissa, eikä sitä voi
+`Model`-solmussa: se on graafissa, mutta Cypherin ulottumattomissa, eikä sitä voi
 muuttaa siellä. Se ei voi olla tuotteiden ominaisuuksia, koska suuri osa siitä on
 tuotteiden yhteistä. Asetuksella `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` jokaisesta
 instanssista tulee sen sijaan solmu, moninkertaisella koolla ja tuontiajalla; kyselyt
@@ -290,7 +290,7 @@ kestivät suunnilleen yhtä kauan mittauksissa.
 | Tyypitetty arvo, `IFCLABEL('3')` | `NominalValue: "3"` ja sen vieressä `NominalValue__type: "IFCLABEL"` |
 | Lukujen luetteloiden luettelo | JSON-tekstiä |
 | Se, millä ei ole yksinkertaista muotoa, kuten tyypitettyjen arvojen luettelo | Merkittyä JSONia, tyyppinä `$json` |
-| Otsake | `ifc_header` solmussa `IfcModel` |
+| Otsake | `ifc_header` solmussa `Model` |
 | Lohkossa oleva instanssi | Tekstiä `StepBlock`-solmussa |
 
 Tiedosto kirjoitetaan siitä, mitä graafi sisältää, eikä sitä kopioida, joten graafissa
@@ -324,7 +324,7 @@ Tällaista mallia, kuten aiemman version muuntamaakaan, ei voi kirjoittaa takais
 
 ## Ylläpito
 
-Jokainen IFC-tiedoston lähetys lisää `IfcModel`-solmun entiteetteineen, joten
+Jokainen IFC-tiedoston lähetys lisää `Model`-solmun entiteetteineen, joten
 uusia versioita vastaanottava projekti kerää graafeja, joita kukaan ei
 kysele. Komentorivi luettelee ja karsii ne; asiakirjat ja niiden tiedostot
 säilyvät aina:
@@ -341,7 +341,7 @@ jotka haluavat yhden graafin asiakirjaa kohti, tulee itse valita uusin valmis
 malli, koska vanhemmat versiot säilyvät karsintaan asti:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:IfcModel {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -378,7 +378,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Jokainen asia, joka koskee annettua rakennusosaa.
-MATCH (e:IfcEntity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -599,11 +599,11 @@ myös piirtää graafin korttiinsa IFC-LPG tuon kyselyn kautta tai Boltilla.
 - Yksi muunnos kerrallaan; suuret mallit jonottavat. Esimerkkimalli (248
   entiteettiä) tuodaan noin sekunnissa; 200 MB:n arkkitehtimalli vie
   minuutteja.
-- `IfcModel`-solmu kantaa kentät `state`, `entities`, `relationships`,
+- `Model`-solmu kantaa kentät `state`, `entities`, `relationships`,
   `skipped`, `lossless`, `geometry`, `schema`, `ifc_project_guid`, aikaleimat ja `error`.
   Järjestelmänvalvojat voivat tarkastella sitä Neo4j Browserissa tai
   Memgraph Labissa:
-  `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
 - Projektin poisto poistaa sen mallien entiteetit samalla.
 - Malli palautuu identtisenä molemmista tietokannoista 224 496 instanssiin ja 19 megatavuun
   asti kaikissa mitatuissa muodoissa. Suurempia ei ole kokeiltu.

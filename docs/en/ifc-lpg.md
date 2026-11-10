@@ -25,7 +25,7 @@ the `ifc-lpg` extra adds the worker processes that do.
 
 1. A Documents API upload completes (or a file is uploaded from the selection
    page, or a BCF project document is posted) with a `.ifc` or `.ifczip` name.
-2. The server creates an `IfcModel` node (state `queued`) attached to the
+2. The server creates an `Model` node (state `queued`) attached to the
    project and starts a conversion in the background, one at a time.
 3. A separate worker process (`python -m ifc_lpg.worker`) reads the
    file. It runs with a time limit
@@ -34,7 +34,7 @@ the `ifc-lpg` extra adds the worker processes that do.
    (`OPENCDE_IFC_LPG_MAX_ENTITIES`). A crash or a hang kills the worker, not
    the server. `.ifczip` is unpacked with the upload size cap.
 4. The records are imported in batches of `UNWIND … CREATE` (portable Cypher,
-   no APOC). The `IfcModel` ends in state `done` with counts and the
+   no APOC). The `Model` ends in state `done` with counts and the
    `IfcProject` guid, or `failed` with an error.
 5. A conversion a stopped server left behind starts over: a queued one as soon as the server is back, a
    running one once twice the time limit has passed, since it could be running in another server process.
@@ -199,8 +199,8 @@ The capabilities document announces the precheck as `ifc_precheck`.
 
 ## The graph
 
-Every entity becomes an `IfcEntity` node carrying its class and all its
-supertypes as labels, for example `IfcEntity:IfcWallStandardCase:IfcWall:
+Every entity becomes an `Entity` node carrying its class and all its
+supertypes as labels, for example `Entity:IfcWallStandardCase:IfcWall:
 IfcBuildingElement:IfcElement:IfcProduct:IfcObject:IfcObjectDefinition:IfcRoot`.
 
 | Property | Meaning |
@@ -266,7 +266,7 @@ uv run opencde ifc-lpg export <model id> model.ifc --verify   # and compare it w
 ```
 
 The nodes are the ones queries need. What they leave out is written out as STEP
-and compressed into text on `StepBlock` nodes that hang off the `IfcModel`: it is
+and compressed into text on `StepBlock` nodes that hang off the `Model`: it is
 in the graph, but out of Cypher's reach, and it cannot be changed there. It cannot
 be properties of the products, since much of it is shared between them. With
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` every instance becomes a node instead, at
@@ -280,7 +280,7 @@ the measurements.
 | A typed value, `IFCLABEL('3')` | `NominalValue: "3"`, and `NominalValue__type: "IFCLABEL"` beside it |
 | A list of lists of numbers | JSON text |
 | What has no plain form, such as a list of typed values | Tagged JSON, with `$json` as its type |
-| The header | `ifc_header` on the `IfcModel` |
+| The header | `ifc_header` on the `Model` |
 | An instance in a block | Text in a `StepBlock` |
 
 The file is written from what the graph holds, not copied, so a property or a
@@ -314,7 +314,7 @@ converted by an earlier version, cannot be written back.
 
 ## Housekeeping
 
-Every upload of an IFC file adds an `IfcModel` with its entities, so a project
+Every upload of an IFC file adds an `Model` with its entities, so a project
 that receives new versions accumulates graphs nobody queries. The command line
 lists and prunes them; the documents and their files always stay:
 
@@ -330,7 +330,7 @@ document should pick the latest finished model themselves, since older
 versions stay until pruned:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:IfcModel {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -366,7 +366,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Every issue that touches a given element.
-MATCH (e:IfcEntity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -584,10 +584,10 @@ its card IFC-LPG, through that query or over Bolt.
 - One conversion at a time; large models queue. The example model (248
   entities) imports in about a second; a 200 MB architectural model takes
   minutes.
-- The `IfcModel` node carries `state`, `entities`, `relationships`, `skipped`,
+- The `Model` node carries `state`, `entities`, `relationships`, `skipped`,
   `lossless`, `geometry`, `schema`, `ifc_project_guid`, timestamps and `error`. Administrators can
   inspect it in Neo4j Browser or Memgraph Lab:
-  `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
 - Deleting a project deletes its models' entities with it.
 - A model comes back identical from both databases at up to 224,496 instances and 19 MB, in
   every form measured. Nothing larger has been tried.

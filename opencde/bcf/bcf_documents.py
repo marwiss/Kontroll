@@ -103,7 +103,7 @@ class BcfDocumentRepository:
                   -[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
             WITH d, v ORDER BY v.version_index DESC
             WITH d, collect(v)[0] AS v
-            OPTIONAL MATCH (m:IfcModel {document_id: d.document_id, version_index: v.version_index, state: 'done'})
+            OPTIONAL MATCH (m:Model {document_id: d.document_id, version_index: v.version_index, state: 'done'})
             RETURN d.document_id AS document_id, properties(v) AS version, m.ifc_project_guid AS ifc_project
             ORDER BY v.creation_date, d.document_id
             """,

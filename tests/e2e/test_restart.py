@@ -109,11 +109,11 @@ def test_what_people_stored_outlives_the_containers(compose: Compose) -> None:
         tokens = before.tokens
 
         deadline = time.monotonic() + 180
-        done = "MATCH (m:IfcModel {file_name: 'restart.ifc', state: 'done'}) RETURN count(m) AS models"
+        done = "MATCH (m:Model {file_name: 'restart.ifc', state: 'done'}) RETURN count(m) AS models"
         while _count(compose, done) != 1:
             assert time.monotonic() < deadline, "the IFC import did not finish in time"
             time.sleep(2)
-    entities = _count(compose, "MATCH (e:IfcEntity) RETURN count(e) AS entities")
+    entities = _count(compose, "MATCH (e:Entity) RETURN count(e) AS entities")
     assert entities > 0
 
     compose("down")
@@ -129,4 +129,4 @@ def test_what_people_stored_outlives_the_containers(compose: Compose) -> None:
         assert [comment["comment"] for comment in comments] == ["So is this."]
         assert after.documents.download(version) == model, "the file itself is on its own volume"
     assert _count(compose, done) == 1
-    assert _count(compose, "MATCH (e:IfcEntity) RETURN count(e) AS entities") == entities
+    assert _count(compose, "MATCH (e:Entity) RETURN count(e) AS entities") == entities

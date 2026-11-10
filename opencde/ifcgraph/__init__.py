@@ -4,5 +4,5 @@
 Optional (``OPENCDE_IFC_LPG_ENABLED``, extra ``ifc-lpg`` for IfcOpenShell). The
 conversion runs in a separate worker process with time and memory limits;
 the result is imported in batches; viewpoint components are linked to the
-matching ``IfcEntity`` nodes with ``SAME_AS``.
+matching ``Entity`` nodes with ``SAME_AS``.
 """

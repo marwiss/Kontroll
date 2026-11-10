@@ -197,7 +197,7 @@ async def seed(
 async def build_sample_graph(graph: Graph, storage: LocalStorage, settings: Settings, result: SeedResult) -> dict:
     """The sample model as a graph, and checked against the IFC schema, as if it had been uploaded.
 
-    Returns its ``IfcModel`` node's properties.
+    Returns its ``Model`` node's properties.
     """
     service = IfcGraphService(graph, storage, settings)
     project_id = result.projects["Building permit"]

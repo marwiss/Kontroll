@@ -7,7 +7,7 @@ Cypher of their own; free Cypher stays with administrators (``admin/graph_query.
 the user's node and reaches the model through ``MEMBER_OF`` and ``HAS_MODEL``, takes values only as parameters, and
 only reads; ``tests/unit/test_ifc_queries.py`` holds each to that, with the administrators' own check.
 
-The queries follow the graph as IFC-LPG makes it: an ``IfcEntity`` with its class and supertypes as labels,
+The queries follow the graph as IFC-LPG makes it: an ``Entity`` with its class and supertypes as labels,
 ``model_id`` and the literal attributes as properties, and every reference a relationship named after its attribute.
 They use the forward relationships, which every form of the graph has.
 """
@@ -24,14 +24,14 @@ TIMEOUT_SECONDS = 10.0
 
 #: The model of one document version that the user may read: the newest one converted, when there are several.
 MODEL = """
-MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:IfcModel)
+MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:Model)
 WHERE m.document_id = $document_id AND m.version_index = $version_index AND m.state = 'done'
 WITH m ORDER BY m.created_at DESC LIMIT 1
 """
 
 #: The same model in the working copy, by the id the archive gave it (ADR 0024).
 WORKCOPY_MODEL = """
-MATCH (m:IfcModel {id: $model_id, state: 'done'})
+MATCH (m:Model {id: $model_id, state: 'done'})
 """
 
 _CLASS = re.compile(r"^Ifc[A-Za-z0-9]{1,64}$")
@@ -130,10 +130,10 @@ QUERIES: dict[str, NamedQuery] = {
             """
             MATCH (e:IfcRoot {model_id: m.id})
             WHERE e.GlobalId = $global_id
-            OPTIONAL MATCH (e)-[r]->(t:IfcEntity)
+            OPTIONAL MATCH (e)-[r]->(t:Entity)
             WITH e, collect(CASE WHEN r IS NULL THEN NULL ELSE
                  {attribute: type(r), step_id: t.step_id, global_id: t.GlobalId, class: t.ifc_class} END) AS references
-            OPTIONAL MATCH (e)<-[r2]-(s:IfcEntity)
+            OPTIONAL MATCH (e)<-[r2]-(s:Entity)
             WITH e, references, collect(CASE WHEN r2 IS NULL THEN NULL ELSE
                  {attribute: type(r2), step_id: s.step_id, global_id: s.GlobalId, class: s.ifc_class} END) AS referenced_by
             RETURN e.GlobalId AS global_id, e.ifc_class AS class, e.step_id AS step_id, properties(e) AS attributes,

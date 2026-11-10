@@ -28,7 +28,7 @@ extrapaketet `ifc-lpg` lägger till de arbetsprocesser som gör det.
 1. En Documents API-uppladdning slutförs (eller en fil laddas upp från
    urvalssidan, eller ett BCF-projektdokument postas) med ett `.ifc`- eller
    `.ifczip`-namn.
-2. Servern skapar en `IfcModel`-nod (tillstånd `queued`) kopplad till
+2. Servern skapar en `Model`-nod (tillstånd `queued`) kopplad till
    projektet och startar en konvertering i bakgrunden, en i taget.
 3. En separat arbetsprocess (`python -m ifc_lpg.worker`) läser
    filen. Den körs med en tidsgräns
@@ -38,7 +38,7 @@ extrapaketet `ifc-lpg` lägger till de arbetsprocesser som gör det.
    dödar arbetsprocessen, inte servern. `.ifczip` packas upp med
    uppladdningens storleksgräns.
 4. Posterna importeras i batchar av `UNWIND … CREATE` (portabel Cypher,
-   ingen APOC). `IfcModel` hamnar i tillståndet `done` med antal och
+   ingen APOC). `Model` hamnar i tillståndet `done` med antal och
    `IfcProject`-guid, eller `failed` med ett fel.
 5. En konvertering som en stoppad server lämnat efter sig börjar om: en köad så snart servern är tillbaka, en
    pågående när dubbla tidsgränsen har passerat, eftersom den kan pågå i en annan serverprocess.
@@ -204,8 +204,8 @@ dygn. Kapabilitetsdokumentet annonserar förhandskontrollen som `ifc_precheck`.
 
 ## Grafen
 
-Varje entitet blir en `IfcEntity`-nod som bär sin klass och alla sina
-supertyper som etiketter, till exempel `IfcEntity:IfcWallStandardCase:IfcWall:
+Varje entitet blir en `Entity`-nod som bär sin klass och alla sina
+supertyper som etiketter, till exempel `Entity:IfcWallStandardCase:IfcWall:
 IfcBuildingElement:IfcElement:IfcProduct:IfcObject:IfcObjectDefinition:IfcRoot`.
 
 | Egenskap | Betydelse |
@@ -271,7 +271,7 @@ uv run opencde ifc-lpg export <modell-id> model.ifc --verify   # och jämför de
 ```
 
 Noderna är de som frågor behöver. Det de utelämnar skrivs ut som STEP och
-komprimeras till text på `StepBlock`-noder som hänger på `IfcModel`: det finns i
+komprimeras till text på `StepBlock`-noder som hänger på `Model`: det finns i
 grafen men utom räckhåll för Cypher, och det kan inte ändras där. Det kan inte vara
 egenskaper på produkterna, eftersom mycket av det delas mellan dem. Med
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` blir varje instans en nod i stället, till
@@ -285,7 +285,7 @@ mätningarna.
 | Ett typat värde, `IFCLABEL('3')` | `NominalValue: "3"`, och `NominalValue__type: "IFCLABEL"` bredvid |
 | En lista av listor av tal | JSON-text |
 | Det som saknar enkel form, som en lista av typade värden | Märkt JSON, med `$json` som typ |
-| Headern | `ifc_header` på `IfcModel` |
+| Headern | `ifc_header` på `Model` |
 | En instans i ett block | Text i ett `StepBlock` |
 
 Filen skrivs från det grafen rymmer och kopieras inte, så en egenskap eller en
@@ -319,7 +319,7 @@ en som konverterats av en tidigare version, kan inte skrivas tillbaka.
 
 ## Underhåll
 
-Varje uppladdning av en IFC-fil lägger till en `IfcModel` med sina entiteter,
+Varje uppladdning av en IFC-fil lägger till en `Model` med sina entiteter,
 så ett projekt som får nya versioner samlar på sig grafer som ingen frågar.
 Kommandoraden listar och rensar dem; dokumenten och deras filer finns alltid
 kvar:
@@ -336,7 +336,7 @@ dokument bör själva välja den senaste färdiga modellen, eftersom äldre
 versioner finns kvar tills de rensas:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:IfcModel {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -372,7 +372,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Varje ärende som berör en given byggnadsdel.
-MATCH (e:IfcEntity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -591,10 +591,10 @@ grafen, i sitt kort IFC-LPG, genom den frågan eller över Bolt.
 - En konvertering i taget; stora modeller köas. Exempelmodellen (248
   entiteter) importeras på ungefär en sekund; en arkitektmodell på 200 MB tar
   minuter.
-- `IfcModel`-noden bär `state`, `entities`, `relationships`, `skipped`,
+- `Model`-noden bär `state`, `entities`, `relationships`, `skipped`,
   `lossless`, `geometry`, `schema`, `ifc_project_guid`, tidsstämplar och `error`. Administratörer kan
   granska den i Neo4j Browser eller Memgraph Lab:
-  `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
 - När ett projekt tas bort tas dess modellers entiteter bort med det.
 - En modell kommer tillbaka identisk från båda databaserna upp till 224 496 instanser och
   19 MB, i varje form som mätts. Inget större har provats.

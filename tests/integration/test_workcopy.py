@@ -53,7 +53,7 @@ def models_in(uri: str) -> dict[str, int]:
     """The models the working copy holds, each with how many entities it has."""
     with GraphDatabase.driver(uri, auth=("", "")) as driver:
         records, _, _ = driver.execute_query(
-            "MATCH (m:IfcModel) OPTIONAL MATCH (e:IfcEntity {model_id: m.id}) RETURN m.id AS id, count(e) AS entities"
+            "MATCH (m:Model) OPTIONAL MATCH (e:Entity {model_id: m.id}) RETURN m.id AS id, count(e) AS entities"
         )
     return {record["id"]: int(record["entities"]) for record in records}
 

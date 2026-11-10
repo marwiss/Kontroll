@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """Scheduling conversions and checks of uploads, and linking BCF components to model elements.
 
-``IfcGraphService.schedule`` records an ``IfcModel`` node (state ``queued``),
+``IfcGraphService.schedule`` records an ``Model`` node (state ``queued``),
 then converts in the background: the file is handed to the worker process
 (``.ifczip`` is unpacked first, with a size cap), the worker's records are
 imported, and the node ends in state ``done`` or ``failed`` with counts or an
@@ -30,6 +30,7 @@ from typing import Annotated, Any
 from fastapi import Depends, Request
 from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
+from ifc_lpg.graph import FORM_VERSION
 from ifc_lpg.importer import delete_blocks, delete_model, import_records
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
@@ -128,10 +129,10 @@ class IfcGraphService:
         await self.graph.run(
             """
             MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_MODEL]->(:IfcModel {
+            CREATE (p)-[:HAS_MODEL]->(:Model {
                 id: $id, project_id: $project_id, document_id: $document_id, version_index: $version_index,
                 bcf_document_guid: $bcf_document_guid, file_name: $file_name, storage_key: $storage_key,
-                state: $state, created_at: $now
+                state: $state, created_at: $now, format: 'step', form_version: $form_version
             })
             """,
             project_id=project_id,
@@ -143,6 +144,7 @@ class IfcGraphService:
             storage_key=storage_key,
             state=STATE_QUEUED,
             now=now_iso(),
+            form_version=FORM_VERSION,
         )
         self._start(model_id, storage_key, file_name)
         return model_id
@@ -161,7 +163,7 @@ class IfcGraphService:
         await self.tidy_workcopy()
         rows = await self.graph.run(
             """
-            MATCH (m:IfcModel)
+            MATCH (m:Model)
             WHERE m.state = $queued OR (m.state = $running AND m.running_at < $given_up)
             RETURN m.id AS id, m.storage_key AS storage_key, m.file_name AS file_name, m.state AS state
             """,
@@ -231,7 +233,7 @@ class IfcGraphService:
 
     async def _set_state(self, model_id: str, state: str, **fields: Any) -> None:
         await self.graph.run(
-            "MATCH (m:IfcModel {id: $id}) SET m.state = $state, m += $fields",
+            "MATCH (m:Model {id: $id}) SET m.state = $state, m += $fields",
             id=model_id,
             state=state,
             fields={**fields, f"{state}_at": now_iso()},
@@ -240,7 +242,7 @@ class IfcGraphService:
     async def _claim(self, model_id: str) -> bool:
         rows = await self.graph.run(
             """
-            MATCH (m:IfcModel {id: $id, state: $queued})
+            MATCH (m:Model {id: $id, state: $queued})
             SET m.state = $running, m.running_at = $now
             RETURN m.id AS id
             """,
@@ -299,12 +301,12 @@ class IfcGraphService:
         if workcopy is None:
             return
         try:
-            row = await self.graph.one("MATCH (m:IfcModel {id: $id}) RETURN properties(m) AS model", id=model_id)
+            row = await self.graph.one("MATCH (m:Model {id: $id}) RETURN properties(m) AS model", id=model_id)
             if row is None or not row["model"].get("document_id"):
                 return  # a BCF project document has no head to keep
             model = dict(row["model"])
             older = await workcopy.run(
-                "MATCH (m:IfcModel {document_id: $document_id}) WHERE m.id <> $id RETURN m.id AS id",
+                "MATCH (m:Model {document_id: $document_id}) WHERE m.id <> $id RETURN m.id AS id",
                 document_id=model["document_id"],
                 id=model_id,
             )
@@ -313,9 +315,10 @@ class IfcGraphService:
             await delete_model(workcopy, model_id)
             await workcopy.run(
                 """
-                CREATE (:IfcModel {
+                CREATE (:Model {
                     id: $id, project_id: $project_id, document_id: $document_id, version_index: $version_index,
-                    file_name: $file_name, state: $state, schema: $schema, geometry: $geometry, created_at: $now
+                    file_name: $file_name, state: $state, schema: $schema, geometry: $geometry, created_at: $now,
+                    format: 'step', form_version: $form_version
                 })
                 """,
                 id=model_id,
@@ -327,10 +330,11 @@ class IfcGraphService:
                 schema=header.get("schema"),
                 geometry=header.get("geometry"),
                 now=now_iso(),
+                form_version=FORM_VERSION,
             )
             counts = await import_records(workcopy, model_id, records)
             await workcopy.run(
-                "MATCH (m:IfcModel {id: $id}) SET m.state = $state, m.done_at = $now, m += $fields",
+                "MATCH (m:Model {id: $id}) SET m.state = $state, m.done_at = $now, m += $fields",
                 id=model_id,
                 state=STATE_DONE,
                 now=now_iso(),
@@ -341,7 +345,7 @@ class IfcGraphService:
             log.warning("ifcgraph_workcopy_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:300])
             with contextlib.suppress(Exception):  # the archive is untouched; the copy can be made again
                 await delete_model(workcopy, model_id, keep_model=True)
-                await workcopy.run("MATCH (m:IfcModel {id: $id}) SET m.state = $state", id=model_id, state=STATE_FAILED)
+                await workcopy.run("MATCH (m:Model {id: $id}) SET m.state = $state", id=model_id, state=STATE_FAILED)
 
     async def in_workcopy(self, model_id: str) -> bool:
         """Whether a version's model is in the working copy, so that a query can run there."""
@@ -349,7 +353,7 @@ class IfcGraphService:
             return False
         try:
             row = await self.workcopy.one(
-                "MATCH (m:IfcModel {id: $id, state: $done}) RETURN m.id AS id", id=model_id, done=STATE_DONE
+                "MATCH (m:Model {id: $id, state: $done}) RETURN m.id AS id", id=model_id, done=STATE_DONE
             )
         except Exception as exc:
             log.warning("ifcgraph_workcopy_unavailable", error=type(exc).__name__)
@@ -361,10 +365,10 @@ class IfcGraphService:
         if self.workcopy is None:
             return 0
         try:
-            rows = await self.workcopy.run("MATCH (m:IfcModel) RETURN m.id AS id")
+            rows = await self.workcopy.run("MATCH (m:Model) RETURN m.id AS id")
             gone = 0
             for row in rows:
-                kept = await self.graph.one("MATCH (m:IfcModel {id: $id}) RETURN m.id AS id", id=row["id"])
+                kept = await self.graph.one("MATCH (m:Model {id: $id}) RETURN m.id AS id", id=row["id"])
                 if kept is None:
                     await delete_model(self.workcopy, row["id"])
                     gone += 1
@@ -1066,7 +1070,7 @@ class IfcGraphService:
                 instances = await export_records(self.graph, model_id, records)
             except NotExportable as exc:
                 rows = await self.graph.run(
-                    "MATCH (m:IfcModel {id: $id}) RETURN m.state AS state, m.lossless AS lossless", id=model_id
+                    "MATCH (m:Model {id: $id}) RETURN m.state AS state, m.lossless AS lossless", id=model_id
                 )
                 if rows and rows[0]["state"] == STATE_DONE and not rows[0]["lossless"]:
                     raise NotExportable(
@@ -1108,7 +1112,7 @@ class IfcGraphService:
     async def _with_upload(self, model_id: str, what: str, command: Callable[[Path], list[str]]) -> dict[str, Any]:
         """Run a module of this package on the uploaded file, unpacked. Exit codes 0 and 1 are both answers."""
         rows = await self.graph.run(
-            "MATCH (m:IfcModel {id: $id}) RETURN m.storage_key AS storage_key, m.file_name AS file_name", id=model_id
+            "MATCH (m:Model {id: $id}) RETURN m.storage_key AS storage_key, m.file_name AS file_name", id=model_id
         )
         if not rows:
             raise ValueError("there is no such model")
@@ -1128,8 +1132,8 @@ class IfcGraphService:
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(v:Viewpoint {guid: $guid})
                   -[:HAS_COMPONENT]->(c:Component)
             WHERE c.ifc_guid IS NOT NULL
-            MATCH (m:IfcModel {project_id: $project_id, state: 'done'})
-            MATCH (e:IfcEntity {model_id: m.id, GlobalId: c.ifc_guid})
+            MATCH (m:Model {project_id: $project_id, state: 'done'})
+            MATCH (e:Entity {model_id: m.id, GlobalId: c.ifc_guid})
             """,
             project_id=project_id,
             guid=viewpoint_guid,
@@ -1139,11 +1143,11 @@ class IfcGraphService:
         """``SAME_AS`` from every component of the project to a model that has just finished importing."""
         return await self._link(
             """
-            MATCH (m:IfcModel {id: $model_id})
+            MATCH (m:Model {id: $model_id})
             MATCH (:Project {project_id: m.project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(:Viewpoint)
                   -[:HAS_COMPONENT]->(c:Component)
             WHERE c.ifc_guid IS NOT NULL
-            MATCH (e:IfcEntity {model_id: m.id, GlobalId: c.ifc_guid})
+            MATCH (e:Entity {model_id: m.id, GlobalId: c.ifc_guid})
             """,
             model_id=model_id,
         )
@@ -1160,7 +1164,7 @@ class IfcGraphService:
 
     async def status(self, project_id: str) -> list[dict[str, Any]]:
         rows = await self.graph.run(
-            "MATCH (m:IfcModel {project_id: $project_id}) RETURN properties(m) AS model ORDER BY m.created_at DESC",
+            "MATCH (m:Model {project_id: $project_id}) RETURN properties(m) AS model ORDER BY m.created_at DESC",
             project_id=project_id,
         )
         return [row["model"] for row in rows]
@@ -1356,11 +1360,11 @@ _LINK_TAIL = """
 
 
 async def delete_model_entities(graph: Graph, model_id: str) -> None:
-    """Remove a model's entities but keep the ``IfcModel`` node (so a failure stays visible)."""
+    """Remove a model's entities but keep the ``Model`` node (so a failure stays visible)."""
     await delete_blocks(graph, model_id)
     while True:
         rows = await graph.run(
-            "MATCH (n:IfcEntity {model_id: $model_id}) WITH n LIMIT 2000 DETACH DELETE n RETURN count(*) AS n",
+            "MATCH (n:Entity {model_id: $model_id}) WITH n LIMIT 2000 DETACH DELETE n RETURN count(*) AS n",
             model_id=model_id,
         )
         if not rows or int(rows[0]["n"]) < 2000:
