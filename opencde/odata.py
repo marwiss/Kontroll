@@ -53,6 +53,7 @@ class Compiled:
     order_by: str
     skip: int
     limit: int
+    capped: bool = False  # the server's limit holds, not a $top of the caller's
 
     def where_clause(self, prefix: str = "AND") -> str:
         return f"{prefix} {self.where}" if self.where else ""
@@ -314,4 +315,5 @@ def compile_odata(
     order_fields = {name: fields[name].cypher for name in orderable}
     order_by = compile_orderby(orderby, order_fields, default_order)
     offset, limit = compile_paging(top, skip, max_top)
-    return Compiled(where=where, params=params, order_by=order_by, skip=offset, limit=limit)
+    capped = top is None or top > max_top
+    return Compiled(where=where, params=params, order_by=order_by, skip=offset, limit=limit, capped=capped)

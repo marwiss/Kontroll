@@ -198,7 +198,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             "If-None-Match",
             "X-Request-ID",
         ],
-        expose_headers=["ETag", "Location", "Content-Disposition", "X-Request-ID"],
+        expose_headers=["ETag", "Location", "Content-Disposition", "X-Request-ID", "X-Total-Count", "Link"],
         max_age=600,
     )
     if settings.is_local:
