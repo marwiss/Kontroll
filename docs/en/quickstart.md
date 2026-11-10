@@ -218,4 +218,4 @@ Ctrl+C.
 - [docs/acceptance.md](../acceptance.md) for the checklists the pair is tested
   with, and [docs/dataspatium-coordination.md](../dataspatium-coordination.md)
   for what the two projects coordinate.
-- [docs/en/deploy/](../deploy/) when the server is to run for others.
+- [docs/en/deploy/](deploy/) when the server is to run for others.
