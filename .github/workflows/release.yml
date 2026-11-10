@@ -41,7 +41,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ startsWith(github.ref_name, 'v3.') }}
       # The same image with buildingSMART's ifc-gherkin-rules (ADR 0012), for those who choose them: 3.0.0-gherkin.
       - id: meta-gherkin
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
@@ -52,7 +52,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ startsWith(github.ref_name, 'v3.') }}
 
       # Build for the host platform first so the image can be scanned before anything is published.
       - name: Build for scanning

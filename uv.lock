@@ -977,6 +977,17 @@ ifcopenshell = [
 ]
 
 [[package]]
+name = "ifcclash"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "ifcopenshell" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/1a/065c5e8a8f40dbe481785bb0c89436742b47c759e88cee49970197cb62e4/ifcclash-0.9.0-py3-none-any.whl", hash = "sha256:ebfaae128605521f198bdd3f8b94059560f464ec9a7f5a03038666da322be96d", size = 7171, upload-time = "2026-09-29T07:23:56.473Z" },
+]
+
+[[package]]
 name = "ifcopenshell"
 version = "0.9.0.post1"
 source = { registry = "https://pypi.org/simple" }
@@ -1804,9 +1815,11 @@ dependencies = [
 [package.optional-dependencies]
 ifc-lpg = [
     { name = "ifc-lpg", extra = ["ifcopenshell"] },
+    { name = "ifcclash" },
 ]
 ifcgraph = [
     { name = "ifc-lpg", extra = ["ifcopenshell"] },
+    { name = "ifcclash" },
 ]
 redis = [
     { name = "redis" },
@@ -1843,6 +1856,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28" },
     { name = "ifc-lpg", git = "https://github.com/marwiss/IFC-LPG?rev=f405c910439e11fe5076eff1611dad0f1708d53e" },
     { name = "ifc-lpg", extras = ["ifcopenshell"], marker = "extra == 'ifc-lpg'", git = "https://github.com/marwiss/IFC-LPG?rev=f405c910439e11fe5076eff1611dad0f1708d53e" },
+    { name = "ifcclash", marker = "extra == 'ifc-lpg'", specifier = ">=0.9.0" },
     { name = "itsdangerous", specifier = ">=2.2" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "limits", specifier = ">=5.0" },

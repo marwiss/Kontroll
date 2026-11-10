@@ -48,7 +48,10 @@ dependencies = [
 [project.optional-dependencies]
 # The IFC-LPG module (stage 9): the workers that convert, write and check files, with IfcOpenShell, which is large; off
 # by default. IFC-LPG's extra brings what they need, among it the pytest its EXPRESS rules import (ADR 0011, 0014).
-ifc-lpg = ["ifc-lpg[ifcopenshell]>=1.0.0"]
+ifc-lpg = [
+    "ifc-lpg[ifcopenshell]>=1.0.0",
+    "ifcclash>=0.9.0",
+]
 ifcgraph = ["opencde-server[ifc-lpg]"]  # the extra's old name, so that builds that name it keep working
 # A shared store for the rate limits when several server processes run (ADR 0007).
 redis = ["redis>=5.0"]
