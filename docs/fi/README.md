@@ -171,14 +171,16 @@ mikään ole auki ennen kuin se on määritetty.
 
 ## Mitä voit tehdä
 
+Mikä toimii yhdessä versiossa, toimii myös seuraavassa, joten luettelo alkaa
+versiosta 1, ja jokainen sen jälkeinen versio lisää siihen. Jokainen
+Dataregiumin versio kuuluu yhteen saman Dataspatiumin version kanssa.
+
+### Versio 1 (Dataspatium 1:n kanssa)
+
 - **Foundation API 1.0**: palvelujen löytäminen, OAuth2 authorization code ja
   PKCE, nykyinen käyttäjä, tokenien peruutus ja
   dynaaminen asiakasrekisteröinti julkisine asiakkaineen (oletuksena pois
   päältä).
-- **BCF API 3.0 ja 2.1**: projektit, extensions-arvot, asiat OData-kyselyineen,
-  kommentit, viewpoint-näkymät kuvakaappauksineen, bittikarttoineen ja
-  komponentteineen, tiedostot, asiakirjaviittaukset, asiakirjat ja
-  tapahtumalokit, kaikki validoituina buildingSMARTin skeemoja vasten.
 - **Documents API 1.0**: asiakirjojen valinta ja lataus, lähetys osissa
   palvelimen metatieto- ja valintasivujen avulla, versiokyselyt ETag-tunnistein.
 - **Hallinta** selaimessa: kirjaudu osoitteessa `/signin` järjestelmänvalvojan
@@ -188,23 +190,52 @@ mikään ole auki ennen kuin se on määritetty.
   Jokaisella käyttäjällä on `/account` omaa salasanaa, omia sovelluksia ja
   omia istuntoja varten. Komentorivi (`uv run opencde --help`) tekee saman
   terminaalista.
-- **Spesifikaatioiden ulkopuoliset laajennukset**, jokainen sellaiseksi
-  merkittynä: kyvykkyysasiakirja osoitteessa `/.well-known/dataregium`, joka
-  kertoo asiakkaalle, mitkä laajennukset ovat päällä, pysyvä `code`
-  jokaisessa virhevastauksessa, pyyntöloki asiakasohjelmien vianetsintään
-  (`/admin/requests`, `GET /admin/api/requests` `admin`-oikeudella) ja
-  IFC-LPG-moduuli, joka muuttaa lähetetyt IFC-mallit BCF-komponentteihin
-  yhdistetyksi graafidataksi. Versiosta 3.0.0 alkaen graafi on häviötön ja
-  voidaan kirjoittaa takaisin tiedostoksi, jokainen lähetys tarkistetaan
-  IFC-skeemaa, buildingSMARTin sääntöjä ja projektin IDS:ää vasten, ja
-  jäsenet esittävät sille nimettyjä kyselyitä.
+- **Määrittelyjen ulkopuoliset laajennukset**, kukin sellaiseksi merkittynä:
+  kyvykkyysasiakirja osoitteessa `/.well-known/dataregium`, joka kertoo
+  asiakkaalle, mitkä laajennukset ovat käytössä, vakaa `code` jokaisessa
+  virherungossa ja pyyntöloki asiakkaiden vianetsintään (`/admin/requests`,
+  `GET /admin/api/requests` scopella `admin`).
 - **Asiakaskirjasto** Pythonille ([client/](../../client/), LGPL) ajettavine
   esimerkkeineen sekä Dockerfile, compose-ylikerrokset ja julkaistu image
   jokaista käyttöönottoskenaariota varten.
-- **Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
-  rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-LPG,
-  hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
-  IfcOpenShelliin ei ole vielä ehdotettu.
+
+### Lisäksi versiossa 2 (Dataspatium 2:n kanssa)
+
+- **BCF API 3.0 ja 2.1**: projektit, extensions-arvot, asiat OData-kyselyineen,
+  kommentit, viewpoint-näkymät kuvakaappauksineen, bittikarttoineen ja
+  komponentteineen, tiedostot, asiakirjaviittaukset, asiakirjat ja
+  tapahtumalokit, kaikki validoituina buildingSMARTin skeemoja vasten.
+- **IFC-LPG-moduuli**, valinnainen: jokaisesta lähetetystä IFC-mallista tulee
+  graafidataa, ja BCF-näkymän komponentit liitetään rakennusosiin, joihin ne
+  viittaavat.
+
+### Lisäksi versiossa 3 (Dataspatium 3:n kanssa)
+
+- **Häviötön IFC-graafi** IFC-LPG:stä, omasta kirjastostaan: koko malli
+  säilytetään, joten tiedosto voidaan kirjoittaa takaisin sellaisena kuin se
+  tuli.
+- **Tarkistetut lähetykset**: jokainen IFC-lähetys tarkistetaan IFC-skeemaa,
+  buildingSMARTin sääntöjä ja projektin IDS-dokumentteja vasten; projekti voi
+  hylätä virheelliset tiedostot, ja tiedosto voidaan tarkistaa ennen kuin siitä
+  tulee versio.
+- **Kysymyksiä mallille** jäsenille: nimettyjä kyselyjä version graafiin, mikä
+  on muuttunut jonkin version jälkeen, kahden version ero rakennusosa kerrallaan
+  ja törmäystarkastus kahden version välillä.
+- **Muutokset ehdotuksina**: lähetys kertoo, minkä version päälle se rakentuu;
+  mallin muutos kulkee muutosjoukkona BCF-asiassa, se kokeillaan perusversiota
+  vasten, ja `manager` hyväksyy sen seuraavaksi versioksi yhdistettynä siihen,
+  mitä välissä tuli.
+- **Paikallinen moottori ja työkopio**: palvelin henkilön omalla tietokoneella
+  Dataspatiumin takana, vain loopbackissa, ja jokaisen dokumentin päämalli
+  muistissa Memgraphissa malleille, jotka ovat suurempia kuin selain pystyy
+  käsittelemään.
+- **Lähetys ilman verkkosivua** luottamuksellisille asiakkaille, jotka
+  ylläpitäjä on hyväksynyt.
+
+**Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
+rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-LPG,
+hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
+IfcOpenShelliin ei ole vielä ehdotettu.
 
 <img src="../images/signin.png" alt="Kirjautumissivu, jonka asiakas avaa" width="240">
 <img src="../images/upload.png" alt="Lataussivu, jolla käyttäjä antaa tiedostolle otsikon ja version" width="340">
@@ -306,14 +337,14 @@ Jokainen pääversio on yksi julkaisu, joka julkaistaan uudelleen sen kasvaessa,
 ja Dataspatiumin sama numero kuuluu sen pariin. Kolme eroavat näin:
 
 - **1.0.0** on dokumenttipalvelin: Foundation API 1.0 (versiot, kirjautuminen
-  OAuth2:lla ja PKCE:llä, nykyinen käyttäjä, asiakkaiden itserekisteröinti,
-  kun operaattori sallii sen) ja Documents API 1.0 (dokumenttien ja niiden
-  versioiden valinta, lähetys ja lataus). Se on 2.0.0-koodi, jossa vain
-  Documents API on käytössä (`OPENCDE_APIS`), Dataspatium 1:lle.
+  OAuth2:lla ja PKCE:llä, nykyinen käyttäjä, asiakkaiden itserekisteröinti, kun
+  operaattori sallii sen) ja Documents API 1.0 (dokumenttien ja niiden
+  versioiden valinta, lähetys ja lataus), mukana seitsenkielinen verkkohallinta
+  ja pyyntöloki. Se on 2.0.0-koodi, jossa vain Documents API on käytössä
+  (`OPENCDE_APIS`), Dataspatium 1:lle.
 - **2.0.0** lisää BCF API 3.0:n ja 2.1:n samaan dataan (asiat, kommentit,
-  näkymät, dokumentit), seitsenkielisen verkkohallinnan, pyyntölokin ja
-  valinnaisen IFC-LPG-moduulin, joka tekee graafin jokaisesta lähetetystä
-  IFC-tiedostosta, Dataspatium 2:lle.
+  näkymät, dokumentit) ja valinnaisen IFC-LPG-moduulin, joka tekee graafin
+  jokaisesta lähetetystä IFC-tiedostosta, Dataspatium 2:lle.
 - **3.0.0** tekee graafista häviöttömän niin, että tiedosto voidaan kirjoittaa
   takaisin, tarkistaa jokaisen lähetyksen IFC-skeemaa, buildingSMARTin sääntöjä
   ja projektin IDS-dokumentteja vasten, antaa jäsenille nimetyt kyselyt,

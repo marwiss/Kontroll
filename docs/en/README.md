@@ -165,13 +165,15 @@ password, and nothing is open until it is configured.
 
 ## What you can do
 
+What works in one version works in the next too, so the list starts with version
+1 and each version after it adds to it. Each version of Dataregium goes with the
+same version of Dataspatium.
+
+### Version 1 (with Dataspatium 1)
+
 - **Foundation API 1.0**: service discovery, OAuth2 authorization code with
   PKCE, current user, token revocation, and dynamic client
   registration with public clients (off by default).
-- **BCF API 3.0 and 2.1**: projects, extensions, topics with OData queries, comments,
-  viewpoints with snapshots, bitmaps and components, files, document
-  references, documents and the event logs, all validated against the
-  buildingSMART schemas.
 - **Documents API 1.0**: document selection and download, multipart upload
   with the server's web pages for metadata and selection, version queries with
   ETags.
@@ -181,22 +183,47 @@ password, and nothing is open until it is configured.
   audit log, the optional request log and the server's health checks. Every
   user has `/account` for their own password, applications and sessions. The
   CLI (`uv run opencde --help`) does the same from a terminal.
-- **Extensions outside the specifications**, each marked as such: a
-  capabilities document at `/.well-known/dataregium` that tells a client which
-  extensions are on, a stable `code` in every error body, a request log for
-  debugging clients (`/admin/requests`, `GET /admin/api/requests` with the
-  `admin` scope), and the IFC-LPG module that turns uploaded IFC models into
-  graph data linked to BCF components. Since 3.0.0 the graph is lossless and
-  can be written back as a file, every upload is checked against the IFC
-  schema, buildingSMART's rules and the project's IDS, and members ask it
-  named queries.
+- **Extensions outside the specifications**, each marked as such: a capabilities
+  document at `/.well-known/dataregium` that tells a client which extensions are
+  on, a stable `code` in every error body, and a request log for debugging
+  clients (`/admin/requests`, `GET /admin/api/requests` with the `admin` scope).
 - **A client library** in Python ([client/](../../client/), LGPL) with runnable
   examples, and a Dockerfile, compose overlays and a published image for every
   deployment scenario.
-- **Status**: all eleven stages of the plan are implemented (the three APIs,
-  the administration, the client library, deployment, IFC-LPG, the acceptance
-  checklist and the security hardening); a contribution of the server to
-  IfcOpenShell has not been proposed.
+
+### Also in version 2 (with Dataspatium 2)
+
+- **BCF API 3.0 and 2.1**: projects, extensions, topics with OData queries, comments,
+  viewpoints with snapshots, bitmaps and components, files, document
+  references, documents and the event logs, all validated against the
+  buildingSMART schemas.
+- **The IFC-LPG module**, optional: every uploaded IFC model becomes graph data,
+  and the components of a BCF viewpoint are linked to the elements they point
+  to.
+
+### Also in version 3 (with Dataspatium 3)
+
+- **A lossless IFC graph** from IFC-LPG, a library of its own: all of a model is
+  kept, so that the file can be written back as it came.
+- **Checked uploads**: every IFC upload is checked against the IFC schema,
+  buildingSMART's rules and the project's IDS documents; a project may refuse
+  files with errors, and a file can be checked before it becomes a version.
+- **Questions to the model** for members: named queries on a version's graph,
+  what changed since a version, the difference between two versions element by
+  element, and a clash check between two versions.
+- **Changes as proposals**: an upload names the version it builds on; a change
+  to a model travels as a change set in a BCF topic, is tried on its base, and a
+  `manager` approves it into the next version, merged with what came between.
+- **The local engine and the working copy**: the server on a person's own
+  computer behind Dataspatium, on the loopback only, and the head model of every
+  document in memory in Memgraph, for models larger than a browser holds.
+- **Uploads without the browser page** for confidential clients an administrator
+  approved.
+
+**Status**: all eleven stages of the plan are implemented (the three APIs,
+the administration, the client library, deployment, IFC-LPG, the acceptance
+checklist and the security hardening); a contribution of the server to
+IfcOpenShell has not been proposed.
 
 <img src="../images/signin.png" alt="The sign-in page a client opens" width="240">
 <img src="../images/upload.png" alt="The upload page, where the user gives the file a title and a version" width="340">
@@ -294,15 +321,15 @@ documentation.
 Every major number is one release, given out again as it grows, and the same
 number of Dataspatium belongs with it. The three differ like this:
 
-- **1.0.0** is a document server: the Foundation API 1.0 (versions, sign-in
-  with OAuth2 and PKCE, the current user, self-registration of clients when
-  the operator allows it) and the Documents API 1.0 (select, upload and
-  download documents and their versions). It is the 2.0.0 code with only the
-  Documents API turned on (`OPENCDE_APIS`), for Dataspatium 1.
+- **1.0.0** is a document server: the Foundation API 1.0 (versions, sign-in with
+  OAuth2 and PKCE, the current user, self-registration of clients when the
+  operator allows it) and the Documents API 1.0 (select, upload and download
+  documents and their versions), with the web administration in seven languages
+  and the request log. It is the 2.0.0 code with only the Documents API turned
+  on (`OPENCDE_APIS`), for Dataspatium 1.
 - **2.0.0** adds the BCF APIs 3.0 and 2.1 on the same data (topics, comments,
-  viewpoints, documents), the web administration in seven languages, the
-  request log and the optional IFC-LPG module that makes a graph of every
-  uploaded IFC file, for Dataspatium 2.
+  viewpoints, documents) and the optional IFC-LPG module that makes a graph of
+  every uploaded IFC file, for Dataspatium 2.
 - **3.0.0** makes the graph lossless so that the file can be written back,
   checks every upload against the IFC schema, buildingSMART's rules and the
   project's IDS documents, gives members named queries, a clash check between
