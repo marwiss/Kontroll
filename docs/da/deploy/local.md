@@ -80,8 +80,7 @@ uv run opencde client create "Dataspatium" --public --redirect-uri http://127.0.
 Med `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true` i `.env` registrerer appen sig
 selv i stedet. CORS tillader alle oprindelser som standard, så der skal ikke
 indstilles mere; `OPENCDE_REQUEST_LOG_ENABLED=true` lader `/admin/requests`
-vise serversiden af appens kald. Den fulde tjekliste er
-[docs/acceptance.md](../../acceptance.md), afsnit C.
+vise serversiden af appens kald.
 [Den hurtige start](../quickstart.md) har alle trin og en fejlfindingstabel.
 
 ## Ren tavle

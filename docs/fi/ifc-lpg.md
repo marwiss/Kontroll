@@ -406,8 +406,7 @@ Neo4j-lähteensä kautta Boltilla (WebSocket Bolt-portissa), kun ylläpitäjä
 avaa tietokannan, kuten kehityspäällyste tekee osoitteessa `127.0.0.1:7697`.
 Sen Dataregium-työtila käyttää yllä olevia malleja (mallit, luokat,
 komponentit `SAME_AS`-suhteen kautta, uusin valmis malli asiakirjaa kohti);
-kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/grafer.md`), ja live-ajot
-on lueteltu tiedostossa [acceptance.md](../acceptance.md). Tuotantopalvelin
+kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/grafer.md`). Tuotantopalvelin
 ei julkaise Boltia; hallintarajapinnan graafikysely
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) antaa
 järjestelmänvalvojille lukevan Cypherin ilman porttia. Sovellus

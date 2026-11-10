@@ -75,8 +75,7 @@ sequenceDiagram
 forløb fra browseren (`src/api/families/opencde.js`): den åbner serverens
 udvælgelsesside i et pop op-vindue og importerer de valgte filer, og uploader
 datasæt, filer og arbejdsområdepakker i dele med serverens uploadside til
-metadata; dets live-suiter kører disse forløb mod udviklingsstakken
-([acceptance.md](../../acceptance.md)).
+metadata; dets live-suiter kører disse forløb mod udviklingsstakken.
 
 ## Hvem må hvad
 

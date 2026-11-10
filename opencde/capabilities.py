@@ -7,8 +7,7 @@ adapt instead of probing: dynamic client registration, the request log, the
 administration API, the IFC graph and whether its database is published, and
 the limits a client must respect. Nothing in it is secret. A server without
 the document answers 404, which a client reads as "no extensions". Unknown
-keys are to be treated as absent. Agreed with Dataspatium (docs/dataspatium-
-coordination.md, "The capabilities document").
+keys are to be treated as absent. Agreed with Dataspatium.
 """
 
 from __future__ import annotations

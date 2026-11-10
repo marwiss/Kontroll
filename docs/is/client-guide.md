@@ -362,8 +362,7 @@ meðtalin. Hvert kall, hafnað eða ekki, skilur eftir endurskoðunaratburð
 [Dataspatium](https://github.com/marwiss/Dataspatium) er vafrabiðlarinn sem
 er þróaður samhliða þessum þjóni; OpenCDE-uppruni hans (innskráning,
 BCF-töflur, Documents API, graffyrirspurnir, request-id) er útfært dæmi um
-allt ofangreint, og lifandi prófunarsvítur hans keyra gegn þróunarstaflanum
-(sjá [acceptance.md](../acceptance.md)).
+allt ofangreint, og lifandi prófunarsvítur hans keyra gegn þróunarstaflanum.
 
 - `uv run opencde seed` fyllir tóman gagnagrunn með sýninotendum og
   -verkefnum (lykilorðin eru prentuð einu sinni), sýnilíkaninu

@@ -1,8 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """Links from the server's pages into a Dataspatium installation.
 
-An extension outside the specifications, agreed with Dataspatium
-(docs/dataspatium-coordination.md, "Deep links"): when the operator sets
+An extension outside the specifications, agreed with Dataspatium: when the operator sets
 ``OPENCDE_DATASPATIUM_URL``, project and document pages offer "Open in
 Dataspatium". The app's route is ``#/inhamta/opencde`` with the server's
 public URL and, optionally, the project, the document and the version

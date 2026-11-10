@@ -27,7 +27,7 @@ Nodes come back as ``{"identity", "labels", "properties"}``, relationships as
 ``{"identity", "type", "start", "end", "properties"}`` and paths as
 ``{"nodes", "relationships", "length"}``; temporal values as ISO 8601
 strings, points as ``{"srid", "x", "y", "z"}``, bytes as base64. Agreed with
-Dataspatium (docs/dataspatium-coordination.md, decision A).
+Dataspatium.
 """
 
 from __future__ import annotations

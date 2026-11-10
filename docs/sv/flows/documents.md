@@ -76,7 +76,7 @@ flödena från webbläsaren (`src/api/families/opencde.js`): den öppnar servern
 urvalssida i ett popup-fönster och importerar de valda filerna, och laddar
 upp datamängder, filer och arbetsytepaket i delar med serverns
 uppladdningssida för metadata; dess live-sviter kör dessa flöden mot
-utvecklingsstacken ([acceptance.md](../../acceptance.md)).
+utvecklingsstacken.
 
 ## Vem får göra vad
 

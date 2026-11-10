@@ -76,8 +76,7 @@ sequenceDiagram
 selaimesta (`src/api/families/opencde.js`): se avaa palvelimen valintasivun
 ponnahdusikkunaan ja tuo valitut tiedostot, ja lähettää datamäärät,
 tiedostot ja työtilapaketit osissa käyttäen palvelimen lähetyssivua
-metatiedoille; sen live-testisarjat ajavat nämä kulut kehityspinoa vasten
-([acceptance.md](../../acceptance.md)).
+metatiedoille; sen live-testisarjat ajavat nämä kulut kehityspinoa vasten.
 
 ## Kuka saa tehdä mitä
 
