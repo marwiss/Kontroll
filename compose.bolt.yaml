@@ -2,7 +2,7 @@
 # IFC graph directly (Dataspatium's graph view, Neo4j Browser, scripts). This is
 # an explicit administrator action: nothing publishes the database unless this
 # overlay is added, and the server refuses to announce an address without TLS
-# in production. Read docs/deploy/bolt.md first: the community editions of
+# in production. Read docs/en/deploy/bolt.md first: the community editions of
 # Neo4j and Memgraph have no read-only users, so whoever has the database
 # password can write.
 #

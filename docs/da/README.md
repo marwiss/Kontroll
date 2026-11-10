@@ -267,10 +267,9 @@ hvad de to projekter samordner, står i
 - [spec/SOURCES.md](../../spec/SOURCES.md): de præcise specifikationsversioner,
   serveren testes mod.
 
-Dokumentationen findes på denne READMEs syv sprog: engelsk under `docs/`, de
-andre under `docs/<sprog>/`. Projektloggene (accept, inventar, samordning),
-arkitekturbeslutningerne, udkastene til IfcOpenShell og CONTRIBUTING holdes på
-engelsk.
+Dokumentationen findes på denne READMEs syv sprog, hvert sprog under
+`docs/<sprog>/`; engelsk under `docs/en/` er kilden. Projektloggene (accept,
+samordning), udkastene til IfcOpenShell og CONTRIBUTING holdes på engelsk.
 
 ### Videre læsning
 

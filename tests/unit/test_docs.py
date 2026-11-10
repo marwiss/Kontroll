@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The documentation stays whole: links resolve, and the translations keep up with English.
 
-English is the source under ``docs/``; every other language has the same pages under
+English is the source under ``docs/en/``; every other language has the same pages under
 ``docs/<lang>/``. A page added or changed in English without its translations fails here, as a
 new key in one language catalogue does in ``test_i18n.py``.
 """
@@ -13,10 +13,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
+ENGLISH = DOCS / "en"
 LANGUAGES = ("sv", "da", "nb", "nn", "fi", "is")
-# Project logs, decisions and drafts are written for developers and stay in English.
-ENGLISH_ONLY_PAGES = {"acceptance.md", "dataspatium-coordination.md"}
-ENGLISH_ONLY_FOLDERS = {"upstream", "examples", "images", "en", *LANGUAGES}
 
 FENCED = re.compile(r"^[ \t]*```.*?^[ \t]*```[ \t]*$", re.DOTALL | re.MULTILINE)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
@@ -29,12 +27,8 @@ def read(path: Path) -> str:
 
 
 def english_pages() -> list[str]:
-    pages = []
-    for path in DOCS.rglob("*.md"):
-        relative = path.relative_to(DOCS)
-        if relative.parts[0] not in ENGLISH_ONLY_FOLDERS and relative.name not in ENGLISH_ONLY_PAGES:
-            pages.append(relative.as_posix())
-    return sorted(pages)
+    """The pages every language has; the README is translated too but lives beside them."""
+    return sorted(p.relative_to(ENGLISH).as_posix() for p in ENGLISH.rglob("*.md") if p.name != "README.md")
 
 
 def markdown_files() -> list[Path]:
@@ -67,7 +61,6 @@ def shape(text: str) -> dict[str, object]:
 def test_the_english_pages_are_found() -> None:
     pages = english_pages()
     assert {"client-guide.md", "quickstart.md", "deploy/local.md", "architecture.md"} <= set(pages)
-    assert not ENGLISH_ONLY_PAGES & set(pages)
 
 
 @pytest.mark.parametrize("path", markdown_files(), ids=lambda path: path.relative_to(ROOT).as_posix())
@@ -81,7 +74,7 @@ def test_relative_links_point_at_something(path: Path) -> None:
 def test_every_page_has_its_translation_and_keeps_its_shape(lang: str, page: str) -> None:
     translation = DOCS / lang / page
     assert translation.is_file(), f"docs/{page} has no translation in docs/{lang}/"
-    assert shape(read(translation)) == shape(read(DOCS / page))
+    assert shape(read(translation)) == shape(read(ENGLISH / page))
 
 
 @pytest.mark.parametrize("lang", LANGUAGES)
@@ -95,7 +88,7 @@ def test_a_translation_has_no_page_without_a_source(lang: str) -> None:
 def test_a_translated_page_links_to_the_translation(lang: str) -> None:
     """A link from a translated page goes to the same language when that page is translated."""
     folder = DOCS / lang
-    translated = {(DOCS / page).resolve() for page in english_pages()}
+    translated = {(ENGLISH / page).resolve() for page in english_pages()}
     for path in folder.rglob("*.md"):
         for target in relative_targets(read(path)):
             assert (path.parent / target).resolve() not in translated, (

@@ -206,9 +206,9 @@ Til að stöðva án þess að eyða neinu sleppir þú `-v`, og vefþjóninn st
 
 ## Næstu skref
 
-- [docs/client-guide.md](client-guide.md) um forritaskilin, getuskjalið og
+- [docs/is/client-guide.md](client-guide.md) um forritaskilin, getuskjalið og
   villukóðana.
 - [docs/acceptance.md](../acceptance.md) um gátlistana sem parið er prófað
   með, og [docs/dataspatium-coordination.md](../dataspatium-coordination.md)
   um það sem verkefnin tvö samræma.
-- [docs/deploy/](deploy/) þegar þjónninn á að keyra fyrir aðra.
+- [docs/is/deploy/](deploy/) þegar þjónninn á að keyra fyrir aðra.

@@ -7,7 +7,7 @@
 #   docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose ... up -d   (update)
 #
 # Requirements: ports 80 and 443 reachable from the internet, DNS for
-# OPENCDE_DOMAIN pointing at this host. See docs/deploy/vps-caddy.md.
+# OPENCDE_DOMAIN pointing at this host. See docs/en/deploy/vps-caddy.md.
 
 services:
   api:

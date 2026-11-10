@@ -215,9 +215,9 @@ näppäimillä Ctrl+C.
 
 ## Seuraavaksi
 
-- [docs/client-guide.md](client-guide.md): rajapinnat, kyvykkyysasiakirja
+- [docs/fi/client-guide.md](client-guide.md): rajapinnat, kyvykkyysasiakirja
   ja virhekoodit.
 - [docs/acceptance.md](../acceptance.md): tarkistuslistat, joilla paria
   testataan, ja [docs/dataspatium-coordination.md](../dataspatium-coordination.md):
   mitä kaksi projektia sovittavat yhteen.
-- [docs/deploy/](deploy/), kun palvelimen on määrä palvella muita.
+- [docs/fi/deploy/](deploy/), kun palvelimen on määrä palvella muita.

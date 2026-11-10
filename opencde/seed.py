@@ -66,7 +66,7 @@ BUILDING_PERMIT_EXTENSIONS = {
     "custom_information": ["Custom value 1", "Custom value 2"],
 }
 
-# Known ids, shared with client test suites (docs/client-guide.md §7).
+# Known ids, shared with client test suites (docs/en/client-guide.md §7).
 SEED_DOCUMENT_ID = "6f5d3b2a-0000-4000-8000-000000000001"
 SEED_TOPIC_GUID = "6f5d3b2a-0000-4000-8000-000000000002"
 SEED_VIEWPOINT_GUID = "6f5d3b2a-0000-4000-8000-000000000003"

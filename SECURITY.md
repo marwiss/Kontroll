@@ -32,7 +32,7 @@ mitigation plan as soon as the problem is understood.
 - Dependencies are pinned in `uv.lock` and updated by Dependabot.
 - The container runs as an unprivileged user on a read-only file system; the
   database stays on the private network unless an administrator publishes its
-  port on purpose (`docs/deploy/bolt.md`).
+  port on purpose (`docs/en/deploy/bolt.md`).
 
 ## Supported versions
 

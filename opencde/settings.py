@@ -419,7 +419,7 @@ class Settings(BaseSettings):
             if self.graph_public_bolt_url and not self.graph_public_bolt_url.startswith(SECURE_GRAPH_URI_SCHEMES):
                 # A published database port carries the database password; never announce it in the clear.
                 raise ValueError(
-                    "OPENCDE_GRAPH_PUBLIC_BOLT_URL must use bolt+s:// or neo4j+s:// in production (docs/deploy/bolt.md)"
+                    "OPENCDE_GRAPH_PUBLIC_BOLT_URL must use bolt+s:// or neo4j+s:// in production (docs/en/deploy/bolt.md)"
                 )
             if not self.graph_password.get_secret_value():
                 raise ValueError("OPENCDE_GRAPH_PASSWORD is required in production")
