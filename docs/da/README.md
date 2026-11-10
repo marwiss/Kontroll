@@ -310,13 +310,15 @@ Dataspatium gemmer i browseren, står i appens egen dokumentation.
 
 3.0.0 er 3-seriens første udgivelse, lavet sammen med Dataspatium 3.0.0:
 IFC-grafen som en tabsfri model, kontrollen af hver upload og de navngivne
-forespørgsler, som [Hvad du kan](#hvad-du-kan) beskriver. Som hvert
-hovednummer har serien én udgivelse, der udgives igen, efterhånden som den
-vokser. Det, der følger, gør grafen til en model, der kan redigeres og
-versionsstyres i databasen, med Dataspatium som den klient, der redigerer den
-og viser dens versioner. De officielle OpenCDE-API'er forbliver, som
-buildingSMART definerer dem; det, serien lægger til, er udvidelser af dem under
-egne navne. Dette afsnit siger, hvad der er besluttet, og hvad der kun er
+forespørgsler, som [Hvad du kan](#hvad-du-kan) beskriver. Siden 2026-11-10
+rummer den også kollisionskontrollen mellem to versioner, basisversionen ved
+upload, afvisningen af uploads med valideringsfejl og forhåndskontrollen af en
+fil. Som hvert hovednummer har serien én udgivelse, der udgives igen,
+efterhånden som den vokser. Det, der følger, gør grafen til en model, der kan
+redigeres og versionsstyres i databasen, med Dataspatium som den klient, der
+redigerer den og viser dens versioner. De officielle OpenCDE-API'er forbliver,
+som buildingSMART definerer dem; det, serien lægger til, er udvidelser af dem
+under egne navne. Dette afsnit siger, hvad der er besluttet, og hvad der kun er
 foreslået, for den, menneske eller AI-agent, der fører en del af det videre.
 Beslutningerne står i korte træk under [Lær mere](#lær-mere), arbejdsgangene i
 [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
@@ -349,23 +351,32 @@ Beslutningerne står i korte træk under [Lær mere](#lær-mere), arbejdsgangene
   og i Dataspatium med dets egen kerne i JavaScript.
 - **Administration af et projekt af dets projektleder**, som ikke behøver at
   være serveradministrator, og teams med ansvar ud over projektrollerne.
+- **Hvordan en version gemmes** (besluttet 2026-11-10). Hver godkendt version
+  er en knude med sin forælder, forfatter, godkender og ændringer pr. STEP-id og
+  attribut; grafen holder hovedversionen; en version gemmes som sin ændring,
+  med en hel fil, som `.ifczip`, kun når den offentliggøres, og enhver version
+  skrives på forespørgsel; to ændringer flettes attribut for attribut, som
+  ifcmerge gør, og en ændring føres ind, når filen, der skrives fra den, ikke
+  har nogen anmærkning, som versionen før den ikke havde. I 3.0.0:
+  basisversionen ved upload (`412` ved konflikt), afvisningen af uploads med
+  valideringsfejl og forhåndskontrollen af en fil. Versionsknuderne og
+  fletningen kommer dernæst.
+- **Hvem der må ændre hvad** (besluttet). Projektrollerne først: `editor`
+  foreslår, `manager` godkender, og en AI foreslår kun. Ansvarsregler, der
+  udpeger en del af modellen med IDS-udvalg som klasse, egenskab,
+  klassifikation eller etage, sådan som ISO 19650's ansvarlige teams gør,
+  kommer senere.
+- **Snippettens detaljer** (besluttet). En sti skrives med IFC's attributnavne
+  med indeks, fra et GlobalId, med STEP-id som genvej; en ændring af en
+  instans, som flere deler, ændrer den for dem alle, og en egen kopi skal bedes
+  om; hver ændring bærer, hvem der foreslog den, og hvilken AI-model og hvilket
+  værktøjskald, hvor en AI gjorde det.
 
 ### Foreslået, ikke besluttet
 
-- **Hvordan en version gemmes.** Hver godkendt version en knude med sin
-  forælder, forfatter, godkender og ændringer pr. STEP-id og attribut; grafen
-  holder hovedversionen; en version gemt som sin ændring, med en hel fil, som
-  `.ifczip`, kun når en version offentliggøres, og enhver version skrevet på
-  forespørgsel; to ændringer flettet attribut for attribut, som ifcmerge gør;
-  en ændring ført ind, når filen, der skrives fra den, ikke har nogen
-  anmærkning, som versionen før den ikke havde.
-- **Hvem der må ændre hvad.** Først projektrollerne, hvor `editor` foreslår og
-  `manager` godkender, siden ansvarsregler, der udpeger en del af modellen med
-  IDS-udvalg som klasse, egenskab, klassifikation eller etage, sådan som ISO
-  19650's ansvarlige teams gør.
-- **Snippettens detaljer.** Hvordan en sti skrives, og om en ændring af en
-  instans, som flere deler, ændrer den for dem alle eller giver den ændrede sin
-  egen kopi.
+Intet lige nu: versionsmodellen, rettighederne og snippettens detaljer blev
+besluttet 2026-11-10, som listen ovenfor siger. Nye forslag samles her, før de
+besluttes.
 
 ## Fejl og forslag
 

@@ -312,15 +312,17 @@ Kva Dataspatium lagrar i nettlesaren, står i dokumentasjonen til appen.
 3.0.0 er den første utgåva i 3-serien, laga saman med Dataspatium 3.0.0:
 IFC-grafen som ein tapsfri modell, kontrollen av kvar opplasting og dei
 namngjevne spørjingane, slik [Kva du kan gjere](#kva-du-kan-gjere) skildrar.
-Som kvart hovudnummer har serien éi utgåve, som blir gjeven ut på nytt etter
-kvart som ho veks. Det som følgjer, gjer grafen til ein modell som kan
-redigerast og versjonshandterast i databasen, med Dataspatium som klienten som
-redigerer han og viser versjonane. Dei offisielle OpenCDE-API-a blir verande
-slik buildingSMART definerer dei; det serien legg til, er utvidingar av dei
-under eigne namn. Denne delen seier kva som er avgjort, og kva som berre er
-føreslått, for den, menneske eller AI-agent, som fører ein del av det vidare.
-Avgjerdene står i korte trekk under [Lær meir](#lær-meir), arbeidsmåtane i
-[CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
+Sidan 2026-11-10 rommar ho òg kollisjonskontrollen mellom to versjonar,
+basisversjonen ved opplasting, avvisinga av opplastingar med valideringsfeil og
+førehandskontrollen av ei fil. Som kvart hovudnummer har serien éi utgåve, som
+blir gjeven ut på nytt etter kvart som ho veks. Det som følgjer, gjer grafen til
+ein modell som kan redigerast og versjonshandterast i databasen, med Dataspatium
+som klienten som redigerer han og viser versjonane. Dei offisielle OpenCDE-API-a
+blir verande slik buildingSMART definerer dei; det serien legg til, er
+utvidingar av dei under eigne namn. Denne delen seier kva som er avgjort, og kva
+som berre er føreslått, for den, menneske eller AI-agent, som fører ein del av
+det vidare. Avgjerdene står i korte trekk under [Lær meir](#lær-meir),
+arbeidsmåtane i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
 [docs/nn/ifc-lpg.md](ifc-lpg.md).
 
 ### Avgjort
@@ -351,23 +353,32 @@ Avgjerdene står i korte trekk under [Lær meir](#lær-meir), arbeidsmåtane i
   og i Dataspatium med den eigne kjernen i JavaScript.
 - **Administrasjon av eit prosjekt av prosjektleiaren**, som ikkje treng vere
   serveradministrator, og team med ansvar utover prosjektrollene.
+- **Korleis ein versjon blir lagra** (avgjort 2026-11-10). Kvar godkjend
+  versjon er ein node med forelder, forfattar, godkjennar og endringar per
+  STEP-id og attributt; grafen held hovudversjonen; ein versjon blir lagra som
+  endringa si, med ei heil fil, som `.ifczip`, berre når han blir publisert, og
+  kva versjon som helst blir skriven på førespurnad; to endringar blir slegne
+  saman attributt for attributt, slik ifcmerge gjer, og ei endring blir ført
+  inn når fila som blir skriven frå ho, ikkje har nokon merknad som versjonen
+  før ho mangla. I 3.0.0: basisversjonen ved opplasting (`412` ved konflikt),
+  avvisinga av opplastingar med valideringsfeil og førehandskontrollen av ei
+  fil. Versjonsnodane og samanslåinga kjem deretter.
+- **Kven som får endre kva** (avgjort). Prosjektrollene først: `editor`
+  føreslår, `manager` godkjenner, og ein AI føreslår berre. Ansvarsreglar som
+  peikar ut ein del av modellen med IDS-utval som klasse, eigenskap,
+  klassifikasjon eller etasje, slik dei ansvarlege teama i ISO 19650 gjer, kjem
+  seinare.
+- **Detaljane i snippeten** (avgjort). Ein sti blir skriven med attributtnamna
+  i IFC med indeksar, frå ein GlobalId, med STEP-id som snarveg; ei endring av
+  ein instans som fleire deler, endrar han for alle, og ein eigen kopi må bedast
+  om; kvar endring ber kven som føreslo henne, og kva AI-modell og kva
+  verktøykall, der ein AI gjorde det.
 
 ### Føreslått, ikkje avgjort
 
-- **Korleis ein versjon blir lagra.** Kvar godkjend versjon ein node med
-  forelder, forfattar, godkjennar og endringar per STEP-id og attributt; grafen
-  held hovudversjonen; ein versjon lagra som endringa si, med ei heil fil, som
-  `.ifczip`, berre når ein versjon blir publisert, og kva versjon som helst
-  skriven på førespurnad; to endringar slegne saman attributt for attributt,
-  slik ifcmerge gjer; ei endring ført inn når fila som blir skriven frå ho, ikkje
-  har nokon merknad som versjonen før ho mangla.
-- **Kven som får endre kva.** Først prosjektrollene, der `editor` føreslår og
-  `manager` godkjenner, sidan ansvarsreglar som peikar ut ein del av modellen
-  med IDS-utval som klasse, eigenskap, klassifikasjon eller etasje, slik dei
-  ansvarlege teama i ISO 19650 gjer.
-- **Detaljane i snippeten.** Korleis ein sti blir skriven, og om ei endring av
-  ein instans som fleire deler, endrar han for alle eller gjev den endra ein
-  eigen kopi.
+Ingenting akkurat no: versjonsmodellen, rettane og detaljane i snippeten vart
+avgjorde 2026-11-10, slik lista over seier. Nye forslag blir samla her før dei
+blir avgjorde.
 
 ## Feil og framlegg
 

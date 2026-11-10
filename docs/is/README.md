@@ -307,17 +307,19 @@ forritsins sjálfs.
 
 ## Næst í 3-röðinni
 
-3.0.0 er fyrsta útgáfa 3-raðarinnar, gerð með Dataspatium 3.0.0: IFC-grafið
-sem taplaust líkan, prófun hvers upphals og nefndu fyrirspurnirnar, eins og
-[Hvað þú getur gert](#hvað-þú-getur-gert) lýsir. Eins og hvert aðalnúmer hefur
-röðin eina útgáfu, sem er gefin út aftur eftir því sem hún vex. Það sem fylgir
-gerir grafið að líkani sem hægt er að breyta og halda útgáfusögu fyrir í
-gagnagrunninum, með Dataspatium sem biðlarann sem breytir því og sýnir
-útgáfurnar. Opinberu OpenCDE-forritaskilin haldast eins og buildingSMART
-skilgreinir þau; það sem röðin bætir við eru viðbætur við þau undir eigin
-heitum. Þessi hluti segir hvað er ákveðið og hvað er aðeins lagt til, fyrir
-þann, manneskju eða gervigreindarfulltrúa, sem tekur hluta af því lengra.
-Ákvarðanirnar eru dregnar saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
+3.0.0 er fyrsta útgáfa 3-raðarinnar, gerð með Dataspatium 3.0.0: IFC-grafið sem
+taplaust líkan, prófun hvers upphals og nefndu fyrirspurnirnar, eins og [Hvað þú
+getur gert](#hvað-þú-getur-gert) lýsir. Frá 2026-11-10 ber hún líka
+árekstrarprófun milli tveggja útgáfna, grunnútgáfu upphals, höfnun upphala með
+sannprófunarvillum og forprófun skrár. Eins og hvert aðalnúmer hefur röðin eina
+útgáfu, sem er gefin út aftur eftir því sem hún vex. Það sem fylgir gerir grafið
+að líkani sem hægt er að breyta og halda útgáfusögu fyrir í gagnagrunninum, með
+Dataspatium sem biðlarann sem breytir því og sýnir útgáfurnar. Opinberu
+OpenCDE-forritaskilin haldast eins og buildingSMART skilgreinir þau; það sem
+röðin bætir við eru viðbætur við þau undir eigin heitum. Þessi hluti segir hvað
+er ákveðið og hvað er aðeins lagt til, fyrir þann, manneskju eða
+gervigreindarfulltrúa, sem tekur hluta af því lengra. Ákvarðanirnar eru dregnar
+saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
 [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafið í
 [docs/is/ifc-lpg.md](ifc-lpg.md).
 
@@ -349,22 +351,31 @@ heitum. Þessi hluti segir hvað er ákveðið og hvað er aðeins lagt til, fyr
   og í Dataspatium með eigin kjarna í JavaScript.
 - **Stjórnun verkefnis af verkefnisstjóra þess**, sem þarf ekki að vera
   stjórnandi þjónsins, og teymi með ábyrgð umfram hlutverk verkefnisins.
+- **Hvernig útgáfa er geymd** (ákveðið 2026-11-10). Hver samþykkt útgáfa er
+  hnútur með foreldri, höfundi, samþykkjanda og breytingum eftir STEP-auðkenni
+  og eigind; grafið geymir aðalútgáfuna; útgáfa er geymd sem breyting sín, með
+  heilli skrá, sem `.ifczip`, aðeins þegar hún er birt, og hvaða útgáfa sem er
+  er skrifuð eftir beiðni; tvær breytingar eru sameinaðar eigind fyrir eigind,
+  eins og ifcmerge gerir, og breyting er tekin inn þegar skráin sem skrifuð er
+  úr henni hefur enga athugasemd sem útgáfan á undan hafði ekki. Í 3.0.0:
+  grunnútgáfa upphals (`412` við árekstur), höfnun upphala með
+  sannprófunarvillum og forprófun skrár. Útgáfuhnútarnir og sameiningin koma
+  næst.
+- **Hver má breyta hverju** (ákveðið). Fyrst hlutverk verkefnisins: `editor`
+  leggur til, `manager` samþykkir, og gervigreind leggur aðeins til.
+  Ábyrgðarreglur sem benda á hluta líkansins með IDS-vali, svo sem flokki,
+  eigind, flokkun eða hæð, eins og ábyrgðarteymi ISO 19650 gera, koma síðar.
+- **Smáatriði snippets** (ákveðið). Slóð er skrifuð með eigindaheitum IFC með
+  vísum, frá GlobalId, með STEP-auðkenni sem flýtileið; breyting á tilviki sem
+  fleiri deila breytir því fyrir öll, og biðja þarf sérstaklega um eigið afrit;
+  hver breyting ber hver lagði hana til, og hvaða gervigreindarlíkan og
+  verkfærakall, þar sem gervigreind gerði það.
 
 ### Lagt til, ekki ákveðið
 
-- **Hvernig útgáfa er geymd.** Hver samþykkt útgáfa hnútur með foreldri,
-  höfundi, samþykkjanda og breytingum eftir STEP-auðkenni og eigind; grafið
-  geymir aðalútgáfuna; útgáfa geymd sem breyting sín, með heilli skrá, sem
-  `.ifczip`, aðeins þegar útgáfa er birt, og hvaða útgáfa sem er skrifuð eftir
-  beiðni; tvær breytingar sameinaðar eigind fyrir eigind, eins og ifcmerge gerir;
-  breyting tekin inn þegar skráin sem skrifuð er úr henni hefur enga athugasemd
-  sem útgáfan á undan hafði ekki.
-- **Hver má breyta hverju.** Fyrst hlutverk verkefnisins, þar sem `editor`
-  leggur til og `manager` samþykkir, síðan ábyrgðarreglur sem benda á hluta
-  líkansins með IDS-vali, svo sem flokki, eigind, flokkun eða hæð, eins og
-  ábyrgðarteymi ISO 19650 gera.
-- **Smáatriði snippets.** Hvernig slóð er skrifuð, og hvort breyting á tilviki
-  sem fleiri deila breyti því fyrir öll eða gefi því breytta eigið afrit.
+Ekkert í bili: útgáfulíkanið, réttindin og smáatriði snippets voru ákveðin
+2026-11-10, eins og listinn hér að ofan segir. Nýjar tillögur safnast hér áður
+en þær eru ákveðnar.
 
 ## Villur og tillögur
 

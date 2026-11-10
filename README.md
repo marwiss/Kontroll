@@ -312,16 +312,19 @@ Dataspatium sparar i webbläsaren står i appens egen dokumentation.
 
 3.0.0 är 3-seriens första utgåva, gjord tillsammans med Dataspatium 3.0.0:
 IFC-grafen som en förlustfri modell, kontrollen av varje uppladdning och de
-namngivna frågorna, som [Vad du kan göra](#vad-du-kan-göra) beskriver. Som
-varje huvudnummer har serien en enda utgåva, som ges ut igen när den växer. Det
-som följer gör grafen till en modell som kan redigeras och versionshanteras i
-databasen, med Dataspatium som klienten som redigerar den och visar dess
-versioner. De officiella OpenCDE-API:erna förblir som buildingSMART definierar
-dem; det serien lägger till är tillägg till dem, under egna namn. Det här
-avsnittet säger vad som är beslutat och vad som bara är föreslaget, för den,
-människa eller AI-agent, som för en del av det vidare. Besluten finns i korthet under
-[Lär dig mer](#lär-dig-mer), arbetssätten i [CONTRIBUTING.md](CONTRIBUTING.md) och
-IFC-grafen i [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
+namngivna frågorna, som [Vad du kan göra](#vad-du-kan-göra) beskriver. Sedan
+2026-11-10 rymmer den också krocktestet mellan två versioner, basversionen vid
+uppladdning, avvisningen av uppladdningar med valideringsfel och
+förhandskontrollen av en fil. Som varje huvudnummer har serien en enda utgåva,
+som ges ut igen när den växer. Det som följer gör grafen till en modell som kan
+redigeras och versionshanteras i databasen, med Dataspatium som klienten som
+redigerar den och visar dess versioner. De officiella OpenCDE-API:erna förblir
+som buildingSMART definierar dem; det serien lägger till är tillägg till dem,
+under egna namn. Det här avsnittet säger vad som är beslutat och vad som bara är
+föreslaget, för den, människa eller AI-agent, som för en del av det vidare.
+Besluten finns i korthet under [Lär dig mer](#lär-dig-mer), arbetssätten i
+[CONTRIBUTING.md](CONTRIBUTING.md) och IFC-grafen i
+[docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
 
 ### Beslutat
 
@@ -350,23 +353,32 @@ IFC-grafen i [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
   Dataspatium med dess egen kärna i JavaScript.
 - **Administration av ett projekt av dess projektansvarige**, som inte behöver
   vara serveradministratör, och team med ansvar utöver projektrollerna.
+- **Hur en version lagras** (beslutat 2026-11-10). Varje godkänd version är en
+  nod med sin förälder, författare, godkännare och ändringar per STEP-id och
+  attribut; grafen håller huvudversionen; en version lagras som sin ändring,
+  med en hel fil, som `.ifczip`, bara när den publiceras, och vilken version
+  som helst skrivs på begäran; två ändringar sammanfogas attribut för attribut,
+  som ifcmerge gör, och en ändring förs in när filen som skrivs från den inte
+  har någon anmärkning som versionen före den saknade. I 3.0.0: basversionen
+  vid uppladdning (`412` vid konflikt), avvisningen av uppladdningar med
+  valideringsfel och förhandskontrollen av en fil. Versionsnoderna och
+  sammanfogningen kommer härnäst.
+- **Vem som får ändra vad** (beslutat). Projektrollerna först: `editor`
+  föreslår, `manager` godkänner, och en AI föreslår bara. Ansvarsregler som
+  pekar ut en del av modellen med IDS-urval, som klass, egenskap,
+  klassificering eller våning, som ISO 19650:s ansvariga team gör, kommer
+  senare.
+- **Snippetens detaljer** (beslutat). En sökväg skrivs med IFC:s attributnamn
+  med index, från ett GlobalId, med STEP-id som snabbväg; en ändring av en
+  instans som flera delar ändrar den för alla, och en egen kopia måste begäras;
+  varje ändring bär vem som föreslog den, och vilken AI-modell och vilket
+  verktygsanrop, där en AI gjorde det.
 
 ### Föreslaget, inte beslutat
 
-- **Hur en version lagras.** Varje godkänd version en nod med sin förälder,
-  författare, godkännare och ändringar per STEP-id och attribut; grafen håller
-  huvudversionen; en version lagrad som sin ändring, med en hel fil, som
-  `.ifczip`, bara när en version publiceras, och vilken version som helst
-  skriven på begäran; två ändringar sammanfogade attribut för attribut, som
-  ifcmerge gör; en ändring förd in när filen som skrivs från den inte har
-  någon anmärkning som versionen före den saknade.
-- **Vem som får ändra vad.** Först projektrollerna, där `editor` föreslår och
-  `manager` godkänner, sedan ansvarsregler som pekar ut en del av modellen med
-  IDS-urval, som klass, egenskap, klassificering eller våning, som ISO 19650:s
-  ansvariga team gör.
-- **Snippetens detaljer.** Hur en sökväg skrivs, och om en ändring av en
-  instans som flera delar ändrar den för alla eller ger den ändrade en egen
-  kopia.
+Inget just nu: versionsmodellen, rättigheterna och snippetens detaljer
+beslutades 2026-11-10, som listan ovan säger. Nya förslag samlas här innan de
+beslutas.
 
 ## Fel och förslag
 

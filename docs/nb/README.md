@@ -311,17 +311,20 @@ i appens egen dokumentasjon.
 ## Det neste i 3-serien
 
 3.0.0 er 3-seriens første utgivelse, laget sammen med Dataspatium 3.0.0:
-IFC-grafen som en tapsfri modell, kontrollen av hver opplasting og de
-navngitte spørringene, slik [Hva du kan gjøre](#hva-du-kan-gjøre) beskriver.
-Som hvert hovednummer har serien én utgivelse, som gis ut igjen etter hvert som
-den vokser. Det som følger, gjør grafen til en modell som kan redigeres og
-versjonshåndteres i databasen, med Dataspatium som klienten som redigerer den
-og viser versjonene. De offisielle OpenCDE-API-ene forblir slik buildingSMART
-definerer dem; det serien legger til, er utvidelser av dem under egne navn.
-Denne delen sier hva som er besluttet, og hva som bare er foreslått, for den,
-menneske eller AI-agent, som fører en del av det videre. Beslutningene står i korte trekk under
-[Lær mer](#lær-mer), arbeidsmåtene i [CONTRIBUTING.md](../../CONTRIBUTING.md)
-og IFC-grafen i [docs/nb/ifc-lpg.md](ifc-lpg.md).
+IFC-grafen som en tapsfri modell, kontrollen av hver opplasting og de navngitte
+spørringene, slik [Hva du kan gjøre](#hva-du-kan-gjøre) beskriver. Siden
+2026-11-10 rommer den også kollisjonskontrollen mellom to versjoner,
+basisversjonen ved opplasting, avvisningen av opplastinger med valideringsfeil
+og forhåndskontrollen av en fil. Som hvert hovednummer har serien én utgivelse,
+som gis ut igjen etter hvert som den vokser. Det som følger, gjør grafen til en
+modell som kan redigeres og versjonshåndteres i databasen, med Dataspatium som
+klienten som redigerer den og viser versjonene. De offisielle OpenCDE-API-ene
+forblir slik buildingSMART definerer dem; det serien legger til, er utvidelser
+av dem under egne navn. Denne delen sier hva som er besluttet, og hva som bare
+er foreslått, for den, menneske eller AI-agent, som fører en del av det videre.
+Beslutningene står i korte trekk under [Lær mer](#lær-mer), arbeidsmåtene i
+[CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
+[docs/nb/ifc-lpg.md](ifc-lpg.md).
 
 ### Besluttet
 
@@ -350,23 +353,32 @@ og IFC-grafen i [docs/nb/ifc-lpg.md](ifc-lpg.md).
   i Dataspatium med den egne kjernen i JavaScript.
 - **Administrasjon av et prosjekt av prosjektlederen**, som ikke trenger å være
   serveradministrator, og team med ansvar utover prosjektrollene.
+- **Hvordan en versjon lagres** (besluttet 2026-11-10). Hver godkjent versjon
+  er en node med forelder, forfatter, godkjenner og endringer per STEP-id og
+  attributt; grafen holder hovedversjonen; en versjon lagres som endringen sin,
+  med en hel fil, som `.ifczip`, bare når den publiseres, og hvilken som helst
+  versjon skrives på forespørsel; to endringer slås sammen attributt for
+  attributt, slik ifcmerge gjør, og en endring føres inn når filen som skrives
+  fra den, ikke har noen anmerkning som versjonen før den manglet. I 3.0.0:
+  basisversjonen ved opplasting (`412` ved konflikt), avvisningen av
+  opplastinger med valideringsfeil og forhåndskontrollen av en fil.
+  Versjonsnodene og sammenslåingen kommer deretter.
+- **Hvem som får endre hva** (besluttet). Prosjektrollene først: `editor`
+  foreslår, `manager` godkjenner, og en AI foreslår bare. Ansvarsregler som
+  peker ut en del av modellen med IDS-utvalg som klasse, egenskap,
+  klassifikasjon eller etasje, slik ISO 19650s ansvarlige team gjør, kommer
+  senere.
+- **Snippetens detaljer** (besluttet). En sti skrives med IFCs attributtnavn
+  med indekser, fra en GlobalId, med STEP-id som snarvei; en endring av en
+  instans som flere deler, endrer den for alle, og en egen kopi må bes om; hver
+  endring bærer hvem som foreslo den, og hvilken AI-modell og hvilket
+  verktøykall, der en AI gjorde det.
 
 ### Foreslått, ikke besluttet
 
-- **Hvordan en versjon lagres.** Hver godkjent versjon en node med forelder,
-  forfatter, godkjenner og endringer per STEP-id og attributt; grafen holder
-  hovedversjonen; en versjon lagret som endringen sin, med en hel fil, som
-  `.ifczip`, bare når en versjon publiseres, og hvilken som helst versjon
-  skrevet på forespørsel; to endringer slått sammen attributt for attributt,
-  slik ifcmerge gjør; en endring ført inn når filen som skrives fra den, ikke
-  har noen anmerkning som versjonen før den manglet.
-- **Hvem som får endre hva.** Først prosjektrollene, der `editor` foreslår og
-  `manager` godkjenner, siden ansvarsregler som peker ut en del av modellen med
-  IDS-utvalg som klasse, egenskap, klassifikasjon eller etasje, slik ISO
-  19650s ansvarlige team gjør.
-- **Snippetens detaljer.** Hvordan en sti skrives, og om en endring av en
-  instans som flere deler, endrer den for alle eller gir den endrede en egen
-  kopi.
+Ingenting akkurat nå: versjonsmodellen, rettighetene og snippetens detaljer
+ble besluttet 2026-11-10, slik listen over sier. Nye forslag samles her før de
+besluttes.
 
 ## Feil og forslag
 

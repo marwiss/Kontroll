@@ -309,17 +309,19 @@ documentation.
 
 ## Next in the 3 series
 
-3.0.0 is the first release of the 3 series, made with Dataspatium 3.0.0: the
-IFC graph as a lossless model, the checks of every upload and the named
-queries, as [What you can do](#what-you-can-do) describes. Like every major
+3.0.0 is the first release of the 3 series, made with Dataspatium 3.0.0: the IFC
+graph as a lossless model, the checks of every upload and the named queries, as
+[What you can do](#what-you-can-do) describes. Since 2026-11-10 it also holds
+the clash check between two versions, the base version of an upload, the refusal
+of uploads with validation errors and the precheck of a file. Like every major
 number, the series has one release, given out again as it grows. What follows
 turns the graph into a model that can be edited and versioned in the database,
 with Dataspatium as the client that edits it and shows its versions. The
 official OpenCDE APIs stay as buildingSMART defines them; what the series adds
-are extensions to them, under their own names. This section says what is
-decided and what is only proposed, for anyone, person or AI agent, who takes a
-part of it further. The decisions are summarised under [Learn more](#learn-more), the conventions in
-[CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
+are extensions to them, under their own names. This section says what is decided
+and what is only proposed, for anyone, person or AI agent, who takes a part of
+it further. The decisions are summarised under [Learn more](#learn-more), the
+conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
 [docs/en/ifc-lpg.md](ifc-lpg.md).
 
 ### Decided
@@ -348,23 +350,30 @@ part of it further. The decisions are summarised under [Learn more](#learn-more)
   IfcClash, and in Dataspatium with its own JavaScript core.
 - **Administration of a project by its manager**, who need not be a server
   administrator, and teams with responsibilities beyond the project roles.
+- **How a version is kept** (decided 2026-11-10). Each approved version is a
+  node with its parent, author, approver and changes per STEP id and attribute;
+  the graph holds the main version; a version is stored as its change, with a
+  whole file, as `.ifczip`, only when it is published, and any version is
+  written on request; two changes are merged attribute by attribute, as
+  ifcmerge does, and a change is taken in when the file written from it has no
+  issue that the version before it lacked. In 3.0.0: the base version of an
+  upload (`412` on a conflict), the refusal of uploads with validation errors
+  and the precheck of a file. The version nodes and the merge come next.
+- **Who may change what** (decided). The project roles first: `editor`
+  proposes, `manager` approves, and an AI only proposes. Responsibility rules
+  that name a part of the model with IDS selectors, such as class, property,
+  classification or storey, as ISO 19650's task teams do, come later.
+- **The snippet's details** (decided). A path is written in IFC's attribute
+  names with indexes, from a GlobalId, with the STEP id as a shortcut; a change
+  to an instance that several share changes it for all of them, and a copy of
+  its own has to be asked for; every change carries who proposed it, and which
+  AI model and tool call, where an AI did.
 
 ### Proposed, not decided
 
-- **How a version is kept.** Each approved version a node with its parent,
-  author, approver and changes per STEP id and attribute; the graph holding the
-  main version; a version stored as its change, with a whole file, as
-  `.ifczip`, only when a version is published, and any version written on
-  request; two changes merged attribute by attribute, as ifcmerge does; a
-  change taken in when the file written from it has no issue that the version
-  before it lacked.
-- **Who may change what.** First the project roles, with `editor` proposing and
-  `manager` approving, then responsibility rules that name a part of the model
-  with IDS selectors, such as class, property, classification or storey, as
-  ISO 19650's task teams do.
-- **The snippet's details.** How a path is written, and whether a change to an
-  instance that several share changes it for all of them or gives the changed
-  one a copy of its own.
+Nothing at the moment: the version model, the rights and the snippet's details
+were decided on 2026-11-10, as the list above says. New proposals are gathered
+here before they are decided.
 
 ## Bugs and suggestions
 

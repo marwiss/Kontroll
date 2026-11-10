@@ -328,16 +328,18 @@ dokumentaatiossa.
 
 3.0.0 on 3-sarjan ensimmäinen julkaisu, tehty yhdessä Dataspatium 3.0.0:n
 kanssa: IFC-graafi häviöttömänä mallina, jokaisen lähetyksen tarkistus ja
-nimetyt kyselyt, kuten [Mitä voit tehdä](#mitä-voit-tehdä) kertoo. Kuten
-jokaisella pääversiolla, sarjalla on yksi julkaisu, joka julkaistaan uudelleen
-sarjan kasvaessa. Seuraavaksi graafista tulee malli, jota voi muokata ja jonka
-versioita voi hallita tietokannassa, ja Dataspatium on asiakas, joka muokkaa
-sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat pysyvät sellaisina
-kuin buildingSMART ne määrittelee; se, mitä sarja lisää, on niiden laajennuksia
-omilla nimillään. Tämä osio kertoo, mikä on päätetty ja mikä vain ehdotettu,
-sille, ihmiselle tai tekoälyagentille, joka vie osan siitä eteenpäin. Päätökset
-on tiivistetty kohdassa [Lue lisää](#lue-lisää), käytännöt tiedostossa
-[CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
+nimetyt kyselyt, kuten [Mitä voit tehdä](#mitä-voit-tehdä) kertoo. Vuodesta
+2026-11-10 se sisältää myös kahden version törmäystarkastuksen, lähetyksen
+perustaversion, validointivirheellisten lähetysten hylkäämisen ja tiedoston
+ennakkotarkistuksen. Kuten jokaisella pääversiolla, sarjalla on yksi julkaisu,
+joka julkaistaan uudelleen sarjan kasvaessa. Seuraavaksi graafista tulee malli,
+jota voi muokata ja jonka versioita voi hallita tietokannassa, ja Dataspatium on
+asiakas, joka muokkaa sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat
+pysyvät sellaisina kuin buildingSMART ne määrittelee; se, mitä sarja lisää, on
+niiden laajennuksia omilla nimillään. Tämä osio kertoo, mikä on päätetty ja mikä
+vain ehdotettu, sille, ihmiselle tai tekoälyagentille, joka vie osan siitä
+eteenpäin. Päätökset on tiivistetty kohdassa [Lue lisää](#lue-lisää), käytännöt
+tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
 [docs/fi/ifc-lpg.md](ifc-lpg.md).
 
 ### Päätetty
@@ -371,23 +373,32 @@ on tiivistetty kohdassa [Lue lisää](#lue-lisää), käytännöt tiedostossa
 - **Projektin hallinta sen projektipäällikön toimesta**, jonka ei tarvitse olla
   palvelimen ylläpitäjä, sekä tiimit, joilla on vastuita projektirooleja
   laajemmin.
+- **Miten versio tallennetaan** (päätetty 2026-11-10). Jokainen hyväksytty
+  versio on solmu, jolla on vanhempi, tekijä, hyväksyjä ja muutokset
+  STEP-tunnisteittain ja attribuuteittain; graafi pitää pääversiota; versio
+  tallennetaan muutoksenaan, ja kokonainen tiedosto `.ifczip`-muodossa vain
+  versiota julkaistaessa, ja mikä tahansa versio kirjoitetaan pyynnöstä; kaksi
+  muutosta yhdistetään attribuutti kerrallaan kuten ifcmerge tekee, ja muutos
+  otetaan mukaan, kun siitä kirjoitetussa tiedostossa ei ole huomautusta, jota
+  edellisessä versiossa ei ollut. Versiossa 3.0.0: lähetyksen perustaversio
+  (`412` ristiriidassa), validointivirheellisten lähetysten hylkääminen ja
+  tiedoston ennakkotarkistus. Versiosolmut ja yhdistäminen tulevat seuraavaksi.
+- **Kuka saa muuttaa mitä** (päätetty). Ensin projektiroolit: `editor`
+  ehdottaa, `manager` hyväksyy, ja tekoäly vain ehdottaa. Vastuusäännöt, jotka
+  osoittavat mallin osan IDS-valinnoilla, kuten luokalla, ominaisuudella,
+  luokittelulla tai kerroksella, kuten ISO 19650:n tehtäväryhmät, tulevat
+  myöhemmin.
+- **Snippetin yksityiskohdat** (päätetty). Polku kirjoitetaan IFC:n
+  attribuuttinimillä ja indekseillä GlobalId:stä lähtien, ja STEP-tunniste on
+  oikotie; usean jakaman instanssin muutos muuttaa sen kaikille, ja oma kopio
+  on pyydettävä erikseen; jokainen muutos kantaa tiedon siitä, kuka sen
+  ehdotti, ja mikä tekoälymalli ja työkalukutsu, kun ehdottaja oli tekoäly.
 
 ### Ehdotettu, ei päätetty
 
-- **Miten versio tallennetaan.** Jokainen hyväksytty versio solmuna, jolla on
-  vanhempi, tekijä, hyväksyjä ja muutokset STEP-tunnisteittain ja
-  attribuuteittain; graafi pitää pääversiota; versio tallennettuna muutoksena,
-  ja kokonainen tiedosto `.ifczip`-muodossa vain versiota julkaistaessa, ja mikä
-  tahansa versio kirjoitettuna pyynnöstä; kaksi muutosta yhdistettynä attribuutti
-  kerrallaan kuten ifcmerge tekee; muutos otettuna mukaan, kun siitä
-  kirjoitetussa tiedostossa ei ole huomautusta, jota edellisessä versiossa ei
-  ollut.
-- **Kuka saa muuttaa mitä.** Ensin projektiroolit, joissa `editor` ehdottaa ja
-  `manager` hyväksyy, sitten vastuusäännöt, jotka osoittavat mallin osan
-  IDS-valinnoilla, kuten luokalla, ominaisuudella, luokittelulla tai
-  kerroksella, kuten ISO 19650:n tehtäväryhmät.
-- **Snippetin yksityiskohdat.** Miten polku kirjoitetaan, ja muuttaako usean
-  jakaman instanssin muutos sen kaikille vai saako muutettu oman kopion.
+Ei mitään juuri nyt: versiomalli, oikeudet ja snippetin yksityiskohdat
+päätettiin 2026-11-10, kuten yllä oleva luettelo kertoo. Uudet ehdotukset
+kootaan tähän ennen päätöstä.
 
 ## Virheet ja ehdotukset
 
