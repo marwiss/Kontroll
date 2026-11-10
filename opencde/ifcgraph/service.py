@@ -33,6 +33,7 @@ from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
 from ifc_lpg.graph import FORM_VERSION
 from ifc_lpg.importer import delete_blocks, delete_model, import_records
+from ifc_lpg.paths import PathError, canonical_path, resolve
 from ifc_lpg.spatial import import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
@@ -894,6 +895,87 @@ class IfcGraphService:
             state = str(fields.pop("state"))
             await self._set_proposal(proposal_id, state, **fields)
             return state
+
+    async def values_in(
+        self, *, document_id: str, version_index: int, changes: list[dict[str, Any]]
+    ) -> list[dict[str, Any]] | None:
+        """What each change's attribute holds in a stored version of a document, read by the apply worker; each entry
+        ``{"value"}`` or ``{"error"}``. None when the version's file is not there."""
+        row = await self.graph.one(
+            """
+            MATCH (:Document {document_id: $document_id})-[:HAS_VERSION]->(v:DocumentVersion {version_index: $index})
+            RETURN v.storage_key AS storage_key, v.file_name AS file_name
+            """,
+            document_id=document_id,
+            index=version_index,
+        )
+        if row is None or not changes:
+            return None
+        async with self._lock:
+            with tempfile.TemporaryDirectory(prefix="ifcvalues-") as tmp:
+                workdir = Path(tmp)
+                source = await asyncio.to_thread(
+                    self._prepare_input, str(row["storage_key"]), str(row["file_name"]), workdir
+                )
+                listed = workdir / "changes.json"
+                listed.write_text(json.dumps({"changes": changes}), encoding="utf-8")
+                command = [
+                    sys.executable,
+                    "-m",
+                    "opencde.ifcgraph.apply",
+                    str(source),
+                    str(listed),
+                    "--read",
+                    "--memory-mb",
+                    str(self.settings.ifcgraph_memory_mb),
+                ]
+                answer = await self._in_a_process(command, "reading the values")
+        return list(json.loads(answer.strip().splitlines()[-1])["values"])
+
+    async def canonical_keys(
+        self, *, document_id: str, version_index: int, changes: list[dict[str, Any]]
+    ) -> list[str] | None:
+        """Each change's attribute as one string, the instance named by its canonical path in the model of the version
+        the change was made on: `<guid>/<path>.<attribute>`, or `#<step>.<attribute>` for an instance no GlobalId
+        reaches. A change whose path does not lead to a node there keeps the key its client wrote. None when that
+        version has no finished model in the graph (pruned, or never converted)."""
+        row = await self.graph.one(
+            """
+            MATCH (m:Model {document_id: $document_id, version_index: $version_index, state: $done})
+            RETURN m.id AS id ORDER BY m.created_at DESC LIMIT 1
+            """,
+            document_id=document_id,
+            version_index=version_index,
+            done=STATE_DONE,
+        )
+        if row is None:
+            return None
+        model_id = str(row["id"])
+        named: dict[int, str] = {}  # STEP id: its canonical name, since many changes touch one instance
+        keys: list[str] = []
+        for change in changes:
+            attribute = change.get("attribute")
+            written = (
+                f"#{change['step_id']}.{attribute}"
+                if change.get("step_id") is not None
+                else f"{change.get('guid')}/{change.get('path') or ''}.{attribute}"
+            )
+            try:
+                if change.get("step_id") is not None:
+                    step = int(change["step_id"])
+                else:
+                    found = await resolve(self.graph, model_id, str(change.get("guid")), str(change.get("path") or ""))
+                    step = int(found["step"])
+                if step not in named:
+                    try:
+                        canonical = await canonical_path(self.graph, model_id, step)
+                        named[step] = f"{canonical['global_id']}/{canonical['path']}"
+                    except PathError:
+                        named[step] = f"#{step}"  # in a block, or reached by no GlobalId: its STEP id names it
+                keys.append(f"{named[step]}.{attribute}")
+            except (PathError, ValueError, TypeError):
+                keys.append(written)
+        return keys
 
     async def change_set_of(self, *, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The change set a topic carries, as uploaded; None when the topic has no trial any more."""

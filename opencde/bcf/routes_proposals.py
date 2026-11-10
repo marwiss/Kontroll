@@ -181,14 +181,16 @@ async def proposal_approve(
     if latest is None:
         raise HTTPException(404, "The base document is gone")
     if latest.version_index != base_index:
-        colliding = await _collisions(ifcgraph, documents, topic.user_id, topic.project_id, latest, base_index, node)
+        colliding, conflict_details = await _collisions(
+            ifcgraph, documents, topic.user_id, topic.project_id, latest, base_index, node
+        )
         if colliding:
             raise ApiError(
                 412,
                 f"The change set builds on version {base_index}, but the document's latest version is "
                 f"{latest.version_index}, and {len(colliding)} of its changes collide with what came between",
                 code=CODE_VERSION_CONFLICT,
-                details={"conflicts": colliding[:MAX_CONFLICTS]},
+                details={"conflicts": colliding[:MAX_CONFLICTS], "conflict_details": conflict_details},
             )
         state = await ifcgraph.retry_proposal(proposal_id=str(node["id"]), base_version_index=latest.version_index)
         if state != STATE_CLEAN:
@@ -335,15 +337,31 @@ def _owning_objects(model: Any, entity: Any) -> set[str]:
     return found
 
 
-def _touched(change_set: dict[str, Any]) -> set[str]:
-    """The attributes a change set changes, each as one string: `#123.Name` or `<guid>/<path>.Name`."""
-    keys = set()
-    for change in change_set.get("changes") or []:
-        if change.get("step_id") is not None:
-            keys.add(f"#{change['step_id']}.{change.get('attribute')}")
-        else:
-            keys.add(f"{change.get('guid')}/{change.get('path') or ''}.{change.get('attribute')}")
-    return keys
+async def _keys(
+    ifcgraph: IfcGraphService, document_id: str, version_index: int, change_set: dict[str, Any]
+) -> list[tuple[str, dict[str, Any]]]:
+    """Each change of a change set with its key: the instance named by its canonical path in the version the set was
+    made on, so that two paths to one shared instance are one key; the key the client wrote when that version has no
+    model in the graph any more."""
+    changes = [dict(change) for change in change_set.get("changes") or []]
+    canonical = await ifcgraph.canonical_keys(document_id=document_id, version_index=version_index, changes=changes)
+    keys = canonical if canonical is not None else [_key(change) for change in changes]
+    return list(zip(keys, changes, strict=True))
+
+
+def _key(change: dict[str, Any]) -> str:
+    if change.get("step_id") is not None:
+        return f"#{change['step_id']}.{change.get('attribute')}"
+    return f"{change.get('guid')}/{change.get('path') or ''}.{change.get('attribute')}"
+
+
+def _locator(change: dict[str, Any]) -> dict[str, Any]:
+    """Where a change points and what it changes, without its values: for the worker that reads them."""
+    return {key: change[key] for key in ("step_id", "guid", "path", "attribute") if change.get(key) is not None}
+
+
+def _metadata(version: Any, name: str) -> Any:
+    return next((entry["value"][0] for entry in version.metadata if entry.get("name") == name and entry["value"]), None)
 
 
 async def _collisions(
@@ -354,21 +372,62 @@ async def _collisions(
     latest: Any,
     base_index: int,
     node: dict[str, Any],
-) -> list[str]:
-    """What the change set changes that a version since its base changed too; `*` for a whole-file upload."""
+) -> tuple[list[str], list[dict[str, Any]]]:
+    """What the change set changes that a version since its base changed too, as keys (`*` for a whole-file upload)
+    and as details: per conflict what the base held, what the latest version holds, what the proposal sets, and the
+    version that changed it. The instances are compared, not the keys the clients wrote: each change set is resolved
+    in the version it was made on."""
     mine = await anyio.to_thread.run_sync(_change_set, ifcgraph.storage, str(node["snippet_key"]))
-    touched: set[str] = set()
-    for version in await documents.versions(user_id=user_id, document_id=latest.document_id):
+    theirs: dict[str, tuple[int, dict[str, Any]]] = {}  # key: the last version in between that changed it, and how
+    for version in sorted(
+        await documents.versions(user_id=user_id, document_id=latest.document_id), key=lambda v: v.version_index
+    ):
         if not base_index < version.version_index <= latest.version_index:
             continue
-        change_set_id = next(
-            (entry["value"][0] for entry in version.metadata if entry.get("name") == "change_set_id"), None
-        )
+        change_set_id = _metadata(version, "change_set_id")
         other = await ifcgraph.change_set_of(project_id=project_id, topic_guid=change_set_id) if change_set_id else None
         if other is None:
-            return [EVERYTHING]
-        touched |= _touched(other)
-    return sorted(key for key in _touched(mine) if key in touched)
+            return [EVERYTHING], []
+        made_on = _metadata(version, "base_version_index")
+        made_on = int(made_on) if made_on is not None else version.version_index - 1
+        for key, change in await _keys(ifcgraph, latest.document_id, made_on, other):
+            theirs[key] = (version.version_index, change)
+    colliding: dict[str, dict[str, Any]] = {}
+    for key, change in await _keys(ifcgraph, latest.document_id, base_index, mine):
+        if key in theirs and key not in colliding:
+            colliding[key] = change
+    keys = sorted(colliding)[:MAX_CONFLICTS]
+    if not keys:
+        return [], []
+    ours = [colliding[key] for key in keys]
+    base_values = await ifcgraph.values_in(
+        document_id=latest.document_id, version_index=base_index, changes=[_locator(c) for c in ours]
+    )
+    latest_values = await ifcgraph.values_in(
+        document_id=latest.document_id,
+        version_index=latest.version_index,
+        changes=[_locator(theirs[key][1]) for key in keys],
+    )
+
+    def value(values: list[dict[str, Any]] | None, index: int) -> Any:
+        return values[index].get("value") if values and index < len(values) else None
+
+    details = [
+        {
+            "key": key,
+            "guid": change.get("guid"),
+            "path": change.get("path"),
+            "step_id": change.get("step_id"),
+            "attribute": change.get("attribute"),
+            "op": change.get("op"),
+            "base": value(base_values, index),
+            "theirs": value(latest_values, index),
+            "ours": change.get("new"),
+            "version_index": theirs[key][0],
+        }
+        for index, (key, change) in enumerate(zip(keys, ours, strict=True))
+    ]
+    return keys, details
 
 
 async def _schedule(ifcgraph: IfcGraphService, project_id: str, key: str, file_name: str, record: Any) -> None:

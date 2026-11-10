@@ -6,7 +6,9 @@ changes of a ``DataregiumIfcChangeSet`` (``opencde/documents/changes.py``) one b
 with one JSON document on stdout: how many changes were applied, the STEP ids they touched, and the problems, each
 with the index of its change and why it could not be applied. A change that cannot be applied is skipped, never
 guessed at; the proposal's report carries the problems as issues. Exit code 0 is an answer, 2 an error with a JSON
-line on stderr. The caller sets the memory limit and the time limit.
+line on stderr. The caller sets the memory limit and the time limit. With ``--read`` and no ``out`` the worker
+changes nothing and answers with what each change's attribute holds in the file, in the change set's value form,
+for the conflicts of an approval.
 
 An instance is named by its STEP id, or by a GlobalId and a path from the rooted entity in IFC's attribute names with
 indexes, inverse attributes included. ``set`` gives an attribute a value, ``add`` and ``remove`` change one member of
@@ -187,6 +189,46 @@ def apply_one(model: Any, change: dict[str, Any]) -> int:
     return int(entity.id())
 
 
+def value_of(entity: Any, attribute: str) -> Any:
+    """What an attribute holds, in the change set's value form: an enumeration as ``{"enum"}``, an instance with a
+    GlobalId as ``{"guid"}`` and any other as ``{"step_id"}``, a typed value as ``{"type", "value"}``."""
+    value = getattr(entity, attribute)
+    try:
+        enumeration = isinstance(value, str) and "ENUMERATION" in str(entity.attribute_type(attribute))
+    except Exception:
+        enumeration = False
+    if enumeration:
+        return {"enum": value}
+
+    def form(item: Any) -> Any:
+        if _is_instance(item) and not _is_typed(item):
+            guid = getattr(item, "GlobalId", None) if item.is_a("IfcRoot") else None
+            return {"guid": guid} if guid else {"step_id": item.id()}
+        if isinstance(item, (tuple, list)):
+            return [form(member) for member in item]
+        return from_ifc(item)
+
+    return form(value)
+
+
+def read_values(base: Path, changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """What each change's attribute holds in ``base``: ``{"value": …}``, or ``{"error": …}`` where the instance or the
+    attribute is not there."""
+    import ifcopenshell
+
+    model = ifcopenshell.open(str(base))
+    values: list[dict[str, Any]] = []
+    for change in changes:
+        try:
+            entity, _ = _find(model, change)
+            values.append({"value": value_of(entity, str(change["attribute"]))})
+        except CannotApply as exc:
+            values.append({"error": str(exc)[:300]})
+        except (AttributeError, RuntimeError, TypeError):
+            values.append({"error": f"no attribute {change.get('attribute')}"})
+    return values
+
+
 def apply_all(base: Path, changes: list[dict[str, Any]], out: Path) -> dict[str, Any]:
     import ifcopenshell
 
@@ -207,7 +249,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="opencde-apply")
     parser.add_argument("base", type=Path)
     parser.add_argument("changes", type=Path)
-    parser.add_argument("out", type=Path)
+    parser.add_argument("out", type=Path, nargs="?")
+    parser.add_argument("--read", action="store_true")
     parser.add_argument("--memory-mb", type=int, default=0)
     args = parser.parse_args(argv)
     if args.memory_mb:
@@ -216,7 +259,12 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.WARNING, stream=sys.stderr)
     try:
         change_set = json.loads(args.changes.read_text(encoding="utf-8"))
-        summary = apply_all(args.base, list(change_set["changes"]), args.out)
+        if args.read:
+            summary: Any = {"values": read_values(args.base, list(change_set["changes"]))}
+        elif args.out is None:
+            raise ValueError("an out file is needed unless --read")
+        else:
+            summary = apply_all(args.base, list(change_set["changes"]), args.out)
     except Exception as exc:  # the caller reads the last line of stderr
         sys.stderr.write(json.dumps({"error": f"{type(exc).__name__}: {exc}"[:300]}) + "\n")
         return 2

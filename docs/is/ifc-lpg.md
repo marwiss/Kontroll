@@ -482,6 +482,18 @@ eigindunum sem rekast á í `conflicts` (`#123.Name`, eða GlobalId, slóð og
 eigind; `*` fyrir heila skrá), svo að biðlarinn sameini þríátta og sendi
 aftur.
 
+Tilvikin eru borin saman, ekki lyklarnir sem biðlararnir skrifuðu: hver
+breyting er leyst í útgáfunni sem hún var gerð á og nefnd með kanónískri slóð
+sinni (`ifc_lpg.paths` í IFC-LPG), svo að tvær breytingar sem ná sama samnýtta
+tilviki frá ólíkum GlobalId rekast samt á, og `conflicts` nefnir tilvikið með
+þeirri slóð. Við hliðina gefur `conflict_details` fyrir hvern árekstur `key`,
+eigin `guid`, `path` eða `step_id` tillögunnar, `attribute` og `op`, hvað
+grunnurinn hafði (`base`), hvað nýjasta útgáfan hefur (`theirs`), hvað
+tillagan setur (`ours`), öll á gildisformi breytingasafnsins, og útgáfuna á
+milli sem breytti því (`version_index`); gildi sem ekki tókst að lesa er
+`null`. Biðlarinn lætur manneskju velja fyrir hvern árekstur, sendir nýjan
+snippet á nýjustu útgáfuna og samþykkir aftur.
+
 Útgáfa sem byggir á annarri er hnútur með foreldri sínu:
 `parent_version_index` og tengill á foreldrisútgáfuna, á útgáfu sem samþykkt
 var úr breytingasetti og á upphali sem gaf `base_version_index`. Útgáfa

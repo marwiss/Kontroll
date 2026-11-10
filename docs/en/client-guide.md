@@ -269,7 +269,7 @@ act on or translate, while `message` stays an English sentence for people:
 | `reauthentication_required` | 403 | A dangerous administration action and the sign-in is older than ten minutes | Authorize again, then repeat the call |
 | `not_found` | 404 | No such resource, a resource outside the user's projects, or a feature that is off (registration, request log, administration API) | Show the message, refresh lists |
 | `conflict` | 409 | A guid that already exists, or a duplicate link | Fetch again |
-| `version_conflict` | 412 | The upload gave `base_version_index`, and the document already has a newer version; or a change set collides with what was changed since its base, named in `conflicts` | Fetch the latest version, merge, and upload again |
+| `version_conflict` | 412 | The upload gave `base_version_index`, and the document already has a newer version; or a change set collides with what was changed since its base, named in `conflicts`, with the three values of each in `conflict_details` | Fetch the latest version, merge, and upload again |
 | `ifc_validation_failed` | 422 | The project refuses files with validation errors, and the file has some; `report` in the body is the report's address | Show the report, let the user fix the file, and upload again |
 | `payload_too_large` | 413 | The request body is over the server's limit, or a BCF binary is over `max_image_bytes`/`max_upload_bytes` | Fix the request |
 | `upload_too_large` | 413 | A chosen file or part is over the upload limit (`max_size_in_bytes` in the upload instructions) | Tell the user the limit |

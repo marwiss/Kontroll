@@ -273,6 +273,17 @@ def test_the_server_merges_a_change_set_that_collides_with_nothing(ifc_client: t
     assert refused.status_code == 412, refused.text
     assert refused.json()["code"] == "version_conflict" and refused.json()["conflicts"] == [f"{WALLS[0]}/.Name"]
     assert "collide" in refused.json()["message"]
+    (detail,) = refused.json()["conflict_details"]
+    assert {key: detail[key] for key in ("key", "guid", "attribute", "op", "base", "theirs", "ours")} == {
+        "key": f"{WALLS[0]}/.Name",
+        "guid": WALLS[0],
+        "attribute": "Name",
+        "op": "set",
+        "base": "YVT-A",
+        "theirs": "A",
+        "ours": "C",
+    }, "what the base held, what the latest holds and what the proposal sets"
+    assert detail["version_index"] == 2, "the version that changed it"
 
     # A version uploaded as a whole file in between may have changed anything.
     started = start_upload(
@@ -290,3 +301,48 @@ def test_the_server_merges_a_change_set_that_collides_with_nothing(ifc_client: t
     d = propose({"guid": WALLS[2] if len(WALLS) > 2 else WALLS[1], "attribute": "Description", "op": "set", "new": "D"})
     whole = client.post(d + "/approve", headers=manager.headers)
     assert whole.status_code == 412 and whole.json()["conflicts"] == ["*"]
+
+
+def test_two_paths_to_one_shared_instance_collide(ifc_client: tuple[TestClient, World]) -> None:
+    """The instances are compared, not the keys the clients wrote: two walls share their owner history, and a change
+    to it through one wall collides with a change to it through the other."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    snippet_fields = {
+        "snippet_type": SNIPPET_TYPE,
+        "is_external": False,
+        "reference": "changes.json",
+        "reference_schema": f"http://testserver{SCHEMA_PATH}",
+    }
+
+    def propose(wall: str, stamp: int) -> str:
+        topic = make_topic(client, world, editor, bim_snippet=snippet_fields)
+        change = {"guid": wall, "path": "OwnerHistory", "attribute": "LastModifiedDate", "op": "set", "new": stamp}
+        put = client.put(
+            f"{topics}/{topic['guid']}/snippet",
+            content=change_set(version["document_id"], change),
+            headers=editor.headers,
+        )
+        assert put.status_code == 200, put.text
+        assert tried(client, editor, f"{topics}/{topic['guid']}/ifc-proposal")["state"] == "clean"
+        return f"{topics}/{topic['guid']}/ifc-proposal"
+
+    first, second = propose(WALLS[0], 1700000000), propose(WALLS[1], 1700000001)
+    assert client.post(first + "/approve", headers=manager.headers).json()["version_index"] == 2
+    refused = client.post(second + "/approve", headers=manager.headers)
+    assert refused.status_code == 412, refused.text
+    (key,) = refused.json()["conflicts"]
+    assert key.endswith(".LastModifiedDate") and not key.startswith(WALLS[1]), "one name for the shared instance"
+    (detail,) = refused.json()["conflict_details"]
+    assert detail["key"] == key and detail["guid"] == WALLS[1] and detail["path"] == "OwnerHistory"
+    assert (detail["base"], detail["theirs"], detail["ours"], detail["version_index"]) == (
+        None,
+        1700000000,
+        1700000001,
+        2,
+    )

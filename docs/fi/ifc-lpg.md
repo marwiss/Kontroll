@@ -496,6 +496,19 @@ välissä oleva versio lähetettiin kokonaisena tiedostona, vastaus on
 (`#123.Name`, tai GlobalId, polku ja attribuutti; `*` kokonaiselle
 tiedostolle), jotta asiakas yhdistää kolmisuuntaisesti ja lähettää uudelleen.
 
+Vertailtavina ovat instanssit, eivät asiakasohjelmien kirjoittamat avaimet:
+jokainen muutos ratkaistaan siinä versiossa, jossa se tehtiin, ja nimetään
+kanonisella polullaan (IFC-LPG:n `ifc_lpg.paths`), joten kaksi muutosta, jotka
+saavuttavat saman jaetun instanssin eri GlobalId:stä, törmäävät silti, ja
+`conflicts` nimeää instanssin tuolla polulla. Sen rinnalla `conflict_details`
+antaa törmäyskohtaisesti `key`, ehdotuksen omat `guid`, `path` tai `step_id`,
+`attribute` ja `op`, mitä perusversiossa oli (`base`), mitä uusimmassa
+versiossa on (`theirs`), mitä ehdotus asettaa (`ours`), kaikki muutosjoukon
+arvomuodossa, sekä välissä olevan version, joka muutti sitä (`version_index`);
+arvo, jota ei voitu lukea, on `null`. Asiakasohjelma antaa ihmisen valita
+törmäyskohtaisesti, lähettää uuden snippetin uusimpaan versioon ja hyväksyy
+uudelleen.
+
 Toisen version päälle rakennettu versio on solmu, jolla on vanhempi:
 `parent_version_index` ja linkki vanhempaan versioon, muutosjoukosta
 hyväksytyllä versiolla ja lähetyksellä, joka antoi `base_version_index`:n.

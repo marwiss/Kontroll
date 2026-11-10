@@ -490,6 +490,18 @@ däremellan upp som hel fil, är svaret `412 version_conflict` med de krockande
 attributen i `conflicts` (`#123.Name`, eller GlobalId, sökväg och attribut; `*`
 för en hel fil), så att klienten sammanfogar trevägs och skickar igen.
 
+Instanserna jämförs, inte nycklarna klienterna skrev: varje ändring löses i
+den version den gjordes på och namnges med sin kanoniska sökväg (IFC-LPG:s
+`ifc_lpg.paths`), så att två ändringar som når en delad instans från olika
+GlobalId ändå kolliderar, och `conflicts` namnger instansen med den sökvägen.
+Bredvid ger `conflict_details` per kollision `key`, förslagets egna `guid`,
+`path` eller `step_id`, `attribute` och `op`, vad basen höll (`base`), vad den
+senaste versionen håller (`theirs`), vad förslaget sätter (`ours`), alla i
+ändringssetets värdeform, och den mellanliggande version som ändrade det
+(`version_index`); ett värde som inte kunde läsas är `null`. Klienten låter en
+person välja per kollision, skickar en ny snippet på den senaste versionen och
+godkänner igen.
+
 En version som bygger på en annan är en nod med sin förälder:
 `parent_version_index` och en länk till förälderversionen, på en version
 godkänd från ett ändringsset och på en uppladdning som angav

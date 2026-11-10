@@ -128,3 +128,33 @@ def test_the_worker_answers_on_stdout(tmp_path: Path) -> None:
         check=False,
     )
     assert broken.returncode == 2 and json.loads(broken.stderr.strip().splitlines()[-1])["error"]
+
+
+def test_the_worker_reads_what_the_changes_point_at_in_the_change_sets_form(tmp_path: Path) -> None:
+    """For the conflicts of an approval: the base's and the latest version's values beside the proposal's."""
+    changes = [
+        {"guid": WALL, "attribute": "Name"},
+        {"guid": WALL, "path": "OwnerHistory", "attribute": "ChangeAction"},
+        {"guid": WALL, "path": "OwnerHistory", "attribute": "CreationDate"},
+        {"guid": WALL, "attribute": "OwnerHistory"},
+        {"guid": WALL, "path": PATH_TO_GTIN, "attribute": "NominalValue"},
+        {"guid": WALL, "attribute": "NoSuchAttribute"},
+        {"guid": "0NotInTheModel00000000", "attribute": "Name"},
+    ]
+    listed = tmp_path / "changes.json"
+    listed.write_text(json.dumps({"changes": changes}), encoding="utf-8")
+    run = subprocess.run(  # noqa: S603
+        [sys.executable, "-m", "opencde.ifcgraph.apply", str(MODEL), str(listed), "--read"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert run.returncode == 0, run.stderr
+    values = json.loads(run.stdout)["values"]
+    assert values[0] == {"value": "YVT-A"}
+    assert values[1] == {"value": {"enum": "NOCHANGE"}}, "an enumeration in the change set's form"
+    assert values[2] == {"value": 1693857534}
+    assert values[3] == {"value": {"step_id": 32}}, "an instance without a GlobalId by its STEP id"
+    assert values[4]["value"]["type"] == "IfcLabel" and values[4]["value"]["value"] == "3"
+    assert "error" in values[5] and "error" in values[6]
+    assert not (tmp_path / "out.ifc").exists(), "nothing is written"

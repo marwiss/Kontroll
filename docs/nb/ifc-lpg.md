@@ -486,6 +486,18 @@ lastet opp som hel fil, er svaret `412 version_conflict` med de kolliderende
 attributtene i `conflicts` (`#123.Name`, eller GlobalId, sti og attributt; `*`
 for en hel fil), slik at klienten slår sammen treveis og sender igjen.
 
+Instansene sammenlignes, ikke nøklene klientene skrev: hver endring løses i
+versjonen den ble laget på og navngis med sin kanoniske sti (IFC-LPGs
+`ifc_lpg.paths`), slik at to endringer som når en delt instans fra ulike
+GlobalId likevel kolliderer, og `conflicts` navngir instansen med den stien.
+Ved siden av gir `conflict_details` per kollisjon `key`, forslagets egne
+`guid`, `path` eller `step_id`, `attribute` og `op`, hva basen holdt
+(`base`), hva den siste versjonen holder (`theirs`), hva forslaget setter
+(`ours`), alle i endringssettets verdiform, og den mellomliggende versjonen
+som endret det (`version_index`); en verdi som ikke kunne leses, er `null`.
+Klienten lar en person velge per kollisjon, sender en ny snippet på den siste
+versjonen og godkjenner igjen.
+
 En versjon bygget på en annen er en node med forelderen sin:
 `parent_version_index` og en lenke til forelderversjonen, på en versjon
 godkjent fra et endringssett og på en opplasting som oppga

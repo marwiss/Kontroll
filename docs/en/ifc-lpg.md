@@ -484,6 +484,18 @@ with the colliding attributes in `conflicts` (`#123.Name`, or the GlobalId, the
 path and the attribute; `*` for a whole file), for the client to merge three
 ways and send again.
 
+The instances are compared, not the keys the clients wrote: each change is
+resolved in the version it was made on and named by its canonical path
+(IFC-LPG's `ifc_lpg.paths`), so that two changes that reach one shared
+instance from different GlobalIds collide all the same, and `conflicts` names
+the instance by that path. Beside it, `conflict_details` gives per conflict
+`key`, the proposal's own `guid`, `path` or `step_id`, `attribute` and `op`,
+what the base held (`base`), what the latest version holds (`theirs`), what
+the proposal sets (`ours`), all in the change set's value form, and the
+version in between that changed it (`version_index`); a value that could not
+be read is `null`. The client lets a person choose per conflict, sends a new
+snippet on the latest version and approves again.
+
 A version built on another is a node with its parent: `parent_version_index`
 and a link to the parent version, on a version approved from a change set and
 on an upload that named `base_version_index`. A version approved from a change

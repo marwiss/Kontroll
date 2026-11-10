@@ -488,6 +488,18 @@ uploadet som hel fil, er svaret `412 version_conflict` med de kolliderende
 attributter i `conflicts` (`#123.Name`, eller GlobalId, sti og attribut; `*`
 for en hel fil), så klienten kan flette trevejs og sende igen.
 
+Instanserne sammenlignes, ikke de nøgler, klienterne skrev: hver ændring
+opløses i den version, den blev lavet på, og navngives med sin kanoniske sti
+(IFC-LPG's `ifc_lpg.paths`), så to ændringer, der når en delt instans fra
+forskellige GlobalId, alligevel kolliderer, og `conflicts` navngiver instansen
+med den sti. Ved siden af giver `conflict_details` pr. kollision `key`,
+forslagets egne `guid`, `path` eller `step_id`, `attribute` og `op`, hvad
+basen holdt (`base`), hvad den seneste version holder (`theirs`), hvad
+forslaget sætter (`ours`), alle i ændringssættets værdiform, og den
+mellemliggende version, der ændrede det (`version_index`); en værdi, der ikke
+kunne læses, er `null`. Klienten lader en person vælge pr. kollision, sender
+en ny snippet på den seneste version og godkender igen.
+
 En version bygget på en anden er en knude med sin forælder:
 `parent_version_index` og et link til forælderversionen, på en version
 godkendt fra et ændringssæt og på en upload, der angav `base_version_index`.

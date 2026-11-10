@@ -16,7 +16,13 @@ the commit history.
   `GET /documents/1.0/documents/{id}/versions/{index}/ifc-geometry` answers with a binary glTF of the version
   (`lod=full` or `box`, `classes=`, `storey=`; every shared mesh once, a node per product under its storey, `ETag`
   and `304`), built from the records the first time and kept. `OPENCDE_IFC_LPG_SPATIAL` (on) and
-  `OPENCDE_IFC_LPG_GEOMETRY_THREADS`; announced as `ifc_geometry`. IFC-LPG is locked at d042134.
+  `OPENCDE_IFC_LPG_GEOMETRY_THREADS`; announced as `ifc_geometry`.
+- The merge at the approval compares the instances, not the keys the clients wrote: each change is resolved in the
+  version it was made on and named by its canonical path (IFC-LPG's `ifc_lpg.paths`), so two changes that reach one
+  shared instance from different GlobalIds collide. The `412 version_conflict` of an approval carries
+  `conflict_details` beside `conflicts`: per conflict the key, the proposal's own locator, what the base held
+  (`base`), what the latest version holds (`theirs`), what the proposal sets (`ours`) and the version that changed it.
+  IFC-LPG is locked at 0ef6b64.
 
 ## 3.0.0 — 2026-11-10
 
