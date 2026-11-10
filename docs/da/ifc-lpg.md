@@ -183,6 +183,8 @@ klasse i meddelelsen: kun det nummer navngiver den, som en placering, intet brug
 alene med sit STEP-id. Et produkt, hvis form geometripasset ikke kunne bygge, er en bemærkning af typen `geometry`,
 med sit GlobalId. Ingen af dem afviser filen: de kommer efter uploaden, og en advarsel giver status `warnings`. Før
 modellen er konverteret, har rapporten ingen kontrol `graph`.
+En instans, der holdes sammen med geometrien i en STEP-blok, som et løst punkt,
+listes ikke: kontrollen ser kun noderne.
 
 ### Afvise filer med fejl, og kontrollere en fil på forhånd
 

@@ -188,6 +188,8 @@ kentässä `step_id` ja luokka viestissä: vain tuo numero nimeää sen, kuten k
 muutosjoukko voi osoittaa sen pelkällä STEP-tunnisteella. Tuote, jonka muotoa geometria-ajo ei pystynyt rakentamaan,
 on huomautus lajia `geometry` GlobalId:nsä kanssa. Kumpikaan ei hylkää tiedostoa: ne tulevat latauksen jälkeen, ja
 varoitus antaa tilaksi `warnings`. Ennen kuin malli on muunnettu, raportissa ei ole tarkistusta `graph`.
+Geometrian kanssa STEP-lohkossa pidettyä instanssia, kuten irrallista pistettä, ei
+luetella: tarkistus näkee vain solmut.
 
 ### Virheellisten tiedostojen hylkääminen ja tiedoston tarkistaminen etukäteen
 

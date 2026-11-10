@@ -184,6 +184,8 @@ klass i meddelandet: bara det numret namnger den, som en placering som inget anv
 den bara med sitt STEP-id. En produkt vars form geometripasset inte kunde bygga är en anmärkning av slaget `geometry`,
 med sitt GlobalId. Ingen av dem avvisar filen: de kommer efter uppladdningen, och en varning ger statusen `warnings`.
 Innan modellen är konverterad har rapporten ingen kontroll `graph`.
+En instans som hålls med geometrin i ett STEP-block, som en lös punkt, listas inte:
+kontrollen ser bara noderna.
 
 ### Avvisa filer med fel, och kontrollera en fil i förväg
 

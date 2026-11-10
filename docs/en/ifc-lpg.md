@@ -180,6 +180,8 @@ nothing with a GlobalId reaches, forward or backward, is a warning of the kind `
 address it by its STEP id alone. A product whose shape the geometry pass could not build is an issue of the kind
 `geometry`, with its GlobalId. Neither refuses the file: they come after the upload, and a warning leaves the status at
 `warnings`. Until the model is converted, the report has no check `graph`.
+An instance kept with the geometry in a STEP block, such as a loose point, is not
+listed: the check sees the nodes only.
 
 ### Refusing files with errors, and checking a file first
 

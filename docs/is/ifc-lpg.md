@@ -180,6 +180,8 @@ ekkert með GlobalId nær, áfram eða aftur á bak, er viðvörun af gerðinni 
 breytingasafn getur bent á það með STEP-auðkenninu einu. Vara sem rúmfræðikeyrslan gat ekki byggt lögun fyrir er
 athugasemd af gerðinni `geometry`, með GlobalId sitt. Hvorug hafnar skránni: þær koma eftir upphleðsluna, og viðvörun
 gefur stöðuna `warnings`. Áður en líkanið er umbreytt hefur skýrslan enga prófun `graph`.
+Tilvik sem er geymt með rúmfræðinni í STEP-bálki, eins og laus punktur, er ekki
+listað: prófunin sér aðeins hnútana.
 
 ### Að hafna skrám með villum, og prófa skrá fyrirfram
 
