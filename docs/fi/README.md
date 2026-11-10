@@ -177,43 +177,49 @@ yhteen saman Dataspatiumin version kanssa.
 ### Versio 1 (Dataspatium 1:n kanssa)
 
 - **Foundation API 1.0**: palvelujen löytäminen, kirjautuminen OAuth2:lla ja
-  PKCE:llä, nykyinen käyttäjä ja asiakkaiden rekisteröinti.
+  PKCE:llä, nykyinen käyttäjä, tunnisteiden mitätöinti ja asiakkaiden
+  itserekisteröinti, kun operaattori sallii sen (katso
+  [asiakasopas](client-guide.md)).
 - **Documents API 1.0**: dokumenttien ja niiden versioiden valinta, lähetys ja
-  lataus.
-- **Hallinta** selaimessa (`/admin`) ja komentorivillä: käyttäjät, projektit,
-  asiakkaat, istunnot, tarkastusloki ja terveystarkistukset.
-- **Laajennukset**: kyvykkyysasiakirja (`/.well-known/dataregium`), virhekoodi
-  jokaisessa virhevastauksessa ja pyyntöloki.
-- **Asiakaskirjasto** Pythonille ([client/](../../client/)) ja julkaistu image
-  jokaiseen käyttöönottoon.
+  lataus palvelimen metatieto- ja valintasivuilla.
+- **Hallinta** selaimessa (`/admin`) ja komentorivillä: käyttäjät ja heidän
+  projektiroolinsa, projektit, asiakkaat, istunnot, tarkastusloki ja
+  terveystarkistukset; jokaisella käyttäjällä on `/account` omaa salasanaa ja
+  omia sovelluksia varten.
+- **Laajennukset**, sellaisiksi merkittyinä: kyvykkyysasiakirja
+  (`/.well-known/dataregium`), vakaa virhekoodi jokaisessa virhevastauksessa ja
+  pyyntöloki asiakkaiden vianetsintään.
+- **Asiakaskirjasto** Pythonille ([client/](../../client/)) ajettavine
+  esimerkkeineen, ja julkaistu image jokaiseen käyttöönottoon.
 
 ### Lisäksi versiossa 2 (Dataspatium 2:n kanssa)
 
-- **BCF API 3.0 ja 2.1**: asiat, kommentit ja näkymät, validoituina
-  buildingSMARTin skeemoja vasten.
-- **IFC-LPG-moduuli**: lähetetyistä IFC-malleista tulee graafi, joka on liitetty
-  BCF-komponentteihin.
+- **BCF API 3.0 ja 2.1**: asiat OData-kyselyineen, kommentit, näkymät
+  tilannekuvineen ja komponentteineen, dokumenttiviittaukset ja tapahtumalokit,
+  validoituina buildingSMARTin skeemoja vasten.
+- **IFC-LPG-moduuli**: lähetetyistä IFC-malleista tulee graafi tietokantaan,
+  liitettynä asioiden näkymien komponentteihin (katso [IFC-LPG](ifc-lpg.md)).
 
 ### Lisäksi versiossa 3 (Dataspatium 3:n kanssa)
 
-- **Häviötön IFC-graafi**: tiedosto voidaan kirjoittaa takaisin sellaisena kuin
-  se tuli.
+- **Häviötön IFC-graafi** IFC-LPG:stä, omasta kirjastostaan: tiedosto voidaan
+  kirjoittaa takaisin sellaisena kuin se tuli.
 - **Tarkistetut lähetykset** IFC-skeemaa, buildingSMARTin sääntöjä ja projektin
-  IDS:ää vasten, ennakkotarkistuksen kanssa.
-- **Kysymyksiä mallille**: nimetyt kyselyt, versioiden vertailu ja
-  törmäystarkastus.
-- **Muutokset ehdotuksina** BCF-asioissa, jotka `manager` hyväksyy seuraavaksi
-  versioksi.
-- **Paikallinen moottori** omalla tietokoneellasi, ja suurille malleille
-  työkopio muistissa.
+  IDS:ää vasten; projekti voi hylätä virheelliset tiedostot, ja tiedoston voi
+  tarkistaa ensin.
+- **Kysymyksiä mallille** jäsenille: nimetyt kyselyt, mikä on muuttunut jonkin
+  version jälkeen, kahden version vertailu ja törmäystarkastus.
+- **Muutokset ehdotuksina**: BCF-asian muutosjoukko kokeillaan perusversiota
+  vasten, ja `manager` hyväksyy sen seuraavaksi versioksi yhdistettynä siihen,
+  mitä välissä tuli.
+- **Paikallinen moottori** omalla tietokoneellasi Dataspatiumin takana, suurille
+  malleille työkopio muistissa, ja lähetys ilman verkkosivua hyväksytyille
+  asiakkaille.
 
 **Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu; osallistumista
 IfcOpenShelliin ei ole vielä ehdotettu.
 
-<img src="../images/signin.png" alt="Kirjautumissivu, jonka asiakas avaa" width="240">
 <img src="../images/upload.png" alt="Lataussivu, jolla käyttäjä antaa tiedostolle otsikon ja version" width="340">
-<img src="../images/admin-project.png" alt="Projekti hallinnassa jäsenineen ja rooleineen" width="440">
-<img src="../images/admin-settings.png" alt="Terveystarkistukset asetussivulla" width="440">
 
 ## OpenCDE-rajapinnat ja niiden asiakkaat
 

@@ -173,40 +173,47 @@ við sömu útgáfu af Dataspatium.
 ### Útgáfa 1 (með Dataspatium 1)
 
 - **Foundation API 1.0**: uppgötvun þjónustu, innskráning með OAuth2 og PKCE,
-  núverandi notandi og skráning biðlara.
-- **Documents API 1.0**: velja, hlaða upp og sækja skjöl og útgáfur þeirra.
-- **Stjórnun** í vafranum (`/admin`) og á skipanalínunni: notendur, verkefni,
-  biðlarar, lotur, endurskoðunarskráin og heilsuprófanirnar.
-- **Viðbætur**: getuskjal (`/.well-known/dataregium`), villukóði í hverju
-  villusvari og beiðnaskrá.
-- **Biðlarasafn** í Python ([client/](../../client/)) og útgefin mynd (image)
-  fyrir hverja uppsetningu.
+  núverandi notandi, afturköllun tóka og sjálfskráning biðlara þegar
+  rekstraraðili leyfir það (sjá [biðlaraleiðbeiningarnar](client-guide.md)).
+- **Documents API 1.0**: velja, hlaða upp og sækja skjöl og útgáfur þeirra, með
+  síðum þjónsins fyrir lýsigögn og val.
+- **Stjórnun** í vafranum (`/admin`) og á skipanalínunni: notendur og hlutverk
+  þeirra í verkefnum, verkefni, biðlarar, lotur, endurskoðunarskráin og
+  heilsuprófanirnar; hver notandi hefur `/account` fyrir eigið lykilorð og eigin
+  forrit.
+- **Viðbætur**, merktar sem slíkar: getuskjal (`/.well-known/dataregium`),
+  stöðugur villukóði í hverju villusvari og beiðnaskrá til villuleitar biðlara.
+- **Biðlarasafn** í Python ([client/](../../client/)) með keyranlegum dæmum, og
+  útgefin mynd (image) fyrir hverja uppsetningu.
 
 ### Einnig í útgáfu 2 (með Dataspatium 2)
 
-- **BCF API 3.0 og 2.1**: mál, athugasemdir og sjónarhorn, prófuð gagnvart
+- **BCF API 3.0 og 2.1**: mál með OData-fyrirspurnum, athugasemdir, sjónarhorn
+  með skjámyndum og einingum, skjalatilvísanir og atburðaskrár, prófuð gagnvart
   skemum buildingSMART.
-- **IFC-LPG-einingin**: upphlaðin IFC-líkön verða að neti, tengdu einingum BCF.
+- **IFC-LPG-einingin**: upphlaðin IFC-líkön verða að neti í gagnagrunninum,
+  tengdu einingum í sjónarhornum málanna (sjá [IFC-LPG](ifc-lpg.md)).
 
 ### Einnig í útgáfu 3 (með Dataspatium 3)
 
-- **Taplaust IFC-net**: hægt er að skrifa skrána til baka eins og hún kom.
+- **Taplaust IFC-net** úr IFC-LPG, sjálfstæðu safni: hægt er að skrifa skrána
+  til baka eins og hún kom.
 - **Prófaðar upphleðslur** gagnvart IFC-skemanu, reglum buildingSMART og IDS
-  verkefnisins, með forprófun.
-- **Spurningar til líkansins**: nefndar fyrirspurnir, samanburður útgáfna og
-  árekstrarprófun.
-- **Breytingar sem tillögur** í BCF-málum, sem `manager` samþykkir sem næstu
-  útgáfu.
-- **Staðbundin vél** á þinni eigin tölvu, með vinnueintak í minni fyrir stór
-  líkön.
+  verkefnisins; verkefni getur hafnað skrám með villum og hægt er að forprófa
+  skrá.
+- **Spurningar til líkansins** fyrir meðlimi: nefndar fyrirspurnir, hvað hefur
+  breyst frá útgáfu, samanburður tveggja útgáfna og árekstrarprófun.
+- **Breytingar sem tillögur**: breytingasafn í BCF-máli er prófað gagnvart
+  grunnútgáfu sinni og `manager` samþykkir það sem næstu útgáfu, sameinað því
+  sem kom á milli.
+- **Staðbundin vél** á þinni eigin tölvu á bak við Dataspatium, með vinnueintak
+  í minni fyrir stór líkön, og upphleðsla án vefsíðunnar fyrir samþykkta
+  biðlara.
 
 **Staða**: öll ellefu stig áætlunarinnar eru útfærð; framlag þjónsins til
 IfcOpenShell hefur ekki enn verið lagt fram.
 
-<img src="../images/signin.png" alt="Innskráningarsíðan sem biðlari opnar" width="240">
 <img src="../images/upload.png" alt="Upphleðslusíðan, þar sem notandinn gefur skránni titil og útgáfu" width="340">
-<img src="../images/admin-project.png" alt="Verkefni í stjórnuninni, með meðlimum og hlutverkum" width="440">
-<img src="../images/admin-settings.png" alt="Heilsufarsathuganirnar á stillingasíðunni" width="440">
 
 ## OpenCDE-forritaskilin og biðlarar þeirra
 

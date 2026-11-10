@@ -173,41 +173,47 @@ med den same versjonen av Dataspatium.
 ### Versjon 1 (med Dataspatium 1)
 
 - **Foundation API 1.0**: tenesteoppdaging, innlogging med OAuth2 og PKCE,
-  gjeldande brukar og klientregistrering.
-- **Documents API 1.0**: velje, laste opp og hente dokument og versjonane deira.
-- **Administrasjon** i nettlesaren (`/admin`) og på kommandolinja: brukarar,
-  prosjekt, klientar, sesjonar, revisjonsloggen og helsekontrollane.
-- **Tillegg**: eit kapabilitetsdokument (`/.well-known/dataregium`), ein
-  feilkode i kvart feilsvar og ein førespurnadslogg.
-- **Eit klientbibliotek** i Python ([client/](../../client/)) og eit publisert
-  image for kvar utrulling.
+  gjeldande brukar, tilbakekalling av token og sjølvregistrering av klientar når
+  operatøren tillèt det (sjå [klientguiden](client-guide.md)).
+- **Documents API 1.0**: velje, laste opp og hente dokument og versjonane deira,
+  med sidene til serveren for metadata og val.
+- **Administrasjon** i nettlesaren (`/admin`) og på kommandolinja: brukarar og
+  prosjektrollene deira, prosjekt, klientar, sesjonar, revisjonsloggen og
+  helsekontrollane; kvar brukar har `/account` for eige passord og eigne appar.
+- **Tillegg**, merkte som det: eit kapabilitetsdokument
+  (`/.well-known/dataregium`), ein stabil feilkode i kvart feilsvar og ein
+  førespurnadslogg for feilsøking av klientar.
+- **Eit klientbibliotek** i Python ([client/](../../client/)) med køyrbare døme,
+  og eit publisert image for kvar utrulling.
 
 ### Òg i versjon 2 (med Dataspatium 2)
 
-- **BCF API 3.0 og 2.1**: saker, kommentarar og viewpointar, validerte mot
-  skjemaa til buildingSMART.
-- **IFC-LPG-modulen**: opplasta IFC-modellar blir ein graf, knytt til
-  BCF-komponentane.
+- **BCF API 3.0 og 2.1**: saker med OData-spørjingar, kommentarar, viewpointar
+  med snapshots og komponentar, dokumentreferansar og hendingsloggar, validerte
+  mot skjemaa til buildingSMART.
+- **IFC-LPG-modulen**: opplasta IFC-modellar blir ein graf i databasen, knytt
+  til komponentane i viewpointane til sakene (sjå [IFC-LPG](ifc-lpg.md)).
 
 ### Òg i versjon 3 (med Dataspatium 3)
 
-- **Ein tapsfri IFC-graf**: fila kan skrivast tilbake slik ho kom.
+- **Ein tapsfri IFC-graf** frå IFC-LPG, eit eige bibliotek: fila kan skrivast
+  tilbake slik ho kom.
 - **Kontrollerte opplastingar** mot IFC-skjemaet, reglane til buildingSMART og
-  IDS-en til prosjektet, med førehandskontroll.
-- **Spørsmål til modellen**: namngjevne spørjingar, samanlikning av versjonar og
-  kollisjonskontroll.
-- **Endringar som framlegg** i BCF-saker, som ein `manager` godkjenner til neste
-  versjon.
-- **Ein lokal motor** på di eiga datamaskin, med ein arbeidskopi i minnet for
-  store modellar.
+  IDS-en til prosjektet; eit prosjekt kan avvise filer med feil, og ei fil kan
+  kontrollerast først.
+- **Spørsmål til modellen** for medlemmer: namngjevne spørjingar, kva som er
+  endra sidan ein versjon, samanlikning av to versjonar og kollisjonskontroll.
+- **Endringar som framlegg**: eit endringssett i ei BCF-sak blir prøvd mot
+  basisversjonen sin, og ein `manager` godkjenner det til neste versjon, slått
+  saman med det som kom imellom.
+- **Ein lokal motor** på di eiga datamaskin bak Dataspatium, med ein arbeidskopi
+  i minnet for store modellar, og opplasting utan nettsida for godkjende
+  klientar.
 
 **Status**: alle elleve etappane i planen er gjennomførte; eit bidrag av
 serveren til IfcOpenShell er enno ikkje føreslått.
 
-<img src="../images/signin.png" alt="Innloggingssida ein klient opnar" width="240">
 <img src="../images/upload.png" alt="Opplastingssida, der brukaren gjev fila tittel og versjon" width="340">
-<img src="../images/admin-project.png" alt="Eit prosjekt i administrasjonen, med medlemmer og roller" width="440">
-<img src="../images/admin-settings.png" alt="Helsesjekkane på innstillingssida" width="440">
 
 ## OpenCDE-API-a og klientane deira
 
