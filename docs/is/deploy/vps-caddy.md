@@ -28,10 +28,10 @@ fyrir leynilykilinn).
 ## 2. Ræsa
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml pull
-docker compose -f compose.yaml -f compose.prod.yaml up -d
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde doctor
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde user create admin --admin
+docker compose pull
+docker compose up -d
+docker compose exec api opencde doctor
+docker compose exec api opencde user create admin --admin
 ```
 
 Síðasta skipunin prentar lykilorð stjórnandans einu sinni. Skráðu þig inn á
@@ -42,10 +42,10 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
 
 | Verk | Skipun |
 |---|---|
-| Uppfæra í nýjasta image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
+| Uppfæra í nýjasta image | `docker compose pull && docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d` |
 | Festa útgáfu | `OPENCDE_IMAGE_TAG=2.0.0` í `.env` (merkin fylgja GitHub-útgáfunum) |
 | Bjóða aðeins sum forritaskil | `OPENCDE_APIS=["bcf-2.1"]` í `.env` fyrir þjón sem býður aðeins BCF API 2.1, `["documents"]` fyrir skjalaþjón; öll þrjú sjálfgefið |
-| Atvikaskrár | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-línur) |
+| Atvikaskrár | `docker compose logs -f api` (JSON-línur) |
 | Heilsa | `https://cde.example.org/readyz`; síðan Stillingar í stjórnuninni |
 | Öryggisafrit | á hverri nóttu í geymsluna `backups` af þjónustunni `backup`; sjá [backup.md](backup.md) |
 | Afturkalla aðgang í öryggisatviki | `docker compose ... exec api opencde revoke --all` (eða `--user`, `--client`) |

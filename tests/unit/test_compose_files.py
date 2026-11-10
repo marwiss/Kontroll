@@ -22,13 +22,13 @@ OPENCDE_DOMAIN=cde.example.org
 
 
 def _config(tmp_path: Path, *overlays: str, extra_env: str = "") -> dict:
-    # The files in a folder of their own, since each of them reads the .env next to it.
-    for name in ("compose.yaml", *overlays):
-        shutil.copy(ROOT / name, tmp_path / name)
-    (tmp_path / ".env").write_text(ENV + extra_env, encoding="utf-8")
-    files = [arg for name in ("compose.yaml", *overlays) for arg in ("-f", name)]
+    # A copy of docker/ with a .env of its own beside it, as in a checkout: .env names the files.
+    shutil.copytree(ROOT / "docker", tmp_path / "docker")
+    names = ":".join(f"docker/{name}" for name in ("compose.yaml", *overlays))
+    env = f"COMPOSE_PATH_SEPARATOR=:\nCOMPOSE_FILE={names}\n" + ENV + extra_env
+    (tmp_path / ".env").write_text(env, encoding="utf-8")
     done = subprocess.run(  # noqa: S603  # the arguments are this test's own
-        [str(DOCKER), "compose", *files, "config", "--format", "json"],
+        [str(DOCKER), "compose", "config", "--format", "json"],
         cwd=tmp_path,
         capture_output=True,
         text=True,

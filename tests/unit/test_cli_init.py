@@ -55,7 +55,8 @@ def test_the_guide_for_this_machine(tmp_path: Path, answers: None) -> None:
     assert env["OPENCDE_IFC_LPG_ENABLED"] == "true" and env["OPENCDE_REQUEST_LOG_ENABLED"] == "true"
     assert env["OPENCDE_DYNAMIC_CLIENT_REGISTRATION"] == "true"
     assert len([line for line in path.read_text().splitlines() if "DYNAMIC_CLIENT_REGISTRATION" in line]) == 1
-    assert "compose.dev.yaml up -d --build --wait" in done.output and "opencde seed" in done.output
+    assert env["COMPOSE_FILE"] == "docker/compose.yaml:docker/compose.dev.yaml"
+    assert "docker compose up -d --build --wait" in done.output and "opencde seed" in done.output
 
 
 def test_the_guide_for_a_server_others_use(tmp_path: Path, answers: None) -> None:
@@ -77,9 +78,10 @@ def test_the_guide_for_a_server_others_use(tmp_path: Path, answers: None) -> Non
     assert env["OPENCDE_PUBLIC_URL"] == "https://cde.example.org" and env["OPENCDE_DOMAIN"] == "cde.example.org"
     assert env["OPENCDE_ACME_EMAIL"] == "me@example.org"
     assert env["OPENCDE_DYNAMIC_CLIENT_REGISTRATION"] == "false" and env["OPENCDE_IFC_LPG_ENABLED"] == "true"
+    assert env["COMPOSE_FILE"] == "docker/compose.yaml:docker/compose.prod.yaml"
     for step in (
         "cde.example.org points at this machine",
-        "compose.prod.yaml up -d",
+        "docker compose up -d",
         "user create admin --admin",
         "client create",
     ):

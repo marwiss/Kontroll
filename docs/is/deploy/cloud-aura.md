@@ -42,7 +42,7 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 
 ## Öryggisafrit
 
-Hliðargámurinn `backup` í `compose.prod.yaml` gildir ekki hér. Tímasettu
+Hliðargámurinn `backup` í `docker/compose.prod.yaml` gildir ekki hér. Tímasettu
 `opencde backup /data/backups` (cron-verk eða tímasett verk á vettvanginum)
 og afritaðu möppuna í hlutageymslu; Aura hefur líka sínar eigin skyndimyndir.
 
@@ -58,7 +58,8 @@ OPENCDE_GRAPH_PASSWORD=<frá Aura>
 ```
 
 ```bash
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.external-db.yaml
+docker compose up -d
 ```
 
 API og öryggisafritunin nota þá þann gagnagrunn. Fyrir Memgraph skaltu einnig stilla

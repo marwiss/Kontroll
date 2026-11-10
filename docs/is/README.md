@@ -46,7 +46,7 @@ bundinn við eitt tiltekið forrit.
 2. **Stilla.** Afritaðu `.env.example` í `.env` og settu
    `OPENCDE_GRAPH_PASSWORD` (minnst 16 stafir). Hver stilling er útskýrð í
    [.env.example](../../.env.example).
-3. **Ræsa.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+3. **Ræsa.** `docker compose up -d --build`
    ræsir þjóninn á <http://127.0.0.1:8000> og Neo4j-gagnagrunn.
    `docker compose logs -f api` sýnir atvikaskrá þjónsins.
 4. **Litast um.** <http://127.0.0.1:8000/docs> er gagnvirka API-skjölunin,
@@ -55,7 +55,7 @@ bundinn við eitt tiltekið forrit.
    þróunaryfirlagið sneiðir hjá sjálfgefnum gáttum Neo4j, sem annar Neo4j á
    sömu tölvu tekur oft).
 5. **Bæta við sýnigögnum og skrá sig inn.**
-   `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
+   `docker compose exec api opencde seed`
    býr til sýninotendur og -verkefni og prentar lykilorð þeirra einu sinni.
    Skráðu þig inn á <http://127.0.0.1:8000/signin> sem `admin` og opnaðu
    `/admin`.

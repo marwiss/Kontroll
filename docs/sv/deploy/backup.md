@@ -30,7 +30,7 @@ server.
 
 ## I Docker Compose
 
-`compose.prod.yaml` kör en tjänst `backup` som anropar `opencde backup /backups`
+`docker/compose.prod.yaml` kör en tjänst `backup` som anropar `opencde backup /backups`
 en gång om dagen och behåller de 14 nyaste mapparna i volymen `backups`.
 Kopiera den volymen någon annanstans (en annan värd, objektlagring); en
 säkerhetskopia på samma disk som datat är bara en halv säkerhetskopia:
@@ -44,7 +44,7 @@ En installation som behållit det gamla projektnamnet har volymen som `kontroll_
 
 För att återställa på en ny värd: starta stacken, kopiera en
 säkerhetskopiemapp in i containern `api` (eller montera den) och kör
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /sökväg --force`.
+`docker compose exec api opencde restore /sökväg --force`.
 
 ## Testa din återställning
 

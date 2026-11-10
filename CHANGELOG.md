@@ -17,6 +17,9 @@ Dataspatium's, and this release takes the first number again. No history is rewr
 commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
 speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
+- The Docker files live in `docker/`: the Compose files, the Dockerfile and the Caddyfile. `.env` names the
+  Compose files to combine (`COMPOSE_FILE`, written by `opencde init`), so the commands are `docker compose up -d`
+  and so on, without `-f` options; an overlay such as Memgraph is added to that line.
 - The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
   `GET /.well-known/dataregium`, and `/.well-known/kontroll` answers the same as an alias; `server.name` in it says
   `Dataregium OpenCDE server`. The Compose project is named `dataregium`; an installation that keeps its volumes from

@@ -26,8 +26,8 @@ maintainers, and the project owner decides whether and how to send it.
 Start the development stack and load the demonstration data:
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `seed` prints the demo users and their one-time passwords, the ids of the

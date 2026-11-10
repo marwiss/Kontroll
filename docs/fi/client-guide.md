@@ -381,7 +381,7 @@ kehityspinoa vasten (katso [acceptance.md](../acceptance.md)).
   Mallin seinät ovat `1Xezbq735AdBO_4DerG66G` (GTIN 3),
   `3eT96F_cnDsOufCEsotwtp` (GTIN 2) ja `3k3LbXmTfDWODxdSuyCGYE` (GTIN 1),
   ominaisuusjoukossa `Reuse`; sama tiedosto on `tests/fixtures/three_walls_gtin.ifc`.
-- `docker compose -f compose.yaml -f compose.dev.yaml up -d` antaa
+- `docker compose up -d` antaa
   palvelimen osoitteessa `http://127.0.0.1:8000` ja Neo4j Browserin portissa
   `:7484`.
 - Rekisteröi asiakas sovelluksellesi hallintakäyttöliittymässä (`/admin` →

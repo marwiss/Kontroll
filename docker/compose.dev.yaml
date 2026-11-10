@@ -14,7 +14,9 @@ services:
       - "127.0.0.1:${OPENCDE_DEV_NEO4J_BOLT_PORT:-7697}:7687"
 
   api:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     pull_policy: build
     ports:
       - "127.0.0.1:${OPENCDE_DEV_PORT:-8000}:8000"

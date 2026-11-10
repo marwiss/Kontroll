@@ -6,12 +6,12 @@ the server when you already use one of them.
 
 ## Compose file
 
-Use `compose.yaml` together with `compose.prod.yaml` **without the `proxy`
+Use `docker/compose.yaml` together with `docker/compose.prod.yaml` **without the `proxy`
 service**: the platform's own proxy (Traefik in Coolify and Dokploy) terminates
 TLS. The simplest way is a small override file next to them:
 
 ```yaml
-# compose.paas.yaml
+# docker/compose.paas.yaml
 services:
   proxy:
     profiles: ["disabled"]
@@ -22,7 +22,7 @@ services:
       traefik.http.services.opencde.loadbalancer.server.port: "8000"
 ```
 
-and deploy `compose.yaml compose.prod.yaml compose.paas.yaml` as one stack.
+and deploy `docker/compose.yaml docker/compose.prod.yaml docker/compose.paas.yaml` as one stack.
 
 ## Environment
 

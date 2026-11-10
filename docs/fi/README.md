@@ -47,7 +47,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 2. **Määritä.** Kopioi `.env.example` tiedostoksi `.env` ja aseta
    `OPENCDE_GRAPH_PASSWORD` (vähintään 16 merkkiä). Jokainen asetus selitetään
    tiedostossa [.env.example](../../.env.example).
-3. **Käynnistä.** `docker compose -f compose.yaml -f compose.dev.yaml up -d --build`
+3. **Käynnistä.** `docker compose up -d --build`
    käynnistää palvelimen osoitteessa <http://127.0.0.1:8000> ja
    Neo4j-tietokannan. `docker compose logs -f api` näyttää palvelimen lokin.
 4. **Katsele ympärillesi.** <http://127.0.0.1:8000/docs> on vuorovaikutteinen
@@ -56,7 +56,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
    kehitysylikerros välttää Neo4j:n oletusportit, jotka toinen Neo4j samalla
    koneella usein varaa).
 5. **Lisää demodata ja kirjaudu.**
-   `docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed`
+   `docker compose exec api opencde seed`
    luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran.
    Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja
    avaa `/admin`.

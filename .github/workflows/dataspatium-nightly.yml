@@ -55,12 +55,12 @@ jobs:
           printf 'OPENCDE_IFC_LPG_ENABLED=true\nOPENCDE_DYNAMIC_CLIENT_REGISTRATION=true\nOPENCDE_REQUEST_LOG_ENABLED=true\nOPENCDE_GRAPH_QUERY_ENABLED=true\n' >> .env
           # One run of the suite uses nearly all of the limit on signing in, and there are two.
           echo 'OPENCDE_RATE_LIMIT_SIGN_IN=60/minute' >> .env
-          docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+          docker compose up -d --build
           for i in $(seq 1 60); do
             curl -fsS -o /dev/null http://127.0.0.1:8000/readyz && break  # no output: add-mask must start a line
             sleep 2
           done
-          server="docker compose -f compose.yaml -f compose.dev.yaml exec -T api opencde"
+          server="docker compose exec -T api opencde"
           $server seed --password "$SEED_PASSWORD" > /dev/null
           client_id=$($server client create "Dataspatium (nightly)" --public \
             --redirect-uri http://127.0.0.1:8080/oauth-callback.html \
@@ -132,4 +132,4 @@ jobs:
           echo "== browser"; tail -n 60 "${TMPDIR:-/tmp}"/dm-tests-*/chromium.log || true
           echo "== helper (user)"; tail -n 50 helper-user.log || true
           echo "== helper (administrator)"; tail -n 50 helper-admin.log || true
-          echo "== server"; docker compose -f compose.yaml -f compose.dev.yaml logs api | tail -n 200
+          echo "== server"; docker compose logs api | tail -n 200

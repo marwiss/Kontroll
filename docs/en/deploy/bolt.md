@@ -40,9 +40,9 @@ for `OPENCDE_DOMAIN`. Copy it out (the paths are Caddy's layout):
 ```sh
 D=cde.example.org
 mkdir -p certs/bolt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.crt" certs/bolt/public.crt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.key" certs/bolt/private.key
 chmod 644 certs/bolt/public.crt certs/bolt/private.key
 ```
@@ -60,10 +60,11 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # the host port, if 7687 is taken
 ```
 
-Then start with the overlay added to your usual command:
+Then start with the overlay added to `COMPOSE_FILE` in `.env`:
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml
+docker compose up -d
 ```
 
 Open the firewall for the port only to the addresses that need it (an office
@@ -78,7 +79,7 @@ and the official drivers connect with the database user and password.
 
 ## 3. Close it again
 
-Remove `compose.bolt.yaml` from the command line, clear
+Remove `docker/compose.bolt.yaml` from `COMPOSE_FILE`, clear
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` in `.env`, and run `up -d` again. The port
 disappears from the host and `bolt` goes back to `null` in the capabilities
 document. Rotate the database password afterwards if it was shared more
@@ -86,7 +87,7 @@ widely than intended.
 
 ## Memgraph
 
-With `compose.memgraph.yaml` the same overlay publishes the port, but the TLS
+With `docker/compose.memgraph.yaml` the same overlay publishes the port, but the TLS
 settings above are Neo4j's. Add Memgraph's flags to its `command` instead
 (`--bolt-cert-file=/certs/bolt/public.crt --bolt-key-file=/certs/bolt/private.key`)
 and mount the same directory; Memgraph then speaks Bolt over TLS on the same

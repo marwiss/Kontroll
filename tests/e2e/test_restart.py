@@ -57,10 +57,11 @@ def compose(tmp_path: Path) -> Iterator[Compose]:
     )
     with tarfile.open(fileobj=io.BytesIO(archive.stdout)) as tar:
         tar.extractall(tmp_path, filter="data")
-    (tmp_path / ".env").write_text(ENV, encoding="utf-8")
+    files = "COMPOSE_PATH_SEPARATOR=:\nCOMPOSE_FILE=docker/compose.yaml:docker/compose.dev.yaml\n"
+    (tmp_path / ".env").write_text(files + ENV, encoding="utf-8")
 
     def run(*args: str) -> str:
-        command = ["docker", "compose", "-p", PROJECT, "-f", "compose.yaml", "-f", "compose.dev.yaml", *args]
+        command = ["docker", "compose", "-p", PROJECT, *args]
         done = subprocess.run(  # noqa: S603  # the arguments are this test's own
             command, cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=900
         )

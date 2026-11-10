@@ -27,10 +27,10 @@ the secret key).
 ## 2. Start
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml pull
-docker compose -f compose.yaml -f compose.prod.yaml up -d
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde doctor
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde user create admin --admin
+docker compose pull
+docker compose up -d
+docker compose exec api opencde doctor
+docker compose exec api opencde user create admin --admin
 ```
 
 The last command prints the administrator's password once. Sign in at
@@ -41,10 +41,10 @@ OAuth2 clients your applications need.
 
 | Task | Command |
 |---|---|
-| Update to the latest image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
+| Update to the latest image | `docker compose pull && docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d` |
 | Pin a version | `OPENCDE_IMAGE_TAG=2.0.0` in `.env` (tags follow the GitHub releases) |
 | Offer only some APIs | `OPENCDE_APIS=["bcf-2.1"]` in `.env` for a server for BCF API 2.1 alone, `["documents"]` for a document server; all three by default |
-| Logs | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON lines) |
+| Logs | `docker compose logs -f api` (JSON lines) |
 | Health | `https://cde.example.org/readyz`; the admin UI's Settings page |
 | Backups | nightly into the `backups` volume by the `backup` service; see [backup.md](backup.md) |
 | Revoke access in an incident | `docker compose ... exec api opencde revoke --all` (or `--user`, `--client`) |

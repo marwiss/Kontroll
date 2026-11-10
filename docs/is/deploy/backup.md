@@ -30,7 +30,7 @@ geymslumöppuna. Setur og tókar eru líka endurheimt; keyrðu
 
 ## Í Docker Compose
 
-`compose.prod.yaml` keyrir þjónustu `backup` sem kallar
+`docker/compose.prod.yaml` keyrir þjónustu `backup` sem kallar
 `opencde backup /backups` einu sinni á dag og heldur 14 nýjustu möppunum í
 geymslunni `backups`. Afritaðu þá geymslu eitthvert annað (annan hýsil,
 hlutageymslu); öryggisafrit á sama diski og gögnin er bara hálft öryggisafrit:
@@ -44,7 +44,7 @@ Uppsetning sem hélt gamla verkefnisheitinu hefur geymsluna sem `kontroll_backup
 
 Til að endurheimta á nýjum hýsli: ræstu staflann, afritaðu öryggisafritsmöppu
 inn í gáminn `api` (eða tengdu hana) og keyrðu
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /slóð --force`.
+`docker compose exec api opencde restore /slóð --force`.
 
 ## Prófaðu endurheimtina þína
 

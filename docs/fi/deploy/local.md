@@ -13,8 +13,8 @@ Kaikki toimii Dockerissa omalla koneellasi; mihinkään ei pääse ulkopuolelta.
 git clone https://github.com/marwiss/Dataregium.git
 cd Dataregium
 uv run opencde init --dev                                 # kirjoittaa .env-tiedoston uusilla salaisuuksilla
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `opencde seed` luo demokäyttäjät (järjestelmänvalvojan sekä yhden käyttäjän
@@ -27,18 +27,18 @@ ja julkisen OAuth2-asiakkaan ja tulostaa salasanat kerran.
 | Hallinta | <http://127.0.0.1:8000/admin> (kirjaudu järjestelmänvalvojana) |
 | Valmius | <http://127.0.0.1:8000/readyz> |
 | Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
-| Palvelimen loki | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
+| Palvelimen loki | `docker compose logs -f api` |
 
-Kehityskerros (`compose.dev.yaml`) julkaisee Neo4j:n porteissa 7484/7697
+Kehityskerros (`docker/compose.dev.yaml`) julkaisee Neo4j:n porteissa 7484/7697
 oletusporttien 7474/7687 sijaan, jotka toinen samalla koneella oleva Neo4j
 usein varaa. Vaihda portit `.env`-tiedoston `OPENCDE_DEV_*`-muuttujilla. Kaksi
 lähdekoodikopiota samalla koneella jakavat Compose-projektinimen `dataregium`
-(`compose.yaml` asettaa sen); anna toiselle `.env`-tiedostossa
+(`docker/compose.yaml` asettaa sen); anna toiselle `.env`-tiedostossa
 `COMPOSE_PROJECT_NAME=dataregium-2` ja eri portit.
 
 Asennuksella, joka tehtiin projektin ollessa vielä nimeltään Kontroll, on datansa
 taltioissa nimeltä `kontroll_…`. Se säilyttää ne, kun `.env`-tiedostossa on
-`COMPOSE_PROJECT_NAME=kontroll`, joka ohittaa `compose.yaml`-tiedoston nimen;
+`COMPOSE_PROJECT_NAME=kontroll`, joka ohittaa `docker/compose.yaml`-tiedoston nimen;
 ilman sitä seuraava `up` käynnistää uuden projektin tyhjillä taltioilla.
 
 ## Ilman Dockeria palvelimelle
@@ -58,7 +58,8 @@ uv run opencde serve --reload
 ## Memgraph Neo4j:n sijaan
 
 ```sh
-docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d --build
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.memgraph.yaml:docker/compose.dev.yaml
+docker compose up -d --build
 ```
 
 Aseta `.env`-tiedostoon `OPENCDE_GRAPH_DIALECT=memgraph` ja
@@ -88,5 +89,5 @@ tarkistuslista on [docs/acceptance.md](../../acceptance.md), osa C.
 ## Puhtaalta pöydältä
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v   # poistaa taltiot: tietokannan ja tiedostot
+docker compose down -v   # poistaa taltiot: tietokannan ja tiedostot
 ```

@@ -42,7 +42,7 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 
 ## Säkerhetskopior
 
-Sidovagnen `backup` i `compose.prod.yaml` gäller inte här. Schemalägg
+Sidovagnen `backup` i `docker/compose.prod.yaml` gäller inte här. Schemalägg
 `opencde backup /data/backups` (ett cron-jobb eller en schemalagd uppgift på
 plattformen) och kopiera mappen till objektlagring; Aura har dessutom egna
 snapshots.
@@ -59,7 +59,8 @@ OPENCDE_GRAPH_PASSWORD=<från Aura>
 ```
 
 ```bash
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.external-db.yaml
+docker compose up -d
 ```
 
 API:et och säkerhetskopieringen använder då den databasen. För Memgraph, sätt också

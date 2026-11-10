@@ -13,8 +13,8 @@ Alt køyrer i Docker på maskina di; ingenting kan nåast utanfrå.
 git clone https://github.com/marwiss/Dataregium.git
 cd Dataregium
 uv run opencde init --dev                                 # skriv .env med nye løyndomar
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `opencde seed` opprettar demonstrasjonsbrukarar (ein administrator og ein
@@ -27,17 +27,17 @@ prosjekt og ein offentleg OAuth2-klient, og skriv ut passorda éin gong.
 | Administrasjon | <http://127.0.0.1:8000/admin> (logg inn som administratoren) |
 | Beredskap | <http://127.0.0.1:8000/readyz> |
 | Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
-| Serverlogg | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
+| Serverlogg | `docker compose logs -f api` |
 
 Utviklingsoverlegget publiserer Neo4j på 7484/7697 i staden for
 standardportane 7474/7687, som ein annan Neo4j på same maskin ofte held. Endre
 portane med `OPENCDE_DEV_*` i `.env`. To utsjekkingar på same maskin deler
-Compose-prosjektnamnet `dataregium` (`compose.yaml` set det); gje den andre
+Compose-prosjektnamnet `dataregium` (`docker/compose.yaml` set det); gje den andre
 `COMPOSE_PROJECT_NAME=dataregium-2` og andre portar i si `.env`.
 
 Ein installasjon som vart gjord medan prosjektet framleis heitte Kontroll, har
 dataa sine i volum som heiter `kontroll_…`. Han held på dei med
-`COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går føre namnet i `compose.yaml`;
+`COMPOSE_PROJECT_NAME=kontroll` i `.env`, som går føre namnet i `docker/compose.yaml`;
 utan det startar neste `up` eit nytt prosjekt med tomme volum.
 
 ## Utan Docker for serveren
@@ -57,7 +57,8 @@ Bolt-porten til utviklingsoverlegget.
 ## Memgraph i staden for Neo4j
 
 ```sh
-docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d --build
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.memgraph.yaml:docker/compose.dev.yaml
+docker compose up -d --build
 ```
 
 Set `OPENCDE_GRAPH_DIALECT=memgraph` og `OPENCDE_GRAPH_USER=memgraph` i `.env`
@@ -87,5 +88,5 @@ vise serversida av kalla til appen. Den fullstendige sjekklista er
 ## Start på nytt
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v   # fjernar voluma: database og filer
+docker compose down -v   # fjernar voluma: database og filer
 ```
