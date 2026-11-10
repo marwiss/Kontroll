@@ -15,7 +15,7 @@ services:
       OPENCDE_TRUSTED_PROXIES: '["172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/16"]'
 
   tunnel:
-    image: cloudflare/cloudflared:2026.10.7
+    image: docker.io/cloudflare/cloudflared:2026.10.7
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:

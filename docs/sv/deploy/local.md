@@ -5,6 +5,7 @@ Allt körs i Docker på din dator; ingenting går att nå utifrån.
 ## Krav
 
 - Docker Desktop (Windows, macOS) eller Docker Engine med compose-tillägget (Linux)
+- eller Podman 5 med `podman compose`: samma filer fungerar, se [Podman](#podman) nedan
 - [uv](https://docs.astral.sh/uv/) för kommandoradsverktygen
 
 ## Steg
@@ -84,6 +85,18 @@ själv i stället. CORS tillåter alla ursprung som standard, så ingen mer
 inställning behövs; `OPENCDE_REQUEST_LOG_ENABLED=true` låter `/admin/requests`
 visa serversidan av appens anrop.
 [Snabbstarten](../quickstart.md) har alla steg och en felsökningstabell.
+
+## Podman
+
+Compose-filerna fungerar med Podman lika väl som med Docker: imagerna har
+fullständiga namn, datat ligger i namngivna volymer, bindmonteringarna bär etiketten
+`z` för SELinux, och utvecklingsöverlagringen binder portar över 1024 på 127.0.0.1.
+Kör dem med `podman compose` (Podman 5) eller med kommandot `docker compose` mot
+Podmans socket (`DOCKER_HOST=unix:///run/user/1000/podman/podman.sock`). Rotlös
+Podman kan inte binda portarna 80 och 443 åt produktionsöverlagringen: sätt
+`sysctl net.ipv4.ip_unprivileged_port_start=80` eller kör den stacken som root.
+Podman är kostnadsfritt (Apache-2.0); testerna körs med Docker, och Podman ingår
+inte i CI.
 
 ## Börja om från början
 

@@ -9,14 +9,15 @@
 #
 # Configuration comes from .env in the folder above (copy .env.example or run `opencde init`),
 # whose COMPOSE_FILE names the files to combine, so that the command needs no -f options.
-# Paths in these files are relative to this folder. Secrets never live in this file. See
-# docs/en/deploy/ for every scenario, including managed databases.
+# Paths in these files are relative to this folder, image names are complete and bind mounts carry
+# the z label, so Podman runs the same files (docs/en/deploy/local.md, "Podman"). Secrets never live
+# in this file. See docs/en/deploy/ for every scenario, including managed databases.
 
 name: dataregium
 
 services:
   graph:
-    image: neo4j:5.26.32-community
+    image: docker.io/library/neo4j:5.26.32-community
     restart: unless-stopped
     environment:
       NEO4J_AUTH: "${OPENCDE_GRAPH_USER:-neo4j}/${OPENCDE_GRAPH_PASSWORD:?Set OPENCDE_GRAPH_PASSWORD in .env}"
@@ -39,7 +40,7 @@ services:
       - no-new-privileges:true
 
   api:
-    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-latest}
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-3.0.0}
     build:
       context: ..
       dockerfile: docker/Dockerfile
