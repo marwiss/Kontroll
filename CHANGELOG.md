@@ -13,6 +13,16 @@ the commit history.
 - The production overlay starts without `OPENCDE_ACME_EMAIL`: Caddy refused an empty `email` and did not start, so
   the address was in practice required. The backup sidecar no longer inherits the image's health check, which asked
   for an API it does not run and showed it as unhealthy.
+- Beside what already runs on a server: `docker/compose.proxied.yaml` is the production overlay without its Caddy,
+  for a host whose own reverse proxy (nginx, Apache, Traefik) keeps ports 80 and 443 and its certificates; the API is
+  published on `127.0.0.1:8010` only (`OPENCDE_PROXIED_ADDRESS`, `OPENCDE_PROXIED_PORT`) and the stack gets a project
+  name of its own. The guide `docs/en/deploy/proxied.md` has the nginx site, certbot for the new name only, and how
+  to remove it all again.
+- Your own region on AWS, Azure or Google Cloud: `docker/cloud-init.yaml`, given as a virtual machine's user data,
+  sets up the whole stack with Caddy on Ubuntu 24.04 LTS: the release checked out, `.env` with fresh secrets, HTTPS
+  for the machine's DNS name or `<public address>.sslip.io` until it has one, and the first administrator, whose
+  password goes to a file only root reads. The guide `docs/en/deploy/cloud.md` gives one command per cloud, the
+  firewall and where the personal data is.
 - Project administration by its managers (OB-41): a `manager` lists, adds (by exact user name), re-roles and removes
   the members of their project under `/manage/1.0/projects/{id}/members`, with a token holding the new `project`
   scope, which a client asks for explicitly; a project keeps at least one manager (`409 conflict`), the name changes

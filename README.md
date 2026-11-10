@@ -136,7 +136,9 @@ En compose-fil plus en överlagring per scenario:
 | Lokalt test på din dator | [docs/sv/deploy/local.md](docs/sv/deploy/local.md) |
 | Publik https-adress för klienttester utan egen server (tunnel) | [docs/sv/deploy/tunnel.md](docs/sv/deploy/tunnel.md) |
 | Produktion på egen server med Caddy (automatisk TLS) och nattliga säkerhetskopior | [docs/sv/deploy/vps-caddy.md](docs/sv/deploy/vps-caddy.md) |
+| Bredvid det som redan körs på en server, bakom dess nginx | [docs/sv/deploy/proxied.md](docs/sv/deploy/proxied.md) |
 | Coolify, Dokploy, Portainer | [docs/sv/deploy/paas.md](docs/sv/deploy/paas.md) |
+| Den egna regionen hos AWS, Azure eller Google Cloud: en maskin, uppsatt av en cloud-init-fil | [docs/sv/deploy/cloud.md](docs/sv/deploy/cloud.md) |
 | Containertjänst plus hanterad Neo4j AuraDB eller Memgraph Cloud | [docs/sv/deploy/cloud-aura.md](docs/sv/deploy/cloud-aura.md) |
 | Säkerhetskopiering och återställning (flyttbar mellan Neo4j och Memgraph) | [docs/sv/deploy/backup.md](docs/sv/deploy/backup.md) |
 

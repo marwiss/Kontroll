@@ -1,0 +1,97 @@
+#cloud-config
+# This file was generated with the assistance of an AI coding tool.
+#
+# Dataregium on a virtual machine of its own, in the region you choose, on AWS, Azure or Google Cloud: give this file
+# as the machine's user data when you create it (docs/en/deploy/cloud.md has the command for each cloud). It is for
+# Ubuntu 24.04 LTS. The database, the documents and the nightly backups stay on the machine's disk, in its region.
+#
+# Before use, set the values under /etc/dataregium/settings below:
+#   DATAREGIUM_DOMAIN      the server's DNS name, pointing at the machine; empty gives <public-ip>.sslip.io, a name that
+#                          resolves to the machine's address, so that Caddy gets a certificate before you have a name
+#   DATAREGIUM_ACME_EMAIL  where Let's Encrypt writes about the certificate (optional)
+#   DATAREGIUM_VERSION     the release to run
+#
+# Afterwards the server answers on https://<the name>, and the first administrator's user name and password are in
+# /root/dataregium-admin.txt, readable by root only. Nothing secret is written to the cloud-init log.
+
+write_files:
+  - path: /etc/dataregium/settings
+    permissions: "0600"
+    content: |
+      DATAREGIUM_DOMAIN=
+      DATAREGIUM_ACME_EMAIL=
+      DATAREGIUM_VERSION=3.0.0
+  - path: /usr/local/sbin/dataregium-setup
+    permissions: "0700"
+    content: |
+      #!/bin/bash
+      # Set up Dataregium once: check out the release, write .env with fresh secrets, start the stack and create the
+      # first administrator. Run again, it changes nothing that is there already.
+      set -euo pipefail
+      umask 077
+      # shellcheck source=/dev/null
+      . /etc/dataregium/settings
+      version="${DATAREGIUM_VERSION:-3.0.0}"
+
+      public_ip() {
+        # The machine's public IPv4 address from the cloud's own metadata service: AWS (IMDSv2), Azure, Google Cloud.
+        local token address
+        token=$(curl -fsS -m 2 -X PUT http://169.254.169.254/latest/api/token \
+          -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null) || token=""
+        if [ -n "$token" ]; then
+          address=$(curl -fsS -m 2 -H "X-aws-ec2-metadata-token: $token" \
+            http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null) && { echo "$address"; return; }
+        fi
+        address=$(curl -fsS -m 2 -H "Metadata: true" \
+          "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2021-02-01&format=text" \
+          2>/dev/null) && [ -n "$address" ] && { echo "$address"; return; }
+        address=$(curl -fsS -m 2 -H "Metadata-Flavor: Google" \
+          http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip \
+          2>/dev/null) && [ -n "$address" ] && { echo "$address"; return; }
+        return 1
+      }
+
+      domain="${DATAREGIUM_DOMAIN:-}"
+      if [ -z "$domain" ]; then
+        address=$(public_ip) || { echo "no public address; set DATAREGIUM_DOMAIN in /etc/dataregium/settings" >&2; exit 1; }
+        domain="${address//./-}.sslip.io"
+      fi
+      case "$domain" in
+        *[!A-Za-z0-9.-]* | "" ) echo "DATAREGIUM_DOMAIN is not a DNS name" >&2; exit 1 ;;
+      esac
+
+      if [ ! -d /opt/dataregium/.git ]; then
+        git clone --quiet --depth 1 --branch "v$version" https://github.com/marwiss/Dataregium.git /opt/dataregium
+      fi
+      cd /opt/dataregium
+      if [ ! -f .env ]; then
+        # The image's entrypoint is `opencde`; root inside the container, since /opt/dataregium is root's.
+        docker run --rm --user 0:0 -v /opt/dataregium:/work -w /work "ghcr.io/marwiss/opencdeserver:$version" \
+          init --public-url "https://$domain" --path /work/.env >/dev/null
+        # The machine's memory, not the 512 MB of a laptop.
+        sed -i 's/^NEO4J_HEAP=.*/NEO4J_HEAP=1g/; s/^NEO4J_PAGECACHE=.*/NEO4J_PAGECACHE=1g/' .env
+        echo "OPENCDE_IMAGE_TAG=$version" >> .env
+        if [ -n "${DATAREGIUM_ACME_EMAIL:-}" ]; then echo "OPENCDE_ACME_EMAIL=$DATAREGIUM_ACME_EMAIL" >> .env; fi
+        chmod 600 .env
+      fi
+      # Start everything, then wait for the API alone: the backup sidecar of a release before this file has the
+      # image's health check, which asks for an API it does not run.
+      docker compose up -d
+      docker compose up -d --wait api
+
+      if [ ! -f /root/dataregium-admin.txt ]; then
+        docker compose exec -T api opencde user create admin --admin > /root/dataregium-admin.txt
+        chmod 600 /root/dataregium-admin.txt
+      fi
+      echo "Dataregium answers on https://$domain; the administrator's password is in /root/dataregium-admin.txt"
+
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - git
+  - curl
+
+runcmd:
+  - [systemctl, enable, --now, docker]
+  - [/usr/local/sbin/dataregium-setup]

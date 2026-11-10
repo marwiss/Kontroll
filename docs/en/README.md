@@ -136,7 +136,9 @@ One compose file plus an overlay per scenario:
 | Local test on your machine | [docs/en/deploy/local.md](deploy/local.md) |
 | Public https URL for client tests without a server (tunnel) | [docs/en/deploy/tunnel.md](deploy/tunnel.md) |
 | Production on your own server with Caddy (automatic TLS) and nightly backups | [docs/en/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Beside what already runs on a server, behind its nginx | [docs/en/deploy/proxied.md](deploy/proxied.md) |
 | Coolify, Dokploy, Portainer | [docs/en/deploy/paas.md](deploy/paas.md) |
+| Your own region on AWS, Azure or Google Cloud: one machine, set up by one cloud-init file | [docs/en/deploy/cloud.md](deploy/cloud.md) |
 | Container service plus managed Neo4j AuraDB or Memgraph Cloud | [docs/en/deploy/cloud-aura.md](deploy/cloud-aura.md) |
 | Backup and restore (portable between Neo4j and Memgraph) | [docs/en/deploy/backup.md](deploy/backup.md) |
 

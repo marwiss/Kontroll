@@ -137,7 +137,9 @@ Ein compose-skrá auk eins yfirlags fyrir hverja aðstæðu:
 | Staðbundin prófun á eigin tölvu | [docs/is/deploy/local.md](deploy/local.md) |
 | Opinbert https-vistfang fyrir biðlaraprófanir án eigin þjóns (tunnel) | [docs/is/deploy/tunnel.md](deploy/tunnel.md) |
 | Rekstur á eigin þjóni með Caddy (sjálfvirkt TLS) og næturlegum öryggisafritum | [docs/is/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Við hlið þess sem þegar keyrir á þjóni, á bak við nginx hans | [docs/is/deploy/proxied.md](deploy/proxied.md) |
 | Coolify, Dokploy, Portainer | [docs/is/deploy/paas.md](deploy/paas.md) |
+| Þitt eigið svæði hjá AWS, Azure eða Google Cloud: ein vél, sett upp af einni cloud-init-skrá | [docs/is/deploy/cloud.md](deploy/cloud.md) |
 | Gámaþjónusta auk Neo4j AuraDB eða Memgraph Cloud í umsjón þjónustuaðila | [docs/is/deploy/cloud-aura.md](deploy/cloud-aura.md) |
 | Öryggisafritun og endurheimt (flytjanleg milli Neo4j og Memgraph) | [docs/is/deploy/backup.md](deploy/backup.md) |
 

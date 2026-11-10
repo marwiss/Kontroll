@@ -136,7 +136,9 @@ ikkje er bunden til eitt bestemt program.
 | Lokal test på eiga maskin | [docs/nn/deploy/local.md](deploy/local.md) |
 | Offentleg https-adresse for klienttestar utan eigen server (tunnel) | [docs/nn/deploy/tunnel.md](deploy/tunnel.md) |
 | Produksjon på eigen server med Caddy (automatisk TLS) og nattlege tryggingskopiar | [docs/nn/deploy/vps-caddy.md](deploy/vps-caddy.md) |
+| Ved sida av det som alt køyrer på ein server, bak nginx-en der | [docs/nn/deploy/proxied.md](deploy/proxied.md) |
 | Coolify, Dokploy, Portainer | [docs/nn/deploy/paas.md](deploy/paas.md) |
+| Din eigen region hos AWS, Azure eller Google Cloud: éi maskin, sett opp av éi cloud-init-fil | [docs/nn/deploy/cloud.md](deploy/cloud.md) |
 | Containerteneste pluss administrert Neo4j AuraDB eller Memgraph Cloud | [docs/nn/deploy/cloud-aura.md](deploy/cloud-aura.md) |
 | Tryggingskopiering og gjenoppretting (flyttbar mellom Neo4j og Memgraph) | [docs/nn/deploy/backup.md](deploy/backup.md) |
 
