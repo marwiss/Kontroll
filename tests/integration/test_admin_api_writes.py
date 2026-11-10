@@ -64,11 +64,18 @@ def test_administrators_manage_users_projects_and_clients(client: TestClient, wo
     project_id = project.json()["project_id"]
     renamed = client.put(
         f"/admin/api/projects/{project_id}",
-        json={"name": "API project 2", "extensions": {"topic_status": ["New", "Done"]}},
+        json={
+            "name": "API project 2",
+            "extensions": {"topic_status": ["New", "Done"]},
+            "block_on_validation_errors": True,
+        },
         headers=h,
     )
     assert renamed.status_code == 200 and renamed.json()["name"] == "API project 2"
     assert renamed.json()["extensions"]["topic_status"] == ["New", "Done"]
+    assert (
+        renamed.json()["block_on_validation_errors"] is True and project.json()["block_on_validation_errors"] is False
+    )
     assert client.delete(f"/admin/api/projects/{project_id}", headers=h).status_code == 204
     assert client.get(f"/admin/api/projects/{project_id}", headers=h).status_code == 404
 

@@ -30,6 +30,11 @@ def version_links(base: str, document_id: str, version_index: int) -> DocumentVe
     )
 
 
+def precheck_url(base: str, project_id: str, precheck_id: str) -> str:
+    """Where the report of a file checked without becoming a version is (ADR 0021)."""
+    return f"{base}/projects/{project_id}/ifc-precheck/{precheck_id}"
+
+
 def validation_report_url(base: str, document_id: str, version_index: int) -> str:
     """Where the report of a version's check against the IFC schema is (an extension, ``routes_validation.py``)."""
     return f"{base}/documents/{document_id}/versions/{version_index}/ifc-validation"

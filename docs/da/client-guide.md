@@ -47,6 +47,7 @@ klient tilpasser sig i stedet for at prøve sig frem:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -210,6 +211,10 @@ svarer på det samme token, og som kapabilitetsdokumentet annoncerer i
 To IFC-versioner i et projekt kan sammenlignes for kollisioner på samme måde, en
 udvidelse, der annonceres som `ifc_clash`. Se [ifc-lpg.md](ifc-lpg.md#kollisionskontrol).
 
+En fil kan kontrolleres, før den uploades, en udvidelse, der annonceres som
+`ifc_precheck`, og et projekt kan afvise filer med fejl. Se
+[ifc-lpg.md](ifc-lpg.md#afvise-filer-med-fejl-og-kontrollere-en-fil-på-forhånd).
+
 ## 5. Korrelering af din log med serverens
 
 Send en `X-Request-ID`-header (1–128 tegn fra `A-Za-z0-9._-`) med hver
@@ -258,6 +263,7 @@ eller oversætte, mens `message` forbliver en engelsk sætning til mennesker:
 | `not_found` | 404 | Ingen sådan ressource, en ressource uden for brugerens projekter, eller en funktion, der er slået fra (registrering, forespørgselslog, administrations-API) | Vis beskeden, genindlæs listerne |
 | `conflict` | 409 | Et guid, der allerede findes, eller et dubleret link | Hent igen |
 | `version_conflict` | 412 | Uploaden angav `base_version_index`, og dokumentet har allerede en nyere version | Hent den seneste version, flet og upload igen |
+| `ifc_validation_failed` | 422 | Projektet afviser filer med valideringsfejl, og filen har nogle; `report` i kroppen er rapportens adresse | Vis rapporten, lad brugeren rette filen og upload igen |
 | `payload_too_large` | 413 | Forespørgslens krop er over serverens grænse, eller en BCF-binær er over `max_image_bytes`/`max_upload_bytes` | Ret forespørgslen |
 | `upload_too_large` | 413 | En valgt fil eller del er over uploadgrænsen (`max_size_in_bytes` i uploadinstruktionerne) | Fortæl brugeren grænsen |
 | `rate_limited` | 429 | For mange forespørgsler fra én adresse; `Retry-After` siger hvornår | Vent, og prøv igen |

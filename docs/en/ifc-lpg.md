@@ -48,8 +48,9 @@ against the IFC schema, with the validator that checks a written file
 ([Writing a model back](#writing-a-model-back)): the type and number of
 attributes, enumerations, inverse attributes, GlobalIds, and the rules of the
 EXPRESS schema. The check runs in the background before the conversion, in a
-worker process with the same limits. It never stops an upload: the file is
-stored as it came, whatever the check finds. A BCF project document is not
+worker process with the same limits. By default it never stops an upload: the file
+is stored as it came, whatever the check finds; a project can choose
+otherwise ([below](#refusing-files-with-errors-and-checking-a-file-first)). A BCF project document is not
 checked, since it has no metadata. `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false`
 turns the check off.
 
@@ -170,6 +171,31 @@ and every specification with its usage, its verdict (`passed`, `failed` or
 An IDS document that cannot be read, such as one with a DTD, is listed under
 `rules_not_run` with the reason, and the others are checked all the same. The
 version's page shows the specifications in a table of their own.
+
+### Refusing files with errors, and checking a file first
+
+An administrator can tick *Refuse uploads with validation errors* on the
+project's page (`block_on_validation_errors` in the administration API). The
+checks then run before the file becomes a version, in the upload's completion
+and on the upload page, and a file with one or more errors is refused with
+`422 ifc_validation_failed`; warnings pass. The refused file stays for a day as
+a precheck, and `report` in the error names where its report is. A file that
+could not be checked at all goes through, as `unknown`, so that a broken
+validator never stops the work. A file that passes is checked once: the result
+is the version's, as if the check had run afterwards.
+
+Any editor or manager can also check a file without making it a version, with
+the same bearer token and whatever the project's setting:
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-precheck
+Content-Disposition: attachment; filename="model.ifc"
+```
+
+The body is the file. The answer is `202` with the report's `url`, `pending`
+until the checks are done; then it has the form of a version's report, with the
+file's name and when the precheck expires. Every member reads it, for a day.
+The capabilities document announces the precheck as `ifc_precheck`.
 
 ## The graph
 

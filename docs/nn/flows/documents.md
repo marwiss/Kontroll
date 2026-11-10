@@ -45,6 +45,9 @@ sequenceDiagram
 * `base_version_index` i ein filpost (ei utviding) seier kva versjon
   opplastinga byggjer på: fullføringa svarar `412 version_conflict` når
   dokumentet alt har ein nyare, og metadataa til versjonen oppgjev basen.
+* Eit prosjekt kan avvise filer med valideringsfeil: fullføringa svarar då
+  `422 ifc_validation_failed` med adressa til rapporten, og
+  `POST …/projects/{id}/ifc-precheck` kontrollerer ei fil utan å lagre henne.
 
 ## Utval og nedlasting
 

@@ -47,6 +47,7 @@ anpassar sig i stället för att prova sig fram:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -212,6 +213,10 @@ på samma token och som kapabilitetsdokumentet annonserar i `ifc_queries`. Se
 Två IFC-versioner i ett projekt kan jämföras med avseende på krockar på samma
 sätt, ett tillägg som annonseras som `ifc_clash`. Se [ifc-lpg.md](ifc-lpg.md#krocktest).
 
+En fil kan kontrolleras innan den laddas upp, ett tillägg som annonseras som
+`ifc_precheck`, och ett projekt kan avvisa filer med fel. Se
+[ifc-lpg.md](ifc-lpg.md#avvisa-filer-med-fel-och-kontrollera-en-fil-i-förväg).
+
 ## 5. Korrelera din logg med serverns
 
 Skicka ett `X-Request-ID`-huvud (1–128 tecken ur `A-Za-z0-9._-`) med varje
@@ -261,6 +266,7 @@ mening för människor:
 | `not_found` | 404 | Ingen sådan resurs, en resurs utanför användarens projekt, eller en funktion som är avstängd (registrering, begärandelogg, administrations-API) | Visa meddelandet, läs om listorna |
 | `conflict` | 409 | Ett guid som redan finns, eller en dubblerad länk | Hämta igen |
 | `version_conflict` | 412 | Uppladdningen angav `base_version_index`, och dokumentet har redan en nyare version | Hämta den senaste versionen, sammanfoga och ladda upp igen |
+| `ifc_validation_failed` | 422 | Projektet avvisar filer med valideringsfel, och filen har sådana; `report` i kroppen är rapportens adress | Visa rapporten, låt användaren rätta filen och ladda upp igen |
 | `payload_too_large` | 413 | Begärans kropp överstiger serverns gräns, eller en BCF-binär överstiger `max_image_bytes`/`max_upload_bytes` | Rätta begäran |
 | `upload_too_large` | 413 | En vald fil eller del överstiger uppladdningsgränsen (`max_size_in_bytes` i uppladdningsinstruktionerna) | Berätta gränsen för användaren |
 | `rate_limited` | 429 | För många begäranden från en adress; `Retry-After` säger när | Vänta och försök igen |

@@ -460,6 +460,19 @@ async def select_ui_upload(
         storage.delete(key)
         raise HTTPException(400, "The file is empty")
     project = next((p for p, _ in await projects.list_for_user(web_user.user.id) if p.project_id == project_id), None)
+    checked = None
+    if ifcgraph is not None and project is not None and project.block_on_validation_errors:
+        checked = await ifcgraph.check_now(project_id=project_id, storage_key=key, file_name=file_name)
+        if checked is not None and checked.get("error_count"):
+            storage.delete(key)  # the project refuses a file with errors (ADR 0021)
+            return _message(
+                request,
+                web_user,
+                tr(request, "docs.message.refused"),
+                tr(request, "docs.message.refused_text", errors=int(checked["error_count"])),
+                status_code=422,
+                hint=tr(request, "docs.message.refused_hint"),
+            )
     try:
         record = await documents.create_version(
             project_id=project_id,
@@ -490,6 +503,7 @@ async def select_ui_upload(
             document_id=record.document_id,
             version_index=record.version_index,
             version_id=record.version_id,
+            checked=checked,
         )
     return RedirectResponse(request.url.path.removesuffix("/upload"), status_code=303, headers=NO_STORE)
 

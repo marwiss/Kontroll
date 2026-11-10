@@ -313,6 +313,10 @@ def test_project_management_reaches_the_bcf_api(client: TestClient, world: World
         )
         == "extensions_saved"
     )
+    assert notice_of(post(client, project_path, page, action="checks", block_on_validation_errors="on")) == "saved"
+    assert 'name="block_on_validation_errors" value="on" checked' in client.get(project_path).text
+    assert notice_of(post(client, project_path, page, action="checks")) == "saved"
+    assert 'name="block_on_validation_errors" value="on" checked' not in client.get(project_path).text
 
     viewer = login_as(client, world, "viewer")
     projects = client.get("/bcf/3.0/projects", headers=viewer.headers).json()

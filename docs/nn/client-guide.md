@@ -47,6 +47,7 @@ tilpassar seg i staden for å prøve seg fram:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -214,6 +215,10 @@ som svarar på det same tokenet, og som kapabilitetsdokumentet kunngjer i
 To IFC-versjonar i eit prosjekt kan samanliknast for kollisjonar på same måte, ei
 utviding som blir annonsert som `ifc_clash`. Sjå [ifc-lpg.md](ifc-lpg.md#kollisjonskontroll).
 
+Ei fil kan kontrollerast før ho blir lasta opp, ei utviding som blir annonsert
+som `ifc_precheck`, og eit prosjekt kan avvise filer med feil. Sjå
+[ifc-lpg.md](ifc-lpg.md#avvise-filer-med-feil-og-kontrollere-ei-fil-på-førehand).
+
 ## 5. Korrelere loggen din med loggen til serveren
 
 Send ein `X-Request-ID`-header (1–128 teikn frå `A-Za-z0-9._-`) med kvar
@@ -262,6 +267,7 @@ menneske:
 | `not_found` | 404 | Ingen slik ressurs, ein ressurs utanfor prosjekta til brukaren, eller ein funksjon som er av (registrering, førespurnadslogg, administrasjons-API) | Vis meldinga, last listene på nytt |
 | `conflict` | 409 | Ein guid som alt finst, eller ei duplisert lenkje | Hent igjen |
 | `version_conflict` | 412 | Opplastinga oppgav `base_version_index`, og dokumentet har alt ein nyare versjon | Hent den nyaste versjonen, slå saman og last opp på nytt |
+| `ifc_validation_failed` | 422 | Prosjektet avviser filer med valideringsfeil, og fila har nokre; `report` i kroppen er adressa til rapporten | Vis rapporten, lat brukaren rette fila og last opp på nytt |
 | `payload_too_large` | 413 | Kroppen i førespurnaden er over grensa til serveren, eller ein BCF-binær er over `max_image_bytes`/`max_upload_bytes` | Rett førespurnaden |
 | `upload_too_large` | 413 | Ei vald fil eller ein del er over opplastingsgrensa (`max_size_in_bytes` i opplastingsinstruksjonane) | Fortel brukaren grensa |
 | `rate_limited` | 429 | For mange førespurnader frå éi adresse; `Retry-After` seier når | Vent og prøv igjen |

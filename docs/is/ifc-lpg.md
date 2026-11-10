@@ -45,8 +45,9 @@ Sérhver `.ifc`- eða `.ifczip`-skrá sem hlaðið er upp sem útgáfu skjals er
 prófuð gagnvart IFC-skemanu, með sama sannprófara og prófar skrifaða skrá
 ([Að skrifa líkan til baka](#að-skrifa-líkan-til-baka)): tag og fjöldi eiginda,
 upptalningar, andhverf eigindi, GlobalId og reglur EXPRESS-skemans. Prófunin
-keyrir í bakgrunni á undan umbreytingunni, í vinnsluferli með sömu mörkum. Hún
-stöðvar aldrei upphal: skráin er vistuð eins og hún kom, hvað sem prófunin finnur.
+keyrir í bakgrunni á undan umbreytingunni, í vinnsluferli með sömu mörkum. Sjálfgefið
+stöðvar hún aldrei upphal: skráin er vistuð eins og hún kom, hvað sem prófunin
+finnur; verkefni getur valið annað ([neðar](#að-hafna-skrám-með-villum-og-prófa-skrá-fyrirfram)).
 Verkefnisskjal BCF er ekki prófað, þar sem það hefur engin lýsigögn.
 `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` slekkur á prófuninni.
 
@@ -170,6 +171,31 @@ einingum hún á við og hve margar athugasemdir hún gaf. IDS-skjal sem ekki er
 hægt að lesa, til dæmis með DTD, er talið upp undir `rules_not_run` ásamt
 ástæðunni, og hin eru samt prófuð. Síða útgáfunnar sýnir forskriftirnar í
 sérstakri töflu.
+
+### Að hafna skrám með villum, og prófa skrá fyrirfram
+
+Kerfisstjóri getur hakað við *Hafna upphölum með sannprófunarvillum* á síðu
+verkefnisins (`block_on_validation_errors` í stjórnunar-API). Prófanirnar keyra
+þá áður en skráin verður útgáfa, í frágangi upphalsins og á upphalssíðunni, og
+skrá með einni eða fleiri villum er hafnað með `422 ifc_validation_failed`;
+viðvaranir sleppa í gegn. Skráin sem var hafnað stendur í sólarhring sem
+forprófun, og `report` í villunni segir hvar skýrslan er. Skrá sem alls ekki
+var hægt að prófa sleppur í gegn sem `unknown`, svo að bilaður sannprófari
+stöðvi aldrei vinnuna. Skrá sem stenst er prófuð einu sinni: niðurstaðan verður
+útgáfunnar, eins og prófunin hefði keyrt á eftir.
+
+Sérhver ritstjóri eða umsjónarmaður getur líka prófað skrá án þess að gera
+hana að útgáfu, með sama bearer-tákni og óháð stillingu verkefnisins:
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-precheck
+Content-Disposition: attachment; filename="model.ifc"
+```
+
+Meginmálið er skráin. Svarið er `202` með `url` skýrslunnar, `pending` þar til
+prófununum er lokið; þá hefur hún sama form og skýrsla útgáfu, með nafni
+skrárinnar og hvenær forprófunin rennur út. Sérhver þátttakandi les hana, í
+sólarhring. Getuskjalið tilkynnir forprófunina sem `ifc_precheck`.
 
 ## Grafið
 

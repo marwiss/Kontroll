@@ -88,6 +88,7 @@ def _project(project: Project, stats: dict[str, int], members: list[dict[str, st
         "topics": stats.get("topics", 0),
         "documents": stats.get("documents", 0),
         "models": models,
+        "block_on_validation_errors": project.block_on_validation_errors,
     }
 
 
@@ -526,6 +527,9 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     name: str | None = Field(None, max_length=200)
     extensions: dict[str, list[str]] | None = None
+    block_on_validation_errors: bool | None = Field(
+        None, description="Refuse uploads with errors against the IFC schema or the project's rules (ADR 0021)."
+    )
 
 
 @router.post("/projects", status_code=201, summary="Administration (extension): create a project")
@@ -558,6 +562,8 @@ async def update_project(
             project = await projects.rename(project.project_id, body.name)
         if body.extensions is not None:
             await projects.set_extensions(project.project_id, body.extensions)
+        if body.block_on_validation_errors is not None:
+            project = await projects.set_block_on_validation_errors(project.project_id, body.block_on_validation_errors)
     except AccountError as exc:
         raise _bad_request(exc) from None
     await _record(
@@ -568,6 +574,7 @@ async def update_project(
         project_id=project.project_id,
         name=body.name,
         extensions=sorted(body.extensions) if body.extensions else None,
+        block_on_validation_errors=body.block_on_validation_errors,
     )
     return await _project_detail(project, projects, graph)
 

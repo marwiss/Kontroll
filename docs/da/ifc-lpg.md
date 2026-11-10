@@ -51,8 +51,9 @@ også mod IFC-skemaet med den validator, der kontrollerer en skrevet fil
 ([Skrive en model tilbage](#skrive-en-model-tilbage)): attributternes type og
 antal, enumerationer, inverse attributter, GlobalId og reglerne i
 EXPRESS-skemaet. Kontrollen kører i baggrunden før konverteringen, i en
-arbejdsproces med de samme grænser. Den stopper aldrig en upload: filen gemmes,
-som den kom, hvad kontrollen end finder. Et BCF-projektdokument kontrolleres
+arbejdsproces med de samme grænser. Som standard stopper den aldrig en upload: filen
+gemmes, som den kom, hvad kontrollen end finder; et projekt kan vælge
+anderledes ([nedenfor](#afvise-filer-med-fejl-og-kontrollere-en-fil-på-forhånd)). Et BCF-projektdokument kontrolleres
 ikke, da det ikke har metadata. `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` slår
 kontrollen fra.
 
@@ -173,6 +174,32 @@ specifikation med dens anvendelse, udfald (`passed`, `failed` eller
 den gav. Et IDS-dokument, der ikke kan læses, for eksempel et med en DTD, står
 under `rules_not_run` med grunden, og de andre kontrolleres alligevel.
 Versionens side viser specifikationerne i en tabel for sig.
+
+### Afvise filer med fejl, og kontrollere en fil på forhånd
+
+En administrator kan sætte kryds ved *Afvis uploads med valideringsfejl* på
+projektets side (`block_on_validation_errors` i administrations-API'et).
+Kontrollerne kører så, før filen bliver en version, i uploadens afslutning og
+på uploadsiden, og en fil med en eller flere fejl afvises med
+`422 ifc_validation_failed`; advarsler slipper igennem. Den afviste fil bliver
+et døgn som forhåndskontrol, og `report` i fejlen siger, hvor rapporten er. En
+fil, der slet ikke kunne kontrolleres, slipper igennem som `unknown`, så en
+defekt validator aldrig stopper arbejdet. En fil, der godkendes, kontrolleres
+én gang: resultatet bliver versionens, som om kontrollen var kørt bagefter.
+
+Enhver redaktør eller forvalter kan også kontrollere en fil uden at gøre den
+til en version, med det samme bearer-token og uanset projektets indstilling:
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-precheck
+Content-Disposition: attachment; filename="model.ifc"
+```
+
+Kroppen er filen. Svaret er `202` med rapportens `url`, `pending` indtil
+kontrollerne er færdige; derefter har den samme form som en versions rapport,
+med filens navn og hvornår forhåndskontrollen udløber. Hvert medlem læser den,
+i et døgn. Kapabilitetsdokumentet annoncerer forhåndskontrollen som
+`ifc_precheck`.
 
 ## Grafen
 

@@ -164,6 +164,12 @@ async def project_action(
             await form.record(graph, "project.extensions", project_id=project.project_id)
             return redirect_with_notice(page, "extensions_saved")
 
+        if action == "checks":
+            block = data.get("block_on_validation_errors") == "on"
+            await projects.set_block_on_validation_errors(project.project_id, block)
+            await form.record(graph, "project.checks", project_id=project.project_id, block_on_validation_errors=block)
+            return redirect_with_notice(page, "saved")
+
         if action == "delete":
             if not await password_confirmed(users, admin, data.get("confirm_password")):
                 return redirect_with_notice(page, "wrong_password")

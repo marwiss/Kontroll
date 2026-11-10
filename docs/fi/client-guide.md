@@ -49,6 +49,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -219,6 +220,10 @@ vastaa samalle tunnisteelle ja jonka ominaisuusdokumentti ilmoittaa kentässä
 Projektin kahta IFC-versiota voi verrata törmäysten varalta samalla tavalla;
 laajennus ilmoitetaan nimellä `ifc_clash`. Katso [ifc-lpg.md](ifc-lpg.md#törmäystarkastus).
 
+Tiedoston voi tarkistaa ennen lähettämistä; laajennus ilmoitetaan nimellä
+`ifc_precheck`, ja projekti voi hylätä virheelliset tiedostot. Katso
+[ifc-lpg.md](ifc-lpg.md#virheellisten-tiedostojen-hylkääminen-ja-tiedoston-tarkistaminen-etukäteen).
+
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 
 Lähetä `X-Request-ID`-otsake (1–128 merkkiä joukosta `A-Za-z0-9._-`)
@@ -268,6 +273,7 @@ kääntää, kun `message` pysyy englanninkielisenä lauseena ihmisille:
 | `not_found` | 404 | Resurssia ei ole, resurssi on käyttäjän projektien ulkopuolella, tai toiminto on pois päältä (rekisteröinti, pyyntöloki, hallintarajapinta) | Näytä viesti, lataa listat uudelleen |
 | `conflict` | 409 | Guid on jo olemassa, tai linkki on päällekkäinen | Hae uudelleen |
 | `version_conflict` | 412 | Lähetys antoi `base_version_index`:n, ja dokumentilla on jo uudempi versio | Hae uusin versio, yhdistä ja lähetä uudelleen |
+| `ifc_validation_failed` | 422 | Projekti hylkää tiedostot, joissa on validointivirheitä, ja tiedostossa on niitä; rungon `report` on raportin osoite | Näytä raportti, anna käyttäjän korjata tiedosto ja lähetä uudelleen |
 | `payload_too_large` | 413 | Pyynnön runko ylittää palvelimen rajan, tai BCF-binääri ylittää `max_image_bytes`/`max_upload_bytes` | Korjaa pyyntö |
 | `upload_too_large` | 413 | Valittu tiedosto tai osa ylittää lähetysrajan (`max_size_in_bytes` lähetysohjeissa) | Kerro käyttäjälle raja |
 | `rate_limited` | 429 | Liian monta pyyntöä yhdestä osoitteesta; `Retry-After` kertoo milloin | Odota ja yritä uudelleen |

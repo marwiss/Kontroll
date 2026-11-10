@@ -20,7 +20,9 @@ import anyio
 
 from opencde.ids import is_uuid
 
-CATEGORIES = frozenset({"documents", "parts", "snapshots", "bitmaps", "snippets", "bcf-documents", "backups"})
+CATEGORIES = frozenset(
+    {"documents", "parts", "prechecks", "snapshots", "bitmaps", "snippets", "bcf-documents", "backups"}
+)
 _SUFFIX = re.compile(r"^[a-z0-9]{1,8}$")
 
 

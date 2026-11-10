@@ -44,6 +44,7 @@ CODE_REAUTHENTICATION_REQUIRED = "reauthentication_required"  # 403: a fresh sig
 CODE_NOT_FOUND = "not_found"  # 404: absent, outside the user's projects, or a feature that is off
 CODE_CONFLICT = "conflict"  # 409: a guid that already exists
 CODE_VERSION_CONFLICT = "version_conflict"  # 412: the upload builds on a version that is no longer the latest
+CODE_IFC_VALIDATION_FAILED = "ifc_validation_failed"  # 422: the project refuses a file with validation errors
 CODE_PAYLOAD_TOO_LARGE = "payload_too_large"  # 413: the request body is over the server's limit
 CODE_UPLOAD_TOO_LARGE = "upload_too_large"  # 413: a chosen file or part is over the upload limit
 CODE_RATE_LIMITED = "rate_limited"  # 429
@@ -65,11 +66,20 @@ CODES_BY_STATUS = {
 
 
 class ApiError(HTTPException):
-    """An error whose code differs from the one the status implies."""
+    """An error whose code differs from the one the status implies; ``details`` are fields the body carries besides."""
 
-    def __init__(self, status_code: int, message: str, *, code: str, headers: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        status_code: int,
+        message: str,
+        *,
+        code: str,
+        headers: dict[str, str] | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
         super().__init__(status_code, message, headers)
         self.code = code
+        self.details = details
 
 
 class UserFacingError(ValueError):
@@ -87,18 +97,26 @@ class UserFacingError(ValueError):
         self.params = params
 
 
-def error_body(status_code: int, message: str, code: str | None = None) -> dict[str, str]:
-    body = {"message": message}
+def error_body(
+    status_code: int, message: str, code: str | None = None, details: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    body: dict[str, Any] = {"message": message}
     code = code or CODES_BY_STATUS.get(status_code)
     if code:
         body["code"] = code
+    if details:
+        body.update(details)
     return body
 
 
 def error_response(
-    status_code: int, message: str, headers: dict[str, str] | None = None, code: str | None = None
+    status_code: int,
+    message: str,
+    headers: dict[str, str] | None = None,
+    code: str | None = None,
+    details: dict[str, Any] | None = None,
 ) -> JSONResponse:
-    return JSONResponse(error_body(status_code, message, code), status_code=status_code, headers=headers)
+    return JSONResponse(error_body(status_code, message, code, details), status_code=status_code, headers=headers)
 
 
 def _summarize_validation(exc: RequestValidationError) -> str:
@@ -115,7 +133,9 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _http_exception(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
         detail = exc.detail if isinstance(exc.detail, str) else "Request failed"
         headers = dict(exc.headers) if exc.headers else None  # the Allow of a 405 comes from Starlette itself
-        return error_response(exc.status_code, detail, headers, code=getattr(exc, "code", None))
+        return error_response(
+            exc.status_code, detail, headers, code=getattr(exc, "code", None), details=getattr(exc, "details", None)
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:

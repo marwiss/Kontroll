@@ -31,7 +31,7 @@ from opencde.auth.tokens import Principal
 from opencde.bcf.binary import file_response, receive_upload
 from opencde.deps import SettingsDep, StorageDep, UsersDep
 from opencde.documents.assembly import AssemblyError, assemble
-from opencde.documents.links import api_base, part_ranges, validation_report_url
+from opencde.documents.links import api_base, part_ranges, precheck_url, validation_report_url
 from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata
 from opencde.documents.schemas import (
     DocumentDiscoverySessionInitialization,
@@ -64,7 +64,13 @@ from opencde.documents.sessions import (
     UploadSessionsDep,
 )
 from opencde.documents.validation import metadata_entries as validation_metadata
-from opencde.errors import CODE_UPLOAD_TOO_LARGE, CODE_VERSION_CONFLICT, ApiError
+from opencde.errors import (
+    CODE_IFC_VALIDATION_FAILED,
+    CODE_UPLOAD_TOO_LARGE,
+    CODE_VERSION_CONFLICT,
+    ApiError,
+    error_body,
+)
 from opencde.etag import etag_for, matches
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
@@ -312,7 +318,32 @@ async def _complete(
     except AssemblyError as exc:
         raise HTTPException(400, str(exc)) from None
     try:
-        project_name = await _project_name(documents, project_id)
+        project = await _project(documents, project_id)
+        checked = await _check_first(ifcgraph, project, project_id, target, item["file_name"])
+    except BaseException:
+        storage.delete(target)
+        raise
+    if ifcgraph is not None and checked is not None and checked.get("error_count"):
+        # The project refuses a file with errors (ADR 0021). The parts are gone; the file stays a day as a
+        # precheck, so that the report can be read at the address the error gives.
+        await sessions.delete_parts(session.id, file_index)
+        item.update(state=FILE_CANCELLED)
+        await sessions.update(session.id, files=files)
+        precheck_id = await ifcgraph.keep_as_precheck(
+            project_id=project_id,
+            storage_key=target,
+            file_name=item["file_name"],
+            author=session.username,
+            checked=checked,
+        )
+        raise ApiError(
+            422,
+            f"The file has {checked['error_count']} errors against the IFC schema or the project's rules, and the "
+            "project does not accept such a file",
+            code=CODE_IFC_VALIDATION_FAILED,
+            details={"report": precheck_url(base, project_id, precheck_id)},
+        )
+    try:
         record = await documents.create_version(
             project_id=project_id,
             document_id=item.get("document_id"),
@@ -328,7 +359,7 @@ async def _complete(
                 size_in_bytes=int(item["size_in_bytes"]),
                 sha256=sha256,
                 author=session.username,
-                project_name=project_name,
+                project_name=project["name"],
             )
             + (
                 [DocumentMetadataEntry(name="base_version_index", value=[str(base_version)], data_type="integer32")]
@@ -350,15 +381,28 @@ async def _complete(
             document_id=record.document_id,
             version_index=record.version_index,
             version_id=record.version_id,
+            checked=checked,
         )
     return record.to_model(base)
 
 
-async def _project_name(documents: DocumentsDep, project_id: str) -> str:
-    row = await documents.graph.one("MATCH (p:Project {project_id: $id}) RETURN p.name AS name", id=project_id)
+async def _project(documents: DocumentsDep, project_id: str) -> dict[str, Any]:
+    row = await documents.graph.one(
+        "MATCH (p:Project {project_id: $id}) RETURN p.name AS name, p.block_on_validation_errors AS block",
+        id=project_id,
+    )
     if row is None:
         raise HTTPException(404, "Project not found")
-    return str(row["name"])
+    return {"name": str(row["name"]), "block": bool(row["block"])}
+
+
+async def _check_first(
+    ifcgraph: IfcGraphService | None, project: dict[str, Any], project_id: str, storage_key: str, file_name: str
+) -> dict[str, Any] | None:
+    """The checks before the version exists, for a project that refuses uploads with errors (ADR 0021)."""
+    if ifcgraph is None or not project["block"]:
+        return None
+    return await ifcgraph.check_now(project_id=project_id, storage_key=storage_key, file_name=file_name)
 
 
 @router.post(
@@ -416,7 +460,10 @@ async def upload_completion(
         try:
             yield json.dumps(task.result().model_dump(exclude_none=True)).encode("utf-8")
         except HTTPException as exc:
-            yield json.dumps({"message": exc.detail}).encode("utf-8")
+            body = error_body(
+                exc.status_code, str(exc.detail), getattr(exc, "code", None), getattr(exc, "details", None)
+            )
+            yield json.dumps(body).encode("utf-8")
 
     return StreamingResponse(keep_alive(), media_type="application/json")
 

@@ -50,7 +50,13 @@ IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
 IDS_SUFFIX = ".ids"
 # The IDS documents of one project an upload is checked against, and the specifications its report keeps (ADR 0015).
 MAX_IDS_DOCUMENTS = 50
+PRECHECK_SECONDS = 24 * 3600  # a file checked without becoming a version is kept this long (ADR 0021)
 MAX_SPECIFICATIONS = 1_000
+
+
+def _failure(exc: Exception) -> dict[str, Any]:
+    """The fields of a check that could not run; the message is cut, as it may quote the file."""
+    return {"checked_at": now_iso(), "error": f"{type(exc).__name__}: {exc}"[:300]}
 
 
 def _ids_ruleset() -> str:
@@ -93,15 +99,20 @@ class IfcGraphService:
         version_index: int | None = None,
         bcf_document_guid: str | None = None,
         version_id: str | None = None,
+        checked: dict[str, Any] | None = None,
     ) -> str | None:
         """Queue a conversion for an uploaded IFC file; returns the model id, or None for other files.
 
-        A document version (``version_id``) is checked against the IFC schema too, before it is converted.
+        A document version (``version_id``) is checked against the IFC schema too, before it is converted, unless
+        ``checked`` brings the result of a check made before the version existed (``check_now``).
         """
         if not self.wants(file_name):
             return None
         if version_id is not None and self.settings.ifcgraph_validate_uploads:
-            await self._queue_validation(version_id, storage_key, file_name)
+            if checked is None:
+                await self._queue_validation(version_id, storage_key, file_name)
+            else:
+                await self._record_validation(version_id, storage_key, file_name, checked)
         model_id = new_id()
         await self.graph.run(
             """
@@ -302,60 +313,187 @@ class IfcGraphService:
             if not rows:
                 return
             try:
-                with tempfile.TemporaryDirectory(prefix="ifcvalidation-") as tmp:
-                    source = await asyncio.to_thread(self._prepare_input, storage_key, file_name, Path(tmp))
-                    command = [
-                        sys.executable,
-                        "-m",
-                        "ifc_lpg.validation",
-                        str(source),
-                        "--report",
-                        "--memory-mb",
-                        str(self.settings.ifcgraph_memory_mb),
-                    ]
-                    report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
-                    gherkin = await self._gherkin(source)
-                    ids = await self._ids(source, await self._ids_documents(validation_id))
+                fields = await self._run_checks(storage_key, file_name, await self._project_of(validation_id))
             except Exception as exc:
                 log.warning("ifc_validation_failed", validation_id=validation_id, error=type(exc).__name__)
-                await self._set_validation(
-                    validation_id, STATE_FAILED, checked_at=now_iso(), error=f"{type(exc).__name__}: {exc}"[:300]
-                )
+                await self._set_validation(validation_id, STATE_FAILED, **_failure(exc))
                 return
-            checks: list[dict[str, Any]] = [
-                {
-                    "name": "schema",
-                    "state": STATE_DONE,
-                    "ruleset": str(report["ruleset"]),
-                    "issue_count": int(report["issue_count"]),
-                }
+            await self._set_validation(validation_id, STATE_DONE, **fields)
+            log.info("ifc_validation_done", validation_id=validation_id, issues=fields["issue_count"])
+
+    async def _project_of(self, validation_id: str) -> str | None:
+        """The project of a check: through the version for an upload, straight from the project for a precheck."""
+        row = await self.graph.one(
+            """
+            MATCH (r:IfcValidation {id: $id})
+            OPTIONAL MATCH (r)<-[:HAS_VALIDATION]-(:DocumentVersion)<-[:HAS_VERSION]-(:Document)
+                           <-[:HAS_DOCUMENT]-(p:Project)
+            OPTIONAL MATCH (r)<-[:HAS_PRECHECK]-(q:Project)
+            RETURN p.project_id AS of_version, q.project_id AS of_precheck
+            """,
+            id=validation_id,
+        )
+        if row is None:
+            return None
+        return row["of_version"] or row["of_precheck"]
+
+    async def _run_checks(self, storage_key: str, file_name: str, project_id: str | None) -> dict[str, Any]:
+        """The IFC schema, buildingSMART's rules and the project's IDS documents on one file.
+
+        The fields of an ``IfcValidation`` node in state ``done``; an exception when the file could not be checked.
+        """
+        with tempfile.TemporaryDirectory(prefix="ifcvalidation-") as tmp:
+            source = await asyncio.to_thread(self._prepare_input, storage_key, file_name, Path(tmp))
+            command = [
+                sys.executable,
+                "-m",
+                "ifc_lpg.validation",
+                str(source),
+                "--report",
+                "--memory-mb",
+                str(self.settings.ifcgraph_memory_mb),
             ]
-            issues = list(report["issues"])
-            total = int(report["issue_count"])
-            errors = int(report.get("error_count", total))
-            truncated = bool(report["truncated"])
-            for other in (gherkin, ids):
-                if other is None:
-                    continue
-                checks.append(other["check"])
-                issues += other["issues"]
-                total += int(other["check"]["issue_count"])
-                errors += int(other["error_count"])
-                truncated = truncated or bool(other["truncated"])
-            if len(issues) > MAX_REPORTED:
-                issues, truncated = issues[:MAX_REPORTED], True
-            await self._set_validation(
-                validation_id,
-                STATE_DONE,
-                checked_at=now_iso(),
-                issue_count=total,
-                error_count=errors,
-                truncated=truncated,
-                ruleset="; ".join(check["ruleset"] for check in checks if check["state"] == STATE_DONE),
-                checks=json.dumps(checks),
-                report=pack_report(issues),
-            )
-            log.info("ifc_validation_done", validation_id=validation_id, issues=total)
+            report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
+            gherkin = await self._gherkin(source)
+            ids = await self._ids(source, await self._ids_documents(project_id) if project_id else [])
+        checks: list[dict[str, Any]] = [
+            {
+                "name": "schema",
+                "state": STATE_DONE,
+                "ruleset": str(report["ruleset"]),
+                "issue_count": int(report["issue_count"]),
+            }
+        ]
+        issues = list(report["issues"])
+        total = int(report["issue_count"])
+        errors = int(report.get("error_count", total))
+        truncated = bool(report["truncated"])
+        for other in (gherkin, ids):
+            if other is None:
+                continue
+            checks.append(other["check"])
+            issues += other["issues"]
+            total += int(other["check"]["issue_count"])
+            errors += int(other["error_count"])
+            truncated = truncated or bool(other["truncated"])
+        if len(issues) > MAX_REPORTED:
+            issues, truncated = issues[:MAX_REPORTED], True
+        return {
+            "checked_at": now_iso(),
+            "issue_count": total,
+            "error_count": errors,
+            "truncated": truncated,
+            "ruleset": "; ".join(check["ruleset"] for check in checks if check["state"] == STATE_DONE),
+            "checks": json.dumps(checks),
+            "report": pack_report(issues),
+        }
+
+    async def check_now(self, *, project_id: str, storage_key: str, file_name: str) -> dict[str, Any] | None:
+        """Check a file before it becomes a version, for a project that refuses uploads with errors (ADR 0021).
+
+        The fields of an ``IfcValidation`` node with its ``state``, ``done`` or ``failed``; None for a file that is
+        not IFC, or when checking is off. A check that cannot run refuses nothing: the file is as unknown as any
+        other, and ``schedule`` records that with the version.
+        """
+        if not self.wants(file_name) or not self.settings.ifcgraph_validate_uploads:
+            return None
+        async with self._lock:
+            try:
+                return {"state": STATE_DONE, **await self._run_checks(storage_key, file_name, project_id)}
+            except Exception as exc:
+                log.warning("ifc_validation_failed", project_id=project_id, error=type(exc).__name__)
+                return {"state": STATE_FAILED, **_failure(exc)}
+
+    async def _record_validation(
+        self, version_id: str, storage_key: str, file_name: str, checked: dict[str, Any]
+    ) -> None:
+        """A check made before the version existed (``check_now``) becomes the version's ``IfcValidation`` node."""
+        now = now_iso()
+        await self.graph.run(
+            """
+            MATCH (v:DocumentVersion {id: $version_id})
+            CREATE (v)-[:HAS_VALIDATION]->(r:IfcValidation {id: $id, storage_key: $storage_key, file_name: $file_name})
+            SET r += $fields
+            """,
+            version_id=version_id,
+            id=new_id(),
+            storage_key=storage_key,
+            file_name=file_name,
+            fields={**checked, "created_at": now, f"{checked['state']}_at": now},
+        )
+
+    # -- a file checked without becoming a version (ADR 0021) -----------------------------------------
+
+    async def schedule_precheck(
+        self, *, precheck_id: str, project_id: str, storage_key: str, file_name: str, author: str
+    ) -> None:
+        """Queue the checks on a file a member sent to try; the node and the file live ``PRECHECK_SECONDS``."""
+        rows = await self.graph.run(
+            """
+            MATCH (p:Project {project_id: $project_id})
+            CREATE (p)-[:HAS_PRECHECK]->(r:IfcValidation:IfcPrecheck {
+                id: $id, project_id: $project_id, storage_key: $storage_key, file_name: $file_name,
+                author: $author, state: $state, created_at: $now, expires_at: $expires_at
+            })
+            RETURN r.id AS id
+            """,
+            project_id=project_id,
+            id=precheck_id,
+            storage_key=storage_key,
+            file_name=file_name,
+            author=author,
+            state=STATE_QUEUED,
+            now=now_iso(),
+            expires_at=later_iso(PRECHECK_SECONDS),
+        )
+        if not rows:
+            raise ValueError("no such project")
+        self._start_validation(precheck_id, storage_key, file_name)
+
+    async def keep_as_precheck(
+        self, *, project_id: str, storage_key: str, file_name: str, author: str, checked: dict[str, Any]
+    ) -> str:
+        """A refused upload stays as a precheck, so that its report can be read; returns the precheck's id."""
+        precheck_id = new_id()
+        now = now_iso()
+        await self.graph.run(
+            """
+            MATCH (p:Project {project_id: $project_id})
+            CREATE (p)-[:HAS_PRECHECK]->(r:IfcValidation:IfcPrecheck {
+                id: $id, project_id: $project_id, storage_key: $storage_key, file_name: $file_name,
+                author: $author, created_at: $now, expires_at: $expires_at
+            })
+            SET r += $fields
+            """,
+            project_id=project_id,
+            id=precheck_id,
+            storage_key=storage_key,
+            file_name=file_name,
+            author=author,
+            now=now,
+            expires_at=later_iso(PRECHECK_SECONDS),
+            fields={**checked, f"{checked['state']}_at": now},
+        )
+        return precheck_id
+
+    async def precheck(self, *, user_id: str, project_id: str, precheck_id: str) -> dict[str, Any] | None:
+        """A precheck of a project the user is a member of, its issues unpacked; None when there is none."""
+        row = await self.graph.one(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
+                  -[:HAS_PRECHECK]->(r:IfcPrecheck {id: $id})
+            RETURN properties(r) AS node
+            """,
+            user_id=user_id,
+            project_id=project_id,
+            id=precheck_id,
+        )
+        if row is None:
+            return None
+        node = dict(row["node"])
+        node["issues"] = unpack_report(node.pop("report", None))
+        node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
+        return node
 
     def _gherkin_env(self) -> Path | None:
         """The environment ifc-gherkin-rules run in, if one is configured and installed (ADR 0012)."""
@@ -406,13 +544,11 @@ class IfcGraphService:
             "truncated": bool(report["truncated"]),
         }
 
-    async def _ids_documents(self, validation_id: str) -> list[dict[str, Any]]:
-        """The latest version of every IDS document in the project of the version being checked (ADR 0015)."""
+    async def _ids_documents(self, project_id: str) -> list[dict[str, Any]]:
+        """The latest version of every IDS document in the project of the file being checked (ADR 0015)."""
         return await self.graph.run(
             """
-            MATCH (:IfcValidation {id: $id})<-[:HAS_VALIDATION]-(:DocumentVersion)<-[:HAS_VERSION]-(:Document)
-                  <-[:HAS_DOCUMENT]-(p:Project)
-            MATCH (p)-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
+            MATCH (:Project {project_id: $id})-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
             WITH d, v ORDER BY v.version_index DESC
             WITH d, collect(v)[0] AS v
             WHERE toLower(v.file_name) ENDS WITH $suffix
@@ -421,7 +557,7 @@ class IfcGraphService:
             ORDER BY document_id
             LIMIT $limit
             """,
-            id=validation_id,
+            id=project_id,
             suffix=IDS_SUFFIX,
             limit=MAX_IDS_DOCUMENTS,
         )

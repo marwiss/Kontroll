@@ -45,6 +45,9 @@ sequenceDiagram
 * `base_version_index` i en filpost (en udvidelse) siger, hvilken version
   uploaden bygger på: afslutningen svarer `412 version_conflict`, når dokumentet
   allerede har en nyere, og versionens metadata angiver basen.
+* Et projekt kan afvise filer med valideringsfejl: afslutningen svarer så
+  `422 ifc_validation_failed` med rapportens adresse, og
+  `POST …/projects/{id}/ifc-precheck` kontrollerer en fil uden at gemme den.
 
 ## Valg og download
 

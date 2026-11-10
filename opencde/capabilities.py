@@ -85,6 +85,11 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 if settings.ifcgraph_enabled and settings.ifcgraph_clash_enabled and settings.offers("documents")
                 else {"enabled": False}
             ),
+            "ifc_precheck": (
+                {"enabled": True, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"}
+                if settings.ifcgraph_enabled and settings.ifcgraph_validate_uploads and settings.offers("documents")
+                else {"enabled": False}
+            ),
             "graph_query": (
                 {
                     "enabled": True,

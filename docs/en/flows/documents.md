@@ -43,6 +43,9 @@ sequenceDiagram
 * `base_version_index` in a file entry (an extension) says which version the
   upload builds on: the completion answers `412 version_conflict` when the
   document already has a newer one, and the version's metadata records the base.
+* A project may refuse files with validation errors: the completion then
+  answers `422 ifc_validation_failed` with the report's address, and
+  `POST …/projects/{id}/ifc-precheck` checks a file without storing it.
 
 ## Selection and download
 

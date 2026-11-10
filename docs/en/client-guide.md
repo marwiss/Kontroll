@@ -47,6 +47,7 @@ of probing:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -205,6 +206,10 @@ answers to the same token, and that the capabilities document announces in
 Two IFC versions of a project can be compared for clashes the same way, an
 extension announced as `ifc_clash`. See [ifc-lpg.md](ifc-lpg.md#clash-check).
 
+A file can be checked before it is uploaded, an extension announced as
+`ifc_precheck`, and a project may refuse files with errors. See
+[ifc-lpg.md](ifc-lpg.md#refusing-files-with-errors-and-checking-a-file-first).
+
 ## 5. Correlating your log with the server's
 
 Send an `X-Request-ID` header (1–128 characters of `A-Za-z0-9._-`) with every
@@ -252,6 +257,7 @@ act on or translate, while `message` stays an English sentence for people:
 | `not_found` | 404 | No such resource, a resource outside the user's projects, or a feature that is off (registration, request log, administration API) | Show the message, refresh lists |
 | `conflict` | 409 | A guid that already exists, or a duplicate link | Fetch again |
 | `version_conflict` | 412 | The upload gave `base_version_index`, and the document already has a newer version | Fetch the latest version, merge, and upload again |
+| `ifc_validation_failed` | 422 | The project refuses files with validation errors, and the file has some; `report` in the body is the report's address | Show the report, let the user fix the file, and upload again |
 | `payload_too_large` | 413 | The request body is over the server's limit, or a BCF binary is over `max_image_bytes`/`max_upload_bytes` | Fix the request |
 | `upload_too_large` | 413 | A chosen file or part is over the upload limit (`max_size_in_bytes` in the upload instructions) | Tell the user the limit |
 | `rate_limited` | 429 | Too many requests from one address; `Retry-After` says when | Wait and retry |

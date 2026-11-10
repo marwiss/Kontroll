@@ -86,6 +86,7 @@ EXPIRING_LABELS: tuple[str, ...] = (
     "SelectionSession",
     "Client",
     "RequestLog",
+    "IfcPrecheck",
 )
 
 

@@ -45,6 +45,9 @@ sequenceDiagram
 * `base_version_index` í skráarfærslu (viðbót) segir á hvaða útgáfu
   upphleðslan byggir: frágangurinn svarar `412 version_conflict` þegar skjalið
   hefur þegar nýrri, og lýsigögn útgáfunnar skrá grunninn.
+* Verkefni getur hafnað skrám með sannprófunarvillum: frágangurinn svarar þá
+  `422 ifc_validation_failed` með heimilisfangi skýrslunnar, og
+  `POST …/projects/{id}/ifc-precheck` prófar skrá án þess að vista hana.
 
 ## Val og niðurhal
 

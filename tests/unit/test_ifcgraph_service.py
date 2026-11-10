@@ -29,6 +29,10 @@ class Graph:
         self.writes.append((query, params))
         return [{"id": params["id"]}] if "SET r.state = $running" in query else []
 
+    async def one(self, query: str, **params: Any) -> dict[str, Any] | None:
+        """The project of the check (``_project_of``), as an upload has one."""
+        return {"of_version": "project-1", "of_precheck": None}
+
 
 class Log:
     def __init__(self) -> None:

@@ -42,6 +42,7 @@ OWNED_RELATIONSHIPS = (
     "HAS_DOCUMENT",
     "HAS_VERSION",
     "HAS_VALIDATION",
+    "HAS_PRECHECK",
     "HAS_MODEL",
     "HAS_CLASH",
 )
@@ -72,10 +73,17 @@ class Project:
     project_id: str
     name: str
     created_at: str
+    # Uploads with errors against the IFC schema or the project's rules are refused (ADR 0021).
+    block_on_validation_errors: bool = False
 
 
 def _project(row: dict[str, Any]) -> Project:
-    return Project(project_id=row["project_id"], name=row["name"], created_at=row["created_at"])
+    return Project(
+        project_id=row["project_id"],
+        name=row["name"],
+        created_at=row["created_at"],
+        block_on_validation_errors=bool(row.get("block_on_validation_errors")),
+    )
 
 
 def _clean_list(name: str, values: list[str]) -> list[str]:
@@ -168,6 +176,16 @@ class ProjectRepository:
             "MATCH (p:Project {project_id: $id}) SET p.name = $name RETURN properties(p) AS project",
             id=project_id,
             name=name,
+        )
+        if row is None:
+            raise AccountError("no such project", key="error.project.not_found")
+        return _project(row["project"])
+
+    async def set_block_on_validation_errors(self, project_id: str, value: bool) -> Project:
+        row = await self.graph.one(
+            "MATCH (p:Project {project_id: $id}) SET p.block_on_validation_errors = $value RETURN properties(p) AS project",
+            id=project_id,
+            value=bool(value),
         )
         if row is None:
             raise AccountError("no such project", key="error.project.not_found")

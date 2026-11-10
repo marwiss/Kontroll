@@ -44,7 +44,7 @@ erDiagram
 |---|---|---|---|
 | `User` | `id`, unikt `username` | `email`, `full_name`, `password_hash` (Argon2id), `is_admin`, `disabled`, `created_at`, `must_change_password` | Användarnamnet är det användar-id API:erna exponerar |
 | `MEMBER_OF` (relation User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Rollerna avbildas på BCF:s `*_actions`, se `accounts/roles.py` |
-| `Project` | `project_id` | `name`, `created_at`, `topic_counter` | `topic_counter` numrerar `server_assigned_id` |
+| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` numrerar `server_assigned_id`; `block_on_validation_errors` avvisar uppladdningar med valideringsfel (ADR 0021) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` beräknas ur medlemmarna |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (bara självregistrerade) | OAuth2-klient; en självregistrerad tas bort när `expires_at` passerat utan att någon token utfärdats |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-sträng) | Säkerhetsrelevanta händelser |
@@ -125,6 +125,7 @@ erDiagram
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    Project ||--o{ IfcPrecheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -140,6 +141,7 @@ erDiagram
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` numrerar versionerna |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON) | Bytes under `documents/<id>`; API-kroppen visar bara specens fält |
 | `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen av en uppladdad IFC-fil mot IFC-schemat (ADR 0011); `report` är upp till 10 000 anmärkningar som komprimerad JSON. Raderas med versionens projekt |
+| `IfcPrecheck` | `id` | samma som `IfcValidation`, `project_id`, `author`, `expires_at` | En fil som kontrollerats utan att bli en version, eller en uppladdning som projektet avvisade (ADR 0021); har också etiketten `IfcValidation`. Städjobbet raderar den och dess fil efter ett dygn |
 | `UploadSession` | `id`, indexerad `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` förekommer i API-URL:er (bearer krävs); UI-URL:en bär den token vars hash lagras |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` tills filen sätts samman; städjobbet tar bort utgångna delar och deras filer |
 | `SelectionSession` | `id`, indexerad `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` håller `document_id:version_index`-par valda i webbläsaren |

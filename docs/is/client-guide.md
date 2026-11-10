@@ -48,6 +48,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -210,6 +211,10 @@ sama tóka og getuskjalið kynnir í `ifc_queries`. Sjá
 Tvær IFC-útgáfur verkefnis má bera saman með tilliti til árekstra á sama hátt,
 viðbót sem er tilkynnt sem `ifc_clash`. Sjá [ifc-lpg.md](ifc-lpg.md#árekstrarprófun).
 
+Skrá má prófa áður en henni er hlaðið upp, viðbót sem er tilkynnt sem
+`ifc_precheck`, og verkefni getur hafnað skrám með villum. Sjá
+[ifc-lpg.md](ifc-lpg.md#að-hafna-skrám-með-villum-og-prófa-skrá-fyrirfram).
+
 ## 5. Að tengja atvikaskrá þína við þjónsins
 
 Sendu `X-Request-ID`-haus (1–128 tákn úr `A-Za-z0-9._-`) með hverri beiðni
@@ -258,6 +263,7 @@ brugðist við eða þýtt, meðan `message` er áfram ensk setning fyrir fólk:
 | `not_found` | 404 | Engin slík auðlind, auðlind utan verkefna notandans, eða eiginleiki sem er óvirkur (skráning, beiðnaskrá, stjórnunarforritaskil) | Sýndu skilaboðin, endurhladdu lista |
 | `conflict` | 409 | Guid sem er þegar til, eða tvítekinn tengill | Sæktu aftur |
 | `version_conflict` | 412 | Upphleðslan gaf `base_version_index` og skjalið hefur þegar nýrri útgáfu | Sæktu nýjustu útgáfuna, sameinaðu og hladdu upp aftur |
+| `ifc_validation_failed` | 422 | Verkefnið hafnar skrám með sannprófunarvillum og skráin hefur slíkar; `report` í meginmálinu er heimilisfang skýrslunnar | Sýndu skýrsluna, láttu notandann laga skrána og hladdu upp aftur |
 | `payload_too_large` | 413 | Meginmál beiðninnar fer yfir mörk þjónsins, eða BCF-tvíundarskrá fer yfir `max_image_bytes`/`max_upload_bytes` | Lagaðu beiðnina |
 | `upload_too_large` | 413 | Valin skrá eða hluti fer yfir upphalsmörkin (`max_size_in_bytes` í upphalsfyrirmælunum) | Segðu notandanum mörkin |
 | `rate_limited` | 429 | Of margar beiðnir frá einu vistfangi; `Retry-After` segir hvenær | Bíddu og reyndu aftur |

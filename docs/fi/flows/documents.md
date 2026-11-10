@@ -45,6 +45,9 @@ sequenceDiagram
 * `base_version_index` tiedostomerkinnässä (laajennus) kertoo, mihin versioon
   lähetys perustuu: viimeistely vastaa `412 version_conflict`, kun dokumentilla
   on jo uudempi, ja version metatiedot kirjaavat perustan.
+* Projekti voi hylätä tiedostot, joissa on validointivirheitä: viimeistely
+  vastaa silloin `422 ifc_validation_failed` ja raportin osoitteen, ja
+  `POST …/projects/{id}/ifc-precheck` tarkistaa tiedoston tallentamatta sitä.
 
 ## Valinta ja lataus
 

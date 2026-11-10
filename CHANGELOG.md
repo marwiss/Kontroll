@@ -10,6 +10,12 @@ the commit history.
 
 ## Unreleased
 
+- A project can refuse uploads with validation errors: *Refuse uploads with validation errors* on its page in the
+  administration (`block_on_validation_errors` in the administration API). The checks then run before the file
+  becomes a version, and a file with errors is refused with `422 ifc_validation_failed` and the address of its
+  report; warnings pass. A file can also be checked without becoming a version:
+  `POST /documents/1.0/projects/{id}/ifc-precheck` with the file as the body (an extension announced as
+  `ifc_precheck`), and `GET …/ifc-precheck/{id}` gives the report for a day.
 - An upload can say which version it builds on: `base_version_index` on a file entry of
   `POST /documents/1.0/upload-documents` (an extension). The completion answers `412 version_conflict` when the
   document already has a newer version, and the new version's metadata carries `base_version_index`.

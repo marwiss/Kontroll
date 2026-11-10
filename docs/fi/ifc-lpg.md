@@ -51,8 +51,9 @@ myös IFC-skeemaa vasten samalla validaattorilla, joka tarkistaa kirjoitetun
 tiedoston ([Mallin kirjoittaminen takaisin](#mallin-kirjoittaminen-takaisin)):
 attribuuttien tyyppi ja määrä, luetellut arvot, käänteiset attribuutit, GlobalId
 ja EXPRESS-skeeman säännöt. Tarkistus ajetaan taustalla ennen muunnosta
-erillisessä työprosessissa samoin rajoin. Se ei koskaan estä lähetystä: tiedosto
-tallennetaan sellaisenaan, löysi tarkistus mitä tahansa. BCF-projektidokumenttia
+erillisessä työprosessissa samoin rajoin. Oletuksena se ei koskaan estä lähetystä: tiedosto
+tallennetaan sellaisenaan, löysi tarkistus mitä tahansa; projekti voi valita
+toisin ([alla](#virheellisten-tiedostojen-hylkääminen-ja-tiedoston-tarkistaminen-etukäteen)). BCF-projektidokumenttia
 ei tarkisteta, koska sillä ei ole metatietoja.
 `OPENCDE_IFC_LPG_VALIDATE_UPLOADS=false` poistaa tarkistuksen käytöstä.
 
@@ -178,6 +179,33 @@ jokaisen määrittelyn käyttöineen ja tuloksineen (`passed`, `failed` tai
 monta huomautusta se antoi. IDS-asiakirja, jota ei voi lukea, esimerkiksi
 sellainen, jossa on DTD, luetellaan kohdassa `rules_not_run` syineen, ja muut
 tarkistetaan silti. Version sivu näyttää määrittelyt omassa taulukossaan.
+
+### Virheellisten tiedostojen hylkääminen ja tiedoston tarkistaminen etukäteen
+
+Ylläpitäjä voi rastittaa projektin sivulla *Hylkää lähetykset, joissa on
+validointivirheitä* (`block_on_validation_errors` hallinta-API:ssa).
+Tarkistukset ajetaan silloin ennen kuin tiedostosta tulee versio, lähetyksen
+viimeistelyssä ja lähetyssivulla, ja tiedosto, jossa on yksi tai useampi virhe,
+hylätään vastauksella `422 ifc_validation_failed`; varoitukset päästetään läpi.
+Hylätty tiedosto säilyy vuorokauden ennakkotarkistuksena, ja virheen `report`
+kertoo, missä sen raportti on. Tiedosto, jota ei voitu tarkistaa lainkaan,
+päästetään läpi tilassa `unknown`, jotta rikkinäinen validaattori ei koskaan
+pysäytä työtä. Hyväksytty tiedosto tarkistetaan kerran: tuloksesta tulee
+version tulos, aivan kuin tarkistus olisi ajettu jälkikäteen.
+
+Jokainen muokkaaja tai hallinnoija voi myös tarkistaa tiedoston tekemättä siitä
+versiota, samalla bearer-tunnuksella ja projektin asetuksesta riippumatta:
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-precheck
+Content-Disposition: attachment; filename="model.ifc"
+```
+
+Runko on tiedosto. Vastaus on `202` ja raportin `url`, `pending` kunnes
+tarkistukset ovat valmiit; sen jälkeen sillä on version raportin muoto,
+tiedoston nimi ja ennakkotarkistuksen vanhenemisaika. Jokainen jäsen lukee sen
+vuorokauden ajan. Kyvykkyysdokumentti ilmoittaa ennakkotarkistuksen nimellä
+`ifc_precheck`.
 
 ## Graafi
 
