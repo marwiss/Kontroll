@@ -343,7 +343,7 @@ Besluten finns i korthet under [Lär dig mer](#lär-dig-mer), arbetssätten i
   finns på ett ställe. Ingen programvara tillämpar en snippet i dag, och
   buildingSMARTs outgivna utvecklingsgrenar har strukit dem; Dataregium bygger
   dem för att visa hur de skulle kunna fungera. En snippet pekar ut det den
-  ändrar med STEP-id, eller med GlobalId och en sökväg därifrån. STEP-id når
+  ändrar med GlobalId och en sökväg därifrån, med STEP-id bara där inget GlobalId når. STEP-id når
   alltid en instans; GlobalId och sökväg nådde 98 till 100 procent av
   instanserna i 28 provfiler, med steg bakåt genom inversa attribut.
 - **Tillägg, inte nya versioner av API:erna.** BCF-ärenden med `bim_snippet`,
@@ -354,8 +354,8 @@ Besluten finns i korthet under [Lär dig mer](#lär-dig-mer), arbetssätten i
 - **Administration av ett projekt av dess projektansvarige**, som inte behöver
   vara serveradministratör, och team med ansvar utöver projektrollerna.
 - **Hur en version lagras** (beslutat 2026-11-10). Varje godkänd version är en
-  nod med sin förälder, författare, godkännare och ändringar per STEP-id och
-  attribut; grafen håller huvudversionen; en version lagras som sin ändring,
+  nod med sin förälder, författare, godkännare och ändringar per GlobalId,
+  sökväg och attribut; grafen håller huvudversionen; en version lagras som sin ändring,
   med en hel fil, som `.ifczip`, bara när den publiceras, och vilken version
   som helst skrivs på begäran; två ändringar sammanfogas attribut för attribut,
   som ifcmerge gör, och en ändring förs in när filen som skrivs från den inte
@@ -369,7 +369,7 @@ Besluten finns i korthet under [Lär dig mer](#lär-dig-mer), arbetssätten i
   klassificering eller våning, som ISO 19650:s ansvariga team gör, kommer
   senare.
 - **Snippetens detaljer** (beslutat). En sökväg skrivs med IFC:s attributnamn
-  med index, från ett GlobalId, med STEP-id som snabbväg; en ändring av en
+  med index, från ett GlobalId, med STEP-id bara där inget GlobalId når; en ändring av en
   instans som flera delar ändrar den för alla, och en egen kopia måste begäras;
   varje ändring bär vem som föreslog den, och vilken AI-modell och vilket
   verktygsanrop, där en AI gjorde det.

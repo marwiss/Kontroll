@@ -4,8 +4,9 @@
 A change travels as the ``bim_snippet`` of a BCF 3.0 topic whose ``snippet_type`` is ``DataregiumIfcChangeSet`` and
 whose ``reference_schema`` is ``GET /documents/1.0/ifc-changes/schema``: this module's model, as JSON Schema. The
 snippet names its base version, who proposed it (and which AI model and tool call, where an AI did) and the changes,
-each on one attribute of one instance: the instance by its STEP id, or by a GlobalId and a path from the rooted
-entity in IFC's attribute names with indexes, such as ``IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]``.
+each on one attribute of one instance: the instance by a GlobalId and a path from the rooted entity, or by its
+STEP id only where no GlobalId reaches it (the owner's rule of 2026-11-10); the path is in IFC's attribute names
+with indexes, such as ``IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]``.
 A change to an instance that several share changes it for all of them, unless ``copy`` asks for a copy. The server
 checks the form here; what the changes do to the model is checked when a proposal is tried (the next step).
 """
@@ -38,9 +39,12 @@ class _Strict(BaseModel):
 
 
 class Reference(_Strict):
-    """Another instance of the model, as a value: by its STEP id, or by a GlobalId and a path from it."""
+    """Another instance of the model, as a value: by a GlobalId and a path from it, or by its STEP id where no
+    GlobalId reaches it."""
 
-    step_id: int | None = Field(None, ge=1, description="The instance's number in the STEP file (`#123`).")
+    step_id: int | None = Field(
+        None, ge=1, description="The instance's number in the STEP file (`#123`); only where no GlobalId reaches it."
+    )
     guid: str | None = Field(None, pattern=GUID, description="The GlobalId of a rooted entity.")
     path: str | None = Field(
         None, max_length=1000, pattern=PATH, description="From the rooted entity to the instance, where it is not it."
@@ -77,7 +81,11 @@ Value = Item | list[Item | list[Item]]
 class Change(_Strict):
     """One attribute of one instance: set to a value, or an aggregate's member added or removed."""
 
-    step_id: int | None = Field(None, ge=1, description="The instance changed, by its number in the STEP file.")
+    step_id: int | None = Field(
+        None,
+        ge=1,
+        description="The instance changed, by its number in the STEP file; only where no GlobalId and path reach it.",
+    )
     guid: str | None = Field(None, pattern=GUID, description="The rooted entity the path starts from.")
     path: str | None = Field(
         None,

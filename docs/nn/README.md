@@ -343,7 +343,7 @@ arbeidsmåtane i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
   Ingen programvare bruker ein snippet i dag, og dei ikkje utgjevne
   utviklingsgreinene til buildingSMART har fjerna dei; Dataregium byggjer dei for
   å vise korleis dei kunne verke. Ein snippet peikar ut det han endrar med
-  STEP-id, eller med GlobalId og ein sti derifrå. STEP-ida når alltid ein
+  GlobalId og ein sti derifrå, og med STEP-id berre der ingen GlobalId når. STEP-ida når alltid ein
   instans; GlobalId og sti nådde 98 til 100 prosent av instansane i 28
   prøvefiler, med steg tilbake gjennom inverse attributt.
 - **Utvidingar, ikkje nye versjonar av API-a.** BCF-saker med `bim_snippet`,
@@ -355,7 +355,7 @@ arbeidsmåtane i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
   serveradministrator, og team med ansvar utover prosjektrollene.
 - **Korleis ein versjon blir lagra** (avgjort 2026-11-10). Kvar godkjend
   versjon er ein node med forelder, forfattar, godkjennar og endringar per
-  STEP-id og attributt; grafen held hovudversjonen; ein versjon blir lagra som
+  GlobalId, sti og attributt; grafen held hovudversjonen; ein versjon blir lagra som
   endringa si, med ei heil fil, som `.ifczip`, berre når han blir publisert, og
   kva versjon som helst blir skriven på førespurnad; to endringar blir slegne
   saman attributt for attributt, slik ifcmerge gjer, og ei endring blir ført
@@ -369,7 +369,7 @@ arbeidsmåtane i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
   klassifikasjon eller etasje, slik dei ansvarlege teama i ISO 19650 gjer, kjem
   seinare.
 - **Detaljane i snippeten** (avgjort). Ein sti blir skriven med attributtnamna
-  i IFC med indeksar, frå ein GlobalId, med STEP-id som snarveg; ei endring av
+  i IFC med indeksar, frå ein GlobalId, med STEP-id berre der ingen GlobalId når; ei endring av
   ein instans som fleire deler, endrar han for alle, og ein eigen kopi må bedast
   om; kvar endring ber kven som føreslo henne, og kva AI-modell og kva
   verktøykall, der ein AI gjorde det.

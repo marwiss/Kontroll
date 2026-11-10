@@ -360,7 +360,7 @@ tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
   paikassa. Mikään ohjelmisto ei vielä sovella snippetiä, ja buildingSMARTin
   julkaisemattomat kehityshaarat ovat poistaneet ne; Dataregium rakentaa ne
   näyttääkseen, miten ne voisivat toimia. Snippet osoittaa muuttamansa kohteen
-  STEP-tunnisteella tai GlobalId:llä ja siitä lähtevällä polulla.
+  GlobalId:llä ja siitä lähtevällä polulla, ja STEP-tunnisteella vain, kun mikään GlobalId ei tavoita sitä.
   STEP-tunniste tavoittaa aina instanssin; GlobalId ja polku tavoittivat 98–100
   prosenttia instansseista 28 esimerkkitiedostossa, kun polku sai kulkea
   taaksepäin käänteisten attribuuttien kautta.
@@ -375,7 +375,7 @@ tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
   laajemmin.
 - **Miten versio tallennetaan** (päätetty 2026-11-10). Jokainen hyväksytty
   versio on solmu, jolla on vanhempi, tekijä, hyväksyjä ja muutokset
-  STEP-tunnisteittain ja attribuuteittain; graafi pitää pääversiota; versio
+  GlobalId:n, polun ja attribuutin mukaan; graafi pitää pääversiota; versio
   tallennetaan muutoksenaan, ja kokonainen tiedosto `.ifczip`-muodossa vain
   versiota julkaistaessa, ja mikä tahansa versio kirjoitetaan pyynnöstä; kaksi
   muutosta yhdistetään attribuutti kerrallaan kuten ifcmerge tekee, ja muutos
@@ -389,8 +389,8 @@ tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
   luokittelulla tai kerroksella, kuten ISO 19650:n tehtäväryhmät, tulevat
   myöhemmin.
 - **Snippetin yksityiskohdat** (päätetty). Polku kirjoitetaan IFC:n
-  attribuuttinimillä ja indekseillä GlobalId:stä lähtien, ja STEP-tunniste on
-  oikotie; usean jakaman instanssin muutos muuttaa sen kaikille, ja oma kopio
+  attribuuttinimillä ja indekseillä GlobalId:stä lähtien, ja STEP-tunniste
+  vain, kun mikään GlobalId ei tavoita instanssia; usean jakaman instanssin muutos muuttaa sen kaikille, ja oma kopio
   on pyydettävä erikseen; jokainen muutos kantaa tiedon siitä, kuka sen
   ehdotti, ja mikä tekoälymalli ja työkalukutsu, kun ehdottaja oli tekoäly.
 

@@ -340,7 +340,7 @@ saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
   svo að breytingin, umræðan og ákvörðunin séu á einum stað. Enginn hugbúnaður
   beitir snippet í dag, og óútgefnar þróunargreinar buildingSMART hafa fellt þær
   niður; Dataregium smíðar þær til að sýna hvernig þær gætu virkað. Snippet bendir
-  á það sem hún breytir með STEP-auðkenni, eða með GlobalId og slóð þaðan.
+  á það sem hún breytir með GlobalId og slóð þaðan, og með STEP-auðkenni aðeins þar sem ekkert GlobalId nær.
   STEP-auðkennið nær alltaf til tilviks; GlobalId og slóð náðu til 98 til 100
   prósenta tilvikanna í 28 prófunarskrám, með skrefum til baka gegnum andhverfar
   eigindir.
@@ -352,7 +352,7 @@ saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
 - **Stjórnun verkefnis af verkefnisstjóra þess**, sem þarf ekki að vera
   stjórnandi þjónsins, og teymi með ábyrgð umfram hlutverk verkefnisins.
 - **Hvernig útgáfa er geymd** (ákveðið 2026-11-10). Hver samþykkt útgáfa er
-  hnútur með foreldri, höfundi, samþykkjanda og breytingum eftir STEP-auðkenni
+  hnútur með foreldri, höfundi, samþykkjanda og breytingum eftir GlobalId, slóð
   og eigind; grafið geymir aðalútgáfuna; útgáfa er geymd sem breyting sín, með
   heilli skrá, sem `.ifczip`, aðeins þegar hún er birt, og hvaða útgáfa sem er
   er skrifuð eftir beiðni; tvær breytingar eru sameinaðar eigind fyrir eigind,
@@ -366,7 +366,7 @@ saman undir [Lærðu meira](#lærðu-meira), vinnureglurnar í
   Ábyrgðarreglur sem benda á hluta líkansins með IDS-vali, svo sem flokki,
   eigind, flokkun eða hæð, eins og ábyrgðarteymi ISO 19650 gera, koma síðar.
 - **Smáatriði snippets** (ákveðið). Slóð er skrifuð með eigindaheitum IFC með
-  vísum, frá GlobalId, með STEP-auðkenni sem flýtileið; breyting á tilviki sem
+  vísum, frá GlobalId, með STEP-auðkenni aðeins þar sem ekkert GlobalId nær; breyting á tilviki sem
   fleiri deila breytir því fyrir öll, og biðja þarf sérstaklega um eigið afrit;
   hver breyting ber hver lagði hana til, og hvaða gervigreindarlíkan og
   verkfærakall, þar sem gervigreind gerði það.

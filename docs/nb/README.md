@@ -342,8 +342,8 @@ Beslutningene står i korte trekk under [Lær mer](#lær-mer), arbeidsmåtene i
   `reference_schema`, så endringen, diskusjonen og beslutningen er på ett sted.
   Ingen programvare bruker en snippet i dag, og buildingSMARTs uutgitte
   utviklingsgrener har fjernet dem; Dataregium bygger dem for å vise hvordan de
-  kunne virke. En snippet peker ut det den endrer med STEP-id, eller med
-  GlobalId og en sti derfra. STEP-id-en når alltid en instans; GlobalId og sti
+  kunne virke. En snippet peker ut det den endrer med GlobalId og en
+  sti derfra, og med STEP-id bare der ingen GlobalId når. STEP-id-en når alltid en instans; GlobalId og sti
   nådde 98 til 100 prosent av instansene i 28 prøvefiler, med steg tilbake
   gjennom inverse attributter.
 - **Utvidelser, ikke nye versjoner av API-ene.** BCF-saker med `bim_snippet`,
@@ -354,8 +354,8 @@ Beslutningene står i korte trekk under [Lær mer](#lær-mer), arbeidsmåtene i
 - **Administrasjon av et prosjekt av prosjektlederen**, som ikke trenger å være
   serveradministrator, og team med ansvar utover prosjektrollene.
 - **Hvordan en versjon lagres** (besluttet 2026-11-10). Hver godkjent versjon
-  er en node med forelder, forfatter, godkjenner og endringer per STEP-id og
-  attributt; grafen holder hovedversjonen; en versjon lagres som endringen sin,
+  er en node med forelder, forfatter, godkjenner og endringer per GlobalId,
+  sti og attributt; grafen holder hovedversjonen; en versjon lagres som endringen sin,
   med en hel fil, som `.ifczip`, bare når den publiseres, og hvilken som helst
   versjon skrives på forespørsel; to endringer slås sammen attributt for
   attributt, slik ifcmerge gjør, og en endring føres inn når filen som skrives
@@ -369,7 +369,7 @@ Beslutningene står i korte trekk under [Lær mer](#lær-mer), arbeidsmåtene i
   klassifikasjon eller etasje, slik ISO 19650s ansvarlige team gjør, kommer
   senere.
 - **Snippetens detaljer** (besluttet). En sti skrives med IFCs attributtnavn
-  med indekser, fra en GlobalId, med STEP-id som snarvei; en endring av en
+  med indekser, fra en GlobalId, med STEP-id bare der ingen GlobalId når; en endring av en
   instans som flere deler, endrer den for alle, og en egen kopi må bes om; hver
   endring bærer hvem som foreslo den, og hvilken AI-modell og hvilket
   verktøykall, der en AI gjorde det.

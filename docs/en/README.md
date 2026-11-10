@@ -339,8 +339,8 @@ conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
   `reference_schema`, so that the change, its discussion and its decision are
   in one place. No software applies a snippet today, and buildingSMART's
   unreleased development branches have dropped them; Dataregium builds them to
-  show how they could work. A snippet names what it changes by STEP id, or by
-  GlobalId and a path from it. The STEP id always reaches an instance; GlobalId
+  show how they could work. A snippet names what it changes by GlobalId and a
+  path from it, and by STEP id only where no GlobalId reaches it. The STEP id always reaches an instance; GlobalId
   and path reached 98 to 100 per cent of the instances in 28 sample files, with
   steps back through inverse attributes.
 - **Extensions, not new versions of the APIs.** BCF topics with `bim_snippet`,
@@ -351,7 +351,7 @@ conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
 - **Administration of a project by its manager**, who need not be a server
   administrator, and teams with responsibilities beyond the project roles.
 - **How a version is kept** (decided 2026-11-10). Each approved version is a
-  node with its parent, author, approver and changes per STEP id and attribute;
+  node with its parent, author, approver and changes per GlobalId, path and attribute;
   the graph holds the main version; a version is stored as its change, with a
   whole file, as `.ifczip`, only when it is published, and any version is
   written on request; two changes are merged attribute by attribute, as
@@ -364,7 +364,7 @@ conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md), and the IFC graph in
   that name a part of the model with IDS selectors, such as class, property,
   classification or storey, as ISO 19650's task teams do, come later.
 - **The snippet's details** (decided). A path is written in IFC's attribute
-  names with indexes, from a GlobalId, with the STEP id as a shortcut; a change
+  names with indexes, from a GlobalId, with the STEP id only where no GlobalId reaches the instance; a change
   to an instance that several share changes it for all of them, and a copy of
   its own has to be asked for; every change carries who proposed it, and which
   AI model and tool call, where an AI did.
