@@ -466,6 +466,16 @@ snippet erstatter prøven, og prøven følger med sagen, når den slettes.
 `ifc_changes` i kapabilitetsdokumentet siger, om ændringssæt prøves (`tried`),
 og hvor prøven er (`proposal_url`).
 
+En `manager` godkender en ren prøve med `POST …/ifc-proposal/approve`: den
+anvendte fil bliver basisdokumentets næste version, med `base_version_index`,
+`change_set_id` (sagens guid), `proposed_by` og `approved_by` i sine metadata,
+og AI-modellen og værktøjskaldet, hvor en AI foreslog den; svaret er den nye
+version, som Documents API giver den, og den konverteres og kontrolleres som
+en upload. Sagen får en kommentar med versionens adresse og status `Closed`,
+hvor projektet har den værdi. `412 version_conflict` siger, at dokumentet er
+gået videre siden basen; `409`, at prøven ikke er ren eller allerede er
+godkendt. En AI foreslår kun: godkendelsen er et menneskes.
+
 ## Kollisionskontrol
 
 Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,

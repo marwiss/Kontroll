@@ -99,6 +99,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "max_changes": MAX_CHANGES,
                     "tried": settings.ifcgraph_enabled,
                     "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal",
+                    "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve",
                 }
                 if settings.offers("documents") and settings.offers("bcf-3.0")
                 else {"enabled": False}

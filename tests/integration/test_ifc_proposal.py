@@ -124,3 +124,75 @@ def test_a_change_set_is_tried_on_its_base_and_judged_against_its_findings(
     # The trial goes with the topic, file and all.
     assert client.delete(f"{topics}/{topic['guid']}", headers=editor.headers).status_code == 200
     assert list(storage.iter_keys("proposals")) == []
+
+
+def test_a_manager_approves_a_clean_trial_and_it_becomes_the_next_version(ifc_client: tuple[TestClient, World]) -> None:
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
+    document_id = version["document_id"]
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    snippet_fields = {
+        "snippet_type": SNIPPET_TYPE,
+        "is_external": False,
+        "reference": "changes.json",
+        "reference_schema": f"http://testserver{SCHEMA_PATH}",
+    }
+    topic = make_topic(client, world, editor, bim_snippet=snippet_fields)
+    snippet = f"{topics}/{topic['guid']}/snippet"
+    proposal = f"{topics}/{topic['guid']}/ifc-proposal"
+    approve = proposal + "/approve"
+    assert client.post(approve, headers=manager.headers).status_code == 404, "nothing to approve yet"
+    rename = {"guid": WALLS[0], "attribute": "Name", "op": "set", "old": "YVT-A", "new": "YVT-A2"}
+    assert client.put(snippet, content=change_set(document_id, rename), headers=editor.headers).status_code == 200
+    assert tried(client, editor, proposal)["state"] == "clean"
+
+    assert client.post(approve, headers=editor.headers).status_code == 403, "an editor proposes, a manager approves"
+    approved = client.post(approve, headers=manager.headers)
+    assert approved.status_code == 201, approved.text
+    new = approved.json()
+    assert new["version_index"] == 2 and new["version_number"] == "2" and new["title"] == version["title"]
+    metadata = client.get(new["links"]["document_version_metadata"]["url"], headers=editor.headers).json()
+    entries = {entry["name"]: entry["value"] for entry in metadata["metadata"]}
+    assert entries["base_version_index"] == ["1"] and entries["change_set_id"] == [topic["guid"]]
+    assert entries["proposed_by"] == ["editor"] and entries["approved_by"] == ["manager"]
+    assert entries["ai_model"] == ["claude-opus-5-5"] and entries["tool_call"] == ["rename"]
+    assert entries["uploaded_by"] == ["editor"] and entries["file_name"] == ["three_walls_gtin.ifc"]
+    assert checked(client, editor, new)["ifc_validation_status"] == ["passed"], "the new version is checked as any"
+    download = client.get(new["links"]["document_version_download"]["url"], headers=editor.headers)
+    assert download.status_code == 200 and b"YVT-A2" in download.content and b"'YVT-A'" not in download.content
+    report = client.get(proposal, headers=editor.headers).json()
+    assert report["state"] == "approved" and report["approved_by"] == "manager" and report["version_index"] == 2
+    assert client.post(approve, headers=manager.headers).status_code == 409, "approved once"
+    comments = client.get(f"{topics}/{topic['guid']}/comments", headers=editor.headers).json()
+    assert any("version 2" in comment["comment"] and comment["author"] == "manager" for comment in comments)
+    assert client.get(f"{topics}/{topic['guid']}", headers=editor.headers).json()["topic_status"] == "Closed"
+
+    # A change set on a base the document has moved past is not approved: 412, as an upload on an old base.
+    stale = make_topic(client, world, editor, bim_snippet=snippet_fields)
+    assert (
+        client.put(
+            f"{topics}/{stale['guid']}/snippet", content=change_set(document_id, rename), headers=editor.headers
+        ).status_code
+        == 200
+    )
+    assert tried(client, editor, f"{topics}/{stale['guid']}/ifc-proposal")["state"] == "clean"
+    refused = client.post(f"{topics}/{stale['guid']}/ifc-proposal/approve", headers=manager.headers)
+    assert refused.status_code == 412 and refused.json()["code"] == "version_conflict"
+
+    # A trial with issues is not approved either.
+    broken = make_topic(client, world, editor, bim_snippet=snippet_fields)
+    duplicate = {"guid": WALLS[0], "attribute": "GlobalId", "op": "set", "new": WALLS[1]}
+    two = json.loads(change_set(document_id, duplicate))
+    two["base"]["version_index"] = 2
+    assert (
+        client.put(
+            f"{topics}/{broken['guid']}/snippet", content=json.dumps(two).encode(), headers=editor.headers
+        ).status_code
+        == 200
+    )
+    assert tried(client, editor, f"{topics}/{broken['guid']}/ifc-proposal")["state"] == "issues"
+    assert client.post(f"{topics}/{broken['guid']}/ifc-proposal/approve", headers=manager.headers).status_code == 409

@@ -470,6 +470,17 @@ prøven, og prøven følgjer med saka når ho blir sletta. `ifc_changes` i
 kapabilitetsdokumentet seier om endringssett blir prøvde (`tried`) og kvar
 prøven er (`proposal_url`).
 
+Ein `manager` godkjenner ei rein prøve med `POST …/ifc-proposal/approve`: den
+brukte fila blir den neste versjonen av basisdokumentet, med
+`base_version_index`, `change_set_id` (guid-en til saka), `proposed_by` og
+`approved_by` i metadataa sine, og AI-modellen og verktøykallet der ein AI
+føreslo henne; svaret er den nye versjonen slik Documents API gjev han, og han
+blir konvertert og kontrollert som ei opplasting. Saka får ein kommentar med
+adressa til versjonen, og statusen `Closed` der prosjektet har den verdien.
+`412 version_conflict` seier at dokumentet har gått vidare sidan basen; `409`
+at prøven ikkje er rein, eller alt er godkjend. Ein AI føreslår berre:
+godkjenninga er eit menneske si.
+
 ## Kollisjonskontroll
 
 Ein medlem samanliknar to IFC-dokumentversjonar i eit prosjekt for kollisjonar,

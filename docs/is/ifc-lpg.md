@@ -459,6 +459,17 @@ prófunarinnar, og prófunin fer með málinu þegar því er eytt. `ifc_changes
 getuskjalinu segir hvort breytingasett eru reynd (`tried`) og hvar prófunin er
 (`proposal_url`).
 
+`manager` samþykkir hreina prófun með `POST …/ifc-proposal/approve`: skráin
+sem breytingunum var beitt á verður næsta útgáfa grunnskjalsins, með
+`base_version_index`, `change_set_id` (guid málsins), `proposed_by` og
+`approved_by` í lýsigögnum sínum, og gervigreindarlíkaninu og verkfærakallinu
+þar sem gervigreind lagði hana til; svarið er nýja útgáfan eins og Documents
+API gefur hana, og henni er umbreytt og hún prófuð eins og upphal. Málið fær
+athugasemd með heimilisfangi útgáfunnar, og stöðuna `Closed` þar sem verkefnið
+hefur það gildi. `412 version_conflict` segir að skjalið hafi haldið áfram
+síðan grunnurinn var; `409` að prófunin sé ekki hrein, eða þegar samþykkt.
+Gervigreind leggur aðeins til: samþykktin er manneskju.
+
 ## Árekstrarprófun
 
 Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með

@@ -10,6 +10,12 @@ the commit history.
 
 ## Unreleased
 
+- A `manager` approves a clean trial with `POST /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal/approve`: the
+  applied file becomes the next version of the base document, with `base_version_index`, `change_set_id`,
+  `proposed_by`, `approved_by` and, where an AI proposed it, `ai_model` and `tool_call` in its metadata; the topic
+  gets a comment with the version's address and the status `Closed` where the project has it. `412
+  version_conflict` when the document has moved on since the base, `409` when the trial is not clean.
+  `ifc_changes` in the capabilities document carries `approve_url`.
 ## 3.0.0 — 2026-11-10
 
 Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of

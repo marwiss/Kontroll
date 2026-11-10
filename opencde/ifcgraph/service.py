@@ -48,6 +48,7 @@ STATE_DONE = "done"
 STATE_FAILED = "failed"
 STATE_CLEAN = "clean"  # a proposal whose every change applied, with no finding the base lacks
 STATE_ISSUES = "issues"
+STATE_APPROVED = "approved"  # a clean proposal that became a version
 IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
 IDS_SUFFIX = ".ids"
 # The IDS documents of one project an upload is checked against, and the specifications its report keeps (ADR 0015).
@@ -678,6 +679,10 @@ class IfcGraphService:
             "checks": checked["checks"],
             "report": pack_report(issues),
         }
+
+    async def approve(self, *, proposal_id: str, approved_by: str, version_index: int) -> None:
+        """The trial became a version (ADR 0021): who approved it and which version it is."""
+        await self._set_proposal(proposal_id, STATE_APPROVED, approved_by=approved_by, version_index=version_index)
 
     async def proposal(self, *, user_id: str, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The trial of a topic's change set, for a member of the project, its issues unpacked; None without one."""

@@ -459,6 +459,17 @@ that says why, without quoting the file. A new snippet replaces the trial, and
 the trial goes with the topic. `ifc_changes` in the capabilities document says
 whether change sets are tried (`tried`) and where the trial is (`proposal_url`).
 
+A `manager` approves a clean trial with `POST …/ifc-proposal/approve`: the
+applied file becomes the next version of the base document, with
+`base_version_index`, `change_set_id` (the topic's guid), `proposed_by` and
+`approved_by` in its metadata, and the AI model and tool call where an AI
+proposed it; the answer is the new version as the Documents API gives it, and
+it is converted and checked as an upload is. The topic gets a comment with the
+version's address, and the status `Closed` where the project has that value.
+`412 version_conflict` says the document has moved on since the base; `409`
+that the trial is not clean, or was approved already. An AI only proposes:
+approval is a person's.
+
 ## Clash check
 
 A member compares two IFC document versions of a project for clashes, with the

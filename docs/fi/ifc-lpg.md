@@ -473,6 +473,17 @@ syyn lainaamatta tiedostoa. Uusi snippet korvaa kokeilun, ja kokeilu poistuu
 asian mukana. Kyvykkyysdokumentin `ifc_changes` kertoo, kokeillaanko
 muutosjoukkoja (`tried`) ja missä kokeilu on (`proposal_url`).
 
+`manager` hyväksyy puhtaan kokeilun kutsulla `POST …/ifc-proposal/approve`:
+sovellettu tiedosto tulee perustadokumentin seuraavaksi versioksi, jonka
+metatiedoissa ovat `base_version_index`, `change_set_id` (asian guid),
+`proposed_by` ja `approved_by` sekä tekoälymalli ja työkalukutsu, kun
+ehdottaja oli tekoäly; vastaus on uusi versio sellaisena kuin Documents API
+sen antaa, ja se muunnetaan ja tarkistetaan kuten lähetys. Asia saa
+kommentin, jossa on version osoite, ja tilan `Closed`, kun projektilla on se
+arvo. `412 version_conflict` kertoo, että dokumentti on edennyt perustan
+jälkeen; `409`, ettei kokeilu ole puhdas tai se on jo hyväksytty. Tekoäly
+vain ehdottaa: hyväksyntä on ihmisen.
+
 ## Törmäystarkastus
 
 Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla
