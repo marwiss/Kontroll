@@ -5,6 +5,7 @@ answer from, replaced by the next version and dropped with the archive's model."
 from __future__ import annotations
 
 import re
+import time
 from collections.abc import Iterator
 from typing import Any
 
@@ -49,6 +50,20 @@ def workcopy_client(
         yield client, world, workcopy_uri
 
 
+def wait_for_boxes(uri: str, timeout: float = 120.0) -> int:
+    """How many walls of the working copy have a box, once the geometry pass has reached it."""
+    deadline = time.monotonic() + timeout
+    with GraphDatabase.driver(uri, auth=("", "")) as driver:
+        while time.monotonic() < deadline:
+            records, _, _ = driver.execute_query(
+                "MATCH (w:Entity:IfcWallStandardCase) WHERE w.bbox_centre IS NOT NULL RETURN count(w) AS n"
+            )
+            if records and int(records[0]["n"]) > 0:
+                return int(records[0]["n"])
+            time.sleep(0.5)
+    return 0
+
+
 def models_in(uri: str) -> dict[str, int]:
     """The models the working copy holds, each with how many entities it has."""
     with GraphDatabase.driver(uri, auth=("", "")) as driver:
@@ -77,6 +92,7 @@ def test_the_head_model_lives_in_the_working_copy_and_answers_the_queries(
     assert classes["IfcWallStandardCase"] == 3, "answered from the working copy"
     (wall,) = rows_of(ask(client, editor, first, "entity", global_id="1Xezbq735AdBO_4DerG66G"))
     assert wall["attributes"]["Name"] == "YVT-A"
+    assert wait_for_boxes(uri) == 3, "the boxes of the spatial layer reach the working copy too"
 
     # The next version replaces the head; the one before leaves the working copy, the archive keeps both.
     started = start_upload(

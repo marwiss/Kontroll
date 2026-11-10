@@ -16,6 +16,17 @@ from typing import Any
 from ifc_lpg.importer import delete_model
 
 from opencde.graph.graph import Graph
+from opencde.storage import LocalStorage
+
+
+def delete_geometry(storage: LocalStorage, model_id: str) -> int:
+    """Delete a model's geometry records and the glTF files built from them. Returns how many files went."""
+    gone = 0
+    for key in list(storage.iter_keys("geometry")):
+        if key.startswith(f"geometry/{model_id}."):
+            storage.delete(key)
+            gone += 1
+    return gone
 
 
 async def list_models(graph: Graph, *, project_id: str | None = None) -> list[dict[str, Any]]:
@@ -49,8 +60,10 @@ async def superseded_or_failed(graph: Graph, *, project_id: str | None = None) -
     return [row["id"] for row in rows]
 
 
-async def prune_models(graph: Graph, *, project_id: str | None = None, everything: bool = False) -> dict[str, int]:
-    """Delete models and their entities; returns ``{"models": n, "entities": n}``."""
+async def prune_models(
+    graph: Graph, *, project_id: str | None = None, everything: bool = False, storage: LocalStorage | None = None
+) -> dict[str, int]:
+    """Delete models, their entities and their geometry files; returns ``{"models": n, "entities": n}``."""
     if everything:
         if project_id is None:
             raise ValueError("deleting every model needs a project")
@@ -60,4 +73,6 @@ async def prune_models(graph: Graph, *, project_id: str | None = None, everythin
     entities = 0
     for model_id in ids:
         entities += await delete_model(graph, model_id)
+        if storage is not None:
+            delete_geometry(storage, model_id)
     return {"models": len(ids), "entities": entities}

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import importlib.metadata
 import json
 import sys
@@ -32,10 +33,13 @@ from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
 from ifc_lpg.graph import FORM_VERSION
 from ifc_lpg.importer import delete_blocks, delete_model, import_records
+from ifc_lpg.spatial import import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
 from opencde.graph.graph import Graph
+from opencde.graph.schema import rebuild_point_indexes
 from opencde.ids import new_id
+from opencde.ifcgraph.gltf import LODS, build_glb
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
@@ -161,6 +165,14 @@ class IfcGraphService:
         running in another process, so it is given up only when twice the time limit has passed since it started.
         """
         await self.tidy_workcopy()
+        await self.graph.run(
+            """
+            MATCH (m:Model {state: $done}) WHERE m.spatial_pending IS NOT NULL AND m.done_at < $given_up
+            REMOVE m.spatial_pending SET m.spatial_error = 'the geometry pass was interrupted'
+            """,
+            done=STATE_DONE,
+            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
+        )
         rows = await self.graph.run(
             """
             MATCH (m:Model)
@@ -272,18 +284,20 @@ class IfcGraphService:
                         await delete_model_entities(self.graph, model_id)
                     await self._set_state(model_id, STATE_FAILED, error=f"{type(exc).__name__}: {exc}"[:500])
                     return
-            await self._set_state(
-                model_id,
-                STATE_DONE,
-                schema=header.get("schema"),
-                ifc_project_guid=header.get("ifc_project_guid"),
-                entities=counts["nodes"],
-                relationships=counts["relationships"],
-                skipped=header.get("skipped", 0),
-                lossless=header.get("lossless", False),
-                geometry=header.get("geometry"),  # skeleton, blocks or nodes (IFC-LPG 1.0.0 of 2026-11-10)
-                ifc_header=header.get("ifc_header"),
-            )
+                await self._set_state(
+                    model_id,
+                    STATE_DONE,
+                    schema=header.get("schema"),
+                    ifc_project_guid=header.get("ifc_project_guid"),
+                    entities=counts["nodes"],
+                    relationships=counts["relationships"],
+                    skipped=header.get("skipped", 0),
+                    lossless=header.get("lossless", False),
+                    geometry=header.get("geometry"),  # skeleton, blocks or nodes (IFC-LPG 1.0.0 of 2026-11-10)
+                    ifc_header=header.get("ifc_header"),
+                    **({"spatial_pending": True} if self.settings.ifcgraph_spatial else {}),
+                )
+                await self._add_spatial(model_id, source, workdir)
             # Viewpoints created before the model finished (or before it was uploaded) get their links now.
             try:
                 linked = await self._link_model(model_id)
@@ -291,6 +305,76 @@ class IfcGraphService:
                 log.warning("ifcgraph_link_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:200])
                 linked = 0
             log.info("ifcgraph_imported", model_id=model_id, linked=linked, **counts)
+
+    # -- where the products are, and the geometry (OB-37) ---------------------------------------------
+
+    async def _add_spatial(self, model_id: str, source: Path, workdir: Path) -> None:
+        """Run IFC-LPG's geometry worker once: a box per product into the archive (and the working copy), and the
+        records kept in the storage for the glTF. A failure here is logged on the model and never fails the
+        conversion: the graph is complete without the boxes."""
+        if not self.settings.ifcgraph_spatial:
+            return
+        records = workdir / "geometry.jsonl"
+        command = [
+            sys.executable,
+            "-m",
+            "ifc_lpg.spatial",
+            str(source),
+            str(records),
+            "--memory-mb",
+            str(self.settings.ifcgraph_memory_mb),
+            "--threads",
+            str(self.settings.ifcgraph_geometry_threads),
+            "--max-entities",
+            str(self.settings.ifcgraph_max_entities),
+        ]
+        try:
+            await self._in_a_process(command, "the geometry")
+            counts = await import_spatial(self.graph, model_id, records)
+            await rebuild_point_indexes(self.graph)
+            key = make_key("geometry", model_id, "jsonl")
+            await asyncio.to_thread(self.storage.copy_in, records, key)
+            await self.graph.run("MATCH (m:Model {id: $id}) SET m.geometry_key = $key", id=model_id, key=key)
+            if self.workcopy is not None and await self.in_workcopy(model_id):
+                try:
+                    await import_spatial(self.workcopy, model_id, records)
+                    await rebuild_point_indexes(self.workcopy)
+                except Exception as exc:  # the archive has the boxes; the copy can be made again
+                    log.warning("ifcgraph_workcopy_spatial_failed", model_id=model_id, error=type(exc).__name__)
+            log.info("ifcgraph_spatial", model_id=model_id, **counts)
+        except Exception as exc:
+            log.warning("ifcgraph_spatial_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:300])
+            with contextlib.suppress(Exception):
+                await self.graph.run(
+                    "MATCH (m:Model {id: $id}) SET m.spatial_error = $error",
+                    id=model_id,
+                    error=f"{type(exc).__name__}: {exc}"[:300],
+                )
+        finally:
+            with contextlib.suppress(Exception):
+                await self.graph.run("MATCH (m:Model {id: $id}) REMOVE m.spatial_pending", id=model_id)
+
+    async def geometry(
+        self, *, model_id: str, lod: str = "full", classes: tuple[str, ...] = (), storey: str | None = None
+    ) -> tuple[Path, str] | None:
+        """The ``.glb`` of a model for the filters, built from its geometry records the first time and kept in the
+        storage under a key that names the model and a tag of the filters. Returns the file and the tag, or None
+        when the model has no geometry records."""
+        row = await self.graph.one("MATCH (m:Model {id: $id}) RETURN m.geometry_key AS key", id=model_id)
+        if row is None or not row["key"] or not self.storage.exists(row["key"]):
+            return None
+        if lod not in LODS:
+            raise ValueError(f"lod is one of {', '.join(LODS)}")
+        chosen = ",".join(sorted(set(classes)))
+        tag = "g" + hashlib.sha256(f"{lod}|{chosen}|{storey or ''}".encode()).hexdigest()[:7]
+        key = make_key("geometry", model_id, tag)
+        if not self.storage.exists(key):
+            glb, summary = await asyncio.to_thread(
+                build_glb, self.storage.path(row["key"]), lod=lod, classes=set(classes) or None, storey=storey
+            )
+            await asyncio.to_thread(self.storage.write_bytes, key, glb)
+            log.info("ifcgraph_geometry_built", model_id=model_id, lod=lod, bytes=len(glb), **summary)
+        return self.storage.path(key), tag
 
     # -- the working copy (ADR 0024) ------------------------------------------------------------------
 

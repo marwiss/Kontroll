@@ -569,6 +569,42 @@ kapabilitetsdokumentet siger i `ifcgraph.workcopy`, om en er konfigureret.
 docker compose up -d
 ```
 
+## Hvor bygningsdelene er, og geometrien
+
+Efter en konvertering kører serveren IFC-LPG's geometriarbejder én gang over
+filen (`python -m ifc_lpg.spatial`; `OPENCDE_IFC_LPG_SPATIAL`, slået til som
+standard med ekstraet): IfcOpenShell bygger hver bygningsdels form, og
+arbejderen skriver en kasse pr. bygningsdel i projektkoordinater og meshene,
+hver delt mesh én gang. Kasserne går ind i grafen som punkterne `bbox_min`,
+`bbox_max` og `bbox_centre` på bygningsdelens `Entity`, med et punktindeks på
+`bbox_centre` i arkivet og i arbejdskopien, så en forespørgsel finder det, der
+er nær et punkt eller inde i et volumen; `Model` bærer `spatial_at`,
+`spatial_products` og `spatial_failed`. Posterne gemmes i lageret, og
+`GET …/ifc-geometry` bygger en binær glTF af dem, første gang der spørges
+efter den: hver delt mesh én gang, en node pr. bygningsdel, der instantierer
+den med bygningsdelens matrix, navngivet med sit GlobalId og med klasse,
+STEP-id og etage i `extras`, under en node pr. etage, og en rod, der drejer
+modellen fra IFC's Z op til glTF's Y op. `lod=box` giver kasserne i stedet, én
+terning, som hver bygningsdel instantierer, nogle få byte hver; `classes`
+(IFC-klasser, kommaseparerede) og `storey` (et GlobalId) vælger
+bygningsdelene. Filen gemmes og kommer med et `ETag` for modellen og filtrene,
+så `If-None-Match` besvares med `304`. Geometrigennemløbet fælder aldrig en
+konvertering: mislykkes det, noterer modellen `spatial_error`, og ruten
+svarer `404`; mens versionen stadig konverteres, `409`. Kapabilitetsdokumentet
+annoncerer det som `ifc_geometry`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry?lod=full&classes=IfcWall,IfcSlab
+```
+
+```cypher
+// Bygningsdelene inden for to meter fra en væg, i samme model
+MATCH (w:Entity:IfcWall {GlobalId: $guid})
+MATCH (e:Entity {model_id: w.model_id}) WHERE e.bbox_centre IS NOT NULL AND e <> w
+  AND point.distance(e.bbox_centre, w.bbox_centre) < 2.0
+RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS distance ORDER BY distance
+```
+
 ## Forespørgsler fra Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), browserklienten, der

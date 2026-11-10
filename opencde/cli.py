@@ -716,11 +716,16 @@ def ifcgraph_prune(
 ) -> None:
     """Delete failed models and finished models superseded by a newer version of the same document.
     Queued and running models and the documents themselves stay."""
+    from opencde.bootstrap import make_storage
     from opencde.ifcgraph.maintenance import prune_models
 
     if everything and not project_id:
         raise _fail("--all needs --project")
-    result = _run(lambda graph, _settings: prune_models(graph, project_id=project_id, everything=everything))
+    result = _run(
+        lambda graph, settings: prune_models(
+            graph, project_id=project_id, everything=everything, storage=make_storage(settings)
+        )
+    )
     print(f"OK      deleted {result['models']} model(s) and {result['entities']} entities")
 
 

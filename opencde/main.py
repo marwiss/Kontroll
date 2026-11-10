@@ -29,6 +29,7 @@ from opencde.documents import routes_api as documents_api
 from opencde.documents import routes_changes as documents_changes
 from opencde.documents import routes_clash as documents_clash
 from opencde.documents import routes_diff as documents_diff
+from opencde.documents import routes_geometry as documents_geometry
 from opencde.documents import routes_precheck as documents_precheck
 from opencde.documents import routes_queries as documents_queries
 from opencde.documents import routes_ui as documents_ui
@@ -226,6 +227,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.include_router(documents_precheck.router)
         app.include_router(documents_changes.router)
         app.include_router(documents_diff.router)
+        app.include_router(documents_geometry.router)
         app.include_router(documents_queries.router)
         app.include_router(documents_clash.router)
         app.include_router(documents_ui.router)

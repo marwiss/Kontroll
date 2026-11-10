@@ -565,6 +565,42 @@ configured.
 docker compose up -d
 ```
 
+## Where the products are, and the geometry
+
+After a conversion the server runs IFC-LPG's geometry worker once over the
+file (`python -m ifc_lpg.spatial`; `OPENCDE_IFC_LPG_SPATIAL`, on by default
+with the extra): IfcOpenShell builds every product's shape, and the worker
+writes a box per product in project coordinates and the meshes, each shared
+mesh once. The boxes go into the graph as the points `bbox_min`, `bbox_max`
+and `bbox_centre` on the product's `Entity`, with a point index on
+`bbox_centre` in the archive and in the working copy, so that a query finds
+what is near a point or inside a volume; the `Model` carries `spatial_at`,
+`spatial_products` and `spatial_failed`. The records are kept in the storage,
+and `GET …/ifc-geometry` builds a binary glTF from them the first time it is
+asked for: every shared mesh once, a node per product that instances it with
+the product's matrix, named by its GlobalId with its class, STEP id and storey
+in `extras`, under a node per storey, and a root that turns the model from
+IFC's Z up to glTF's Y up. `lod=box` gives the boxes instead, one cube that
+every product instances, a few bytes each; `classes` (IFC classes,
+comma-separated) and `storey` (a GlobalId) pick the products. The file is
+kept, and comes with an `ETag` of the model and the filters, so
+`If-None-Match` answers `304`. The geometry pass never fails a conversion:
+when it fails, the model notes `spatial_error` and the route answers `404`;
+while the version is still being converted, `409`. The capabilities document
+announces it as `ifc_geometry`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry?lod=full&classes=IfcWall,IfcSlab
+```
+
+```cypher
+// The products within two metres of a wall, in the same model
+MATCH (w:Entity:IfcWall {GlobalId: $guid})
+MATCH (e:Entity {model_id: w.model_id}) WHERE e.bbox_centre IS NOT NULL AND e <> w
+  AND point.distance(e.bbox_centre, w.bbox_centre) < 2.0
+RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS distance ORDER BY distance
+```
+
 ## Querying from Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), the browser client

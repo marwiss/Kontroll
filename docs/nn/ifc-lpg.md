@@ -577,6 +577,42 @@ ein er konfigurert.
 docker compose up -d
 ```
 
+## Kvar bygningsdelane er, og geometrien
+
+Etter ei konvertering køyrer serveren IFC-LPGs geometriarbeidar éin gong over
+fila (`python -m ifc_lpg.spatial`; `OPENCDE_IFC_LPG_SPATIAL`, på som standard
+med ekstraet): IfcOpenShell byggjer forma til kvar bygningsdel, og arbeidaren
+skriv ein boks per bygningsdel i prosjektkoordinatar og meshane, kvar delt
+mesh éin gong. Boksane går inn i grafen som punkta `bbox_min`, `bbox_max` og
+`bbox_centre` på bygningsdelen sin `Entity`, med ein punktindeks på
+`bbox_centre` i arkivet og i arbeidskopien, slik at ei spørjing finn det som
+er nær eit punkt eller inne i eit volum; `Model` ber `spatial_at`,
+`spatial_products` og `spatial_failed`. Postane blir lagra, og
+`GET …/ifc-geometry` byggjer ein binær glTF av dei første gongen han blir
+etterspurd: kvar delt mesh éin gong, ein node per bygningsdel som instansierer
+han med bygningsdelen si matrise, namngjeven med sin GlobalId og med klasse,
+STEP-id og etasje i `extras`, under ein node per etasje, og ei rot som dreier
+modellen frå IFCs Z opp til glTFs Y opp. `lod=box` gjev boksane i staden, éin
+kube som kvar bygningsdel instansierer, nokre få byte kvar; `classes`
+(IFC-klassar, kommaseparerte) og `storey` (ein GlobalId) vel bygningsdelane.
+Fila blir lagra og kjem med ein `ETag` for modellen og filtra, slik at
+`If-None-Match` blir svara med `304`. Geometripasset feller aldri ei
+konvertering: mislukkast det, noterer modellen `spatial_error` og ruta svarar
+`404`; medan versjonen enno blir konvertert, `409`. Kapabilitetsdokumentet
+annonserer det som `ifc_geometry`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry?lod=full&classes=IfcWall,IfcSlab
+```
+
+```cypher
+// Bygningsdelane innanfor to meter frå ein vegg, i same modell
+MATCH (w:Entity:IfcWall {GlobalId: $guid})
+MATCH (e:Entity {model_id: w.model_id}) WHERE e.bbox_centre IS NOT NULL AND e <> w
+  AND point.distance(e.bbox_centre, w.bbox_centre) < 2.0
+RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS distance ORDER BY distance
+```
+
 ## Spørjingar frå Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), nettlesarklienten som

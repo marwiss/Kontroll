@@ -562,6 +562,42 @@ og getuskjalið segir í `ifcgraph.workcopy` hvort eitt sé stillt.
 docker compose up -d
 ```
 
+## Hvar byggingarhlutarnir eru, og rúmfræðin
+
+Eftir umbreytingu keyrir þjónninn rúmfræðivinnslu IFC-LPG einu sinni yfir
+skrána (`python -m ifc_lpg.spatial`; `OPENCDE_IFC_LPG_SPATIAL`, sjálfgefið á
+með viðbótinni): IfcOpenShell byggir lögun hvers byggingarhluta og vinnslan
+skrifar kassa á hvern byggingarhluta í verkefnishnitum og möskvana, hvern
+samnýttan möskva einu sinni. Kassarnir fara inn í netið sem punktarnir
+`bbox_min`, `bbox_max` og `bbox_centre` á `Entity` byggingarhlutans, með
+punktatriðaskrá á `bbox_centre` í safninu og í vinnueintakinu, svo að
+fyrirspurn finni það sem er nálægt punkti eða innan rúmmáls; `Model` ber
+`spatial_at`, `spatial_products` og `spatial_failed`. Færslurnar eru geymdar
+og `GET …/ifc-geometry` byggir tvíundar-glTF úr þeim þegar fyrst er beðið um
+hana: hvern samnýttan möskva einu sinni, hnút á hvern byggingarhluta sem
+tilvikar hann með fylki byggingarhlutans, nefndan með GlobalId og með flokk,
+STEP-auðkenni og hæð í `extras`, undir hnút á hverja hæð, og rót sem snýr
+líkaninu frá Z upp í IFC yfir í Y upp í glTF. `lod=box` gefur kassana í
+staðinn, einn tening sem hver byggingarhluti tilvikar, nokkur bæti hver;
+`classes` (IFC-flokkar, aðskildir með kommum) og `storey` (GlobalId) velja
+byggingarhlutana. Skráin er geymd og fylgir `ETag` fyrir líkanið og síurnar,
+svo að `If-None-Match` fær svarið `304`. Rúmfræðiumferðin fellir aldrei
+umbreytingu: mistakist hún skráir líkanið `spatial_error` og leiðin svarar
+`404`; meðan útgáfan er enn í umbreytingu, `409`. Getuskjalið tilkynnir hana
+sem `ifc_geometry`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry?lod=full&classes=IfcWall,IfcSlab
+```
+
+```cypher
+// Byggingarhlutar innan tveggja metra frá vegg, í sama líkani
+MATCH (w:Entity:IfcWall {GlobalId: $guid})
+MATCH (e:Entity {model_id: w.model_id}) WHERE e.bbox_centre IS NOT NULL AND e <> w
+  AND point.distance(e.bbox_centre, w.bbox_centre) < 2.0
+RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS distance ORDER BY distance
+```
+
 ## Fyrirspurnir frá Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), vafrabiðlarinn sem er

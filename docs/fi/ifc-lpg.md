@@ -580,6 +580,44 @@ kentässä `ifcgraph.workcopy`, onko sellainen määritetty.
 docker compose up -d
 ```
 
+## Missä rakennusosat ovat, ja geometria
+
+Muunnoksen jälkeen palvelin ajaa IFC-LPG:n geometriatyöläisen kerran
+tiedoston yli (`python -m ifc_lpg.spatial`; `OPENCDE_IFC_LPG_SPATIAL`,
+oletuksena päällä lisäosan kanssa): IfcOpenShell rakentaa jokaisen
+rakennusosan muodon, ja työläinen kirjoittaa laatikon rakennusosaa kohti
+projektikoordinaateissa sekä meshit, jokaisen jaetun meshin kerran. Laatikot
+menevät graafiin pisteinä `bbox_min`, `bbox_max` ja `bbox_centre` rakennusosan
+`Entity`-solmulle, ja `bbox_centre` saa pisteindeksin arkistossa ja
+työkopiossa, jotta kysely löytää sen, mikä on lähellä pistettä tai tilavuuden
+sisällä; `Model` kantaa kentät `spatial_at`, `spatial_products` ja
+`spatial_failed`. Tietueet säilytetään tallennustilassa, ja
+`GET …/ifc-geometry` rakentaa niistä binäärisen glTF:n, kun sitä ensimmäisen
+kerran pyydetään: jokainen jaettu mesh kerran, solmu rakennusosaa kohti, joka
+instantioi sen rakennusosan matriisilla, nimettynä GlobalId:llä ja luokka,
+STEP-tunnus ja kerros `extras`-kentässä, kerroskohtaisen solmun alla, sekä
+juuri, joka kääntää mallin IFC:n Z-ylös-suunnasta glTF:n Y-ylös-suuntaan.
+`lod=box` antaa sen sijaan laatikot, yhden kuution, jonka jokainen rakennusosa
+instantioi, muutaman tavun kukin; `classes` (IFC-luokat pilkuin eroteltuina)
+ja `storey` (GlobalId) valitsevat rakennusosat. Tiedosto säilytetään ja sen
+mukana tulee mallin ja suodattimien `ETag`, joten `If-None-Match` saa
+vastauksen `304`. Geometria-ajo ei koskaan kaada muunnosta: jos se
+epäonnistuu, malli merkitsee `spatial_error`-kentän ja reitti vastaa `404`;
+kun versiota vielä muunnetaan, `409`. Kyvykkyysasiakirja ilmoittaa sen nimellä
+`ifc_geometry`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry?lod=full&classes=IfcWall,IfcSlab
+```
+
+```cypher
+// Rakennusosat kahden metrin säteellä seinästä, samassa mallissa
+MATCH (w:Entity:IfcWall {GlobalId: $guid})
+MATCH (e:Entity {model_id: w.model_id}) WHERE e.bbox_centre IS NOT NULL AND e <> w
+  AND point.distance(e.bbox_centre, w.bbox_centre) < 2.0
+RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS distance ORDER BY distance
+```
+
 ## Kyselyt Dataspatiumista
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), tämän palvelimen

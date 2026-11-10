@@ -8,6 +8,16 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## Unreleased
+
+- Where the products are, and the geometry (OB-37): after a conversion IFC-LPG's geometry worker runs once over the
+  file, every product gets its box in the graph (`bbox_min`, `bbox_max`, `bbox_centre` as points on the `Entity`,
+  with a point index on `bbox_centre`, in the archive and the working copy), and
+  `GET /documents/1.0/documents/{id}/versions/{index}/ifc-geometry` answers with a binary glTF of the version
+  (`lod=full` or `box`, `classes=`, `storey=`; every shared mesh once, a node per product under its storey, `ETag`
+  and `304`), built from the records the first time and kept. `OPENCDE_IFC_LPG_SPATIAL` (on) and
+  `OPENCDE_IFC_LPG_GEOMETRY_THREADS`; announced as `ifc_geometry`. IFC-LPG is locked at d042134.
+
 ## 3.0.0 — 2026-11-10
 
 Released again on 2026-11-10 (the third time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and

@@ -165,8 +165,8 @@ erDiagram
 
 | Etikett | Nøkkel | Egenskaper | Merknader |
 |---|---|---|---|
-| `Model` | `id`, indeksert `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tidsstempler | Én per importert fil; `state` er `queued`, `running`, `done` eller `failed` |
-| `Entity` + klasseetiketter | `id` (`<modell-id>:<step-id>`), indeksert `GlobalId`, `model_id` | `ifc_class`, `step_id`, hvert literalt IFC-attributt ved navn | Relasjoner mellom entiteter navngis etter IFC-attributtet (forover og inverst), skrevet som enhver relasjonstype med store bokstaver og understreker: `IsDefinedBy` blir `IS_DEFINED_BY` |
+| `Model` | `id`, indeksert `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tidsstempler | Én per importert fil; `state` er `queued`, `running`, `done` eller `failed` |
+| `Entity` + klasseetiketter | `id` (`<modell-id>:<step-id>`), indeksert `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkter i prosjektkoordinater, meter, på en bygningsdel med form), hvert literalt IFC-attributt ved navn | Relasjoner mellom entiteter navngis etter IFC-attributtet (forover og inverst), skrevet som enhver relasjonstype med store bokstaver og understreker: `IsDefinedBy` blir `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<modell-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konvertert med `OPENCDE_IFC_LPG_LOSSLESS` som ikke er noder: skrevet ut som STEP i id-rekkefølge og komprimert. Ikke returner noden hel i en spørring, på grunn av `text` |
 
 Se [ifc-lpg.md](ifc-lpg.md) for konverteringsreglene og eksempelspørringer.

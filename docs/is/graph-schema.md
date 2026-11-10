@@ -165,8 +165,8 @@ erDiagram
 
 | Merkimiði | Lykill | Eiginleikar | Athugasemdir |
 |---|---|---|---|
-| `Model` | `id`, atriðaskráð `project_id` | `document_id`, `version_index` eða `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tímastimplar | Eitt fyrir hverja innflutta skrá; `state` er `queued`, `running`, `done` eða `failed` |
-| `Entity` + flokkamerkimiðar | `id` (`<líkansauðkenni>:<step-auðkenni>`), atriðaskráð `GlobalId`, `model_id` | `ifc_class`, `step_id`, hvert bókstaflegt IFC-eigindi með heiti | Vensl milli eininga eru nefnd eftir IFC-eigindinu (áfram og andhverft), skrifuð eins og hver venslagerð með hástöfum og undirstrikum: `IsDefinedBy` verður `IS_DEFINED_BY` |
+| `Model` | `id`, atriðaskráð `project_id` | `document_id`, `version_index` eða `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tímastimplar | Eitt fyrir hverja innflutta skrá; `state` er `queued`, `running`, `done` eða `failed` |
+| `Entity` + flokkamerkimiðar | `id` (`<líkansauðkenni>:<step-auðkenni>`), atriðaskráð `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punktar í verkefnishnitum, metrar, á byggingarhluta með lögun), hvert bókstaflegt IFC-eigindi með heiti | Vensl milli eininga eru nefnd eftir IFC-eigindinu (áfram og andhverft), skrifuð eins og hver venslagerð með hástöfum og undirstrikum: `IsDefinedBy` verður `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<líkansauðkenni>:<fyrsta step-auðkenni>`) | `first_step`, `instances`, `text` | Tilvik í líkani sem var umbreytt með `OPENCDE_IFC_LPG_LOSSLESS` og eru ekki hnútar: skrifuð út sem STEP í röð auðkenna og þjöppuð. Skilaðu ekki hnútnum heilum í fyrirspurn, vegna `text` |
 
 Sjá [ifc-lpg.md](ifc-lpg.md) um umbreytingarreglurnar og dæmafyrirspurnir.

@@ -354,6 +354,15 @@ class Settings(BaseSettings):
         validation_alias=_ifc("lossless"),
         description="Keep all of a converted model in the graph, geometry as text, so that the file can be written back.",
     )
+    ifcgraph_spatial: bool = Field(
+        True,
+        validation_alias=_ifc("spatial"),
+        description="After a conversion, work out where every product is: a box per product in the graph and the "
+        "geometry records that `GET …/ifc-geometry` builds glTF from (needs the ifc-lpg extra).",
+    )
+    ifcgraph_geometry_threads: int = Field(
+        2, ge=1, le=64, validation_alias=_ifc("geometry_threads"), description="Threads of the geometry worker."
+    )
     ifcgraph_validate_uploads: bool = Field(
         True,
         validation_alias=_ifc("validate_uploads"),

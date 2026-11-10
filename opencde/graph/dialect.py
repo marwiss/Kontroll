@@ -63,6 +63,19 @@ class Dialect:
             return f"CREATE INDEX {label}_{prop}_index IF NOT EXISTS FOR (n:{label}) ON (n.{prop})"
         return f"CREATE INDEX ON :{label}({prop})"
 
+    def point_index(self, label: str, prop: str) -> str:
+        """An index on a point property, for nearness queries (IFC-LPG's spatial layer)."""
+        label, prop = _check_name(label), _check_name(prop)
+        if self.name is GraphDialect.NEO4J:
+            return f"CREATE POINT INDEX {label}_{prop}_point IF NOT EXISTS FOR (n:{label}) ON (n.{prop})"
+        return f"CREATE POINT INDEX ON :{label}({prop})"
+
+    def drop_point_index(self, label: str, prop: str) -> str:
+        label, prop = _check_name(label), _check_name(prop)
+        if self.name is GraphDialect.NEO4J:
+            return f"DROP INDEX {label}_{prop}_point IF EXISTS"
+        return f"DROP POINT INDEX ON :{label}({prop})"
+
     @property
     def list_constraints(self) -> str:
         """A statement answering one row per constraint."""

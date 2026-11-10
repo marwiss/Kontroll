@@ -50,6 +50,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
+    "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
@@ -224,6 +225,9 @@ breytingasett, form sem er tilkynnt sem `ifc_changes`. Sjá
 
 Tvær IFC-útgáfur eru bornar saman einingu fyrir einingu með `ifc_diff`, eftir
 GlobalId og slóð. Sjá [ifc-lpg.md](ifc-lpg.md#að-bera-saman-tvær-útgáfur).
+
+Rúmfræði IFC-útgáfu kemur sem tvíundar-glTF með `ifc_geometry` (`lod=full` eða `box`, `classes`, `storey`),
+og hver byggingarhluti hefur kassa sinn í netinu. Sjá [ifc-lpg.md](ifc-lpg.md#hvar-byggingarhlutarnir-eru-og-rúmfræðin).
 
 ## 5. Að tengja atvikaskrá þína við þjónsins
 

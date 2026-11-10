@@ -31,6 +31,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_precheck",
         "headless_uploads",
         "ifc_diff",
+        "ifc_geometry",
         "ifc_changes",
         "graph_query",
     }
@@ -49,6 +50,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_clash"] == {"enabled": False}, "the clash check is off until configured"
     assert extensions["ifc_precheck"] == {"enabled": False}, "the precheck needs the IFC-LPG module"
     assert extensions["ifc_diff"] == {"enabled": False}, "the diff needs the IFC-LPG module"
+    assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-LPG module"
     assert extensions["ifc_changes"]["snippet_type"] == "DataregiumIfcChangeSet", "the form of a proposed change"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"

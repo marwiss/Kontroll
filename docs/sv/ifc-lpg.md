@@ -572,6 +572,41 @@ i `ifcgraph.workcopy` om en är konfigurerad.
 docker compose up -d
 ```
 
+## Var byggdelarna är, och geometrin
+
+Efter en konvertering kör servern IFC-LPG:s geometriarbetare en gång över
+filen (`python -m ifc_lpg.spatial`; `OPENCDE_IFC_LPG_SPATIAL`, på som standard
+med extrat): IfcOpenShell bygger varje byggdels form, och arbetaren skriver en
+låda per byggdel i projektkoordinater och mesherna, varje delad mesh en gång.
+Lådorna går in i grafen som punkterna `bbox_min`, `bbox_max` och `bbox_centre`
+på byggdelens `Entity`, med ett punktindex på `bbox_centre` i arkivet och i
+arbetskopian, så att en fråga hittar det som är nära en punkt eller inuti en
+volym; `Model` bär `spatial_at`, `spatial_products` och `spatial_failed`.
+Posterna sparas i lagringen, och `GET …/ifc-geometry` bygger en binär glTF ur
+dem första gången den efterfrågas: varje delad mesh en gång, en nod per
+byggdel som instansierar den med byggdelens matris, namngiven med sitt
+GlobalId och med klass, STEP-id och våning i `extras`, under en nod per
+våning, och en rot som vrider modellen från IFC:s Z upp till glTF:s Y upp.
+`lod=box` ger lådorna i stället, en kub som varje byggdel instansierar, några
+byte var; `classes` (IFC-klasser, kommaseparerade) och `storey` (ett GlobalId)
+väljer byggdelarna. Filen sparas och kommer med en `ETag` för modellen och
+filtren, så att `If-None-Match` besvaras med `304`. Geometripasset fäller
+aldrig en konvertering: misslyckas det antecknar modellen `spatial_error` och
+rutten svarar `404`; medan versionen ännu konverteras, `409`.
+Kapabilitetsdokumentet annonserar det som `ifc_geometry`.
+
+```http
+GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry?lod=full&classes=IfcWall,IfcSlab
+```
+
+```cypher
+// Byggdelarna inom två meter från en vägg, i samma modell
+MATCH (w:Entity:IfcWall {GlobalId: $guid})
+MATCH (e:Entity {model_id: w.model_id}) WHERE e.bbox_centre IS NOT NULL AND e <> w
+  AND point.distance(e.bbox_centre, w.bbox_centre) < 2.0
+RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS distance ORDER BY distance
+```
+
 ## Fråga från Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), webbläsarklienten som

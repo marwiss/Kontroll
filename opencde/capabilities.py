@@ -23,6 +23,7 @@ from opencde.deps import SettingsDep
 from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
 from opencde.ifcgraph.diff import MAX_ENTRIES as DIFF_MAX_ENTRIES
+from opencde.ifcgraph.gltf import LODS
 from opencde.ifcgraph.queries import CHANGED_SINCE, QUERIES
 from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
 from opencde.settings import Settings
@@ -103,6 +104,16 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "max_entries": DIFF_MAX_ENTRIES,
                 }
                 if settings.ifcgraph_enabled and settings.offers("documents")
+                else {"enabled": False}
+            ),
+            "ifc_geometry": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry",
+                    "format": "model/gltf-binary",
+                    "lods": list(LODS),
+                }
+                if settings.ifcgraph_enabled and settings.ifcgraph_spatial and settings.offers("documents")
                 else {"enabled": False}
             ),
             "ifc_precheck": (

@@ -165,8 +165,8 @@ erDiagram
 
 | Label | Nøgle | Egenskaber | Noter |
 |---|---|---|---|
-| `Model` | `id`, indekseret `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tidsstempler | Én per importeret fil; `state` er `queued`, `running`, `done` eller `failed` |
-| `Entity` + klasselabels | `id` (`<model-id>:<step-id>`), indekseret `GlobalId`, `model_id` | `ifc_class`, `step_id`, hver literal IFC-attribut ved navn | Relationer mellem entiteter navngives efter IFC-attributten (fremad og inverst), skrevet som enhver relationstype med store bogstaver og understregninger: `IsDefinedBy` bliver `IS_DEFINED_BY` |
+| `Model` | `id`, indekseret `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tidsstempler | Én per importeret fil; `state` er `queued`, `running`, `done` eller `failed` |
+| `Entity` + klasselabels | `id` (`<model-id>:<step-id>`), indekseret `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkter i projektkoordinater, meter, på en bygningsdel med form), hver literal IFC-attribut ved navn | Relationer mellem entiteter navngives efter IFC-attributten (fremad og inverst), skrevet som enhver relationstype med store bogstaver og understregninger: `IsDefinedBy` bliver `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<model-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instanser i en model konverteret med `OPENCDE_IFC_LPG_LOSSLESS`, som ikke er noder: skrevet ud som STEP i id-rækkefølge og komprimeret. Returnér ikke noden hel i en forespørgsel, på grund af `text` |
 
 Se [ifc-lpg.md](ifc-lpg.md) for konverteringsreglerne og

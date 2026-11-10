@@ -19,6 +19,7 @@ from opencde.accounts.roles import Role
 from opencde.accounts.users import PUBLIC_FIELDS, AccountError, User, _user
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.ifcgraph.maintenance import delete_geometry
 from opencde.storage import LocalStorage
 from opencde.timeutil import now_iso
 
@@ -224,7 +225,13 @@ class ProjectRepository:
     async def delete_with_files(self, project_id: str, storage: LocalStorage) -> bool:
         """``delete``, and the stored files the project owned, so that deleting it frees the disk too."""
         keys = await self.storage_keys(project_id)
+        models = await self.graph.run(
+            "MATCH (:Project {project_id: $id})-[:HAS_MODEL]->(m:Model) RETURN m.id AS id", id=project_id
+        )
         deleted = await self.delete(project_id)
+        for model in models:
+            with contextlib.suppress(OSError):
+                delete_geometry(storage, model["id"])
         for key in keys:
             with contextlib.suppress(ValueError):  # a key the storage refuses was never one it wrote
                 storage.delete(key)

@@ -9,6 +9,9 @@ startup and is idempotent on both Neo4j and Memgraph.
 
 from __future__ import annotations
 
+import contextlib
+
+from opencde.graph.dialect import GraphDialect
 from opencde.graph.graph import Graph
 from opencde.logging import get_logger
 
@@ -73,6 +76,9 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("RequestLog", "expires_at"),
 )
 
+# Point indexes: where the products are (IFC-LPG's spatial layer, ``bbox_centre`` on every product with a shape).
+POINT_INDEXES: tuple[tuple[str, str], ...] = (("Entity", "bbox_centre"),)
+
 # Labels whose nodes carry ``expires_at`` and may be deleted once it has passed. Only self-registered
 # clients carry it (unused ones expire); manually created clients have no ``expires_at`` and stay.
 EXPIRING_LABELS: tuple[str, ...] = (
@@ -114,6 +120,18 @@ async def relabel_after_the_rename(graph: Graph) -> int:
     return changed
 
 
+async def rebuild_point_indexes(graph: Graph) -> None:
+    """Make the point indexes anew after points were set. Memgraph 3.14 does not keep a point index current (a
+    point set after the index was made is not found through it), so there the index is dropped and made again;
+    Neo4j keeps its indexes up to date and nothing is done."""
+    if graph.dialect.name is not GraphDialect.MEMGRAPH:
+        return
+    for label, prop in POINT_INDEXES:
+        with contextlib.suppress(Exception):  # there was none yet
+            await graph.ddl(graph.dialect.drop_point_index(label, prop))
+        await graph.ddl(graph.dialect.point_index(label, prop))
+
+
 async def apply_schema(graph: Graph) -> int:
     """Create missing constraints and indexes, and relabel what IFC-LPG's rename left behind. Returns how many
     statements changed the schema."""
@@ -126,6 +144,9 @@ async def apply_schema(graph: Graph) -> int:
             changed += 1
     for label, prop in INDEXES:
         if await graph.ddl(dialect.index(label, prop)):
+            changed += 1
+    for label, prop in POINT_INDEXES:
+        if await graph.ddl(dialect.point_index(label, prop)):
             changed += 1
     (log.info if changed else log.debug)("schema_applied", dialect=dialect.name.value, changed=changed)
     await relabel_after_the_rename(graph)

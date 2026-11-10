@@ -49,6 +49,7 @@ anpassar sig i stället för att prova sig fram:
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
+    "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
@@ -226,6 +227,9 @@ En ändring av en modell föreslås som ett BCF-ärende vars `bim_snippet` är e
 
 Två IFC-versioner jämförs element för element med `ifc_diff`, efter GlobalId
 och sökväg. Se [ifc-lpg.md](ifc-lpg.md#jämföra-två-versioner).
+
+Geometrin i en IFC-version kommer som binär glTF med `ifc_geometry` (`lod=full` eller `box`, `classes`, `storey`),
+och varje byggdel har sin låda i grafen. Se [ifc-lpg.md](ifc-lpg.md#var-byggdelarna-är-och-geometrin).
 
 ## 5. Korrelera din logg med serverns
 
