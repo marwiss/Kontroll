@@ -447,6 +447,18 @@ the form.
 }
 ```
 
+When the IFC-LPG module is on, the server tries every change set as it is
+uploaded: a worker applies the changes to the base version's file, the result
+goes through the checks an upload gets (the IFC schema, buildingSMART's rules
+and the project's IDS documents), and the trial is `clean` when every change
+applied and no finding is new compared with the base version's report, else
+`issues`. `GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gives the
+state, how many changes applied and the new findings, each as in a version's
+report; a change that could not be applied is a finding of kind `proposal`
+that says why, without quoting the file. A new snippet replaces the trial, and
+the trial goes with the topic. `ifc_changes` in the capabilities document says
+whether change sets are tried (`tried`) and where the trial is (`proposal_url`).
+
 ## Clash check
 
 A member compares two IFC document versions of a project for clashes, with the

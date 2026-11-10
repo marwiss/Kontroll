@@ -460,6 +460,19 @@ ehdotusta kokeiltaessa, seuraavassa vaiheessa; tänään palvelin pitää muodon
 }
 ```
 
+Kun IFC-LPG-moduuli on käytössä, palvelin kokeilee jokaista muutosjoukkoa sitä
+lähetettäessä: työprosessi soveltaa muutokset perustaversion tiedostoon, tulos
+käy läpi lähetyksen tarkistukset (IFC-skeema, buildingSMARTin säännöt ja
+projektin IDS-dokumentit), ja kokeilu on `clean`, kun jokainen muutos voitiin
+soveltaa eikä yksikään huomautus ole uusi perustaversion raporttiin
+verrattuna, muuten `issues`.
+`GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` antaa tilan, montako
+muutosta sovellettiin ja uudet huomautukset, kunkin kuten version raportissa;
+muutos, jota ei voitu soveltaa, on lajin `proposal` huomautus, joka kertoo
+syyn lainaamatta tiedostoa. Uusi snippet korvaa kokeilun, ja kokeilu poistuu
+asian mukana. Kyvykkyysdokumentin `ifc_changes` kertoo, kokeillaanko
+muutosjoukkoja (`tried`) ja missä kokeilu on (`proposal_url`).
+
 ## Törmäystarkastus
 
 Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla

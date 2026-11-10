@@ -445,6 +445,20 @@ reynd, næsta skref; í dag heldur þjónninn forminu.
 }
 ```
 
+Þegar IFC-LPG-einingin er á reynir þjónninn hvert breytingasett þegar því er
+hlaðið upp: vinnsluferli beitir breytingunum á skrá grunnútgáfunnar,
+niðurstaðan fer í gegnum prófanirnar sem upphal fær (IFC-skemað, reglur
+buildingSMART og IDS-skjöl verkefnisins), og prófunin er `clean` þegar hverri
+breytingu var hægt að beita og engin athugasemd er ný miðað við skýrslu
+grunnútgáfunnar, annars `issues`.
+`GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gefur stöðuna, hve
+mörgum breytingum var beitt og nýju athugasemdirnar, hverja eins og í skýrslu
+útgáfu; breyting sem ekki var hægt að beita er athugasemd af taginu `proposal`
+sem segir hvers vegna, án þess að vitna í skrána. Nýtt snippet kemur í stað
+prófunarinnar, og prófunin fer með málinu þegar því er eytt. `ifc_changes` í
+getuskjalinu segir hvort breytingasett eru reynd (`tried`) og hvar prófunin er
+(`proposal_url`).
+
 ## Árekstrarprófun
 
 Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með

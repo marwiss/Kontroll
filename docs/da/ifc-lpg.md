@@ -453,6 +453,19 @@ serveren formen.
 }
 ```
 
+Når IFC-LPG-modulet er slået til, prøver serveren hvert ændringssæt, når det
+uploades: en arbejder anvender ændringerne på basisversionens fil, resultatet
+går gennem de kontroller, en upload får (IFC-skemaet, buildingSMARTs regler og
+projektets IDS-dokumenter), og prøven er `clean`, når hver ændring kunne
+anvendes, og ingen anmærkning er ny i forhold til basisversionens rapport,
+ellers `issues`. `GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` giver
+tilstanden, hvor mange ændringer der blev anvendt, og de nye anmærkninger, hver
+som i en versions rapport; en ændring, der ikke kunne anvendes, er en
+anmærkning af arten `proposal`, der siger hvorfor uden at citere filen. En ny
+snippet erstatter prøven, og prøven følger med sagen, når den slettes.
+`ifc_changes` i kapabilitetsdokumentet siger, om ændringssæt prøves (`tried`),
+og hvor prøven er (`proposal_url`).
+
 ## Kollisionskontrol
 
 Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,

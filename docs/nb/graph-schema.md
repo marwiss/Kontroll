@@ -80,6 +80,7 @@ erDiagram
 | Etikett | Nøkkel | Egenskaper | Merknader |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Feltnavnene følger `topic_GET.json`; BIM snippet-objektet flates ut til fire egenskaper. `server_assigned_id` er `<prefiks><teller>` fra `Project.topic_counter` |
+| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prøven av en saks endringssett mot basisversjonen (ADR 0021); `report` holder anmerkningene basen mangler, `storage_key` den brukte filen, lagret for godkjenningen. Slettes med saken |
 | `Event` | `id` | `kind` (`topic` eller `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | Én node per forespørsel som endret noe; de to parallelle listene er `actions`-arrayen i BCF 3.9/3.10. Knyttet til prosjektet slik at hendelser overlever saken sin |
 
 Hver saksspørring starter i kallerens `User`-node og går via `MEMBER_OF` til
@@ -96,6 +97,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
+    Topic ||--o| IfcProposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY

@@ -25,6 +25,7 @@ from opencde.bcf.topic_access import TopicCtx
 from opencde.bcf.topic_links import LinksDep
 from opencde.deps import SettingsDep, StorageDep
 from opencde.documents.changes import MAX_CHANGE_SET_BYTES, SNIPPET_TYPE, problems
+from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import LocalStorage, make_key
 
@@ -48,12 +49,18 @@ async def snippet_get(topic: TopicCtx, links: LinksDep, storage: StorageDep) -> 
 @router.put("/snippet", summary="3.2.7 PUT Topic BIM Snippet", status_code=200, response_class=Response)
 @limiter.limit(RATE_UPLOAD)
 async def snippet_put(
-    request: Request, topic: TopicCtx, links: LinksDep, storage: StorageDep, settings: SettingsDep
+    request: Request,
+    topic: TopicCtx,
+    links: LinksDep,
+    storage: StorageDep,
+    settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
 ) -> Response:
     """Upload the snippet as the request body. The topic's ``bim_snippet`` must already describe it.
 
     A snippet of the type `DataregiumIfcChangeSet` is held to the change set's schema
-    (`GET /documents/1.0/ifc-changes/schema`), and 400 says what is wrong with it.
+    (`GET /documents/1.0/ifc-changes/schema`), and 400 says what is wrong with it; when the IFC-LPG module is on,
+    the change set is then tried on its base version (`GET …/ifc-proposal`).
     """
     topic.require_topic_action("updateBimSnippet")
     if topic.topic.bim_snippet is None:
@@ -73,6 +80,10 @@ async def snippet_put(
         filename=filename_from_content_disposition(request.headers.get("content-disposition")),
         size=size,
     )
+    if ifcgraph is not None and topic.topic.bim_snippet.snippet_type == SNIPPET_TYPE:
+        await ifcgraph.schedule_proposal(
+            project_id=topic.project_id, topic_guid=topic.guid, snippet_key=key, author=topic.username
+        )
     return Response(status_code=200)
 
 

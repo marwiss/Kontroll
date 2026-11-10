@@ -82,6 +82,7 @@ erDiagram
 | Nimiö | Avain | Ominaisuudet | Huomautukset |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Kenttien nimet seuraavat `topic_GET.json`-tiedostoa; BIM snippet -objekti litistetään neljäksi ominaisuudeksi. `server_assigned_id` on `<etuliite><laskuri>` kentästä `Project.topic_counter` |
+| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Asian muutosjoukon kokeilu sen perustaversiota vasten (ADR 0021); `report` sisältää huomautukset, joita perustassa ei ole, `storage_key` sovelletun tiedoston, joka säilytetään hyväksyntää varten. Poistetaan asian mukana |
 | `Event` | `id` | `kind` (`topic` tai `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | Yksi solmu jokaista jotakin muuttanutta pyyntöä kohti; kaksi rinnakkaista listaa ovat BCF 3.9/3.10:n `actions`-taulukko. Liitetty projektiin, jotta tapahtumat säilyvät asiansa jälkeen |
 
 Jokainen asiakysely alkaa kutsujan `User`-solmusta ja kulkee
@@ -99,6 +100,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
+    Topic ||--o| IfcProposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY

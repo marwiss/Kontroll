@@ -32,6 +32,8 @@ def test_the_schema_is_public_and_the_snippet_is_held_to_it(client: TestClient, 
         "schema": SCHEMA_PATH,
         "snippet_type": SNIPPET_TYPE,
         "max_changes": 10_000,
+        "tried": False,
+        "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal",
     }
 
     editor = login_as(client, world, "editor")

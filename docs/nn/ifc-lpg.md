@@ -456,6 +456,20 @@ prøvd når forslaget blir prøvd, det neste steget; i dag held serveren forma.
 }
 ```
 
+Når IFC-LPG-modulen er på, prøver serveren kvart endringssett når det blir
+lasta opp: ein arbeidar bruker endringane på fila til basisversjonen,
+resultatet går gjennom kontrollane ei opplasting får (IFC-skjemaet, reglane til
+buildingSMART og IDS-dokumenta i prosjektet), og prøven er `clean` når kvar
+endring kunne brukast og ingen merknad er ny samanlikna med rapporten til
+basisversjonen, elles `issues`.
+`GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gjev tilstanden, kor
+mange endringar som vart brukte, og dei nye merknadene, kvar som i rapporten
+til ein versjon; ei endring som ikkje kunne brukast, er ein merknad av slaget
+`proposal` som seier kvifor, utan å sitere fila. Ein ny snippet erstattar
+prøven, og prøven følgjer med saka når ho blir sletta. `ifc_changes` i
+kapabilitetsdokumentet seier om endringssett blir prøvde (`tried`) og kvar
+prøven er (`proposal_url`).
+
 ## Kollisjonskontroll
 
 Ein medlem samanliknar to IFC-dokumentversjonar i eit prosjekt for kollisjonar,

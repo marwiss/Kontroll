@@ -14,6 +14,7 @@ from opencde.bcf import (
     routes_documents,
     routes_events,
     routes_projects,
+    routes_proposals,
     routes_topic_links,
     routes_topics,
     routes_v21,
@@ -34,6 +35,7 @@ v30.include_router(routes_topics.router)
 v30.include_router(routes_comments.router)
 v30.include_router(routes_viewpoints.router)
 v30.include_router(routes_topic_links.router)
+v30.include_router(routes_proposals.router)
 v30.include_router(routes_documents.router)
 
 v21 = routes_v21.router

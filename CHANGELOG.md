@@ -10,6 +10,12 @@ the commit history.
 
 ## Unreleased
 
+- A change set is tried on its base version when it is uploaded as a topic's snippet and the IFC-LPG module is
+  on: a worker applies the changes to the base version's file, the result gets the checks an upload gets, and
+  `GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gives the trial: `clean` when every change applied and
+  no finding is new compared with the base, else `issues`, with the new findings and a `proposal` issue per
+  change that could not be applied. `ifc_changes` in the capabilities document carries `tried` and
+  `proposal_url`.
 ## 3.0.0 — 2026-11-10
 
 Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of

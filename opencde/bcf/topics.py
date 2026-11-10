@@ -269,7 +269,7 @@ class TopicRepository:
             rows = await tx.run(
                 """
                 MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
-                OPTIONAL MATCH (t)-[:HAS_COMMENT|HAS_VIEWPOINT|HAS_FILE|HAS_DOCUMENT_REFERENCE]->(child)
+                OPTIONAL MATCH (t)-[:HAS_COMMENT|HAS_VIEWPOINT|HAS_FILE|HAS_DOCUMENT_REFERENCE|HAS_PROPOSAL]->(child)
                 OPTIONAL MATCH (child)-[:HAS_COMPONENT|HAS_LINE|HAS_CLIPPING_PLANE|HAS_BITMAP]->(grandchild)
                 WITH t, collect(DISTINCT child) AS children, collect(DISTINCT grandchild) AS grandchildren
                 RETURN [n IN children + grandchildren WHERE n.storage_key IS NOT NULL | n.storage_key]
@@ -283,7 +283,7 @@ class TopicRepository:
             await tx.run(
                 """
                 MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
-                OPTIONAL MATCH (t)-[:HAS_COMMENT|HAS_VIEWPOINT|HAS_FILE|HAS_DOCUMENT_REFERENCE]->(child)
+                OPTIONAL MATCH (t)-[:HAS_COMMENT|HAS_VIEWPOINT|HAS_FILE|HAS_DOCUMENT_REFERENCE|HAS_PROPOSAL]->(child)
                 OPTIONAL MATCH (child)-[:HAS_COMPONENT|HAS_LINE|HAS_CLIPPING_PLANE|HAS_BITMAP]->(grandchild)
                 DETACH DELETE grandchild, child, t
                 """,

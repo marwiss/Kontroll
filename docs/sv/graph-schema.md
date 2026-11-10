@@ -79,6 +79,7 @@ erDiagram
 | Etikett | Nyckel | Egenskaper | Anteckningar |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Fältnamnen följer `topic_GET.json`; BIM snippet-objektet plattas ut till fyra egenskaper. `server_assigned_id` är `<prefix><räknare>` från `Project.topic_counter` |
+| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prövningen av ett ärendes ändringsset mot dess basversion (ADR 0021); `report` håller de anmärkningar basen saknar, `storage_key` den tillämpade filen, sparad för godkännandet. Raderas med ärendet |
 | `Event` | `id` | `kind` (`topic` eller `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | En nod per begäran som ändrade något; de två parallella listorna är `actions`-arrayen i BCF 3.9/3.10. Kopplad till projektet så att händelser överlever sitt ärende |
 
 Varje ärendefråga startar i anroparens `User`-nod och går via `MEMBER_OF` till
@@ -95,6 +96,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
+    Topic ||--o| IfcProposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY

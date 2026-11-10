@@ -37,7 +37,7 @@ from opencde.graph.graph import Graph
 from opencde.ids import new_id
 from opencde.logging import get_logger
 from opencde.settings import Settings
-from opencde.storage import LocalStorage
+from opencde.storage import LocalStorage, make_key
 from opencde.timeutil import later_iso, now_iso
 
 log = get_logger(__name__)
@@ -46,6 +46,8 @@ STATE_QUEUED = "queued"
 STATE_RUNNING = "running"
 STATE_DONE = "done"
 STATE_FAILED = "failed"
+STATE_CLEAN = "clean"  # a proposal whose every change applied, with no finding the base lacks
+STATE_ISSUES = "issues"
 IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
 IDS_SUFFIX = ".ids"
 # The IDS documents of one project an upload is checked against, and the specifications its report keeps (ADR 0015).
@@ -57,6 +59,11 @@ MAX_SPECIFICATIONS = 1_000
 def _failure(exc: Exception) -> dict[str, Any]:
     """The fields of a check that could not run; the message is cut, as it may quote the file."""
     return {"checked_at": now_iso(), "error": f"{type(exc).__name__}: {exc}"[:300]}
+
+
+def _issue_key(issue: dict[str, Any]) -> tuple[Any, ...]:
+    """What makes a finding the same one in the base and in the proposal: the GlobalId where there is one."""
+    return (issue.get("kind"), issue.get("rule"), issue.get("global_id") or str(issue.get("message", ""))[:200])
 
 
 def _ids_ruleset() -> str:
@@ -166,6 +173,23 @@ class IfcGraphService:
                 await self._set_state(row["id"], STATE_QUEUED)
             log.info("ifcgraph_resumed", model_id=row["id"])
             self._start(row["id"], row["storage_key"], row["file_name"])
+        rows = await self.graph.run(
+            """
+            MATCH (p:IfcProposal)
+            WHERE p.state = $queued OR (p.state = $running AND p.running_at < $given_up)
+            RETURN p.id AS id, p.state AS state
+            """,
+            queued=STATE_QUEUED,
+            running=STATE_RUNNING,
+            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
+        )
+        for row in rows:
+            if f"ifcproposal-{row['id']}" in waiting_here:
+                continue
+            if row["state"] == STATE_RUNNING:
+                await self._set_proposal(row["id"], STATE_QUEUED)
+            log.info("ifc_proposal_resumed", proposal_id=row["id"])
+            self._start_proposal(row["id"])
         if not self.settings.ifcgraph_validate_uploads:
             return
         rows = await self.graph.run(
@@ -487,6 +511,185 @@ class IfcGraphService:
             user_id=user_id,
             project_id=project_id,
             id=precheck_id,
+        )
+        if row is None:
+            return None
+        node = dict(row["node"])
+        node["issues"] = unpack_report(node.pop("report", None))
+        node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
+        return node
+
+    # -- a change set tried on its base version (ADR 0021) --------------------------------------------
+
+    async def schedule_proposal(self, *, project_id: str, topic_guid: str, snippet_key: str, author: str) -> str:
+        """Queue the trial of a topic's change set; an earlier trial of the topic goes, with its file."""
+        gone = await self.graph.run(
+            """
+            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:IfcProposal)
+            WITH p, p.storage_key AS key
+            DETACH DELETE p
+            RETURN key
+            """,
+            project_id=project_id,
+            guid=topic_guid,
+        )
+        for row in gone:
+            if row["key"]:
+                with contextlib.suppress(ValueError, OSError):
+                    self.storage.delete(row["key"])
+        proposal_id = new_id()
+        rows = await self.graph.run(
+            """
+            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
+            CREATE (t)-[:HAS_PROPOSAL]->(p:IfcProposal {
+                id: $id, project_id: $project_id, topic_guid: $guid, snippet_key: $snippet_key, author: $author,
+                state: $state, created_at: $now
+            })
+            RETURN p.id AS id
+            """,
+            project_id=project_id,
+            guid=topic_guid,
+            id=proposal_id,
+            snippet_key=snippet_key,
+            author=author,
+            state=STATE_QUEUED,
+            now=now_iso(),
+        )
+        if not rows:
+            raise ValueError("no such topic")
+        self._start_proposal(proposal_id)
+        return proposal_id
+
+    def _start_proposal(self, proposal_id: str) -> None:
+        task = asyncio.create_task(self._run_proposal(proposal_id), name=f"ifcproposal-{proposal_id}")
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+
+    async def _set_proposal(self, proposal_id: str, state: str, **fields: Any) -> None:
+        await self.graph.run(
+            "MATCH (p:IfcProposal {id: $id}) SET p.state = $state, p += $fields",
+            id=proposal_id,
+            state=state,
+            fields={**fields, f"{state}_at": now_iso()},
+        )
+
+    async def _run_proposal(self, proposal_id: str) -> None:
+        """Try one change set; the findings may quote the file, so only their number is logged."""
+        async with self._lock:
+            row = await self.graph.one(
+                """
+                MATCH (p:IfcProposal {id: $id, state: $queued})
+                SET p.state = $running, p.running_at = $now
+                RETURN p.project_id AS project_id, p.snippet_key AS snippet_key
+                """,
+                id=proposal_id,
+                queued=STATE_QUEUED,
+                running=STATE_RUNNING,
+                now=now_iso(),
+            )
+            if row is None:
+                return
+            try:
+                fields = await self._try_proposal(proposal_id, str(row["project_id"]), str(row["snippet_key"]))
+            except Exception as exc:
+                log.warning("ifc_proposal_failed", proposal_id=proposal_id, error=type(exc).__name__)
+                await self._set_proposal(proposal_id, STATE_FAILED, **_failure(exc))
+                return
+            state = fields.pop("state")
+            await self._set_proposal(proposal_id, state, **fields)
+            log.info("ifc_proposal_done", proposal_id=proposal_id, state=state, issues=fields["issue_count"])
+
+    async def _try_proposal(self, proposal_id: str, project_id: str, snippet_key: str) -> dict[str, Any]:
+        """Apply the changes to the base version's file, check the result, and keep what the base lacks."""
+        with self.storage.open_read(snippet_key) as handle:
+            change_set = json.loads(handle.read().decode("utf-8"))
+        base = change_set["base"]
+        version = await self.graph.one(
+            """
+            MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                  -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
+            OPTIONAL MATCH (v)-[:HAS_VALIDATION]->(r:IfcValidation {state: $done})
+            WITH v, r ORDER BY r.created_at DESC
+            RETURN v.storage_key AS storage_key, v.file_name AS file_name, r.report AS base_report
+            LIMIT 1
+            """,
+            project_id=project_id,
+            document_id=str(base["document_id"]),
+            version_index=int(base["version_index"]),
+            done=STATE_DONE,
+        )
+        if version is None:
+            raise RuntimeError("the base version is not in this project")
+        if not self.wants(str(version["file_name"])):
+            raise RuntimeError("the base version is not an IFC file")
+        key = make_key("proposals", proposal_id, "ifc")
+        with tempfile.TemporaryDirectory(prefix="ifcproposal-") as tmp:
+            workdir = Path(tmp)
+            source = await asyncio.to_thread(
+                self._prepare_input, str(version["storage_key"]), str(version["file_name"]), workdir
+            )
+            changes = workdir / "changes.json"
+            changes.write_text(json.dumps(change_set), encoding="utf-8")
+            out = workdir / "proposal.ifc"
+            command = [
+                sys.executable,
+                "-m",
+                "opencde.ifcgraph.apply",
+                str(source),
+                str(changes),
+                str(out),
+                "--memory-mb",
+                str(self.settings.ifcgraph_memory_mb),
+            ]
+            answer = await self._in_a_process(command, "applying the change set")
+            summary = json.loads(answer.strip().splitlines()[-1])
+            await asyncio.to_thread(self.storage.copy_in, out, key)
+        checked = await self._run_checks(key, "proposal.ifc", project_id)
+        if version["base_report"] is None:
+            base_issues = unpack_report(
+                (await self._run_checks(str(version["storage_key"]), str(version["file_name"]), project_id))["report"]
+            )
+        else:
+            base_issues = unpack_report(version["base_report"])
+        known = {_issue_key(issue) for issue in base_issues}
+        new = [issue for issue in unpack_report(checked["report"]) if _issue_key(issue) not in known]
+        problems = [
+            {
+                "kind": "proposal",
+                "severity": "error",
+                "message": f"change {problem['change']}: {problem['error']}",
+            }
+            for problem in summary["problems"]
+        ]
+        issues = problems + new
+        return {
+            "state": STATE_CLEAN if not issues else STATE_ISSUES,
+            "checked_at": now_iso(),
+            "storage_key": key,
+            "file_name": "proposal.ifc",
+            "base_document_id": str(base["document_id"]),
+            "base_version_index": int(base["version_index"]),
+            "change_count": int(summary["count"]),
+            "applied": int(summary["applied"]),
+            "issue_count": len(issues),
+            "error_count": sum(1 for issue in issues if issue.get("severity") == "error"),
+            "truncated": bool(checked["truncated"]),
+            "ruleset": checked["ruleset"],
+            "checks": checked["checks"],
+            "report": pack_report(issues),
+        }
+
+    async def proposal(self, *, user_id: str, project_id: str, topic_guid: str) -> dict[str, Any] | None:
+        """The trial of a topic's change set, for a member of the project, its issues unpacked; None without one."""
+        row = await self.graph.one(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
+                  -[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:IfcProposal)
+            RETURN properties(p) AS node
+            """,
+            user_id=user_id,
+            project_id=project_id,
+            guid=topic_guid,
         )
         if row is None:
             return None
