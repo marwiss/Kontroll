@@ -178,6 +178,15 @@ som ikkje kan lesast, til dømes eitt med ein DTD, står under `rules_not_run` m
 grunnen, og dei andre blir kontrollerte likevel. Sida til versjonen viser
 spesifikasjonane i ein eigen tabell.
 
+### Det den konverterte modellen viser
+
+Når modellen er konvertert, får rapporten ein eigen kontroll, `graph`, med to slag merknader. Ein instans som ingenting
+med ein GlobalId når, framover eller bakover, er ei åtvaring av typen `reachability`, med STEP-id-en i `step_id` og
+klassen i meldinga: berre det nummeret namngjev han, som ei plassering ingenting bruker, så eit endringssett kan peike
+han ut berre med STEP-id-en. Eit produkt som geometripasset ikkje kunne byggje forma til, er ein merknad av typen
+`geometry`, med GlobalId-en. Ingen av dei avviser fila: dei kjem etter opplastinga, og ei åtvaring gjev status
+`warnings`. Før modellen er konvertert, har rapporten ingen kontroll `graph`.
+
 ### Avvise filer med feil, og kontrollere ei fil på førehand
 
 Ein administrator kan krysse av *Avvis opplastingar med valideringsfeil* på

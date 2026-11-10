@@ -20,7 +20,7 @@ from ifc_lpg.validation import unpack_report
 from opencde.deps import GraphDep
 from opencde.documents.links import version_links
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion, FileDescription
-from opencde.documents.validation import Validation
+from opencde.documents.validation import Validation, with_graph_findings
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import new_id
 from opencde.timeutil import now_iso
@@ -165,15 +165,22 @@ class DocumentRepository:
     async def validation(
         self, *, user_id: str, document_id: str, version_index: int, with_issues: bool = False
     ) -> Validation | None:
-        """The check of a version against the IFC schema, if it has one (``documents/validation.py``)."""
+        """The check of a version against the IFC schema, if it has one (``documents/validation.py``), with what the
+        graph of its model shows once it is converted: the check ``graph``, with the instances no GlobalId reaches
+        and the shapes the geometry pass could not build."""
         row = await self.graph.one(
             """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(p:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                   -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_VALIDATION]->(r:IfcValidation)
+            WITH p, r ORDER BY r.created_at DESC LIMIT 1
+            OPTIONAL MATCH (p)-[:HAS_MODEL]->(m:Model {document_id: $document_id, version_index: $version_index})
+            WHERE m.graph_checked_at IS NOT NULL
+            WITH r, m ORDER BY m.created_at DESC LIMIT 1
             RETURN r.state AS state, r.issue_count AS issue_count, r.error_count AS error_count,
                    r.truncated AS truncated, r.checked_at AS checked_at, r.ruleset AS ruleset, r.checks AS checks,
-                   CASE WHEN $with_issues THEN r.report ELSE null END AS report
-            ORDER BY r.created_at DESC LIMIT 1
+                   CASE WHEN $with_issues THEN r.report ELSE null END AS report,
+                   m.graph_issue_count AS graph_issue_count, m.graph_error_count AS graph_error_count,
+                   m.graph_ruleset AS graph_ruleset, CASE WHEN $with_issues THEN m.graph_report ELSE null END AS graph_report
             """,
             user_id=user_id,
             document_id=document_id,
@@ -182,7 +189,7 @@ class DocumentRepository:
         )
         if row is None:
             return None
-        return Validation(
+        validation = Validation(
             state=str(row["state"]),
             issue_count=None if row["issue_count"] is None else int(row["issue_count"]),
             error_count=None if row["error_count"] is None else int(row["error_count"]),
@@ -191,6 +198,13 @@ class DocumentRepository:
             ruleset=row["ruleset"],
             issues=unpack_report(row["report"]),
             checks=json.loads(row["checks"]) if row["checks"] else [],
+        )
+        return with_graph_findings(
+            validation,
+            issue_count=row["graph_issue_count"],
+            error_count=row["graph_error_count"],
+            ruleset=row["graph_ruleset"],
+            issues=unpack_report(row["graph_report"]),
         )
 
     async def create_version(

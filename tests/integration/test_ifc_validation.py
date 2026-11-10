@@ -129,6 +129,33 @@ def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tupl
     assert download.json() == body
 
 
+def test_the_report_warns_of_what_no_global_id_reaches(ifc_client: tuple[TestClient, World]) -> None:
+    """IFC-LPG F13 a and OB-10.1: an instance that nothing with a GlobalId reaches is a warning of the converted model;
+    the upload is kept, and the rest of the report is as the checks of the file made it."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)  # the end of the data section
+    data = head + b"#9001=IFCCARTESIANPOINT((9.,9.,9.));\r\n" + b"ENDSEC;" + tail
+    version = upload(client, world, editor, "loose_point.ifc", data)
+    checked(client, editor, version)
+    report_url = f"http://testserver/documents/1.0/documents/{version['document_id']}/versions/1/ifc-validation"
+    deadline = time.monotonic() + 240
+    while True:
+        body = client.get(report_url, headers=editor.headers).json()
+        if any(check["name"] == "graph" for check in body["checks"]):
+            break
+        assert time.monotonic() < deadline, "the model was not converted in time"
+        time.sleep(0.5)
+    graph = next(check for check in body["checks"] if check["name"] == "graph")
+    loose = [issue for issue in body["issues"] if issue["kind"] == "reachability"]
+    assert graph["state"] == "done" and graph["issue_count"] == len(loose) >= 1
+    assert [issue["step_id"] for issue in loose] == [9001] and loose[0]["severity"] == "warning"
+    assert "IfcCartesianPoint" in loose[0]["message"] and loose[0]["global_id"] is None
+    assert body["status"] == "warnings" and body["error_count"] == 0, "a warning refuses nothing"
+    assert body["issue_count"] == len(body["issues"])
+
+
 def test_an_upload_is_checked_against_the_projects_ids_documents(ifc_client: tuple[TestClient, World]) -> None:
     client, world = ifc_client
     editor = login_as(client, world, "editor")

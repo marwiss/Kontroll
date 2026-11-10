@@ -180,6 +180,15 @@ monta huomautusta se antoi. IDS-asiakirja, jota ei voi lukea, esimerkiksi
 sellainen, jossa on DTD, luetellaan kohdassa `rules_not_run` syineen, ja muut
 tarkistetaan silti. Version sivu näyttää määrittelyt omassa taulukossaan.
 
+### Mitä muunnettu malli näyttää
+
+Kun malli on muunnettu, raporttiin tulee oma tarkistus, `graph`, jossa on kahdenlaisia huomautuksia. Instanssi, jota
+mikään GlobalId:n omaava ei tavoita eteen- eikä taaksepäin, on varoitus lajia `reachability`, ja sen STEP-tunniste on
+kentässä `step_id` ja luokka viestissä: vain tuo numero nimeää sen, kuten käyttämättömän sijoituksen, joten
+muutosjoukko voi osoittaa sen pelkällä STEP-tunnisteella. Tuote, jonka muotoa geometria-ajo ei pystynyt rakentamaan,
+on huomautus lajia `geometry` GlobalId:nsä kanssa. Kumpikaan ei hylkää tiedostoa: ne tulevat latauksen jälkeen, ja
+varoitus antaa tilaksi `warnings`. Ennen kuin malli on muunnettu, raportissa ei ole tarkistusta `graph`.
+
 ### Virheellisten tiedostojen hylkääminen ja tiedoston tarkistaminen etukäteen
 
 Ylläpitäjä voi rastittaa projektin sivulla *Hylkää lähetykset, joissa on

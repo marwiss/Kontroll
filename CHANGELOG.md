@@ -8,6 +8,12 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## Unreleased
+
+- The report of a version gets the check `graph` once its model is converted: an instance that nothing with a
+  GlobalId reaches is a warning of the kind `reachability`, with its STEP id, and a product whose shape the geometry
+  pass could not build is an issue of the kind `geometry`. Neither refuses the file. IFC-LPG is pinned at 8177587.
+
 ## 3.0.0 — 2026-11-10
 
 Released again on 2026-11-10 (the fourth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and

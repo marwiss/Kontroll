@@ -176,6 +176,15 @@ gav. Ett IDS-dokument som inte kan läsas, till exempel ett med en DTD, listas
 under `rules_not_run` med skälet, och de andra kontrolleras ändå. Versionens
 sida visar specifikationerna i en egen tabell.
 
+### Det den konverterade modellen visar
+
+När modellen är konverterad får rapporten en egen kontroll, `graph`, med två slags anmärkningar. En instans som inget
+med ett GlobalId når, framåt eller bakåt, är en varning av slaget `reachability`, med sitt STEP-id i `step_id` och sin
+klass i meddelandet: bara det numret namnger den, som en placering som inget använder, så ett ändringsset kan peka ut
+den bara med sitt STEP-id. En produkt vars form geometripasset inte kunde bygga är en anmärkning av slaget `geometry`,
+med sitt GlobalId. Ingen av dem avvisar filen: de kommer efter uppladdningen, och en varning ger statusen `warnings`.
+Innan modellen är konverterad har rapporten ingen kontroll `graph`.
+
 ### Avvisa filer med fel, och kontrollera en fil i förväg
 
 En administratör kan kryssa i *Avvisa uppladdningar med valideringsfel* på

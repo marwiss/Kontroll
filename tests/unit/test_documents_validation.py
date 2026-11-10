@@ -153,3 +153,36 @@ def test_the_report_carries_the_ids_check_and_ties_each_finding_to_its_document(
     assert checked.ids_not_read == IDS_CHECK["rules_not_run"]
     assert checked.ids_specifications[0]["document_title"] == "Walls for reuse"
     assert "IfcTester 0.9.0: IDS 1.0" in checked.rulesets
+
+
+def test_the_graph_adds_its_findings_as_a_check_of_their_own() -> None:
+    from opencde.documents.validation import Validation, with_graph_findings
+
+    checked = Validation(
+        state="done",
+        issue_count=0,
+        error_count=0,
+        checks=[{"name": "schema", "state": "done", "ruleset": "IfcOpenShell", "issue_count": 0}],
+    )
+    warning = {"kind": "reachability", "severity": "warning", "message": "No GlobalId reaches it", "step_id": 9001}
+    found = with_graph_findings(checked, issue_count=1, error_count=0, ruleset="IFC-LPG", issues=[warning])
+    assert found.status == "warnings" and found.issue_count == 1 and found.error_count == 0
+    assert [check["name"] for check in found.checks] == ["schema", "graph"] and found.issues == [warning]
+    assert found.rulesets == ["IfcOpenShell", "IFC-LPG"]
+
+
+def test_the_graph_adds_nothing_before_the_file_is_checked_or_the_model_converted() -> None:
+    from opencde.documents.validation import Validation, with_graph_findings
+
+    pending = Validation(state="pending")
+    assert with_graph_findings(pending, issue_count=3, error_count=0, ruleset="IFC-LPG", issues=[]) is pending
+    done = Validation(state="done", issue_count=0, error_count=0)
+    assert with_graph_findings(done, issue_count=None, error_count=None, ruleset=None, issues=[]) is done
+
+
+def test_a_long_list_of_graph_findings_marks_the_report_cut() -> None:
+    from opencde.documents.validation import MAX_ISSUES, Validation, with_graph_findings
+
+    done = Validation(state="done", issue_count=5, error_count=5)
+    found = with_graph_findings(done, issue_count=MAX_ISSUES, error_count=0, ruleset="IFC-LPG", issues=[])
+    assert found.truncated and found.issue_count == MAX_ISSUES + 5 and found.status == "issues"

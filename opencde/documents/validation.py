@@ -9,7 +9,7 @@ of the report; the report lists the issues, each with the GlobalId of its elemen
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from opencde.documents.schemas import DocumentMetadataEntry
 
 Status = Literal["pending", "passed", "warnings", "issues", "unknown"]
+MAX_ISSUES = 10_000  # as many issues as a report lists
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,33 @@ class Validation:
         return "pending"
 
 
+def with_graph_findings(
+    validation: Validation,
+    *,
+    issue_count: int | None,
+    error_count: int | None,
+    ruleset: str | None,
+    issues: list[dict[str, Any]],
+) -> Validation:
+    """A version's check with what the graph of its model shows added as the check ``graph``: the instances that no
+    GlobalId reaches, as warnings, and the products the geometry pass could not build. Nothing is added before the
+    file is checked or the model converted, so that the status stays ``pending`` until both are done."""
+    if issue_count is None or validation.state != "done":
+        return validation
+    total = (validation.issue_count or 0) + int(issue_count)
+    return replace(
+        validation,
+        issue_count=total,
+        error_count=(validation.error_count or 0) + int(error_count or 0),
+        truncated=validation.truncated or total > MAX_ISSUES,
+        issues=[*validation.issues, *issues][:MAX_ISSUES],
+        checks=[
+            *validation.checks,
+            {"name": "graph", "state": "done", "ruleset": ruleset or "IFC-LPG", "issue_count": int(issue_count)},
+        ],
+    )
+
+
 def metadata_entries(validation: Validation, report_url: str) -> list[DocumentMetadataEntry]:
     """The entries of the version's metadata (Documents API ``DocumentMetadataEntry``)."""
     entries = [DocumentMetadataEntry(name="ifc_validation_status", value=[validation.status], data_type="string")]
@@ -123,8 +151,9 @@ class _Report(BaseModel):
 class IfcValidationIssue(_Report):
     kind: str = Field(
         description="What found it: `schema`, `entity_rule`, `simpletype_rule` or `global_rule` of the IFC schema, "
-        "`gherkin` for one of buildingSMART's ifc-gherkin-rules, or `ids` for a specification of one of the project's "
-        "IDS documents."
+        "`gherkin` for one of buildingSMART's ifc-gherkin-rules, `ids` for a specification of one of the project's "
+        "IDS documents, `reachability` for an instance that no GlobalId reaches, or `geometry` for a product whose "
+        "shape the geometry pass could not build."
     )
     rule: str | None = Field(
         None,
@@ -168,7 +197,7 @@ class IfcValidationSpecification(_Report):
 
 
 class IfcValidationCheck(_Report):
-    name: str = Field(description="`schema`, `gherkin` or `ids`.")
+    name: str = Field(description="`schema`, `gherkin`, `ids`, or `graph` for what the converted model shows.")
     state: Literal["done", "failed"] = Field(description="`failed` when the check could not be made at all.")
     ruleset: str = Field(description="What the check ran, and which version of it.")
     issue_count: int = Field(description="How many issues this check found.")

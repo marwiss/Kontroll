@@ -172,6 +172,15 @@ hægt að lesa, til dæmis með DTD, er talið upp undir `rules_not_run` ásamt
 ástæðunni, og hin eru samt prófuð. Síða útgáfunnar sýnir forskriftirnar í
 sérstakri töflu.
 
+### Það sem umbreytta líkanið sýnir
+
+Þegar líkanið hefur verið umbreytt fær skýrslan eigin prófun, `graph`, með tvenns konar athugasemdum. Tilvik sem
+ekkert með GlobalId nær, áfram eða aftur á bak, er viðvörun af gerðinni `reachability`, með STEP-auðkenni sitt í
+`step_id` og flokk sinn í skilaboðunum: aðeins það númer nefnir það, eins og staðsetningu sem ekkert notar, svo
+breytingasafn getur bent á það með STEP-auðkenninu einu. Vara sem rúmfræðikeyrslan gat ekki byggt lögun fyrir er
+athugasemd af gerðinni `geometry`, með GlobalId sitt. Hvorug hafnar skránni: þær koma eftir upphleðsluna, og viðvörun
+gefur stöðuna `warnings`. Áður en líkanið er umbreytt hefur skýrslan enga prófun `graph`.
+
 ### Að hafna skrám með villum, og prófa skrá fyrirfram
 
 Kerfisstjóri getur hakað við *Hafna upphölum með sannprófunarvillum* á síðu

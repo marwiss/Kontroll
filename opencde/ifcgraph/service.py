@@ -33,8 +33,8 @@ from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
 from ifc_lpg.graph import FORM_VERSION
 from ifc_lpg.importer import delete_blocks, delete_model, import_records
-from ifc_lpg.paths import PathError, canonical_path, resolve
-from ifc_lpg.spatial import import_spatial
+from ifc_lpg.paths import PathError, canonical_path, resolve, unreachable
+from ifc_lpg.spatial import geometry_issues, import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
 from opencde.graph.graph import Graph
@@ -87,6 +87,21 @@ def _ruleset_of(env: Path) -> str:
         return str(json.loads((env / MANIFEST).read_text(encoding="utf-8"))["ruleset"])
     except (OSError, ValueError, KeyError, TypeError):
         return "ifc-gherkin-rules"
+
+
+GRAPH_RULESET = "IFC-LPG: the instances no GlobalId reaches, and the shapes of the geometry pass"
+
+
+def _unreached_issue(node: dict[str, Any]) -> dict[str, Any]:
+    """An instance that no GlobalId reaches, as a warning of the report: only its STEP id names it, so that a change
+    set can address it by that number alone, and removing it changes nothing that a GlobalId names."""
+    return {
+        "kind": "reachability",
+        "severity": "warning",
+        "message": f"No GlobalId reaches this {node.get('ifc_class') or 'instance'}, forward or backward; only its "
+        "STEP id names it.",
+        "step_id": int(node["step"]),
+    }
 
 
 class IfcGraphService:
@@ -298,7 +313,8 @@ class IfcGraphService:
                     ifc_header=header.get("ifc_header"),
                     **({"spatial_pending": True} if self.settings.ifcgraph_spatial else {}),
                 )
-                await self._add_spatial(model_id, source, workdir)
+                geometry = await self._add_spatial(model_id, source, workdir)
+                await self._graph_findings(model_id, geometry)
             # Viewpoints created before the model finished (or before it was uploaded) get their links now.
             try:
                 linked = await self._link_model(model_id)
@@ -309,12 +325,14 @@ class IfcGraphService:
 
     # -- where the products are, and the geometry (OB-37) ---------------------------------------------
 
-    async def _add_spatial(self, model_id: str, source: Path, workdir: Path) -> None:
+    async def _add_spatial(self, model_id: str, source: Path, workdir: Path) -> list[dict[str, Any]]:
         """Run IFC-LPG's geometry worker once: a box per product into the archive (and the working copy), and the
         records kept in the storage for the glTF. A failure here is logged on the model and never fails the
-        conversion: the graph is complete without the boxes."""
+        conversion: the graph is complete without the boxes. Returns the products whose shape could not be built, as
+        issues of a report (IFC-LPG F24 a)."""
         if not self.settings.ifcgraph_spatial:
-            return
+            return []
+        failed: list[dict[str, Any]] = []
         records = workdir / "geometry.jsonl"
         command = [
             sys.executable,
@@ -332,6 +350,7 @@ class IfcGraphService:
         try:
             await self._in_a_process(command, "the geometry")
             counts = await import_spatial(self.graph, model_id, records)
+            failed = await asyncio.to_thread(geometry_issues, records)
             await rebuild_point_indexes(self.graph)
             key = make_key("geometry", model_id, "jsonl")
             await asyncio.to_thread(self.storage.copy_in, records, key)
@@ -354,6 +373,32 @@ class IfcGraphService:
         finally:
             with contextlib.suppress(Exception):
                 await self.graph.run("MATCH (m:Model {id: $id}) REMOVE m.spatial_pending", id=model_id)
+        return failed
+
+    async def _graph_findings(self, model_id: str, geometry: list[dict[str, Any]]) -> None:
+        """What the graph shows of a converted model, for the report of its version: the instances that no GlobalId
+        reaches, forward or backward, as warnings (IFC-LPG F13 a and OB-10.1: a check warns of them and refuses
+        nothing), and the products whose shape could not be built. A failure here is logged and leaves the report as
+        the checks of the file made it."""
+        try:
+            unreached = await unreachable(self.graph, model_id)
+            issues = [_unreached_issue(node) for node in unreached] + list(geometry)
+            await self.graph.run(
+                """
+                MATCH (m:Model {id: $id})
+                SET m.graph_report = $report, m.graph_issue_count = $count, m.graph_error_count = $errors,
+                    m.graph_ruleset = $ruleset, m.graph_checked_at = $now
+                """,
+                id=model_id,
+                report=pack_report(issues[:MAX_REPORTED]),
+                count=len(issues),
+                errors=sum(1 for issue in issues if issue.get("severity") == "error"),
+                ruleset=GRAPH_RULESET,
+                now=now_iso(),
+            )
+            log.info("ifcgraph_findings", model_id=model_id, unreached=len(unreached), geometry=len(geometry))
+        except Exception as exc:
+            log.warning("ifcgraph_findings_failed", model_id=model_id, error=type(exc).__name__)
 
     async def geometry(
         self, *, model_id: str, lod: str = "full", classes: tuple[str, ...] = (), storey: str | None = None

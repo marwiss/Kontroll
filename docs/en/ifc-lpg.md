@@ -172,6 +172,15 @@ An IDS document that cannot be read, such as one with a DTD, is listed under
 `rules_not_run` with the reason, and the others are checked all the same. The
 version's page shows the specifications in a table of their own.
 
+### What the converted model shows
+
+Once the model is converted, the report gets a check `graph` of its own, with two kinds of issues. An instance that
+nothing with a GlobalId reaches, forward or backward, is a warning of the kind `reachability`, with its STEP id in
+`step_id` and its class in the message: only that number names it, as with an unused placement, so a change set can
+address it by its STEP id alone. A product whose shape the geometry pass could not build is an issue of the kind
+`geometry`, with its GlobalId. Neither refuses the file: they come after the upload, and a warning leaves the status at
+`warnings`. Until the model is converted, the report has no check `graph`.
+
 ### Refusing files with errors, and checking a file first
 
 An administrator can tick *Refuse uploads with validation errors* on the
