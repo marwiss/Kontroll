@@ -10,8 +10,8 @@ the commit history.
 
 ## 2.0.0 — 2026-11-10
 
-Released again on 2026-11-10 under the name Dataregium (the second time that day), in step with Dataspatium
-2.0.0; the release of 2026-11-07 and the one earlier on 2026-11-10 are withdrawn and their notes are folded in
+Released again on 2026-11-10 under the name Dataregium (the third time that day), in step with Dataspatium
+2.0.0; the release of 2026-11-07 and the two earlier on 2026-11-10 are withdrawn and their notes are folded in
 here. Since the release earlier that day it has the administration of a project by its managers, the same as
 3.0.0's. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
 project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
