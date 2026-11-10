@@ -5,6 +5,7 @@ Kaikki toimii Dockerissa omalla koneellasi; mihinkään ei pääse ulkopuolelta.
 ## Vaatimukset
 
 - Docker Desktop (Windows, macOS) tai Docker Engine compose-liitännäisellä (Linux)
+- tai Podman 5 ja `podman compose`: samat tiedostot toimivat, katso [Podman](#podman) alla
 - [uv](https://docs.astral.sh/uv/) komentorivityökaluja varten
 
 ## Vaiheet
@@ -84,6 +85,17 @@ rekisteröi itsensä. CORS sallii oletuksena kaikki alkuperät, joten muita
 asetuksia ei tarvita; `OPENCDE_REQUEST_LOG_ENABLED=true` antaa
 `/admin/requests`-sivun näyttää sovelluksen kutsujen palvelinpuolen.
 [Pika-aloituksessa](../quickstart.md) on kaikki vaiheet ja vianmääritystaulukko.
+
+## Podman
+
+Compose-tiedostot toimivat Podmanilla yhtä hyvin kuin Dockerilla: imageilla on
+täydet nimet, data on nimetyissä taltioissa, sidosliitoksilla on SELinuxin
+`z`-merkintä, ja kehityskerros sitoo portit yli 1024 osoitteeseen 127.0.0.1. Aja ne
+komennolla `podman compose` (Podman 5) tai komennolla `docker compose` Podmanin
+socketia vasten (`DOCKER_HOST=unix:///run/user/1000/podman/podman.sock`). Juureton
+Podman ei voi sitoa portteja 80 ja 443 tuotantokerrokselle: aseta
+`sysctl net.ipv4.ip_unprivileged_port_start=80` tai aja se pino roottina. Podman on
+maksuton (Apache-2.0); testit ajetaan Dockerilla, eikä Podman kuulu CI:hin.
 
 ## Puhtaalta pöydältä
 

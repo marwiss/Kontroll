@@ -18,7 +18,7 @@ services:
       OPENCDE_TRUSTED_PROXIES: '["172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/16"]'
 
   proxy:
-    image: caddy:2.11.9-alpine
+    image: docker.io/library/caddy:2.11.9-alpine
     restart: unless-stopped
     depends_on:
       - api
@@ -30,7 +30,7 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
       - caddy-data:/data
       - caddy-config:/config
     networks:
@@ -43,7 +43,7 @@ services:
       - no-new-privileges:true
 
   backup:
-    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-latest}
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-3.0.0}
     restart: unless-stopped
     depends_on:
       graph:

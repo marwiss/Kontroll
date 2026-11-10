@@ -5,6 +5,7 @@ Everything runs in Docker on your machine; nothing is reachable from outside.
 ## Requirements
 
 - Docker Desktop (Windows, macOS) or Docker Engine with the compose plugin (Linux)
+- or Podman 5 with `podman compose`: the same files work, see [Podman](#podman) below
 - [uv](https://docs.astral.sh/uv/) for the command line tools
 
 ## Steps
@@ -83,6 +84,18 @@ itself instead. CORS allows every origin by default, so no further setting is
 needed; `OPENCDE_REQUEST_LOG_ENABLED=true` lets `/admin/requests` show the
 server side of the app's calls.
 The [quick start](../quickstart.md) has the complete steps and a troubleshooting table.
+
+## Podman
+
+The Compose files work with Podman as well as Docker: the images have full names,
+the data lives in named volumes, bind mounts carry the `z` label for SELinux, and
+the development overlay binds ports above 1024 on 127.0.0.1. Run them with
+`podman compose` (Podman 5), or with the `docker compose` command against Podman's
+socket (`DOCKER_HOST=unix:///run/user/1000/podman/podman.sock`). Rootless Podman
+cannot bind ports 80 and 443 for the production overlay: set
+`sysctl net.ipv4.ip_unprivileged_port_start=80`, or run that stack as root. Podman
+is free of charge (Apache-2.0); the tests run with Docker, and Podman is not part
+of CI.
 
 ## Clean slate
 

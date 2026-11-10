@@ -5,6 +5,7 @@ Allt keyrir í Docker á tölvunni þinni; ekkert er aðgengilegt að utan.
 ## Kröfur
 
 - Docker Desktop (Windows, macOS) eða Docker Engine með compose-viðbótinni (Linux)
+- eða Podman 5 með `podman compose`: sömu skrár virka, sjá [Podman](#podman) hér að neðan
 - [uv](https://docs.astral.sh/uv/) fyrir skipanalínutólin
 
 ## Skref
@@ -83,6 +84,18 @@ sjálft í staðinn. CORS leyfir sjálfgefið allan uppruna, svo engrar frekari
 stillingar er þörf; `OPENCDE_REQUEST_LOG_ENABLED=true` lætur `/admin/requests`
 sýna þjónshlið kalla forritsins.
 [Fljótlega byrjunin](../quickstart.md) hefur öll skrefin og bilanaleitartöflu.
+
+## Podman
+
+Compose-skrárnar virka með Podman jafnt sem Docker: myndirnar hafa full heiti,
+gögnin liggja í nefndum geymslum, bindingar bera merkið `z` fyrir SELinux, og
+þróunaryfirlagið bindur gáttir yfir 1024 á 127.0.0.1. Keyrðu þær með
+`podman compose` (Podman 5) eða með skipuninni `docker compose` gegn sökkli Podman
+(`DOCKER_HOST=unix:///run/user/1000/podman/podman.sock`). Rótlaus Podman getur ekki
+bundið gáttir 80 og 443 fyrir framleiðsluyfirlagið: settu
+`sysctl net.ipv4.ip_unprivileged_port_start=80` eða keyrðu þann stafla sem rót.
+Podman er ókeypis (Apache-2.0); prófin keyra með Docker, og Podman er ekki hluti
+af CI.
 
 ## Hreint borð
 
