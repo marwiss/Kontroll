@@ -160,7 +160,7 @@ erDiagram
 
 | Label | Nøgle | Egenskaber | Noter |
 |---|---|---|---|
-| `IfcModel` | `id`, indekseret `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `ifc_header`, `error`, tidsstempler | Én per importeret fil; `state` er `queued`, `running`, `done` eller `failed` |
+| `IfcModel` | `id`, indekseret `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tidsstempler | Én per importeret fil; `state` er `queued`, `running`, `done` eller `failed` |
 | `IfcEntity` + klasselabels | `id` (`<model-id>:<step-id>`), indekseret `GlobalId`, `model_id` | `ifc_class`, `step_id`, hver literal IFC-attribut ved navn | Relationer mellem entiteter navngives efter IFC-attributten (fremad og inverst), skrevet som enhver relationstype med store bogstaver og understregninger: `IsDefinedBy` bliver `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<model-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instanser i en model konverteret med `OPENCDE_IFC_LPG_LOSSLESS`, som ikke er noder: skrevet ud som STEP i id-rækkefølge og komprimeret. Returnér ikke noden hel i en forespørgsel, på grund af `text` |
 

@@ -160,7 +160,7 @@ erDiagram
 
 | Etikett | Nøkkel | Eigenskapar | Merknader |
 |---|---|---|---|
-| `IfcModel` | `id`, indeksert `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `ifc_header`, `error`, tidsstempel | Éin per importert fil; `state` er `queued`, `running`, `done` eller `failed` |
+| `IfcModel` | `id`, indeksert `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `error`, tidsstempel | Éin per importert fil; `state` er `queued`, `running`, `done` eller `failed` |
 | `IfcEntity` + klasseetikettar | `id` (`<modell-id>:<step-id>`), indeksert `GlobalId`, `model_id` | `ifc_class`, `step_id`, kvart literalt IFC-attributt ved namn | Relasjonar mellom entitetar blir namngjevne etter IFC-attributtet (framover og inverst), skrivne som kvar relasjonstype med store bokstavar og understrekar: `IsDefinedBy` blir `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<modell-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instansar i ein modell konvertert med `OPENCDE_IFC_LPG_LOSSLESS` som ikkje er nodar: skrivne ut som STEP i id-rekkjefølgje og komprimerte. Ikkje returner noden heil i ei spørjing, på grunn av `text` |
 
