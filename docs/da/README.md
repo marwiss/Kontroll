@@ -299,6 +299,8 @@ med den samme version af Dataspatium.
   en BCF-sag prøves og godkendes af en `manager` til den næste version, flettet pr.
   instans med det, der kom imellem; en reel kollision viser basens, den seneste
   versions og forslagets værdi.
+- **Publicering**: en `manager` publicerer en version, hvis kontrol ikke fandt fejl, og
+  serveren gemmer den som én hel `.ifczip`, som alle i projektet kan downloade.
 - **Geometrien som glTF**: hver version som binær glTF med delte meshes og en node
   pr. bygningsdel, og en kasse pr. bygningsdel i grafen til spørgsmål om, hvad der er nær.
 - **En lokal motor og din egen region**: Dataregium på din egen computer bag
@@ -520,7 +522,7 @@ menneske eller AI-agent, der fører en del af det videre. Arbejdsgangene står i
   modellen med et IDS-udvalg, som ISO 19650's ansvarlige teams gør, kommer senere.
 - **Kollisionskontrol begge steder**: på serveren med IfcOpenShells IfcClash og i
   Dataspatium med dens egen kerne i JavaScript.
-- **Det næste**: en hel fil som `.ifczip`, når en version publiceres; et endepunkt
+- **Det næste**: et endepunkt
   til AI-værktøjer (MCP) på din egen computer, hvor AI foreslår, og et menneske
   godkender; kontrol af klassifikationer og egenskaber mod bSDD; en ny kontrol af
   versionerne, når projektets IDS ændres, med buildingSMARTs fund knyttet til

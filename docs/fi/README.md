@@ -310,6 +310,9 @@ saman Dataspatium-version kanssa.
   muutosjoukko kokeillaan, ja `manager` hyväksyy sen seuraavaksi versioksi
   yhdistettynä instanssi kerrallaan siihen, mitä välissä tuli; todellinen törmäys
   näyttää perusversion, uusimman version ja ehdotuksen arvon.
+- **Julkaisu**: `manager` julkaisee version, jonka tarkistus ei löytänyt virheitä, ja
+  palvelin tallentaa sen yhtenä kokonaisena `.ifczip`-tiedostona, jonka kaikki projektissa
+  voivat ladata.
 - **Geometria glTF:nä**: jokainen versio binäärisenä glTF:nä jaetuin meshein ja yksi
   solmu rakennusosaa kohti, sekä laatikko rakennusosaa kohti graafissa läheisyyttä
   koskevia kysymyksiä varten.
@@ -540,7 +543,7 @@ IFC-graafi sivulla [ifc-lpg.md](ifc-lpg.md).
   IDS-valinnalla, kuten ISO 19650:n vastuuryhmät tekevät, tulevat myöhemmin.
 - **Törmäystarkastus molemmissa paikoissa**: palvelimella IfcOpenShellin IfcClashilla
   ja Dataspatiumissa sen omalla JavaScript-ytimellä.
-- **Seuraavaksi**: koko tiedosto `.ifczip`-muodossa, kun versio julkaistaan; päätepiste
+- **Seuraavaksi**: päätepiste
   tekoälytyökaluille (MCP) omalla tietokoneella, jossa tekoäly ehdottaa ja ihminen
   hyväksyy; luokitusten ja ominaisuuksien tarkistus bSDD:tä vasten; versioiden uusi
   tarkistus, kun projektin IDS muuttuu, ja buildingSMARTin havainnot liitettyinä

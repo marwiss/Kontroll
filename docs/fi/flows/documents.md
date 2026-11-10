@@ -98,6 +98,7 @@ metatiedoille; sen live-testisarjat ajavat nämä kulut kehityspinoa vasten.
 | Selainsivujen käyttö | selainistunnon samana käyttäjänä (`/signin`) |
 | Metatietojen tallennus, lähetyksen valmistaminen, lähetys sivulta | projektitoiminnon `createDocument` (editor, manager) |
 | Asiakirjojen katselu, valinta ja lataus | projektin jäsenyyden (mikä tahansa rooli) |
+| Version julkaisu | roolin `manager` |
 
 Muiden projektien asiakirjoja ei ole kutsujalle olemassa (404), joten niiden
 tunnukset tai olemassaolo eivät vuoda.

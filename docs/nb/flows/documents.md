@@ -96,6 +96,7 @@ for metadata; live-suitene dets kjører disse flytene mot utviklingsstakken.
 | Bruke nettlesersidene | en nettlesersesjon som samme bruker (`/signin`) |
 | Lagre metadata, fullføre en opplasting, laste opp fra siden | prosjekthandlingen `createDocument` (editor, manager) |
 | Se, velge og laste ned dokumenter | medlemskap i prosjektet (enhver rolle) |
+| Publisere en versjon | rollen `manager` |
 
 Dokumenter i andre prosjekter finnes ikke for kalleren (404), så verken
 id-ene eller eksistensen deres lekker.

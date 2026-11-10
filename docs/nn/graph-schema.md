@@ -129,6 +129,7 @@ erDiagram
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
     DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Publication : HAS_PUBLICATION
     Project ||--o{ IfcPrecheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
@@ -145,6 +146,7 @@ erDiagram
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` nummererer versjonane |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Bytes under `documents/<id>`; API-kroppen viser berre felta i spesifikasjonen; `parent_version_index`, `approved_by`, `change_set_id` og `change_set` (endringane, pakka) på ein versjon bygd på ein annan, lenkja til han med `DERIVED_FROM` (ADR 0021) |
 | `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen av ei opplasta IFC-fil mot IFC-skjemaet (ADR 0011); `report` er opptil 10 000 merknader som komprimert JSON. Blir sletta med prosjektet til versjonen |
+| `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | Arkivet til ein publisert versjon, `.ifczip` eller `.zip`, under `published/<id>`; eitt per versjon. Blir sletta med prosjektet til versjonen |
 | `IfcPrecheck` | `id` | dei same som `IfcValidation`, `project_id`, `author`, `expires_at` | Ei fil kontrollert utan å bli ein versjon, eller ei opplasting prosjektet avviste (ADR 0021); har òg etiketten `IfcValidation`. Oppryddingsjobben slettar han og fila hans etter eit døgn |
 | `UploadSession` | `id`, indeksert `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` opptrer i API-URL-ar (bearer krevst); UI-URL-en ber tokenet som hashen blir lagra for |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` til fila blir sett saman; oppryddingsjobben slettar utgåtte delar og filene deira |

@@ -49,6 +49,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -229,6 +230,12 @@ GlobalId og slóð. Sjá [ifc-lpg.md](ifc-lpg.md#að-bera-saman-tvær-útgáfur)
 
 Rúmfræði IFC-útgáfu kemur sem tvíundar-glTF með `ifc_geometry` (`lod=full` eða `box`, `classes`, `storey`),
 og hver byggingarhluti hefur kassa sinn í netinu. Sjá [ifc-lpg.md](ifc-lpg.md#hvar-byggingarhlutarnir-eru-og-rúmfræðin).
+
+`manager` gefur út útgáfu með `publication`: `POST …/versions/{index}/publication` geymir skrána sem eina þjappaða
+skrá, `.ifczip` fyrir IFC-skrá og `.zip` fyrir aðra skrá, og lýsigögn útgáfunnar fá `published_at`,
+`published_by` og `publication`. Útgáfa er gefin út einu sinni, og ekki á meðan verið er að prófa hana eða eftir að
+prófunin fann villur. `GET …/publication` sýnir hverjum meðlimi hver gaf hana út og hvenær, og
+`…/publication/download` skilar þjöppuðu skránni.
 
 ## 5. Að tengja atvikaskrá þína við þjónsins
 

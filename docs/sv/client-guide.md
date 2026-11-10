@@ -48,6 +48,7 @@ anpassar sig i stället för att prova sig fram:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -231,6 +232,12 @@ och sökväg. Se [ifc-lpg.md](ifc-lpg.md#jämföra-två-versioner).
 
 Geometrin i en IFC-version kommer som binär glTF med `ifc_geometry` (`lod=full` eller `box`, `classes`, `storey`),
 och varje byggdel har sin låda i grafen. Se [ifc-lpg.md](ifc-lpg.md#var-byggdelarna-är-och-geometrin).
+
+En `manager` publicerar en version med `publication`: `POST …/versions/{index}/publication` sparar filen som ett
+arkiv, `.ifczip` för en IFC-fil och `.zip` för en annan fil, och versionens metadata får `published_at`,
+`published_by` och `publication`. En version publiceras en gång, och inte medan den kontrolleras eller när
+kontrollen har hittat fel. `GET …/publication` visar varje medlem vem som publicerade den och när, och
+`…/publication/download` ger arkivet.
 
 ## 5. Korrelera din logg med serverns
 

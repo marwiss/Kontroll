@@ -300,6 +300,8 @@ version of Dataspatium.
   BCF topic is tested and approved by a `manager` into the next version, merged per
   instance with what came in between; a real clash shows the value of the base, of
   the latest version and of the proposal.
+- **Publishing**: a `manager` publishes a version whose check found no errors, and the
+  server keeps it as one whole `.ifczip` that everyone in the project can download.
 - **The geometry as glTF**: every version as binary glTF with shared meshes and one
   node per building element, and a box per building element in the graph for
   questions about what is near.
@@ -520,7 +522,7 @@ whoever, human or AI agent, carries a part of it further. The ways of working ar
   with an IDS selection, as ISO 19650's responsible teams do, come later.
 - **A clash check in both places**: on the server with IfcOpenShell's IfcClash and in
   Dataspatium with its own core in JavaScript.
-- **Next**: a whole file as `.ifczip` when a version is published; an endpoint for
+- **Next**: an endpoint for
   AI tools (MCP) on your own computer, where AI proposes and a human approves; a
   check of classifications and properties against bSDD; a new check of the versions
   when the project's IDS changes, with buildingSMART's findings linked to building

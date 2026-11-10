@@ -294,6 +294,8 @@ Orðin sem þessi README notar, á daglegu máli; allur orðalistinn er í
   í BCF-máli er prófað og samþykkt af `manager` sem næsta útgáfa, sameinað eftir
   tilvikum við það sem kom á milli; raunverulegur árekstur sýnir gildi grunnsins,
   nýjustu útgáfunnar og tillögunnar.
+- **Að gefa út**: `manager` gefur út útgáfu þar sem prófunin fann engar villur, og
+  þjónninn geymir hana sem eina heila `.ifczip`-skrá sem allir í verkefninu geta halað niður.
 - **Rúmfræðin sem glTF**: hver útgáfa sem tvíundar-glTF með samnýttum möskvum og einum
   hnút á hvern byggingarhluta, og kassi á hvern byggingarhluta í netinu fyrir
   spurningar um hvað er nálægt.
@@ -514,7 +516,7 @@ hluta þess áfram. Vinnulagið er í [CONTRIBUTING.md](../../CONTRIBUTING.md) o
   19650 gera, koma síðar.
 - **Árekstrarprófun á báðum stöðum**: á þjóninum með IfcClash frá IfcOpenShell og í
   Dataspatium með eigin kjarna í JavaScript.
-- **Næst**: heil skrá sem `.ifczip` þegar útgáfa er gefin út; endapunktur fyrir
+- **Næst**: endapunktur fyrir
   gervigreindarverkfæri (MCP) á þinni eigin tölvu, þar sem gervigreind leggur til og
   manneskja samþykkir; prófun flokkana og eiginleika gagnvart bSDD; ný prófun
   útgáfnanna þegar IDS verkefnisins breytist, með niðurstöðum buildingSMART tengdum

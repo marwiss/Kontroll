@@ -96,6 +96,7 @@ metadata; dets live-suiter kører disse forløb mod udviklingsstakken.
 | Bruge browsersiderne | en browsersession som samme bruger (`/signin`) |
 | Gemme metadata, afslutte en upload, uploade fra siden | projekthandlingen `createDocument` (editor, manager) |
 | Se, vælge og downloade dokumenter | medlemskab af projektet (enhver rolle) |
+| Publicere en version | rollen `manager` |
 
 Dokumenter i andre projekter findes ikke for kalderen (404), så hverken deres
 id'er eller deres eksistens lækker.

@@ -48,6 +48,7 @@ of probing:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -223,6 +224,12 @@ and path. See [ifc-lpg.md](ifc-lpg.md#comparing-two-versions).
 
 The geometry of an IFC version comes as binary glTF with `ifc_geometry` (`lod=full` or `box`, `classes`, `storey`),
 and every product has its box in the graph. See [ifc-lpg.md](ifc-lpg.md#where-the-products-are-and-the-geometry).
+
+A `manager` publishes a version with `publication`: `POST …/versions/{index}/publication` keeps the file as one
+archive, `.ifczip` for an IFC file and `.zip` for another, and the version's metadata gets `published_at`,
+`published_by` and `publication`. A version is published once, and not while it is being checked or after the check
+found errors. `GET …/publication` tells every member who published it and when, and `…/publication/download` gives
+the archive.
 
 ## 5. Correlating your log with the server's
 

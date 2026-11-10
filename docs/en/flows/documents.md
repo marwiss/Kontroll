@@ -94,6 +94,7 @@ metadata; its live suites run these flows against the development stack.
 | Use the browser pages | a browser session as the same user (`/signin`) |
 | Save metadata, complete an upload, upload from the page | the `createDocument` project action (editor, manager) |
 | See, select and download documents | membership of the project (any role) |
+| Publish a version | the `manager` role |
 
 Documents of other projects do not exist for the caller (404), so neither
 their ids nor their existence leaks.

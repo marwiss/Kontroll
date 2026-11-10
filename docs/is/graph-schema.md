@@ -129,6 +129,7 @@ erDiagram
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
     DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Publication : HAS_PUBLICATION
     Project ||--o{ IfcPrecheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
@@ -145,6 +146,7 @@ erDiagram
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` númerar útgáfurnar |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Bæti undir `documents/<id>`; meginmál forritaskilanna sýnir aðeins svið forskriftarinnar; `parent_version_index`, `approved_by`, `change_set_id` og `change_set` (breytingarnar, pakkaðar) á útgáfu sem byggir á annarri, tengd henni með `DERIVED_FROM` (ADR 0021) |
 | `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Prófun upphalaðrar IFC-skrár gagnvart IFC-skemanu (ADR 0011); `report` er allt að 10.000 athugasemdir sem þjappað JSON. Eytt með verkefni útgáfunnar |
+| `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | Þjöppuð skrá útgefinnar útgáfu, `.ifczip` eða `.zip`, undir `published/<id>`; ein fyrir hverja útgáfu. Eytt með verkefni útgáfunnar |
 | `IfcPrecheck` | `id` | þau sömu og `IfcValidation`, `project_id`, `author`, `expires_at` | Skrá sem var prófuð án þess að verða útgáfa, eða upphal sem verkefnið hafnaði (ADR 0021); ber líka merkimiðann `IfcValidation`. Tiltektarverkið eyðir henni og skrá hennar eftir sólarhring |
 | `UploadSession` | `id`, atriðaskráð `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` kemur fyrir í URL forritaskilanna (bearer krafist); UI-URL ber tókann sem tætigildið er geymt fyrir |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bæti undir `parts/<id>` þar til skráin er sett saman; hreinsunarverkið eyðir útrunnum hlutum og skrám þeirra |

@@ -132,6 +132,7 @@ erDiagram
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
     DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Publication : HAS_PUBLICATION
     Project ||--o{ IfcPrecheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
@@ -148,6 +149,7 @@ erDiagram
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` numeroi versiot |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Tavut polussa `documents/<id>`; rajapinnan runko näyttää vain spesifikaation kentät; `parent_version_index`, `approved_by`, `change_set_id` ja `change_set` (muutokset pakattuina) toisen päälle rakennetulla versiolla, linkitettynä siihen suhteella `DERIVED_FROM` (ADR 0021) |
 | `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Lähetetyn IFC-tiedoston tarkistus IFC-skeemaa vasten (ADR 0011); `report` on enintään 10 000 huomautusta pakattuna JSONina. Poistetaan version projektin mukana |
+| `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | Julkaistun version arkisto, `.ifczip` tai `.zip`, polussa `published/<id>`; yksi versiota kohden. Poistetaan version projektin mukana |
 | `IfcPrecheck` | `id` | samat kuin `IfcValidation`, `project_id`, `author`, `expires_at` | Tiedosto, joka tarkistettiin tulematta versioksi, tai lähetys, jonka projekti hylkäsi (ADR 0021); myös nimiöllä `IfcValidation`. Siivoustyö poistaa sen ja sen tiedoston vuorokauden kuluttua |
 | `UploadSession` | `id`, indeksoitu `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` esiintyy rajapinnan URLeissa (bearer vaaditaan); käyttöliittymän URL kantaa tokenia, jonka tiiviste tallennetaan |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Tavut polussa `parts/<id>`, kunnes tiedosto kootaan; siivoustyö poistaa vanhentuneet osat ja niiden tiedostot |

@@ -48,6 +48,7 @@ tilpassar seg i staden for å prøve seg fram:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -233,6 +234,12 @@ GlobalId og sti. Sjå [ifc-lpg.md](ifc-lpg.md#samanlikne-to-versjonar).
 
 Geometrien i ein IFC-versjon kjem som binær glTF med `ifc_geometry` (`lod=full` eller `box`, `classes`, `storey`),
 og kvar bygningsdel har boksen sin i grafen. Sjå [ifc-lpg.md](ifc-lpg.md#kvar-bygningsdelane-er-og-geometrien).
+
+Ein `manager` publiserer ein versjon med `publication`: `POST …/versions/{index}/publication` lagrar fila som eitt
+arkiv, `.ifczip` for ei IFC-fil og `.zip` for ei anna fil, og metadataa til versjonen får `published_at`,
+`published_by` og `publication`. Ein versjon blir publisert éin gong, og ikkje medan han blir kontrollert eller
+når kontrollen har funne feil. `GET …/publication` viser kvart medlem kven som publiserte han og når, og
+`…/publication/download` gjev arkivet.
 
 ## 5. Korrelere loggen din med loggen til serveren
 

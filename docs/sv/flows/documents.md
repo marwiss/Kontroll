@@ -97,6 +97,7 @@ utvecklingsstacken.
 | Använda webbläsarsidorna | en webbläsarsession som samma användare (`/signin`) |
 | Spara metadata, slutföra en uppladdning, ladda upp från sidan | projekthandlingen `createDocument` (editor, manager) |
 | Se, välja och ladda ned dokument | medlemskap i projektet (vilken roll som helst) |
+| Publicera en version | rollen `manager` |
 
 Dokument i andra projekt finns inte för anroparen (404), så varken deras id:n
 eller deras existens läcker.

@@ -97,6 +97,7 @@ utviklingsstakken.
 | Bruke nettlesarsidene | ein nettlesarsesjon som same brukar (`/signin`) |
 | Lagre metadata, fullføre ei opplasting, laste opp frå sida | prosjekthandlinga `createDocument` (editor, manager) |
 | Sjå, velje og laste ned dokument | medlemskap i prosjektet (kva rolle som helst) |
+| Publisere ein versjon | rolla `manager` |
 
 Dokument i andre prosjekt finst ikkje for kallaren (404), så verken id-ane
 eller eksistensen deira lek.

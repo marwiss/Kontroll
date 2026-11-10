@@ -97,6 +97,7 @@ lifandi svítur þess keyra þessi ferli gegn þróunarstaflanum.
 | Nota vafrasíðurnar | vafrasetu sem sami notandi (`/signin`) |
 | Vista lýsigögn, ljúka upphali, hlaða upp frá síðunni | verkefnisaðgerðina `createDocument` (editor, manager) |
 | Sjá, velja og hala niður skjölum | aðild að verkefninu (hvaða hlutverk sem er) |
+| Gefa út útgáfu | hlutverkið `manager` |
 
 Skjöl annarra verkefna eru ekki til fyrir þann sem kallar (404), svo hvorki
 auðkenni þeirra né tilvist leka.

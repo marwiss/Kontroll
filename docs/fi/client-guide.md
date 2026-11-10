@@ -50,6 +50,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -238,6 +239,12 @@ GlobalId:n ja polun mukaan. Katso [ifc-lpg.md](ifc-lpg.md#kahden-version-vertail
 
 IFC-version geometria tulee binäärisenä glTF:nä laajennuksella `ifc_geometry` (`lod=full` tai `box`, `classes`, `storey`),
 ja jokaisella rakennusosalla on laatikkonsa graafissa. Katso [ifc-lpg.md](ifc-lpg.md#missä-rakennusosat-ovat-ja-geometria).
+
+`manager` julkaisee version laajennuksella `publication`: `POST …/versions/{index}/publication` tallentaa
+tiedoston yhdeksi arkistoksi, IFC-tiedoston `.ifczip`-muodossa ja muun tiedoston `.zip`-muodossa, ja version
+metatietoihin tulevat `published_at`, `published_by` ja `publication`. Versio julkaistaan kerran, eikä sitä
+julkaista tarkistuksen ollessa kesken tai sen löydettyä virheitä. `GET …/publication` kertoo jokaiselle
+jäsenelle, kuka sen julkaisi ja milloin, ja `…/publication/download` antaa arkiston.
 
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 

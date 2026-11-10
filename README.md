@@ -302,6 +302,8 @@ version av Dataspatium.
   i ett BCF-ärende prövas och godkänns av en `manager` till nästa version,
   sammanfogat per instans med det som kom emellan; en verklig krock visar basens,
   den senaste versionens och förslagets värde.
+- **Publicering**: en `manager` publicerar en version vars kontroll inte hittade några
+  fel, och servern sparar den som en hel `.ifczip` som alla i projektet kan ladda ned.
 - **Geometrin som glTF**: varje version som binär glTF med delade mesher och en
   nod per byggdel, och en låda per byggdel i grafen för frågor om vad som är nära.
 - **En lokal motor och en egen molnregion**: Dataregium på den egna datorn bakom
@@ -526,7 +528,7 @@ Arbetssätten står i [CONTRIBUTING.md](CONTRIBUTING.md) och IFC-grafen i
   modellen med IDS-urval, som ISO 19650:s ansvariga team gör, kommer senare.
 - **Krocktest på båda ställena**: på servern med IfcOpenShells IfcClash och i
   Dataspatium med dess egen kärna i JavaScript.
-- **Härnäst**: en hel fil som `.ifczip` när en version publiceras; en ändpunkt för
+- **Härnäst**: en ändpunkt för
   AI-verktyg (MCP) på den egna datorn, där AI föreslår och en människa godkänner;
   kontroll av klassificeringar och egenskaper mot bSDD; omkontroll av versionerna
   när projektets IDS ändras, med buildingSMARTs fynd kopplade till byggdelar;
