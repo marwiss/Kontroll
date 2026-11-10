@@ -171,70 +171,43 @@ mikään ole auki ennen kuin se on määritetty.
 
 ## Mitä voit tehdä
 
-Mikä toimii yhdessä versiossa, toimii myös seuraavassa, joten luettelo alkaa
-versiosta 1, ja jokainen sen jälkeinen versio lisää siihen. Jokainen
-Dataregiumin versio kuuluu yhteen saman Dataspatiumin version kanssa.
+Mikä toimii yhdessä versiossa, toimii myös seuraavassa. Jokainen versio kuuluu
+yhteen saman Dataspatiumin version kanssa.
 
 ### Versio 1 (Dataspatium 1:n kanssa)
 
-- **Foundation API 1.0**: palvelujen löytäminen, OAuth2 authorization code ja
-  PKCE, nykyinen käyttäjä, tokenien peruutus ja
-  dynaaminen asiakasrekisteröinti julkisine asiakkaineen (oletuksena pois
-  päältä).
-- **Documents API 1.0**: asiakirjojen valinta ja lataus, lähetys osissa
-  palvelimen metatieto- ja valintasivujen avulla, versiokyselyt ETag-tunnistein.
-- **Hallinta** selaimessa: kirjaudu osoitteessa `/signin` järjestelmänvalvojan
-  tilillä ja avaa `/admin` hallitaksesi käyttäjiä ja heidän projektiroolejaan,
-  projekteja ja niiden BCF-extensions-arvoja, OAuth2-asiakkaita, istuntoja,
-  tapahtumalokia, valinnaista pyyntölokia ja palvelimen kuntotarkistuksia.
-  Jokaisella käyttäjällä on `/account` omaa salasanaa, omia sovelluksia ja
-  omia istuntoja varten. Komentorivi (`uv run opencde --help`) tekee saman
-  terminaalista.
-- **Määrittelyjen ulkopuoliset laajennukset**, kukin sellaiseksi merkittynä:
-  kyvykkyysasiakirja osoitteessa `/.well-known/dataregium`, joka kertoo
-  asiakkaalle, mitkä laajennukset ovat käytössä, vakaa `code` jokaisessa
-  virherungossa ja pyyntöloki asiakkaiden vianetsintään (`/admin/requests`,
-  `GET /admin/api/requests` scopella `admin`).
-- **Asiakaskirjasto** Pythonille ([client/](../../client/), LGPL) ajettavine
-  esimerkkeineen sekä Dockerfile, compose-ylikerrokset ja julkaistu image
-  jokaista käyttöönottoskenaariota varten.
+- **Foundation API 1.0**: palvelujen löytäminen, kirjautuminen OAuth2:lla ja
+  PKCE:llä, nykyinen käyttäjä ja asiakkaiden rekisteröinti.
+- **Documents API 1.0**: dokumenttien ja niiden versioiden valinta, lähetys ja
+  lataus.
+- **Hallinta** selaimessa (`/admin`) ja komentorivillä: käyttäjät, projektit,
+  asiakkaat, istunnot, tarkastusloki ja terveystarkistukset.
+- **Laajennukset**: kyvykkyysasiakirja (`/.well-known/dataregium`), virhekoodi
+  jokaisessa virhevastauksessa ja pyyntöloki.
+- **Asiakaskirjasto** Pythonille ([client/](../../client/)) ja julkaistu image
+  jokaiseen käyttöönottoon.
 
 ### Lisäksi versiossa 2 (Dataspatium 2:n kanssa)
 
-- **BCF API 3.0 ja 2.1**: projektit, extensions-arvot, asiat OData-kyselyineen,
-  kommentit, viewpoint-näkymät kuvakaappauksineen, bittikarttoineen ja
-  komponentteineen, tiedostot, asiakirjaviittaukset, asiakirjat ja
-  tapahtumalokit, kaikki validoituina buildingSMARTin skeemoja vasten.
-- **IFC-LPG-moduuli**, valinnainen: jokaisesta lähetetystä IFC-mallista tulee
-  graafidataa, ja BCF-näkymän komponentit liitetään rakennusosiin, joihin ne
-  viittaavat.
+- **BCF API 3.0 ja 2.1**: asiat, kommentit ja näkymät, validoituina
+  buildingSMARTin skeemoja vasten.
+- **IFC-LPG-moduuli**: lähetetyistä IFC-malleista tulee graafi, joka on liitetty
+  BCF-komponentteihin.
 
 ### Lisäksi versiossa 3 (Dataspatium 3:n kanssa)
 
-- **Häviötön IFC-graafi** IFC-LPG:stä, omasta kirjastostaan: koko malli
-  säilytetään, joten tiedosto voidaan kirjoittaa takaisin sellaisena kuin se
-  tuli.
-- **Tarkistetut lähetykset**: jokainen IFC-lähetys tarkistetaan IFC-skeemaa,
-  buildingSMARTin sääntöjä ja projektin IDS-dokumentteja vasten; projekti voi
-  hylätä virheelliset tiedostot, ja tiedosto voidaan tarkistaa ennen kuin siitä
-  tulee versio.
-- **Kysymyksiä mallille** jäsenille: nimettyjä kyselyjä version graafiin, mikä
-  on muuttunut jonkin version jälkeen, kahden version ero rakennusosa kerrallaan
-  ja törmäystarkastus kahden version välillä.
-- **Muutokset ehdotuksina**: lähetys kertoo, minkä version päälle se rakentuu;
-  mallin muutos kulkee muutosjoukkona BCF-asiassa, se kokeillaan perusversiota
-  vasten, ja `manager` hyväksyy sen seuraavaksi versioksi yhdistettynä siihen,
-  mitä välissä tuli.
-- **Paikallinen moottori ja työkopio**: palvelin henkilön omalla tietokoneella
-  Dataspatiumin takana, vain loopbackissa, ja jokaisen dokumentin päämalli
-  muistissa Memgraphissa malleille, jotka ovat suurempia kuin selain pystyy
-  käsittelemään.
-- **Lähetys ilman verkkosivua** luottamuksellisille asiakkaille, jotka
-  ylläpitäjä on hyväksynyt.
+- **Häviötön IFC-graafi**: tiedosto voidaan kirjoittaa takaisin sellaisena kuin
+  se tuli.
+- **Tarkistetut lähetykset** IFC-skeemaa, buildingSMARTin sääntöjä ja projektin
+  IDS:ää vasten, ennakkotarkistuksen kanssa.
+- **Kysymyksiä mallille**: nimetyt kyselyt, versioiden vertailu ja
+  törmäystarkastus.
+- **Muutokset ehdotuksina** BCF-asioissa, jotka `manager` hyväksyy seuraavaksi
+  versioksi.
+- **Paikallinen moottori** omalla tietokoneellasi, ja suurille malleille
+  työkopio muistissa.
 
-**Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu (kolme
-rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-LPG,
-hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
+**Tila**: suunnitelman kaikki yksitoista vaihetta on toteutettu; osallistumista
 IfcOpenShelliin ei ole vielä ehdotettu.
 
 <img src="../images/signin.png" alt="Kirjautumissivu, jonka asiakas avaa" width="240">

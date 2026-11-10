@@ -165,65 +165,43 @@ password, and nothing is open until it is configured.
 
 ## What you can do
 
-What works in one version works in the next too, so the list starts with version
-1 and each version after it adds to it. Each version of Dataregium goes with the
-same version of Dataspatium.
+What works in one version works in the next too. Each version goes with the same
+version of Dataspatium.
 
 ### Version 1 (with Dataspatium 1)
 
-- **Foundation API 1.0**: service discovery, OAuth2 authorization code with
-  PKCE, current user, token revocation, and dynamic client
-  registration with public clients (off by default).
-- **Documents API 1.0**: document selection and download, multipart upload
-  with the server's web pages for metadata and selection, version queries with
-  ETags.
-- **Administration** in the browser: sign in at `/signin` with an
-  administrator account and open `/admin` to manage users and their project
-  roles, projects and their BCF extension values, OAuth2 clients, sessions, the
-  audit log, the optional request log and the server's health checks. Every
-  user has `/account` for their own password, applications and sessions. The
-  CLI (`uv run opencde --help`) does the same from a terminal.
-- **Extensions outside the specifications**, each marked as such: a capabilities
-  document at `/.well-known/dataregium` that tells a client which extensions are
-  on, a stable `code` in every error body, and a request log for debugging
-  clients (`/admin/requests`, `GET /admin/api/requests` with the `admin` scope).
-- **A client library** in Python ([client/](../../client/), LGPL) with runnable
-  examples, and a Dockerfile, compose overlays and a published image for every
-  deployment scenario.
+- **Foundation API 1.0**: service discovery, sign-in with OAuth2 and PKCE, the
+  current user and client registration.
+- **Documents API 1.0**: select, upload and download documents and their
+  versions.
+- **Administration** in the browser (`/admin`) and on the command line: users,
+  projects, clients, sessions, the audit log and the health checks.
+- **Extensions**: a capabilities document (`/.well-known/dataregium`), an error
+  code in every error body and a request log.
+- **A client library** in Python ([client/](../../client/)) and a published
+  image for every deployment.
 
 ### Also in version 2 (with Dataspatium 2)
 
-- **BCF API 3.0 and 2.1**: projects, extensions, topics with OData queries, comments,
-  viewpoints with snapshots, bitmaps and components, files, document
-  references, documents and the event logs, all validated against the
-  buildingSMART schemas.
-- **The IFC-LPG module**, optional: every uploaded IFC model becomes graph data,
-  and the components of a BCF viewpoint are linked to the elements they point
-  to.
+- **BCF API 3.0 and 2.1**: topics, comments and viewpoints, validated against
+  buildingSMART's schemas.
+- **The IFC-LPG module**: uploaded IFC models become a graph, linked to the BCF
+  components.
 
 ### Also in version 3 (with Dataspatium 3)
 
-- **A lossless IFC graph** from IFC-LPG, a library of its own: all of a model is
-  kept, so that the file can be written back as it came.
-- **Checked uploads**: every IFC upload is checked against the IFC schema,
-  buildingSMART's rules and the project's IDS documents; a project may refuse
-  files with errors, and a file can be checked before it becomes a version.
-- **Questions to the model** for members: named queries on a version's graph,
-  what changed since a version, the difference between two versions element by
-  element, and a clash check between two versions.
-- **Changes as proposals**: an upload names the version it builds on; a change
-  to a model travels as a change set in a BCF topic, is tried on its base, and a
-  `manager` approves it into the next version, merged with what came between.
-- **The local engine and the working copy**: the server on a person's own
-  computer behind Dataspatium, on the loopback only, and the head model of every
-  document in memory in Memgraph, for models larger than a browser holds.
-- **Uploads without the browser page** for confidential clients an administrator
-  approved.
+- **A lossless IFC graph**: the file can be written back as it came.
+- **Checked uploads** against the IFC schema, buildingSMART's rules and the
+  project's IDS, with a precheck.
+- **Questions to the model**: named queries, comparison of versions and a clash
+  check.
+- **Changes as proposals** in BCF topics, which a `manager` approves into the
+  next version.
+- **A local engine** on your own computer, with a working copy in memory for
+  large models.
 
-**Status**: all eleven stages of the plan are implemented (the three APIs,
-the administration, the client library, deployment, IFC-LPG, the acceptance
-checklist and the security hardening); a contribution of the server to
-IfcOpenShell has not been proposed.
+**Status**: all eleven stages of the plan are implemented; a contribution of the
+server to IfcOpenShell has not been proposed.
 
 <img src="../images/signin.png" alt="The sign-in page a client opens" width="240">
 <img src="../images/upload.png" alt="The upload page, where the user gives the file a title and a version" width="340">

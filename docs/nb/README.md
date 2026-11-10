@@ -167,67 +167,43 @@ databasepassord, og ingenting er åpent før det er konfigurert.
 
 ## Hva du kan gjøre
 
-Det som virker i én versjon, virker også i den neste, så listen begynner med
-versjon 1, og hver versjon etter den legger til. Hver versjon av Dataregium
-hører sammen med den samme versjonen av Dataspatium.
+Det som virker i én versjon, virker også i den neste. Hver versjon hører sammen
+med den samme versjonen av Dataspatium.
 
 ### Versjon 1 (med Dataspatium 1)
 
-- **Foundation API 1.0**: tjenesteoppdagelse, OAuth2 authorization code med
-  PKCE, gjeldende bruker, tilbakekalling av tokens og
-  dynamisk klientregistrering med offentlige klienter (av som standard).
-- **Documents API 1.0**: valg og nedlasting av dokumenter, opplasting i deler
-  med serverens websider for metadata og valg, versjonsspørringer med ETag.
-- **Administrasjon** i nettleseren: logg inn på `/signin` med en
-  administratorkonto og åpne `/admin` for å administrere brukere og
-  prosjektrollene deres, prosjekter og BCF-extension-verdiene deres,
-  OAuth2-klienter, sesjoner, revisjonsloggen, den valgfrie forespørselsloggen
-  og serverens helsekontroller. Hver bruker har `/account` for eget passord,
-  egne apper og egne sesjoner. Kommandolinjen (`uv run opencde --help`) gjør
-  det samme fra en terminal.
-- **Tillegg utenfor spesifikasjonene**, hvert merket som det: et
-  kapabilitetsdokument på `/.well-known/dataregium` som forteller klienten
-  hvilke tillegg som er slått på, en stabil `code` i hver feilkropp og en
-  forespørselslogg for feilsøking av klienter (`/admin/requests`,
-  `GET /admin/api/requests` med scopet `admin`).
-- **Et klientbibliotek** i Python ([client/](../../client/), LGPL) med
-  kjørbare eksempler, samt Dockerfile, compose-overlegg og et publisert image
-  for hvert utrullingsscenario.
+- **Foundation API 1.0**: tjenesteoppdagelse, innlogging med OAuth2 og PKCE,
+  gjeldende bruker og klientregistrering.
+- **Documents API 1.0**: velge, laste opp og hente dokumenter og versjonene
+  deres.
+- **Administrasjon** i nettleseren (`/admin`) og på kommandolinjen: brukere,
+  prosjekter, klienter, sesjoner, revisjonsloggen og helsekontrollene.
+- **Tillegg**: et kapabilitetsdokument (`/.well-known/dataregium`), en feilkode
+  i hvert feilsvar og en forespørselslogg.
+- **Et klientbibliotek** i Python ([client/](../../client/)) og et publisert
+  image for hver utrulling.
 
 ### Også i versjon 2 (med Dataspatium 2)
 
-- **BCF API 3.0 og 2.1**: prosjekter, extensions, saker med OData-spørringer,
-  kommentarer, viewpoints med snapshots, bitmaps og komponenter, filer,
-  dokumentreferanser, dokumenter og hendelsesloggene, alt validert mot
+- **BCF API 3.0 og 2.1**: saker, kommentarer og viewpoints, validert mot
   buildingSMARTs skjemaer.
-- **IFC-LPG-modulen**, valgfri: hver opplastet IFC-modell blir grafdata, og
-  komponentene i et BCF-viewpoint knyttes til bygningsdelene de peker på.
+- **IFC-LPG-modulen**: opplastede IFC-modeller blir en graf, knyttet til
+  BCF-komponentene.
 
 ### Også i versjon 3 (med Dataspatium 3)
 
-- **En tapsfri IFC-graf** fra IFC-LPG, et eget bibliotek: hele modellen tas vare
-  på, slik at filen kan skrives tilbake slik den kom.
-- **Kontrollerte opplastinger**: hver IFC-opplasting kontrolleres mot
-  IFC-skjemaet, buildingSMARTs regler og prosjektets IDS-dokumenter; et prosjekt
-  kan avvise filer med feil, og en fil kan kontrolleres før den blir en versjon.
-- **Spørsmål til modellen** for medlemmer: navngitte spørringer mot grafen til
-  en versjon, hva som er endret siden en versjon, forskjellen mellom to
-  versjoner bygningsdel for bygningsdel og kollisjonskontroll mellom to
-  versjoner.
-- **Endringer som forslag**: en opplasting oppgir hvilken versjon den bygger på;
-  en endring av en modell reiser som et endringssett i en BCF-sak, prøves mot
-  sin base, og en `manager` godkjenner den til neste versjon, slått sammen med
-  det som kom imellom.
-- **Den lokale motoren og arbeidskopien**: serveren på en persons egen
-  datamaskin bak Dataspatium, bare på loopback, og hovedmodellen til hvert
-  dokument i minnet i Memgraph, for modeller større enn en nettleser rommer.
-- **Opplasting uten nettsiden** for konfidensielle klienter som en administrator
-  har godkjent.
+- **En tapsfri IFC-graf**: filen kan skrives tilbake slik den kom.
+- **Kontrollerte opplastinger** mot IFC-skjemaet, buildingSMARTs regler og
+  prosjektets IDS, med forhåndskontroll.
+- **Spørsmål til modellen**: navngitte spørringer, sammenligning av versjoner og
+  kollisjonskontroll.
+- **Endringer som forslag** i BCF-saker, som en `manager` godkjenner til neste
+  versjon.
+- **En lokal motor** på din egen datamaskin, med en arbeidskopi i minnet for
+  store modeller.
 
-**Status**: alle elleve etappene i planen er gjennomført (de tre API-ene,
-administrasjonen, klientbiblioteket, utrulling, IFC-LPG,
-akseptansesjekklisten og sikkerhetsherdingen); et bidrag av serveren til IfcOpenShell
-er ennå ikke foreslått.
+**Status**: alle elleve etappene i planen er gjennomført; et bidrag av serveren
+til IfcOpenShell er ennå ikke foreslått.
 
 <img src="../images/signin.png" alt="Innloggingssiden en klient åpner" width="240">
 <img src="../images/upload.png" alt="Opplastingssiden, der brukeren gir filen tittel og versjon" width="340">
