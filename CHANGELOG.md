@@ -10,6 +10,15 @@ the commit history.
 
 ## Unreleased
 
+## 3.0.0 — 2026-11-10
+
+Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of
+2026-11-08 is withdrawn and its notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
+and the IDS documents of its project, named queries for members, and IFC-LPG as a library; since the second release of 2026-11-10 also the clash check
+between two versions, the base version of an upload, the refusal of uploads with validation errors, the precheck of
+a file and the schema of a change set. Works with Dataspatium 3.0.0.
+
 - The form of a proposed change to an IFC model: a change set as the `bim_snippet` of a BCF 3.0 topic, with
   `snippet_type` `DataregiumIfcChangeSet` (among a new project's values) and the published JSON Schema
   `GET /documents/1.0/ifc-changes/schema` as its `reference_schema`. `PUT …/topics/{guid}/snippet` holds such a
@@ -32,14 +41,6 @@ the commit history.
   `POST …/ifc-clash/{id}/topics` makes BCF topics with a viewpoint of chosen clashes, on request only. Off until
   `OPENCDE_IFC_LPG_CLASH_ENABLED=true`; the capabilities document announces it as `ifc_clash`. `ifcclash` joins the
   `ifc-lpg` extra.
-
-## 3.0.0 — 2026-11-10
-
-Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of
-2026-11-08 is withdrawn and its notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
-can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
-and the IDS documents of its project, named queries for members, and IFC-LPG as a library. Works
-with Dataspatium 3.0.0.
 
 - The Docker files live in `docker/`: the Compose files, the Dockerfile and the Caddyfile. `.env` names the
   Compose files to combine (`COMPOSE_FILE`, written by `opencde init`), so the commands are `docker compose up -d`
