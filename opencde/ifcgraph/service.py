@@ -600,11 +600,19 @@ class IfcGraphService:
             await self._set_proposal(proposal_id, state, **fields)
             log.info("ifc_proposal_done", proposal_id=proposal_id, state=state, issues=fields["issue_count"])
 
-    async def _try_proposal(self, proposal_id: str, project_id: str, snippet_key: str) -> dict[str, Any]:
-        """Apply the changes to the base version's file, check the result, and keep what the base lacks."""
+    async def _try_proposal(
+        self, proposal_id: str, project_id: str, snippet_key: str, base_version_index: int | None = None
+    ) -> dict[str, Any]:
+        """Apply the changes to the base version's file, check the result, and keep what the base lacks.
+
+        ``base_version_index`` tries the change set on another version of its document than the one it names:
+        the latest, when the server merges at the approval (ADR 0021).
+        """
         with self.storage.open_read(snippet_key) as handle:
             change_set = json.loads(handle.read().decode("utf-8"))
-        base = change_set["base"]
+        base = dict(change_set["base"])
+        if base_version_index is not None:
+            base["version_index"] = base_version_index
         version = await self.graph.one(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
@@ -683,6 +691,51 @@ class IfcGraphService:
     async def approve(self, *, proposal_id: str, approved_by: str, version_index: int) -> None:
         """The trial became a version (ADR 0021): who approved it and which version it is."""
         await self._set_proposal(proposal_id, STATE_APPROVED, approved_by=approved_by, version_index=version_index)
+
+    async def retry_proposal(self, *, proposal_id: str, base_version_index: int) -> str:
+        """Try the change set again, at once, on another version of its document; returns the new state.
+
+        The approval does this on the latest version when the change set collides with nothing that came
+        between its base and the latest (ADR 0021). The request waits for the trial.
+        """
+        row = await self.graph.one(
+            "MATCH (p:IfcProposal {id: $id}) RETURN p.project_id AS project_id, p.snippet_key AS snippet_key",
+            id=proposal_id,
+        )
+        if row is None:
+            raise ValueError("no such proposal")
+        async with self._lock:
+            await self._set_proposal(proposal_id, STATE_RUNNING)
+            try:
+                fields = await self._try_proposal(
+                    proposal_id, str(row["project_id"]), str(row["snippet_key"]), base_version_index=base_version_index
+                )
+            except Exception as exc:
+                log.warning("ifc_proposal_failed", proposal_id=proposal_id, error=type(exc).__name__)
+                await self._set_proposal(proposal_id, STATE_FAILED, **_failure(exc))
+                return STATE_FAILED
+            state = str(fields.pop("state"))
+            await self._set_proposal(proposal_id, state, **fields)
+            return state
+
+    async def change_set_of(self, *, project_id: str, topic_guid: str) -> dict[str, Any] | None:
+        """The change set a topic carries, as uploaded; None when the topic has no trial any more."""
+        row = await self.graph.one(
+            """
+            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})
+                  -[:HAS_PROPOSAL]->(p:IfcProposal)
+            RETURN p.snippet_key AS snippet_key
+            """,
+            project_id=project_id,
+            guid=topic_guid,
+        )
+        if row is None:
+            return None
+        try:
+            with self.storage.open_read(str(row["snippet_key"])) as handle:
+                return dict(json.loads(handle.read().decode("utf-8")))
+        except (OSError, ValueError):
+            return None
 
     async def proposal(self, *, user_id: str, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The trial of a topic's change set, for a member of the project, its issues unpacked; None without one."""

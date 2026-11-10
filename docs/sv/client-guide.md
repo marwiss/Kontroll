@@ -270,7 +270,7 @@ mening för människor:
 | `reauthentication_required` | 403 | En farlig administrationshandling och inloggningen är äldre än tio minuter | Auktorisera igen, upprepa sedan anropet |
 | `not_found` | 404 | Ingen sådan resurs, en resurs utanför användarens projekt, eller en funktion som är avstängd (registrering, begärandelogg, administrations-API) | Visa meddelandet, läs om listorna |
 | `conflict` | 409 | Ett guid som redan finns, eller en dubblerad länk | Hämta igen |
-| `version_conflict` | 412 | Uppladdningen angav `base_version_index`, och dokumentet har redan en nyare version | Hämta den senaste versionen, sammanfoga och ladda upp igen |
+| `version_conflict` | 412 | Uppladdningen angav `base_version_index`, och dokumentet har redan en nyare version; eller ett ändringsset krockar med det som ändrats sedan dess bas, angivet i `conflicts` | Hämta den senaste versionen, sammanfoga och ladda upp igen |
 | `ifc_validation_failed` | 422 | Projektet avvisar filer med valideringsfel, och filen har sådana; `report` i kroppen är rapportens adress | Visa rapporten, låt användaren rätta filen och ladda upp igen |
 | `payload_too_large` | 413 | Begärans kropp överstiger serverns gräns, eller en BCF-binär överstiger `max_image_bytes`/`max_upload_bytes` | Rätta begäran |
 | `upload_too_large` | 413 | En vald fil eller del överstiger uppladdningsgränsen (`max_size_in_bytes` i uppladdningsinstruktionerna) | Berätta gränsen för användaren |

@@ -470,6 +470,16 @@ version's address, and the status `Closed` where the project has that value.
 that the trial is not clean, or was approved already. An AI only proposes:
 approval is a person's.
 
+When the document has moved on since the base, the server merges: the
+changes of the versions in between, each approved from a change set, are
+compared attribute by attribute with the proposal's. When none collide, the
+change set is tried again on the latest version, at once, and approved on it,
+so that the new version's base is the latest. When some collide, or a version
+in between was uploaded as a whole file, the answer is `412 version_conflict`
+with the colliding attributes in `conflicts` (`#123.Name`, or the GlobalId, the
+path and the attribute; `*` for a whole file), for the client to merge three
+ways and send again.
+
 ## Clash check
 
 A member compares two IFC document versions of a project for clashes, with the

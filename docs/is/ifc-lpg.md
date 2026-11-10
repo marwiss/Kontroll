@@ -470,6 +470,16 @@ hefur það gildi. `412 version_conflict` segir að skjalið hafi haldið áfram
 síðan grunnurinn var; `409` að prófunin sé ekki hrein, eða þegar samþykkt.
 Gervigreind leggur aðeins til: samþykktin er manneskju.
 
+Þegar skjalið hefur haldið áfram síðan grunnurinn var sameinar þjónninn:
+breytingar útgáfnanna þar á milli, hver samþykkt úr breytingasetti, eru bornar
+saman eigind fyrir eigind við breytingar tillögunnar. Rekist engar á er
+breytingasettið reynt aftur á nýjustu útgáfuna, strax, og samþykkt á hana, svo
+að grunnur nýju útgáfunnar er sú nýjasta. Rekist einhverjar á, eða var útgáfu
+þar á milli hlaðið upp sem heilli skrá, er svarið `412 version_conflict` með
+eigindunum sem rekast á í `conflicts` (`#123.Name`, eða GlobalId, slóð og
+eigind; `*` fyrir heila skrá), svo að biðlarinn sameini þríátta og sendi
+aftur.
+
 ## Árekstrarprófun
 
 Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með

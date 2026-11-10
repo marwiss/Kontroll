@@ -271,7 +271,7 @@ menneske:
 | `reauthentication_required` | 403 | Ei farleg administrasjonshandling, og innlogginga er eldre enn ti minutt | Autoriser igjen, gjenta deretter kallet |
 | `not_found` | 404 | Ingen slik ressurs, ein ressurs utanfor prosjekta til brukaren, eller ein funksjon som er av (registrering, førespurnadslogg, administrasjons-API) | Vis meldinga, last listene på nytt |
 | `conflict` | 409 | Ein guid som alt finst, eller ei duplisert lenkje | Hent igjen |
-| `version_conflict` | 412 | Opplastinga oppgav `base_version_index`, og dokumentet har alt ein nyare versjon | Hent den nyaste versjonen, slå saman og last opp på nytt |
+| `version_conflict` | 412 | Opplastinga oppgav `base_version_index`, og dokumentet har alt ein nyare versjon; eller eit endringssett kolliderer med det som er endra sidan basen, oppgjeve i `conflicts` | Hent den nyaste versjonen, slå saman og last opp på nytt |
 | `ifc_validation_failed` | 422 | Prosjektet avviser filer med valideringsfeil, og fila har nokre; `report` i kroppen er adressa til rapporten | Vis rapporten, lat brukaren rette fila og last opp på nytt |
 | `payload_too_large` | 413 | Kroppen i førespurnaden er over grensa til serveren, eller ein BCF-binær er over `max_image_bytes`/`max_upload_bytes` | Rett førespurnaden |
 | `upload_too_large` | 413 | Ei vald fil eller ein del er over opplastingsgrensa (`max_size_in_bytes` i opplastingsinstruksjonane) | Fortel brukaren grensa |

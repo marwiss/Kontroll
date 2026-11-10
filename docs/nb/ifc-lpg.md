@@ -475,6 +475,15 @@ en opplasting. Saken får en kommentar med versjonens adresse, og statusen
 dokumentet har gått videre siden basen; `409` at prøven ikke er ren, eller
 allerede er godkjent. En AI foreslår bare: godkjenningen er et menneskes.
 
+Når dokumentet har gått videre siden basen, slår serveren sammen: endringene i
+versjonene imellom, hver godkjent fra et endringssett, sammenlignes attributt
+for attributt med forslagets. Kolliderer ingen, prøves endringssettet på nytt
+mot den nyeste versjonen, med en gang, og godkjennes mot den, slik at den nye
+versjonens basis er den nyeste. Kolliderer noen, eller ble en versjon imellom
+lastet opp som hel fil, er svaret `412 version_conflict` med de kolliderende
+attributtene i `conflicts` (`#123.Name`, eller GlobalId, sti og attributt; `*`
+for en hel fil), slik at klienten slår sammen treveis og sender igjen.
+
 ## Kollisjonskontroll
 
 Et medlem sammenligner to IFC-dokumentversjoner i et prosjekt for kollisjoner,

@@ -10,6 +10,10 @@ the commit history.
 
 ## Unreleased
 
+- The server merges at the approval: when the document has moved on since the change set's base, the changes of
+  the versions in between are compared attribute by attribute with the proposal's; when none collide, the change
+  set is tried again on the latest version and approved on it, else `412 version_conflict` names the colliding
+  attributes in `conflicts` (`*` when a version in between was uploaded as a whole file).
 - A `manager` approves a clean trial with `POST /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal/approve`: the
   applied file becomes the next version of the base document, with `base_version_index`, `change_set_id`,
   `proposed_by`, `approved_by` and, where an AI proposed it, `ai_model` and `tool_call` in its metadata; the topic

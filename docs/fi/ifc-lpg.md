@@ -484,6 +484,16 @@ arvo. `412 version_conflict` kertoo, että dokumentti on edennyt perustan
 jälkeen; `409`, ettei kokeilu ole puhdas tai se on jo hyväksytty. Tekoäly
 vain ehdottaa: hyväksyntä on ihmisen.
 
+Kun dokumentti on edennyt perustan jälkeen, palvelin yhdistää: välissä
+olevien versioiden muutokset, kukin hyväksytty muutosjoukosta, verrataan
+attribuutti kerrallaan ehdotuksen muutoksiin. Jos mikään ei törmää,
+muutosjoukko kokeillaan heti uudelleen uusinta versiota vasten ja hyväksytään
+sitä vasten, jolloin uuden version perusta on uusin. Jos jokin törmää tai
+välissä oleva versio lähetettiin kokonaisena tiedostona, vastaus on
+`412 version_conflict` ja törmäävät attribuutit kentässä `conflicts`
+(`#123.Name`, tai GlobalId, polku ja attribuutti; `*` kokonaiselle
+tiedostolle), jotta asiakas yhdistää kolmisuuntaisesti ja lähettää uudelleen.
+
 ## Törmäystarkastus
 
 Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla

@@ -481,6 +481,16 @@ adressa til versjonen, og statusen `Closed` der prosjektet har den verdien.
 at prøven ikkje er rein, eller alt er godkjend. Ein AI føreslår berre:
 godkjenninga er eit menneske si.
 
+Når dokumentet har gått vidare sidan basen, slår serveren saman: endringane i
+versjonane imellom, kvar godkjend frå eit endringssett, blir samanlikna
+attributt for attributt med forslaget sine. Kolliderer ingen, blir
+endringssettet prøvd på nytt mot den nyaste versjonen, med ein gong, og
+godkjent mot han, slik at basen til den nye versjonen er den nyaste.
+Kolliderer nokre, eller vart ein versjon imellom lasta opp som heil fil, er
+svaret `412 version_conflict` med dei kolliderande attributta i `conflicts`
+(`#123.Name`, eller GlobalId, sti og attributt; `*` for ei heil fil), slik at
+klienten slår saman trevegs og sender på nytt.
+
 ## Kollisjonskontroll
 
 Ein medlem samanliknar to IFC-dokumentversjonar i eit prosjekt for kollisjonar,

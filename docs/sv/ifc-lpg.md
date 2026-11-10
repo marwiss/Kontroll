@@ -478,6 +478,15 @@ versionens adress, och statusen `Closed` där projektet har det värdet.
 att prövningen inte är ren, eller redan är godkänd. En AI föreslår bara:
 godkännandet är en människas.
 
+När dokumentet har gått vidare sedan basen sammanfogar servern: ändringarna i
+versionerna däremellan, var och en godkänd från ett ändringsset, jämförs
+attribut för attribut med förslagets. Krockar inga prövas ändringssetet på nytt
+mot den senaste versionen, på en gång, och godkänns mot den, så att den nya
+versionens bas är den senaste. Krockar några, eller laddades en version
+däremellan upp som hel fil, är svaret `412 version_conflict` med de krockande
+attributen i `conflicts` (`#123.Name`, eller GlobalId, sökväg och attribut; `*`
+för en hel fil), så att klienten sammanfogar trevägs och skickar igen.
+
 ## Krocktest
 
 En medlem jämför två IFC-dokumentversioner i ett projekt med avseende på

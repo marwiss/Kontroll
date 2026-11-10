@@ -476,6 +476,15 @@ hvor projektet har den værdi. `412 version_conflict` siger, at dokumentet er
 gået videre siden basen; `409`, at prøven ikke er ren eller allerede er
 godkendt. En AI foreslår kun: godkendelsen er et menneskes.
 
+Når dokumentet er gået videre siden basen, fletter serveren: ændringerne i
+versionerne derimellem, hver godkendt fra et ændringssæt, sammenlignes attribut
+for attribut med forslagets. Kolliderer ingen, prøves ændringssættet igen mod
+den seneste version, med det samme, og godkendes mod den, så den nye versions
+basis er den seneste. Kolliderer nogle, eller blev en version derimellem
+uploadet som hel fil, er svaret `412 version_conflict` med de kolliderende
+attributter i `conflicts` (`#123.Name`, eller GlobalId, sti og attribut; `*`
+for en hel fil), så klienten kan flette trevejs og sende igen.
+
 ## Kollisionskontrol
 
 Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,

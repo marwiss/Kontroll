@@ -267,7 +267,7 @@ eller oversætte, mens `message` forbliver en engelsk sætning til mennesker:
 | `reauthentication_required` | 403 | En farlig administrationshandling, og loginet er ældre end ti minutter | Autorisér igen, og gentag derefter kaldet |
 | `not_found` | 404 | Ingen sådan ressource, en ressource uden for brugerens projekter, eller en funktion, der er slået fra (registrering, forespørgselslog, administrations-API) | Vis beskeden, genindlæs listerne |
 | `conflict` | 409 | Et guid, der allerede findes, eller et dubleret link | Hent igen |
-| `version_conflict` | 412 | Uploaden angav `base_version_index`, og dokumentet har allerede en nyere version | Hent den seneste version, flet og upload igen |
+| `version_conflict` | 412 | Uploaden angav `base_version_index`, og dokumentet har allerede en nyere version; eller et ændringssæt kolliderer med det, der er ændret siden dets basis, angivet i `conflicts` | Hent den seneste version, flet og upload igen |
 | `ifc_validation_failed` | 422 | Projektet afviser filer med valideringsfejl, og filen har nogle; `report` i kroppen er rapportens adresse | Vis rapporten, lad brugeren rette filen og upload igen |
 | `payload_too_large` | 413 | Forespørgslens krop er over serverens grænse, eller en BCF-binær er over `max_image_bytes`/`max_upload_bytes` | Ret forespørgslen |
 | `upload_too_large` | 413 | En valgt fil eller del er over uploadgrænsen (`max_size_in_bytes` i uploadinstruktionerne) | Fortæl brugeren grænsen |

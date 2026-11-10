@@ -9,6 +9,12 @@ member of the project, with the same bearer token as the topic. ``POST …/ifc-p
 make a clean trial the next version of the base document: the applied file becomes the version, with the base,
 the change set and who proposed and approved it in its metadata; the topic gets a comment with the version's
 address and the status ``Closed`` where the project has it. An AI only proposes: approval is a person's.
+
+When the document has moved on since the base, the server merges (ADR 0021): the changes of the versions in
+between, each approved from a change set, are compared attribute by attribute with the proposal's; when none
+collide, the change set is tried again on the latest version, at once, and approved on it; when some collide, or
+a version in between was uploaded as a whole file, the answer is 412 with the colliding attributes, for the
+client to merge three ways and send again.
 """
 
 from __future__ import annotations
@@ -41,6 +47,8 @@ TAG = "IFC change sets (extension)"
 router = APIRouter(prefix="/projects/{project_id}/topics/{topic_id}", tags=[TAG])
 
 CLOSED = "Closed"  # the topic's status after the approval, where the project's values have it
+MAX_CONFLICTS = 100
+EVERYTHING = "*"  # a version in between came as a whole file: anything may have changed
 
 
 class IfcProposalBase(BaseModel):
@@ -150,8 +158,10 @@ async def proposal_approve(
 ) -> DocumentVersion:
     """A `manager` approves a `clean` trial: the answer is the new version as the Documents API gives it, with
     `base_version_index`, `change_set_id`, `proposed_by`, `approved_by` and, where an AI proposed it, `ai_model` and
-    `tool_call` in its metadata. 403 for other roles, 409 when the trial is not clean or was approved already, 412
-    `version_conflict` when the document has moved on since the base."""
+    `tool_call` in its metadata. When the document has moved on since the base, the change set is tried again on
+    the latest version and approved on it, unless one of its attributes was changed in between: then 412
+    `version_conflict` with the colliding attributes in `conflicts`. 403 for other roles, 409 when the trial is not
+    clean or was approved already."""
     if not at_least(topic.role, Role.MANAGER):
         raise HTTPException(403, "Only a manager approves a change set")
     if ifcgraph is None:
@@ -166,12 +176,22 @@ async def proposal_approve(
     if latest is None:
         raise HTTPException(404, "The base document is gone")
     if latest.version_index != base_index:
-        raise ApiError(
-            412,
-            f"The change set builds on version {base_index}, but the document's latest version is "
-            f"{latest.version_index}",
-            code=CODE_VERSION_CONFLICT,
-        )
+        colliding = await _collisions(ifcgraph, documents, topic.user_id, topic.project_id, latest, base_index, node)
+        if colliding:
+            raise ApiError(
+                412,
+                f"The change set builds on version {base_index}, but the document's latest version is "
+                f"{latest.version_index}, and {len(colliding)} of its changes collide with what came between",
+                code=CODE_VERSION_CONFLICT,
+                details={"conflicts": colliding[:MAX_CONFLICTS]},
+            )
+        state = await ifcgraph.retry_proposal(proposal_id=str(node["id"]), base_version_index=latest.version_index)
+        if state != STATE_CLEAN:
+            raise HTTPException(409, f"On version {latest.version_index} the trial is {state}; see the trial")
+        node = await ifcgraph.proposal(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid)
+        if node is None:
+            raise HTTPException(404, "This topic has no change set that was tried")
+        base_index = latest.version_index
     key = make_key("documents", new_id())
     size, sha256 = await anyio.to_thread.run_sync(_copy_hashed, storage, storage.path(str(node["storage_key"])), key)
     provenance = await anyio.to_thread.run_sync(_provenance, storage, str(node["snippet_key"]))
@@ -225,6 +245,47 @@ async def proposal_approve(
         body = TopicPUT.model_validate({**fields, "topic_status": CLOSED})
         await topics.update(project_id=topic.project_id, guid=topic.guid, author=topic.username, body=body)
     return version
+
+
+def _touched(change_set: dict[str, Any]) -> set[str]:
+    """The attributes a change set changes, each as one string: `#123.Name` or `<guid>/<path>.Name`."""
+    keys = set()
+    for change in change_set.get("changes") or []:
+        if change.get("step_id") is not None:
+            keys.add(f"#{change['step_id']}.{change.get('attribute')}")
+        else:
+            keys.add(f"{change.get('guid')}/{change.get('path') or ''}.{change.get('attribute')}")
+    return keys
+
+
+async def _collisions(
+    ifcgraph: IfcGraphService,
+    documents: Any,
+    user_id: str,
+    project_id: str,
+    latest: Any,
+    base_index: int,
+    node: dict[str, Any],
+) -> list[str]:
+    """What the change set changes that a version since its base changed too; `*` for a whole-file upload."""
+    mine = await anyio.to_thread.run_sync(_change_set, ifcgraph.storage, str(node["snippet_key"]))
+    touched: set[str] = set()
+    for version in await documents.versions(user_id=user_id, document_id=latest.document_id):
+        if not base_index < version.version_index <= latest.version_index:
+            continue
+        change_set_id = next(
+            (entry["value"][0] for entry in version.metadata if entry.get("name") == "change_set_id"), None
+        )
+        other = await ifcgraph.change_set_of(project_id=project_id, topic_guid=change_set_id) if change_set_id else None
+        if other is None:
+            return [EVERYTHING]
+        touched |= _touched(other)
+    return sorted(key for key in _touched(mine) if key in touched)
+
+
+def _change_set(storage: LocalStorage, snippet_key: str) -> dict[str, Any]:
+    with storage.open_read(snippet_key) as handle:
+        return dict(json.loads(handle.read().decode("utf-8")))
 
 
 async def _schedule(ifcgraph: IfcGraphService, project_id: str, key: str, file_name: str, record: Any) -> None:

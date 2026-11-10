@@ -17,6 +17,7 @@ from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import Session
 from tests.integration.test_bcf_links_documents import make_topic
+from tests.integration.test_documents_api import save_metadata, start_upload, upload_file
 from tests.integration.test_ifc_validation import MODEL, WALLS, checked, settings_for, upload
 from tests.integration.test_web_signin import web_sign_in
 
@@ -196,3 +197,70 @@ def test_a_manager_approves_a_clean_trial_and_it_becomes_the_next_version(ifc_cl
     )
     assert tried(client, editor, f"{topics}/{broken['guid']}/ifc-proposal")["state"] == "issues"
     assert client.post(f"{topics}/{broken['guid']}/ifc-proposal/approve", headers=manager.headers).status_code == 409
+
+
+def test_the_server_merges_a_change_set_that_collides_with_nothing(ifc_client: tuple[TestClient, World]) -> None:
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
+    document_id = version["document_id"]
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    snippet_fields = {
+        "snippet_type": SNIPPET_TYPE,
+        "is_external": False,
+        "reference": "changes.json",
+        "reference_schema": f"http://testserver{SCHEMA_PATH}",
+    }
+
+    def propose(*changes: dict[str, Any]) -> str:
+        topic = make_topic(client, world, editor, bim_snippet=snippet_fields)
+        put = client.put(
+            f"{topics}/{topic['guid']}/snippet", content=change_set(document_id, *changes), headers=editor.headers
+        )
+        assert put.status_code == 200, put.text
+        assert tried(client, editor, f"{topics}/{topic['guid']}/ifc-proposal")["state"] == "clean"
+        return f"{topics}/{topic['guid']}/ifc-proposal"
+
+    # Three change sets on version 1: A renames a wall, B renames another, C renames the same wall as A.
+    a = propose({"guid": WALLS[0], "attribute": "Name", "op": "set", "new": "A"})
+    b = propose({"guid": WALLS[1], "attribute": "Name", "op": "set", "new": "B"})
+    c = propose({"guid": WALLS[0], "attribute": "Name", "op": "set", "new": "C"})
+    assert client.post(a + "/approve", headers=manager.headers).json()["version_index"] == 2
+
+    # B collides with nothing: it is tried again on version 2 and approved on it.
+    merged = client.post(b + "/approve", headers=manager.headers)
+    assert merged.status_code == 201, merged.text
+    assert merged.json()["version_index"] == 3
+    metadata = client.get(merged.json()["links"]["document_version_metadata"]["url"], headers=editor.headers).json()
+    entries = {entry["name"]: entry["value"] for entry in metadata["metadata"]}
+    assert entries["base_version_index"] == ["2"], "rebased on the latest"
+    trial = client.get(b, headers=editor.headers).json()
+    assert trial["state"] == "approved" and trial["base"]["version_index"] == 2 and trial["version_index"] == 3
+    download = client.get(merged.json()["links"]["document_version_download"]["url"], headers=editor.headers)
+    assert b"'A'" in download.content and b"'B'" in download.content, "both changes are in version 3"
+
+    # C changes what A changed: the client merges three ways.
+    refused = client.post(c + "/approve", headers=manager.headers)
+    assert refused.status_code == 412, refused.text
+    assert refused.json()["code"] == "version_conflict" and refused.json()["conflicts"] == [f"{WALLS[0]}/.Name"]
+    assert "collide" in refused.json()["message"]
+
+    # A version uploaded as a whole file in between may have changed anything.
+    started = start_upload(
+        client, editor, [{"file_name": "three_walls_gtin.ifc", "session_file_id": "w", "document_id": document_id}]
+    )
+    instructions = save_metadata(
+        client, started["upload_ui_url"], world.project_id, {"title_0": "walls", "version_0": "4"}
+    )
+    plan = client.post(
+        instructions,
+        json={"files": [{"session_file_id": "w", "size_in_bytes": len(MODEL.read_bytes())}]},
+        headers=editor.headers,
+    ).json()["documents_to_upload"][0]
+    assert upload_file(client, editor, plan, MODEL.read_bytes())["version_index"] == 4
+    d = propose({"guid": WALLS[2] if len(WALLS) > 2 else WALLS[1], "attribute": "Description", "op": "set", "new": "D"})
+    whole = client.post(d + "/approve", headers=manager.headers)
+    assert whole.status_code == 412 and whole.json()["conflicts"] == ["*"]
