@@ -15,9 +15,9 @@ the commit history.
 Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of
 2026-11-08 is withdrawn and its notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
-and the IDS documents of its project, named queries for members, and IFC-LPG as a library; since the second release of 2026-11-10 also the clash check
-between two versions, the base version of an upload, the refusal of uploads with validation errors, the precheck of
-a file and the schema of a change set. Works with Dataspatium 3.0.0.
+and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
+upload, the refusal of uploads with validation errors, the precheck of a file and the schema of a change set.
+Works with Dataspatium 3.0.0.
 
 - The form of a proposed change to an IFC model: a change set as the `bim_snippet` of a BCF 3.0 topic, with
   `snippet_type` `DataregiumIfcChangeSet` (among a new project's values) and the published JSON Schema
