@@ -387,6 +387,31 @@ model, or one the user may not see, answers 404, and one whose model is still
 being converted answers 409. The capabilities document announces the queries in
 `ifc_queries`.
 
+## Clash check
+
+A member compares two IFC document versions of a project for clashes, with the
+same bearer token as the Documents API: `POST /documents/1.0/projects/{project_id}/ifc-clash`
+with the two versions, the mode (`intersection`: elements that go into each other
+deeper than `tolerance`; `clearance`: elements closer to each other than
+`clearance`, both in metres) and, if wanted, the IFC classes of each side. The
+check runs in a worker process behind the conversion queue; the answer's `url`
+gives the report, `done` or `failed` after a while. Each clash names both
+elements (document, version, STEP id, GlobalId, class, name, storey), its kind,
+the depth or distance and the point where it was measured, in the form
+Dataspatium's own clash core writes, so the app shows the server's result as it
+shows its own. `POST …/ifc-clash/{id}/topics` turns chosen clashes into BCF
+topics with a viewpoint each, on request only. The capabilities document
+announces the check as `ifc_clash` once the operator has set
+`OPENCDE_IFC_LPG_CLASH_ENABLED=true`; a report keeps at most
+`OPENCDE_IFC_LPG_CLASH_MAX_CLASHES` clashes.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-clash
+{"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
+ "b": {"document_id": "…", "version_index": 2},
+ "mode": "intersection", "tolerance": 0.001}
+```
+
 ## Querying from Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), the browser client

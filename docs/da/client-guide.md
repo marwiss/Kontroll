@@ -46,6 +46,7 @@ klient tilpasser sig i stedet for at prøve sig frem:
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["element-classes", "elements", "storeys", "spaces", "areas", "materials", "property"], "max_rows": 10000},
+    "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -205,6 +206,9 @@ En version, der rummer en IFC-model, kan også få navngivne forespørgsler, som
 dens etager, rummenes areal eller en egenskabs værdi. Det er en udvidelse, der
 svarer på det samme token, og som kapabilitetsdokumentet annoncerer i
 `ifc_queries`. Se [ifc-lpg.md](ifc-lpg.md#navngivne-forespørgsler).
+
+To IFC-versioner i et projekt kan sammenlignes for kollisioner på samme måde, en
+udvidelse, der annonceres som `ifc_clash`. Se [ifc-lpg.md](ifc-lpg.md#kollisionskontrol).
 
 ## 5. Korrelering af din log med serverens
 

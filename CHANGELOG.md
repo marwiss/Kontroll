@@ -8,6 +8,15 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## Unreleased
+
+- A clash check between two IFC document versions of a project, as an extension of the Documents API:
+  `POST /documents/1.0/projects/{id}/ifc-clash` starts it (IfcClash in a worker process; modes `intersection` and
+  `clearance`), `GET …/ifc-clash/{id}` gives the report in the form Dataspatium's own clash core writes, and
+  `POST …/ifc-clash/{id}/topics` makes BCF topics with a viewpoint of chosen clashes, on request only. Off until
+  `OPENCDE_IFC_LPG_CLASH_ENABLED=true`; the capabilities document announces it as `ifc_clash`. `ifcclash` joins the
+  `ifc-lpg` extra.
+
 ## 3.0.0 — 2026-11-10
 
 Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of

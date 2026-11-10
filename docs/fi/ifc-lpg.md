@@ -398,6 +398,32 @@ ole mallia tai jota käyttäjä ei saa nähdä, vastaa 404, ja versio, jonka mal
 vielä muunnetaan, vastaa 409. Ominaisuusdokumentti ilmoittaa kyselyt kentässä
 `ifc_queries`.
 
+## Törmäystarkastus
+
+Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla
+bearer-tunnisteella kuin Documents API:
+`POST /documents/1.0/projects/{project_id}/ifc-clash` kahdella versiolla,
+tilalla (`intersection`: elementit, jotka menevät toistensa sisään syvemmälle
+kuin `tolerance`; `clearance`: elementit lähempänä toisiaan kuin `clearance`,
+molemmat metreinä) ja halutessa kummankin puolen IFC-luokilla. Tarkastus ajetaan
+työprosessissa muunnosjonon takana; vastauksen `url` antaa raportin, hetken
+kuluttua `done` tai `failed`. Jokainen törmäys nimeää molemmat elementit
+(dokumentti, versio, STEP-id, GlobalId, luokka, nimi, kerros), lajinsa, syvyyden
+tai etäisyyden ja pisteen, jossa se mitattiin, siinä muodossa, jonka
+Dataspatiumin oma törmäysydin kirjoittaa, joten sovellus näyttää palvelimen
+tuloksen kuin omansa. `POST …/ifc-clash/{id}/topics` tekee valituista
+törmäyksistä BCF-aiheita, kullekin oma viewpoint, vain pyynnöstä.
+Kyvykkyysdokumentti ilmoittaa tarkastuksen nimellä `ifc_clash`, kun ylläpitäjä on
+asettanut `OPENCDE_IFC_LPG_CLASH_ENABLED=true`; raportti säilyttää enintään
+`OPENCDE_IFC_LPG_CLASH_MAX_CLASHES` törmäystä.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-clash
+{"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
+ "b": {"document_id": "…", "version_index": 2},
+ "mode": "intersection", "tolerance": 0.001}
+```
+
 ## Kyselyt Dataspatiumista
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), tämän palvelimen

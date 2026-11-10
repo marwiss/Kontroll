@@ -385,6 +385,31 @@ eða sem notandinn má ekki sjá, svarar 404, og útgáfa þar sem enn er verið
 umbreyta líkaninu svarar 409. Getuskjalið kynnir fyrirspurnirnar í
 `ifc_queries`.
 
+## Árekstrarprófun
+
+Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með
+sama bearer-tóka og Documents API:
+`POST /documents/1.0/projects/{project_id}/ifc-clash` með útgáfunum tveimur,
+hamnum (`intersection`: einingar sem ganga inn í hvor aðra dýpra en `tolerance`;
+`clearance`: einingar nær hvor annarri en `clearance`, bæði í metrum) og, ef
+vill, IFC-klösum hvorrar hliðar. Prófunin keyrir í vinnuferli á eftir
+umbreytingarröðinni; `url` svarsins gefur skýrsluna, `done` eða `failed` eftir
+stund. Hver árekstur nefnir báðar einingarnar (skjal, útgáfu, STEP-auðkenni,
+GlobalId, klasa, heiti, hæð), tegund sína, dýpt eða fjarlægð og punktinn þar sem
+hann var mældur, á því formi sem árekstrarkjarni Dataspatium sjálfs skrifar, svo
+forritið sýnir niðurstöðu þjónsins eins og sína eigin.
+`POST …/ifc-clash/{id}/topics` gerir valda árekstra að BCF-málum með sitt hvert
+viewpoint, aðeins að beiðni. Getuskjalið tilkynnir prófunina sem `ifc_clash`
+þegar rekstraraðilinn hefur sett `OPENCDE_IFC_LPG_CLASH_ENABLED=true`; skýrsla
+heldur í mesta lagi `OPENCDE_IFC_LPG_CLASH_MAX_CLASHES` árekstrum.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-clash
+{"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
+ "b": {"document_id": "…", "version_index": 2},
+ "mode": "intersection", "tolerance": 0.001}
+```
+
 ## Fyrirspurnir frá Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), vafrabiðlarinn sem er

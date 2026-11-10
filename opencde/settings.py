@@ -351,6 +351,19 @@ class Settings(BaseSettings):
         description="Folder of the environment buildingSMART's ifc-gherkin-rules run in, made by "
         "`python -m ifc_lpg.gherkin_install`; uploads are then checked against them too. Empty leaves them out.",
     )
+    ifcgraph_clash_enabled: bool = Field(
+        False,
+        validation_alias=_ifc("clash_enabled"),
+        description="Offer the clash check between two IFC document versions, run with IfcClash in a worker process "
+        "(needs the ifc-lpg extra and the IFC-LPG module).",
+    )
+    ifcgraph_clash_max_clashes: int = Field(
+        10_000,
+        ge=100,
+        le=100_000,
+        validation_alias=_ifc("clash_max_clashes"),
+        description="The most clashes a report keeps.",
+    )
     ifcgraph_gtin_property_set: str = Field(
         "Reuse", validation_alias=_ifc("gtin_property_set"), description="Property set holding the GTIN of an element."
     )

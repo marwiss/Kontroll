@@ -394,6 +394,31 @@ modell, eller en som användaren inte får se, svarar 404, och en vars modell
 fortfarande konverteras svarar 409. Kapabilitetsdokumentet annonserar frågorna
 i `ifc_queries`.
 
+## Krocktest
+
+En medlem jämför två IFC-dokumentversioner i ett projekt med avseende på
+krockar, med samma bearer-token som Documents API:
+`POST /documents/1.0/projects/{project_id}/ifc-clash` med de två versionerna,
+läget (`intersection`: element som går in i varandra djupare än `tolerance`;
+`clearance`: element närmare varandra än `clearance`, båda i meter) och, om man
+vill, varje sidas IFC-klasser. Testet körs i en arbetsprocess bakom
+konverteringskön; svarets `url` ger rapporten, `done` eller `failed` efter en
+stund. Varje krock namnger båda elementen (dokument, version, STEP-id, GlobalId,
+klass, namn, våning), sitt slag, djupet eller avståndet och punkten där det
+mättes, i den form Dataspatiums egen krockkärna skriver, så att appen visar
+serverns resultat som sitt eget. `POST …/ifc-clash/{id}/topics` gör valda
+krockar till BCF-ärenden med varsin viewpoint, bara på begäran.
+Kapabilitetsdokumentet annonserar testet som `ifc_clash` när operatören har satt
+`OPENCDE_IFC_LPG_CLASH_ENABLED=true`; en rapport behåller högst
+`OPENCDE_IFC_LPG_CLASH_MAX_CLASHES` krockar.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-clash
+{"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
+ "b": {"document_id": "…", "version_index": 2},
+ "mode": "intersection", "tolerance": 0.001}
+```
+
 ## Fråga från Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), webbläsarklienten som

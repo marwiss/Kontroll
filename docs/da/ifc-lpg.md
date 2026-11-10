@@ -392,6 +392,31 @@ version uden model, eller en som brugeren ikke må se, svarer 404, og en hvis
 model stadig konverteres, svarer 409. Kapabilitetsdokumentet annoncerer
 forespørgslerne i `ifc_queries`.
 
+## Kollisionskontrol
+
+Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,
+med det samme bearer-token som Documents API:
+`POST /documents/1.0/projects/{project_id}/ifc-clash` med de to versioner,
+tilstanden (`intersection`: elementer, der går ind i hinanden dybere end
+`tolerance`; `clearance`: elementer tættere på hinanden end `clearance`, begge i
+meter) og, hvis man vil, hver sides IFC-klasser. Kontrollen kører i en
+arbejdsproces bag konverteringskøen; svarets `url` giver rapporten, `done` eller
+`failed` efter et stykke tid. Hver kollision navngiver begge elementer (dokument,
+version, STEP-id, GlobalId, klasse, navn, etage), sin art, dybden eller
+afstanden og punktet, hvor den blev målt, i den form Dataspatiums egen
+kollisionskerne skriver, så appen viser serverens resultat som sit eget.
+`POST …/ifc-clash/{id}/topics` gør valgte kollisioner til BCF-sager med hver sit
+viewpoint, kun på forespørgsel. Kapabilitetsdokumentet annoncerer kontrollen som
+`ifc_clash`, når operatøren har sat `OPENCDE_IFC_LPG_CLASH_ENABLED=true`; en
+rapport beholder højst `OPENCDE_IFC_LPG_CLASH_MAX_CLASHES` kollisioner.
+
+```http
+POST /documents/1.0/projects/{project_id}/ifc-clash
+{"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
+ "b": {"document_id": "…", "version_index": 2},
+ "mode": "intersection", "tolerance": 0.001}
+```
+
 ## Forespørgsler fra Dataspatium
 
 [Dataspatium](https://github.com/marwiss/Dataspatium), browserklienten, der

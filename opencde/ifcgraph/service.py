@@ -9,8 +9,9 @@ error. A file uploaded as a document version is also checked against the IFC
 schema (``validation.py``), with the result on an ``IfcValidation`` node below
 the version, which the Documents API shows (ADR 0011), against buildingSMART's
 rules where they are installed (ADR 0012), and against the IDS documents of its
-project (ADR 0015). One job runs at a time, the check of a file before its
-conversion.
+project (ADR 0015). Two versions are compared for clashes on request, in the
+same worker pattern (ADR 0019, ``clash.py``). One job runs at a time, the check
+of a file before its conversion.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ from fastapi import Depends, Request
 from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
 from ifc_lpg.importer import delete_blocks, delete_model, import_records
-from ifc_lpg.validation import MAX_REPORTED, pack_report
+from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
@@ -651,6 +652,183 @@ class IfcGraphService:
             project_id=project_id,
         )
         return [row["model"] for row in rows]
+
+    # -- clash checks (ADR 0019) ---------------------------------------------------------------------
+
+    async def schedule_clash(self, *, project_id: str, author: str, request: dict[str, Any]) -> str:
+        """Queue a clash check between two document versions of a project; returns the check's id."""
+        clash_id = new_id()
+        await self.graph.run(
+            """
+            MATCH (p:Project {project_id: $project_id})
+            CREATE (p)-[:HAS_CLASH]->(:IfcClash {
+                id: $id, project_id: $project_id, state: $state, request: $request, author: $author, created_at: $now
+            })
+            """,
+            project_id=project_id,
+            id=clash_id,
+            state=STATE_QUEUED,
+            request=json.dumps(request, separators=(",", ":")),
+            author=author,
+            now=now_iso(),
+        )
+        task = asyncio.create_task(self._run_clash(clash_id), name=f"ifcclash-{clash_id}")
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+        return clash_id
+
+    async def _clash_input(self, project_id: str, side: dict[str, Any], workdir: Path) -> Path:
+        """The file of one side of a check, from the project's own document versions."""
+        rows = await self.graph.run(
+            """
+            MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                  -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
+            RETURN v.storage_key AS storage_key, v.file_name AS file_name
+            """,
+            project_id=project_id,
+            document_id=side["document_id"],
+            version_index=side["version_index"],
+        )
+        if not rows:
+            raise ValueError(f"document version {side['document_id']}/{side['version_index']} not found")
+        if not self.wants(str(rows[0]["file_name"])):
+            raise ValueError(f"document version {side['document_id']}/{side['version_index']} is not an IFC file")
+        return await asyncio.to_thread(self._prepare_clash_input, rows[0]["storage_key"], rows[0]["file_name"], workdir)
+
+    def _prepare_clash_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
+        workdir.mkdir(exist_ok=True)
+        return self._prepare_input(storage_key, file_name, workdir)
+
+    async def _run_clash(self, clash_id: str) -> None:
+        """Run one queued check in the worker process and store its report; the file names stay out of the log."""
+        async with self._lock:
+            rows = await self.graph.run(
+                """
+                MATCH (c:IfcClash {id: $id, state: $queued})
+                SET c.state = $running, c.running_at = $now
+                RETURN c.project_id AS project_id, c.request AS request
+                """,
+                id=clash_id,
+                queued=STATE_QUEUED,
+                running=STATE_RUNNING,
+                now=now_iso(),
+            )
+            if not rows:
+                return
+            project_id, request = str(rows[0]["project_id"]), json.loads(rows[0]["request"])
+            try:
+                with tempfile.TemporaryDirectory(prefix="ifcclash-") as tmp:
+                    a = await self._clash_input(project_id, request["a"], Path(tmp) / "a")
+                    b = await self._clash_input(project_id, request["b"], Path(tmp) / "b")
+                    command = [
+                        sys.executable,
+                        "-m",
+                        "opencde.ifcgraph.clash",
+                        str(a),
+                        str(b),
+                        "--mode",
+                        str(request["mode"]),
+                        "--tolerance",
+                        str(request["tolerance"]),
+                        "--clearance",
+                        str(request["clearance"]),
+                        "--max-clashes",
+                        str(self.settings.ifcgraph_clash_max_clashes),
+                        "--memory-mb",
+                        str(self.settings.ifcgraph_memory_mb),
+                    ]
+                    for flag, side in (("--types-a", "a"), ("--types-b", "b")):
+                        if request[side].get("types"):
+                            command += [flag, ",".join(request[side]["types"])]
+                    answer = await self._in_a_process(command, "the clash check")
+                    report = json.loads(answer.strip().splitlines()[-1])
+            except Exception as exc:
+                log.warning("ifc_clash_failed", clash_id=clash_id, error=type(exc).__name__)
+                await self.graph.run(
+                    "MATCH (c:IfcClash {id: $id}) SET c.state = $state, c.failed_at = $now, c.error = $error",
+                    id=clash_id,
+                    state=STATE_FAILED,
+                    now=now_iso(),
+                    error=f"{type(exc).__name__}: {exc}"[:300],
+                )
+                return
+            for clash in report["clashes"]:
+                for key in ("a", "b"):
+                    clash[key] = {
+                        "document_id": request[key]["document_id"],
+                        "version_index": request[key]["version_index"],
+                        **clash[key],
+                    }
+            await self.graph.run(
+                """
+                MATCH (c:IfcClash {id: $id})
+                SET c.state = $state, c.done_at = $now, c.count = $count, c.set_a = $set_a, c.set_b = $set_b,
+                    c.missing = $missing, c.seconds = $seconds, c.truncated = $truncated, c.report = $report
+                """,
+                id=clash_id,
+                state=STATE_DONE,
+                now=now_iso(),
+                count=int(report["count"]),
+                set_a=int(report["set_a"]),
+                set_b=int(report["set_b"]),
+                missing=int(report["missing"]),
+                seconds=float(report["seconds"]),
+                truncated=bool(report["truncated"]),
+                report=pack_report(report["clashes"]),
+            )
+            log.info("ifc_clash_done", clash_id=clash_id, count=report["count"], seconds=report["seconds"])
+
+    async def clash_reports(self, *, user_id: str, project_id: str) -> list[dict[str, Any]]:
+        """The checks of a project the user is a member of, newest first, without their clashes."""
+        rows = await self.graph.run(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:IfcClash)
+            RETURN properties(c) AS clash ORDER BY c.created_at DESC LIMIT 100
+            """,
+            user_id=user_id,
+            project_id=project_id,
+        )
+        return [self._clash_row(row["clash"], with_clashes=False) for row in rows]
+
+    async def clash_report(
+        self, *, user_id: str, project_id: str, clash_id: str, with_clashes: bool
+    ) -> dict[str, Any] | None:
+        """One check, when the user is a member of its project."""
+        rows = await self.graph.run(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
+                  -[:HAS_CLASH]->(c:IfcClash {id: $clash_id})
+            RETURN properties(c) AS clash
+            """,
+            user_id=user_id,
+            project_id=project_id,
+            clash_id=clash_id,
+        )
+        return self._clash_row(rows[0]["clash"], with_clashes=with_clashes) if rows else None
+
+    @staticmethod
+    def _clash_row(node: dict[str, Any], *, with_clashes: bool) -> dict[str, Any]:
+        keys = (
+            "id",
+            "project_id",
+            "state",
+            "author",
+            "created_at",
+            "running_at",
+            "done_at",
+            "failed_at",
+            "error",
+            "count",
+            "set_a",
+            "set_b",
+            "missing",
+            "seconds",
+            "truncated",
+        )
+        row = {key: node.get(key) for key in keys}
+        row["request"] = json.loads(str(node["request"]))
+        row["clashes"] = unpack_report(node.get("report")) if with_clashes and node.get("report") else None
+        return row
 
 
 # The shared tail of both linking queries: the edge, then the GTIN from the configured property set.
