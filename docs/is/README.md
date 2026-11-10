@@ -33,7 +33,7 @@ bundinn við eitt tiltekið forrit.
 
 ## Sækja og hefjast handa
 
-### Fljótleg byrjun (staðbundið, Docker)
+### Fljótleg byrjun (staðbundið, Docker eða Podman)
 
 1. **Sækja.** Klónaðu safnið eða sæktu útgefnu myndina
    `ghcr.io/marwiss/opencdeserver` (margar arkitektúrgerðir, skönnuð og með
@@ -47,16 +47,37 @@ bundinn við eitt tiltekið forrit.
 2. **Stilla.** Afritaðu `.env.example` í `.env` og settu
    `OPENCDE_GRAPH_PASSWORD` (minnst 16 stafir). Hver stilling er útskýrð í
    [.env.example](../../.env.example).
-3. **Ræsa.** `docker compose up -d --build`
-   ræsir þjóninn á <http://127.0.0.1:8000> og Neo4j-gagnagrunn.
-   `docker compose logs -f api` sýnir atvikaskrá þjónsins.
+3. **Ræsa.** Sömu compose-skrár virka með Docker og með Podman; veldu það sem þú hefur:
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+   ræsir þjóninn á <http://127.0.0.1:8000> og Neo4j-gagnagrunn; `docker compose logs -f api` sýnir atvikaskrá þjónsins.
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose up -d --build
+   ```
+
+   gerir það sama með Podman 5 (rootless, án púka); `podman compose logs -f api` sýnir atvikaskrá þjónsins. Sjá [docs/is/deploy/local.md](deploy/local.md) um sérkenni Podman.
+
+   </details>
+
 4. **Litast um.** <http://127.0.0.1:8000/docs> er gagnvirka API-skjölunin,
    <http://127.0.0.1:8000/readyz> viðbúnaðarathugunin og
    <http://127.0.0.1:7484> Neo4j Browser (Bolt á `127.0.0.1:7697`;
    þróunaryfirlagið sneiðir hjá sjálfgefnum gáttum Neo4j, sem annar Neo4j á
    sömu tölvu tekur oft).
 5. **Bæta við sýnigögnum og skrá sig inn.**
-   `docker compose exec api opencde seed`
+   `docker compose exec api opencde seed` (með Podman: `podman compose exec api opencde seed`)
    býr til sýninotendur og -verkefni og prentar lykilorð þeirra einu sinni.
    Skráðu þig inn á <http://127.0.0.1:8000/signin> sem `admin` og opnaðu
    `/admin`.

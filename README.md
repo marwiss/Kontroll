@@ -33,7 +33,7 @@ inte bunden till något enskilt program.
 
 ## Ladda ned och kom igång
 
-### Snabbstart (lokalt, Docker)
+### Snabbstart (lokalt, Docker eller Podman)
 
 1. **Ladda ned.** Klona repot, eller hämta den publicerade imagen
    `ghcr.io/marwiss/opencdeserver` (flera arkitekturer, skannad och med SBOM
@@ -47,16 +47,37 @@ inte bunden till något enskilt program.
 2. **Konfigurera.** Kopiera `.env.example` till `.env` och sätt
    `OPENCDE_GRAPH_PASSWORD` (minst 16 tecken). Varje inställning förklaras i
    [.env.example](.env.example).
-3. **Starta.** `docker compose up -d --build`
-   startar servern på <http://127.0.0.1:8000> och en Neo4j-databas.
-   `docker compose logs -f api` visar serverloggen.
+3. **Starta.** Samma compose-filer fungerar med Docker och med Podman; välj den du har:
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+   startar servern på <http://127.0.0.1:8000> och en Neo4j-databas; `docker compose logs -f api` visar serverloggen.
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose up -d --build
+   ```
+
+   gör samma sak med Podman 5 (rootless, utan daemon); `podman compose logs -f api` visar serverloggen. Se [docs/sv/deploy/local.md](docs/sv/deploy/local.md) för Podmans särdrag.
+
+   </details>
+
 4. **Se dig omkring.** <http://127.0.0.1:8000/docs> är den interaktiva
    API-dokumentationen, <http://127.0.0.1:8000/readyz> beredskapskontrollen
    och <http://127.0.0.1:7484> Neo4j Browser (Bolt på `127.0.0.1:7697`;
    utvecklingsöverlagringen undviker Neo4j:s standardportar, som ofta upptas
    av en annan Neo4j på samma dator).
 5. **Lägg in demodata och logga in.**
-   `docker compose exec api opencde seed`
+   `docker compose exec api opencde seed` (med Podman: `podman compose exec api opencde seed`)
    skapar demoanvändare och projekt och skriver ut deras lösenord en gång.
    Logga in på <http://127.0.0.1:8000/signin> som `admin` och öppna `/admin`.
 6. **Anslut en klient.** Registrera din app under *Klienter* (eller låt den

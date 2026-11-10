@@ -33,7 +33,7 @@ ikke er bundet til ett bestemt program.
 
 ## Last ned og kom i gang
 
-### Hurtigstart (lokalt, Docker)
+### Hurtigstart (lokalt, Docker eller Podman)
 
 1. **Last ned.** Klon repoet, eller hent det publiserte imaget
    `ghcr.io/marwiss/opencdeserver` (flere arkitekturer, skannet og med SBOM
@@ -47,16 +47,37 @@ ikke er bundet til ett bestemt program.
 2. **Konfigurer.** Kopier `.env.example` til `.env` og sett
    `OPENCDE_GRAPH_PASSWORD` (minst 16 tegn). Hver innstilling forklares i
    [.env.example](../../.env.example).
-3. **Start.** `docker compose up -d --build`
-   starter serveren på <http://127.0.0.1:8000> og en Neo4j-database.
-   `docker compose logs -f api` viser serverloggen.
+3. **Start.** De samme compose-filene virker med Docker og med Podman; velg den du har:
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+   starter serveren på <http://127.0.0.1:8000> og en Neo4j-database; `docker compose logs -f api` viser serverloggen.
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose up -d --build
+   ```
+
+   gjør det samme med Podman 5 (rootless, uten daemon); `podman compose logs -f api` viser serverloggen. Se [docs/nb/deploy/local.md](deploy/local.md) for det som er særegent for Podman.
+
+   </details>
+
 4. **Se deg rundt.** <http://127.0.0.1:8000/docs> er den interaktive
    API-dokumentasjonen, <http://127.0.0.1:8000/readyz> beredskapskontrollen
    og <http://127.0.0.1:7484> Neo4j Browser (Bolt på `127.0.0.1:7697`;
    utviklingsoverlegget unngår Neo4js standardporter, som ofte er opptatt av
    en annen Neo4j på samme maskin).
 5. **Legg inn demodata og logg inn.**
-   `docker compose exec api opencde seed`
+   `docker compose exec api opencde seed` (med Podman: `podman compose exec api opencde seed`)
    oppretter demobrukere og prosjekter og skriver ut passordene deres én
    gang. Logg inn på <http://127.0.0.1:8000/signin> som `admin` og åpne
    `/admin`.

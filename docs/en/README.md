@@ -33,7 +33,7 @@ is not tied to any one application.
 
 ## Download and get started
 
-### Quick start (local, Docker)
+### Quick start (local, Docker or Podman)
 
 1. **Download.** Clone the repository, or pull the published image
    `ghcr.io/marwiss/opencdeserver` (multi-arch, scanned and with an SBOM on
@@ -47,16 +47,37 @@ is not tied to any one application.
 2. **Configure.** Copy `.env.example` to `.env` and set `OPENCDE_GRAPH_PASSWORD`
    (16 characters or more). Every setting is explained in
    [.env.example](../../.env.example).
-3. **Start.** `docker compose up -d --build`
-   starts the server on <http://127.0.0.1:8000> and a Neo4j database.
-   `docker compose logs -f api` shows the server log.
+3. **Start.** The same Compose files work with Docker and with Podman; pick the one you have:
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+   starts the server on <http://127.0.0.1:8000> and a Neo4j database; `docker compose logs -f api` shows the server log.
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose up -d --build
+   ```
+
+   does the same with Podman 5 (rootless, without a daemon); `podman compose logs -f api` shows the server log. See [docs/en/deploy/local.md](deploy/local.md) for what is particular to Podman.
+
+   </details>
+
 4. **Look around.** <http://127.0.0.1:8000/docs> is the interactive API
    documentation, <http://127.0.0.1:8000/readyz> the readiness check and
    <http://127.0.0.1:7484> Neo4j Browser (Bolt on `127.0.0.1:7697`; the
    development overlay avoids Neo4j's default ports, which another Neo4j on
    the same machine often occupies).
 5. **Add demo data and sign in.**
-   `docker compose exec api opencde seed`
+   `docker compose exec api opencde seed` (with Podman: `podman compose exec api opencde seed`)
    creates demonstration users and projects and prints their passwords once.
    Sign in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
 6. **Connect a client.** Register your application under *Clients* (or let it

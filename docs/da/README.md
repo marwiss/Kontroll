@@ -33,7 +33,7 @@ ikke er bundet til et bestemt program.
 
 ## Download og kom i gang
 
-### Hurtig start (lokalt, Docker)
+### Hurtig start (lokalt, Docker eller Podman)
 
 1. **Download.** Klon repoet, eller hent det udgivne image
    `ghcr.io/marwiss/opencdeserver` (flere arkitekturer, scannet og med SBOM
@@ -47,16 +47,37 @@ ikke er bundet til et bestemt program.
 2. **Konfigurer.** Kopiér `.env.example` til `.env`, og sæt
    `OPENCDE_GRAPH_PASSWORD` (mindst 16 tegn). Hver indstilling forklares i
    [.env.example](../../.env.example).
-3. **Start.** `docker compose up -d --build`
-   starter serveren på <http://127.0.0.1:8000> og en Neo4j-database.
-   `docker compose logs -f api` viser serverloggen.
+3. **Start.** De samme compose-filer virker med Docker og med Podman; vælg den, du har:
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+   starter serveren på <http://127.0.0.1:8000> og en Neo4j-database; `docker compose logs -f api` viser serverloggen.
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose up -d --build
+   ```
+
+   gør det samme med Podman 5 (rootless, uden daemon); `podman compose logs -f api` viser serverloggen. Se [docs/da/deploy/local.md](deploy/local.md) for Podmans særheder.
+
+   </details>
+
 4. **Se dig omkring.** <http://127.0.0.1:8000/docs> er den interaktive
    API-dokumentation, <http://127.0.0.1:8000/readyz> beredskabskontrollen og
    <http://127.0.0.1:7484> Neo4j Browser (Bolt på `127.0.0.1:7697`;
    udviklingsoverlejringen undgår Neo4js standardporte, som ofte er optaget af
    en anden Neo4j på samme maskine).
 5. **Tilføj demodata, og log ind.**
-   `docker compose exec api opencde seed`
+   `docker compose exec api opencde seed` (med Podman: `podman compose exec api opencde seed`)
    opretter demobrugere og projekter og udskriver deres kodeord én gang. Log
    ind på <http://127.0.0.1:8000/signin> som `admin`, og åbn `/admin`.
 6. **Tilslut en klient.** Registrér din app under *Klienter* (eller lad den

@@ -34,7 +34,7 @@ palvelin ei ole sidottu yhteen sovellukseen.
 
 ## Lataa ja aloita
 
-### Pika-aloitus (paikallisesti, Docker)
+### Pika-aloitus (paikallisesti, Docker tai Podman)
 
 1. **Lataa.** Kloonaa repo tai hae julkaistu image
    `ghcr.io/marwiss/opencdeserver` (useita arkkitehtuureja, skannattu ja
@@ -48,16 +48,37 @@ palvelin ei ole sidottu yhteen sovellukseen.
 2. **Määritä.** Kopioi `.env.example` tiedostoksi `.env` ja aseta
    `OPENCDE_GRAPH_PASSWORD` (vähintään 16 merkkiä). Jokainen asetus selitetään
    tiedostossa [.env.example](../../.env.example).
-3. **Käynnistä.** `docker compose up -d --build`
-   käynnistää palvelimen osoitteessa <http://127.0.0.1:8000> ja
-   Neo4j-tietokannan. `docker compose logs -f api` näyttää palvelimen lokin.
+3. **Käynnistä.** Samat compose-tiedostot toimivat Dockerilla ja Podmanilla; valitse se, joka sinulla on:
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+   käynnistää palvelimen osoitteessa <http://127.0.0.1:8000> ja Neo4j-tietokannan; `docker compose logs -f api` näyttää palvelimen lokin.
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose up -d --build
+   ```
+
+   tekee saman Podman 5:llä (rootless, ilman daemonia); `podman compose logs -f api` näyttää palvelimen lokin. Katso [docs/fi/deploy/local.md](deploy/local.md) Podmanin erityispiirteet.
+
+   </details>
+
 4. **Katsele ympärillesi.** <http://127.0.0.1:8000/docs> on vuorovaikutteinen
    API-dokumentaatio, <http://127.0.0.1:8000/readyz> valmiustarkistus ja
    <http://127.0.0.1:7484> Neo4j Browser (Bolt osoitteessa `127.0.0.1:7697`;
    kehitysylikerros välttää Neo4j:n oletusportit, jotka toinen Neo4j samalla
    koneella usein varaa).
 5. **Lisää demodata ja kirjaudu.**
-   `docker compose exec api opencde seed`
+   `docker compose exec api opencde seed` (Podmanilla: `podman compose exec api opencde seed`)
    luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran.
    Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja
    avaa `/admin`.
