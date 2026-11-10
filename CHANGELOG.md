@@ -20,6 +20,10 @@ Dataspatium's, and this release takes the first number again. No history is rewr
 commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
 speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
+- On Memgraph, a schema statement waits up to about two minutes for unique access to the storage, which a periodic
+  snapshot or a long write holds for seconds; before, it gave up after about seven seconds, and the server did not
+  start. An administrator's graph query that runs past its time limit is stopped on the server: Memgraph does not
+  take the Bolt transaction timeout and went on running it for up to ten minutes, holding its storage meanwhile.
 - Project administration by its managers (OB-41), the same as in 3.0.0: a `manager` lists, adds (by exact user
   name), re-roles and removes the members of their project under `/manage/1.0/projects/{id}/members`, with a token
   holding the new `project` scope, which a client asks for explicitly; a project keeps at least one manager (`409

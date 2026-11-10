@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from neo4j.exceptions import ClientError as Neo4jClientError
 from neo4j.exceptions import TransientError
 
 from opencde.accounts.roles import Role, comment_actions, project_actions, topic_actions, viewpoint_actions
@@ -215,3 +216,18 @@ async def test_a_schema_statement_gives_up_when_the_error_stays(monkeypatch: pyt
     with pytest.raises(TransientError):
         await Graph(driver, "neo4j", NEO4J).ddl("CREATE CONSTRAINT")  # type: ignore[arg-type]
     assert driver.calls == graph_module.DDL_ATTEMPTS
+
+
+async def test_a_schema_statement_waits_at_most_a_few_seconds_at_a_time(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Memgraph holds its storage during a snapshot; the waits grow but stay short, about two minutes in all."""
+    waits: list[float] = []
+
+    async def wait(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(graph_module.asyncio, "sleep", wait)
+    driver = _DdlDriver(*[TransientError("Cannot get unique access to the storage")] * graph_module.DDL_ATTEMPTS)
+    with pytest.raises(TransientError):
+        await Graph(driver, "memgraph", MEMGRAPH).ddl("CREATE POINT INDEX ON :Entity(bbox_centre)")  # type: ignore[arg-type]
+    assert max(waits) == graph_module.DDL_RETRY_MAX_SECONDS
+    assert 60 <= sum(waits) <= 180
