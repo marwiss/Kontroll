@@ -38,13 +38,14 @@ tilpassar seg i staden for å prøve seg fram:
 {
   "server": {"name": "Dataregium OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
-  "scopes": ["profile", "bcf", "documents", "admin"],
+  "scopes": ["profile", "bcf", "documents", "project", "admin"],
   "extensions": {
     "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -347,6 +348,27 @@ etter `max_rows` rader (`truncated: true`) og setninga etter
 `code: validation_error` og årsaka, databasen si eiga melding inkludert.
 Kvart kall, avvist eller ikkje, legg att ei revisjonshending
 `admin.graph.query` med dei første 500 teikna i setninga, aldri parametrane.
+
+### Prosjektadministrasjon ved dei prosjektansvarlege (utviding)
+
+Ein `manager` i eit prosjekt administrerer medlemmene og rollene deira utan å
+vere administrator. Tokenet må bere scopet `project`, som ein klient ber om
+uttrykkeleg; rolla i kvart prosjekt avgjer, og eit prosjekt den som kallar ikkje
+er medlem av, svarar `404`. Eit medlem blir lagt til med eksakt brukarnamn, slik
+at ein prosjektansvarleg aldri listar brukarane til serveren, og blir vist med
+brukarnamn, namn og rolle. Eit prosjekt held på minst éin `manager` (elles
+`409 conflict`). Namnet blir endra gjennom `PUT /bcf/3.0/projects/{project_id}`
+i BCF API-et; å slette eit prosjekt er saka til administratorane. Kvar skriving
+etterlèt ei revisjonshending (`manage.*`). Kapabilitetsdokumentet annonserer
+det som `project_administration`.
+
+| Call | What it does |
+|---|---|
+| `GET /manage/1.0/projects` | prosjekta den som kallar er prosjektansvarleg for |
+| `GET /manage/1.0/projects/{project_id}/members` | medlemmene med `user_id`, `username`, `name` og `role` |
+| `POST /manage/1.0/projects/{project_id}/members` | legg til `{"username", "role"}` (`201`), eller set rolla til eit medlem (`200`); `404` når brukaren ikkje finst |
+| `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | set `{"role"}`: `viewer`, `contributor`, `editor` eller `manager` |
+| `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | fjernar medlemmen |
 
 ## 8. Teste mot denne serveren
 

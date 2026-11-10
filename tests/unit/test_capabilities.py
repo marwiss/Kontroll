@@ -19,9 +19,16 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert body["server"]["name"] == "Dataregium OpenCDE server" and body["server"]["public_url"] == "http://testserver"
     assert body["apis"] == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
     assert body["bcf_versions"] == ["3.0", "2.1"]
-    assert body["scopes"] == ["profile", "bcf", "documents", "admin"]
+    assert body["scopes"] == ["profile", "bcf", "documents", "project", "admin"]
     extensions = body["extensions"]
-    assert set(extensions) == {"dynamic_client_registration", "request_log", "admin_api", "ifcgraph", "graph_query"}
+    assert set(extensions) == {
+        "dynamic_client_registration",
+        "request_log",
+        "admin_api",
+        "ifcgraph",
+        "project_administration",
+        "graph_query",
+    }
     assert extensions["dynamic_client_registration"] == {
         "enabled": False,
         "public_clients": True,
@@ -33,6 +40,13 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["request_log"] == {"enabled": False, "retention_hours": 72, "url": "/admin/api/requests"}
     assert extensions["admin_api"] == {"enabled": True, "version": 1, "url": "/admin/api", "scope": "admin"}
     assert extensions["ifcgraph"] == {"enabled": False, "bolt": None}
+    assert extensions["project_administration"] == {
+        "enabled": True,
+        "url": "/manage/1.0/projects",
+        "scope": "project",
+        "roles": ["viewer", "contributor", "editor", "manager"],
+        "for": "managers of a project",
+    }, "managers administer their projects (OB-41)"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0

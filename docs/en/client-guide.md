@@ -38,13 +38,14 @@ of probing:
 {
   "server": {"name": "Dataregium OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
-  "scopes": ["profile", "bcf", "documents", "admin"],
+  "scopes": ["profile", "bcf", "documents", "project", "admin"],
   "extensions": {
     "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
@@ -338,6 +339,27 @@ failed or stopped statement answers `400` with `code: validation_error` and
 the reason, the database's own message included. Every call, refused or
 not, leaves an audit event `admin.graph.query` with the first 500 characters
 of the statement, never the parameters.
+
+### Project administration by its managers (extension)
+
+A `manager` of a project manages its members and their roles without being an
+administrator. The token must carry the `project` scope, which a client asks
+for explicitly; the role in each project decides, and a project the caller is
+not a member of answers `404`. A member is added by exact user name, so that a
+manager never lists the server's users, and is shown with user name, name and
+role. A project keeps at least one manager (`409 conflict` otherwise). The name
+changes through the BCF API's `PUT /bcf/3.0/projects/{project_id}`; deleting a
+project stays with the administrators. Every write leaves an audit event
+(`manage.*`). The capabilities document announces it as
+`project_administration`.
+
+| Call | What it does |
+|---|---|
+| `GET /manage/1.0/projects` | the projects the caller manages |
+| `GET /manage/1.0/projects/{project_id}/members` | the members with `user_id`, `username`, `name` and `role` |
+| `POST /manage/1.0/projects/{project_id}/members` | adds `{"username", "role"}` (`201`), or sets the role of a member (`200`); `404` for no such user |
+| `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | sets `{"role"}`: `viewer`, `contributor`, `editor` or `manager` |
+| `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | removes the member |
 
 ## 8. Testing against this server
 

@@ -18,6 +18,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from opencde import __version__
+from opencde.accounts.routes_manage import ROLES as MANAGE_ROLES
 from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
@@ -63,6 +64,13 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 "scope": "admin",
             },
             "ifcgraph": {"enabled": settings.ifcgraph_enabled, "bolt": settings.graph_public_bolt_url or None},
+            "project_administration": {
+                "enabled": True,
+                "url": "/manage/1.0/projects",
+                "scope": "project",
+                "roles": list(MANAGE_ROLES),
+                "for": "managers of a project",
+            },
             "graph_query": (
                 {
                     "enabled": True,

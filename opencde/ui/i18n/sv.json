@@ -86,6 +86,7 @@
   "scope.profile": "Vem du är (Foundation API current-user).",
   "scope.bcf": "Ärendehantering genom BCF API.",
   "scope.documents": "Dokumentutbyte genom Documents API.",
+  "scope.project": "Administration av de projekt du är projektansvarig för (medlemmar och roller).",
   "scope.admin": "Serveradministration (användare, projekt, klienter, loggar) för administratörer.",
   "auth.error.title": "Kan inte fortsätta",
   "auth.error.hint": "Applikationen som skickade dig hit gjorde en begäran som den här servern inte kan godta, så du skickades inte vidare någonstans. Stäng fönstret och kontakta applikationens utvecklare om problemet kvarstår.",

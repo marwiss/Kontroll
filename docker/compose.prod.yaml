@@ -24,7 +24,7 @@ services:
       - api
     environment:
       OPENCDE_DOMAIN: "${OPENCDE_DOMAIN:?Set OPENCDE_DOMAIN in .env (e.g. cde.example.org)}"
-      OPENCDE_ACME_EMAIL: "${OPENCDE_ACME_EMAIL:-}"
+      OPENCDE_CADDY_EMAIL: "${OPENCDE_ACME_EMAIL:+email ${OPENCDE_ACME_EMAIL:-}}"
     ports:
       - "80:80"
       - "443:443"
@@ -45,6 +45,9 @@ services:
   backup:
     image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-2.0.0}
     restart: unless-stopped
+    # The image's health check asks the API on port 8000, which this container does not serve.
+    healthcheck:
+      disable: true
     depends_on:
       graph:
         condition: service_healthy

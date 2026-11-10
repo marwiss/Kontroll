@@ -8,6 +8,16 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## Unreleased
+
+- Project administration by its managers (OB-41), the same as in 3.0.0: a `manager` lists, adds (by exact user
+  name), re-roles and removes the members of their project under `/manage/1.0/projects/{id}/members`, with a token
+  holding the new `project` scope, which a client asks for explicitly; a project keeps at least one manager (`409
+  conflict`), the name changes through the BCF API's PUT Project, and a deletion stays with the administrators. Every
+  write is in the audit log as `manage.*`. Announced as `project_administration`.
+- The production overlay starts without `OPENCDE_ACME_EMAIL`: Caddy refused an empty `email` and did not start. The
+  backup sidecar no longer inherits the image's health check, which showed it as unhealthy.
+
 ## 2.0.0 — 2026-11-10
 
 Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 2.0.0; the release of

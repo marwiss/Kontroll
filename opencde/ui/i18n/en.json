@@ -86,6 +86,7 @@
   "scope.profile": "Who you are (Foundation API current-user).",
   "scope.bcf": "Issue management through the BCF API.",
   "scope.documents": "Document exchange through the Documents API.",
+  "scope.project": "Administration of the projects you manage (members and roles).",
   "scope.admin": "Server administration (users, projects, clients, logs) for administrators.",
   "auth.error.title": "Cannot continue",
   "auth.error.hint": "The application that sent you here made a request this server cannot accept, so you were not redirected anywhere. Close this window and contact the application's maintainers if the problem persists.",
