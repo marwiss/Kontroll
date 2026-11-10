@@ -8,7 +8,17 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## Unreleased
+## 2.0.0 — 2026-11-10
+
+Released again on 2026-11-10 under the name Dataregium (the second time that day), in step with Dataspatium
+2.0.0; the release of 2026-11-07 and the one earlier on 2026-11-10 are withdrawn and their notes are folded in
+here. Since the release earlier that day it has the administration of a project by its managers, the same as
+3.0.0's. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
+project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
+and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
+Dataspatium's, and this release takes the first number again. No history is rewritten: the
+commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
+speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
 - Project administration by its managers (OB-41), the same as in 3.0.0: a `manager` lists, adds (by exact user
   name), re-roles and removes the members of their project under `/manage/1.0/projects/{id}/members`, with a token
@@ -17,16 +27,6 @@ the commit history.
   write is in the audit log as `manage.*`. Announced as `project_administration`.
 - The production overlay starts without `OPENCDE_ACME_EMAIL`: Caddy refused an empty `email` and did not start. The
   backup sidecar no longer inherits the image's health check, which showed it as unhealthy.
-
-## 2.0.0 — 2026-11-10
-
-Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 2.0.0; the release of
-2026-11-07 is withdrawn and its notes are folded in here. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
-project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
-and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
-Dataspatium's, and this release takes the first number again. No history is rewritten: the
-commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
-speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
 - The Docker files live in `docker/`: the Compose files, the Dockerfile and the Caddyfile. `.env` names the
   Compose files to combine (`COMPOSE_FILE`, written by `opencde init`), so the commands are `docker compose up -d`
