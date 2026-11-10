@@ -59,7 +59,7 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # gátt hýsilsins, ef 7687 er upptekin
 ```
 
-Ræstu síðan með yfirlaginu bætt við venjulegu skipunina þína:
+Ræstu síðan með yfirlaginu bætt við `COMPOSE_FILE` í `.env`:
 
 ```sh
 # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml

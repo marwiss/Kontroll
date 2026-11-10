@@ -63,7 +63,7 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # isännän portti, jos 7687 on varattu
 ```
 
-Käynnistä sitten tavallinen komentosi kerroksella täydennettynä:
+Käynnistä sitten, kun kerros on lisätty `.env`-tiedoston riville `COMPOSE_FILE`:
 
 ```sh
 # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml

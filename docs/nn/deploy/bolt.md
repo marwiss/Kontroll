@@ -59,7 +59,7 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # vertsporten, om 7687 er oppteken
 ```
 
-Start deretter med overlegget lagt til den vanlege kommandoen din:
+Start deretter med overlegget lagt til i `COMPOSE_FILE` i `.env`:
 
 ```sh
 # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml

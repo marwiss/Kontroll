@@ -60,7 +60,7 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # værtsporten, hvis 7687 er optaget
 ```
 
-Start derefter med overlejringen tilføjet til din sædvanlige kommando:
+Start derefter med overlejringen tilføjet til `COMPOSE_FILE` i `.env`:
 
 ```sh
 # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml

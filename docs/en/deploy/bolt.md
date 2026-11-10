@@ -60,7 +60,7 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # the host port, if 7687 is taken
 ```
 
-Then start with the overlay added to your usual command:
+Then start with the overlay added to `COMPOSE_FILE` in `.env`:
 
 ```sh
 # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml

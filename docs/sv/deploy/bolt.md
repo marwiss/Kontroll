@@ -59,7 +59,7 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 # OPENCDE_BOLT_PORT=7687          # värdporten, om 7687 är upptagen
 ```
 
-Starta sedan med överlagringen tillagd i ditt vanliga kommando:
+Starta sedan med överlagringen tillagd i `COMPOSE_FILE` i `.env`:
 
 ```sh
 # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml
