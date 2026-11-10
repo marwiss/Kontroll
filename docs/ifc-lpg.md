@@ -118,7 +118,7 @@ copy took 3 to 66 seconds together.
 When `OPENCDE_IFC_LPG_GHERKIN_ENV` names an environment for them, uploads are
 also checked against buildingSMART's `ifc-gherkin-rules`: the normative rules
 and the industry practice that buildingSMART's validation service checks beyond
-the schema ([ADR 0012](adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+the schema (ADR 0012).
 They run after the schema check, in the same kind of worker with the same
 limits, and as the rule set's own tests run them: with behave and IfcOpenShell
 0.8.6, which the rule set's CI uses. On the rule set's 722 test files this gives
@@ -153,7 +153,7 @@ minute and two minutes for most.
 
 An upload is also checked against every IDS document of its project: a
 document whose latest version has a name ending in `.ids`, at most 50 of them
-([ADR 0015](adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+(ADR 0015).
 IFC-LPG's check reads each IDS safely and gives it to IfcOpenShell's IfcTester,
 the checker Dataspatium runs in the browser, so that the two give the same
 verdict. It runs after the other checks, in the same kind of worker with the
@@ -245,7 +245,7 @@ in the graph, but out of Cypher's reach, and it cannot be changed there. It cann
 be properties of the products, since much of it is shared between them. With
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` every instance becomes a node instead, at
 several times the size and the import time; queries took about as long in
-[the measurements](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+the measurements.
 
 | In the file | In the graph |
 |---|---|
@@ -273,11 +273,11 @@ version of its document, which also converts it.
 This form is not read with IfcOpenShell, which takes only the schema here.
 IfcOpenShell changes some values on reading (`.NULLENUM.` becomes `$`, and `($,$)`
 becomes `()`), and files from Tekla and Archicad have them. So the worker reads the
-file itself, and refuses what it cannot read. [ADR 0010](adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) says why, and
-[ADR 0011](adr/0011-a-file-written-from-the-graph-is-validated.md) how a file is validated.
+file itself, and refuses what it cannot read. ADR 0010 says why, and
+ADR 0011 how a file is validated.
 
 `--verify` asks whether the two files hold the same model, by the definition in
-[ADR 0009](adr/0009-what-makes-two-ifc-files-the-same-model.md): one to one, value by value and with no tolerance, georeference
+ADR 0009: one to one, value by value and with no tolerance, georeference
 named in the report. With `--geometry` it also builds every product's mesh, and
 compares them bit for bit. Any two files can be compared with
 `python -m ifc_lpg.equivalence first.ifc second.ifc`.
@@ -351,7 +351,7 @@ models as `ifc_project`, which lets clients fill in the topic header's files.
 
 A member of a project asks a version's model questions by name, with the same
 bearer token as the Documents API; free Cypher stays with administrators
-([ADR 0016](adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+(ADR 0016).
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` lists the
 queries with their parameters and columns, and says in `model_state` how far
 the model's conversion has come. `GET …/ifc-queries/{name}` asks one, with its

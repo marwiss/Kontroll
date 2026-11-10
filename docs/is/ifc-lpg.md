@@ -116,7 +116,7 @@ skrifað afrit þess tók 3 til 66 sekúndur samanlagt.
 Þegar `OPENCDE_IFC_LPG_GHERKIN_ENV` vísar á umhverfi fyrir þær eru upphöl
 einnig prófuð gagnvart `ifc-gherkin-rules` frá buildingSMART: þeim
 staðalbundnu reglum og þeirri venju greinarinnar sem sannprófunarþjónusta
-buildingSMART prófar umfram skemað ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+buildingSMART prófar umfram skemað (ADR 0012).
 Þær keyra á eftir skemaprófuninni, í sams konar vinnsluferli með sömu mörkum,
 og eins og eigin prófanir reglusafnsins keyra þær: með behave og IfcOpenShell
 0.8.6, sem CI reglusafnsins notar. Á 722 prófunarskrám reglusafnsins gefur það
@@ -153,7 +153,7 @@ tvær fyrir flest.
 
 Upphal er líka prófað gegn hverju IDS-skjali verkefnisins: skjali þar sem
 nýjasta útgáfan ber nafn sem endar á `.ids`, mest 50
-([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+(ADR 0015).
 Prófun IFC-LPG les hvert IDS á öruggan hátt og afhendir það IfcTester frá
 IfcOpenShell, sama prófara og Dataspatium keyrir í vafranum, svo að hvort
 tveggja gefi sömu niðurstöðu. Hún keyrir á eftir hinum prófununum, í sams konar
@@ -243,7 +243,7 @@ seilingar Cypher, og því er ekki hægt að breyta þar. Það getur ekki veri�
 vörunna, því að stór hluti þess er sameiginlegur með þeim. Með
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` verður hvert tilvik hnútur í staðinn, með
 margfaldri stærð og innflutningstíma; fyrirspurnir tóku álíka langan tíma í
-[mælingunum](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+mælingunum.
 
 | Í skránni | Í grafinu |
 |---|---|
@@ -270,11 +270,11 @@ umbreytir henni líka.
 Þetta form er ekki lesið með IfcOpenShell, sem hér leggur aðeins til skemað. IfcOpenShell
 breytir sumum gildum við lestur (`.NULLENUM.` verður `$`, og `($,$)` verður `()`), og skrár
 frá Tekla og Archicad hafa slík gildi. Því les vinnsluferlið skrána sjálft og hafnar því sem
-það getur ekki lesið. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) segir hvers vegna og [ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) hvernig
+það getur ekki lesið. ADR 0010 segir hvers vegna og ADR 0011 hvernig
 skrá er sannprófuð.
 
 `--verify` spyr hvort skrárnar tvær rúmi sama líkan, samkvæmt skilgreiningunni í
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): eitt á móti einu, gildi fyrir gildi og án vikmarka, með staðsetningu
+ADR 0009: eitt á móti einu, gildi fyrir gildi og án vikmarka, með staðsetningu
 nefnda í skýrslunni. Með `--geometry` er möskvi hverrar vöru líka byggður og þeir bornir saman
 bita fyrir bita. Hvaða tvær skrár sem er má bera saman með
 `python -m ifc_lpg.equivalence first.ifc second.ifc`.
@@ -349,7 +349,7 @@ málsins.
 
 Meðlimur verkefnis spyr líkan útgáfu spurninga eftir nafni, með sama
 bearer-tóka og fyrir Documents API; frjáls Cypher er áfram hjá stjórnendum
-([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+(ADR 0016).
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` telur
 upp fyrirspurnirnar með færibreytum og dálkum og segir í `model_state` hve
 langt umbreyting líkansins er komin. `GET …/ifc-queries/{name}` ber eina

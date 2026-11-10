@@ -74,8 +74,7 @@ brukerne og OAuth2-klientene programmene dine trenger.
 - Behold `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` med mindre du trenger
   selvbetjent klientregistrering (Foundation API 2.2.3); registrer klienter i
   `/admin`.
-- Roter den hemmelige nøkkelen og databasepassordet etter din policy
-  (`docs/nb/security/controls.md`), start på nytt og logg inn igjen.
+- Roter den hemmelige nøkkelen og databasepassordet etter din policy, start på nytt og logg inn igjen.
 - Kjør `testssl.sh https://cde.example.org` og sjekk
   <https://observatory.mozilla.org> etter første start.
 - Brannmur: tillat bare 22 (fra dine adresser), 80 og 443.

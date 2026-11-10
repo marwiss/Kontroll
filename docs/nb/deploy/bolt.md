@@ -81,7 +81,7 @@ Fjern `compose.bolt.yaml` fra kommandolinjen, tøm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env`, og kjør `up -d` igjen. Porten
 forsvinner fra verten, og `bolt` går tilbake til `null` i
 kapabilitetsdokumentet. Roter databasepassordet etterpå hvis det ble delt
-bredere enn tiltenkt (`docs/nb/security/controls.md`).
+bredere enn tiltenkt.
 
 ## Memgraph
 

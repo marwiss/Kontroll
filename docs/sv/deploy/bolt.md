@@ -80,8 +80,7 @@ officiella drivrutinerna ansluter med databasanvändaren och lösenordet.
 Ta bort `compose.bolt.yaml` från kommandoraden, töm
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` i `.env` och kör `up -d` igen. Porten
 försvinner från värden och `bolt` blir `null` igen i kapabilitetsdokumentet.
-Rotera databaslösenordet efteråt om det delades bredare än avsett
-(`docs/sv/security/controls.md`).
+Rotera databaslösenordet efteråt om det delades bredare än avsett.
 
 ## Memgraph
 

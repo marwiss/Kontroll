@@ -54,7 +54,7 @@ flowchart LR
 | What | Where | Read more |
 |---|---|---|
 | Users, projects, topics, comments, viewpoints, document metadata, clients and the audit log | Graph database | [Graph schema](graph-schema.md) |
-| Tokens, codes and client secrets, as SHA-256 hashes; passwords, as Argon2id hashes | Graph database | [Security controls](security/controls.md) |
+| Tokens, codes and client secrets, as SHA-256 hashes; passwords, as Argon2id hashes | Graph database | `tests/security/` |
 | Uploaded files and viewpoint images, under names the server chooses | File storage in `OPENCDE_DATA_DIR` | [Documents API flows](flows/documents.md) |
 | Models as nodes and relationships | Graph database | [IFC-LPG](ifc-lpg.md) |
 | The server's own settings and secrets | `.env` or `/run/secrets` | [Local test](deploy/local.md) |
@@ -77,15 +77,13 @@ flowchart LR
 - The pages have no inline scripts or styles, every form has a signed token, and
   every page works without JavaScript.
 
-The [threat model](security/threat-model.md) says what this protects against, and
-the [controls](security/controls.md) name the test behind each measure.
+Every measure here has a test behind it in `tests/security/`.
 
 ## Two databases
 
 The server runs on Neo4j or Memgraph with the same Cypher. Only the schema
 statements differ, and they live in `opencde/graph/dialect.py` together with the
-list of functions the code must not use. The reasons are in
-[ADR 0003](adr/0003-dialect-neutral-cypher.md).
+list of functions the code must not use.
 
 ## How it is tested
 
@@ -104,4 +102,3 @@ list of functions the code must not use. The reasons are in
 - [Client guide](client-guide.md): how to build a client.
 - [Flows](flows/oauth2.md): sign-in, [documents](flows/documents.md) and
   [BCF viewpoints](flows/bcf-viewpoint.md) as sequence diagrams.
-- [Architecture decisions](adr/): why it is built this way.

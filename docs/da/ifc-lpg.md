@@ -121,7 +121,7 @@ eksempelfil og dens skrevne kopi tog 3 til 66 sekunder tilsammen.
 Når `OPENCDE_IFC_LPG_GHERKIN_ENV` peger på et miljø til dem, kontrolleres
 uploads også mod buildingSMARTs `ifc-gherkin-rules`: de normative regler og den
 branchepraksis, som buildingSMARTs valideringstjeneste kontrollerer ud over
-skemaet ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+skemaet (ADR 0012).
 De kører efter skemakontrollen, i den samme slags arbejdsproces med de samme
 grænser, og sådan som regelsættets egne tests kører dem: med behave og
 IfcOpenShell 0.8.6, som regelsættets CI bruger. På regelsættets 722 testfiler
@@ -156,7 +156,7 @@ halvt og to minutter for de fleste.
 
 En upload kontrolleres også mod hvert IDS-dokument i sit projekt: et dokument,
 hvis seneste version har et navn, der ender på `.ids`, højst 50
-([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+(ADR 0015).
 IFC-LPG's kontrol læser hver IDS sikkert og giver den til IfcOpenShells
 IfcTester, den samme kontrol, som Dataspatium kører i browseren, så de to giver
 samme udfald. Den køres efter de andre kontroller, i samme slags arbejdsproces
@@ -248,7 +248,7 @@ men uden for Cyphers rækkevidde, og det kan ikke ændres der. Det kan ikke vær
 egenskaber på produkterne, da meget af det deles mellem dem. Med
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` bliver hver instans i stedet en node, til
 flere gange størrelsen og importtiden; forespørgsler tog omtrent lige lang tid i
-[målingerne](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+målingerne.
 
 | I filen | I grafen |
 |---|---|
@@ -276,11 +276,11 @@ sit dokument, hvilket også konverterer den.
 Denne form læses ikke med IfcOpenShell, som her kun står for skemaet. IfcOpenShell
 ændrer nogle værdier ved læsning (`.NULLENUM.` bliver `$`, og `($,$)` bliver `()`), og
 filer fra Tekla og Archicad har dem. Derfor læser arbejdsprocessen selv filen og
-afviser det, den ikke kan læse. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) siger hvorfor, og
-[ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) hvordan en fil valideres.
+afviser det, den ikke kan læse. ADR 0010 siger hvorfor, og
+ADR 0011 hvordan en fil valideres.
 
 `--verify` spørger, om de to filer rummer den samme model, efter definitionen i
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): en til en, værdi for værdi og uden tolerance, med georeferencen
+ADR 0009: en til en, værdi for værdi og uden tolerance, med georeferencen
 navngivet i rapporten. Med `--geometry` bygges også hvert produkts mesh, og de
 sammenlignes bit for bit. To vilkårlige filer kan sammenlignes med
 `python -m ifc_lpg.equivalence first.ifc second.ifc`.
@@ -356,7 +356,7 @@ sagens hoved.
 
 Et medlem af et projekt stiller spørgsmål til en versions model ved navn, med
 det samme bearer-token som til Documents API; fri Cypher forbliver
-administratorernes ([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+administratorernes (ADR 0016).
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` viser
 forespørgslerne med deres parametre og kolonner og siger i `model_state`, hvor
 langt konverteringen af modellen er kommet. `GET …/ifc-queries/{name}` stiller
