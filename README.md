@@ -319,6 +319,7 @@ skrev tills de tas bort. Granskningsloggen exporteras som CSV, BCF- och
 dokumentdata genom API:erna och hela databasen med `opencde backup`. Vad
 Dataspatium sparar i webbläsaren står i appens egen dokumentation.
 
+## Nästa i 3-serien
 
 3.0.0 är 3-seriens första utgåva, gjord tillsammans med Dataspatium 3.0.0:
 IFC-grafen som en förlustfri modell, kontrollen av varje uppladdning och de

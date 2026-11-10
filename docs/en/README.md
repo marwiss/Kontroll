@@ -317,6 +317,7 @@ BCF and document data through the APIs, and the whole database with
 `opencde backup`. What Dataspatium keeps in the browser is in the app's own
 documentation.
 
+## Next in the 3 series
 
 3.0.0 is the first release of the 3 series, made with Dataspatium 3.0.0: the
 IFC graph as a lossless model, the checks of every upload and the named

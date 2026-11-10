@@ -335,6 +335,7 @@ rajapintojen kautta ja koko tietokanta komennolla `opencde backup`. Se, mitä
 Dataspatium säilyttää selaimessa, kerrotaan sovelluksen omassa
 dokumentaatiossa.
 
+## Seuraavaksi 3-sarjassa
 
 3.0.0 on 3-sarjan ensimmäinen julkaisu, tehty yhdessä Dataspatium 3.0.0:n
 kanssa: IFC-graafi häviöttömänä mallina, jokaisen lähetyksen tarkistus ja

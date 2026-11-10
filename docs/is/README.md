@@ -317,6 +317,7 @@ flutt út sem CSV, BCF- og skjalagögn um forritaskilin og allur gagnagrunnurinn
 með `opencde backup`. Hvað Dataspatium geymir í vafranum stendur í skjölun
 forritsins sjálfs.
 
+## Næst í 3-röðinni
 
 3.0.0 er fyrsta útgáfa 3-raðarinnar, gerð með Dataspatium 3.0.0: IFC-grafið
 sem taplaust líkan, prófun hvers upphals og nefndu fyrirspurnirnar, eins og

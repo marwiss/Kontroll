@@ -318,6 +318,7 @@ personen skrev, indtil de slettes. Revisionsloggen eksporteres som CSV, BCF- og
 dokumentdata gennem API'erne og hele databasen med `opencde backup`. Hvad
 Dataspatium gemmer i browseren, står i appens egen dokumentation.
 
+## Det næste i 3-serien
 
 3.0.0 er 3-seriens første udgivelse, lavet sammen med Dataspatium 3.0.0:
 IFC-grafen som en tabsfri model, kontrollen af hver upload og de navngivne
