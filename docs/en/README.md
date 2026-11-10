@@ -248,7 +248,7 @@ coordinate is in
   runnable examples with the Python library in [client/](../../client/).
 - [docs/en/architecture.md](architecture.md): how the parts fit together, what happens to a request and where each thing lives in the code.
 - [docs/en/glossary.md](glossary.md): the words the documentation uses.
-- [docs/en/flows/](../flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
+- [docs/en/flows/](flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [docs/en/graph-schema.md](graph-schema.md): the graph model.
 - [docs/en/ifc-lpg.md](ifc-lpg.md): the optional IFC-LPG module and example Cypher queries.
 - [docs/acceptance.md](../acceptance.md): visual acceptance checklist with
