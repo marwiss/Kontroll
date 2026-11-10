@@ -28,7 +28,7 @@ from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, wait_for_graph
 from opencde.documents import routes_api as documents_api
 from opencde.documents import routes_ui as documents_ui
-from opencde.errors import install_error_handlers
+from opencde.errors import install_error_handlers, install_openapi_errors
 from opencde.etag import ETagMiddleware
 from opencde.foundation import routes as foundation_routes
 from opencde.graph.cleanup import ExpiryCleaner
@@ -140,6 +140,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     )
 
     install_error_handlers(app)
+    install_openapi_errors(app)
     install_page_handlers(app)
     install_rate_limiting(
         app,
