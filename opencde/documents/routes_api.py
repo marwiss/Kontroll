@@ -366,6 +366,7 @@ async def _complete(
                 if base_version is not None
                 else []
             ),
+            parent_version_index=None if base_version is None else int(base_version),
         )
     except BaseException:
         storage.delete(target)

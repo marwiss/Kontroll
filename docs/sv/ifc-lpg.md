@@ -487,6 +487,18 @@ däremellan upp som hel fil, är svaret `412 version_conflict` med de krockande
 attributen i `conflicts` (`#123.Name`, eller GlobalId, sökväg och attribut; `*`
 för en hel fil), så att klienten sammanfogar trevägs och skickar igen.
 
+En version som bygger på en annan är en nod med sin förälder:
+`parent_version_index` och en länk till förälderversionen, på en version
+godkänd från ett ändringsset och på en uppladdning som angav
+`base_version_index`. En version godkänd från ett ändringsset bär också
+`approved_by`, `change_set_id` (ärendets guid) och själva ändringarna, som
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes` ger i
+schemats form, med basen och vem som föreslog och godkände den; en version
+som laddats upp som hel fil svarar `404` där. Varje version är fortfarande en
+hel fil, hämtad som förut; `opencde ifc-lpg prune` tar bort äldre versioners
+grafer, eftersom huvudversionen och kedjan av ändringsset säger vad som
+ändrades.
+
 ## Krocktest
 
 En medlem jämför två IFC-dokumentversioner i ett projekt med avseende på

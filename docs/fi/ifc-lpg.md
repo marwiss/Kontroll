@@ -494,6 +494,18 @@ välissä oleva versio lähetettiin kokonaisena tiedostona, vastaus on
 (`#123.Name`, tai GlobalId, polku ja attribuutti; `*` kokonaiselle
 tiedostolle), jotta asiakas yhdistää kolmisuuntaisesti ja lähettää uudelleen.
 
+Toisen version päälle rakennettu versio on solmu, jolla on vanhempi:
+`parent_version_index` ja linkki vanhempaan versioon, muutosjoukosta
+hyväksytyllä versiolla ja lähetyksellä, joka antoi `base_version_index`:n.
+Muutosjoukosta hyväksytty versio kantaa myös `approved_by`:n, `change_set_id`:n
+(asian guid) ja itse muutokset, jotka
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes` antaa skeeman
+muodossa perustan sekä ehdottajan ja hyväksyjän kanssa; kokonaisena
+tiedostona lähetetty versio vastaa siellä `404`. Jokainen versio on yhä
+kokonainen tiedosto, ladattavissa kuten ennen; `opencde ifc-lpg prune` poistaa
+vanhempien versioiden graafit, koska pääversio ja muutosjoukkojen ketju
+kertovat, mikä muuttui.
+
 ## Törmäystarkastus
 
 Jäsen vertaa projektin kahta IFC-dokumenttiversiota törmäysten varalta samalla

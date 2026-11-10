@@ -9,15 +9,23 @@ which checks it against this schema when the topic's ``snippet_type`` is ``Datar
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated, Any
+
+from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import JSONResponse
 
+from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import SettingsDep
 from opencde.documents.changes import SCHEMA_PATH, change_set_schema
+from opencde.documents.repository import DocumentsDep
+from opencde.ids import is_uuid, normalize_guid
 
 TAG = "IFC change sets (extension)"
 
 router = APIRouter(tags=[TAG])
+
+DocumentId = Annotated[str, Path(alias="document_id", max_length=64)]
+VersionIndex = Annotated[int, Path(alias="version_index", ge=1, le=1_000_000_000)]
 
 
 @router.get(
@@ -33,3 +41,22 @@ async def ifc_change_set_schema(settings: SettingsDep) -> JSONResponse:
         media_type="application/schema+json",
         headers={"Cache-Control": "public, max-age=3600"},
     )
+
+
+@router.get(
+    "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-changes",
+    summary="The change set a document version was approved from",
+)
+async def ifc_changes_of_version(
+    principal: DocumentsPrincipal, document_id: DocumentId, version_index: VersionIndex, documents: DocumentsDep
+) -> dict[str, Any]:
+    """The changes the version makes against its parent, as its topic proposed them (ADR 0021): `base`, who proposed
+    and approved it, and `changes` in the form of the schema. 404 for a version that was uploaded as a whole file."""
+    if not is_uuid(document_id):
+        raise HTTPException(404, "Document version not found")
+    found = await documents.change_set(
+        user_id=principal.user_id, document_id=normalize_guid(document_id), version_index=version_index
+    )
+    if found is None:
+        raise HTTPException(404, "This version was not approved from a change set")
+    return found

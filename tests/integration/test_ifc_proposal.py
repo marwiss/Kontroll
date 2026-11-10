@@ -163,6 +163,12 @@ def test_a_manager_approves_a_clean_trial_and_it_becomes_the_next_version(ifc_cl
     assert entries["ai_model"] == ["claude-opus-5-5"] and entries["tool_call"] == ["rename"]
     assert entries["uploaded_by"] == ["editor"] and entries["file_name"] == ["three_walls_gtin.ifc"]
     assert checked(client, editor, new)["ifc_validation_status"] == ["passed"], "the new version is checked as any"
+    changes = client.get(new["links"]["document_version"]["url"] + "/ifc-changes", headers=editor.headers)
+    assert changes.status_code == 200, changes.text
+    assert changes.json()["changes"] == [rename] and changes.json()["base"]["version_index"] == 1
+    assert changes.json()["change_set_id"] == topic["guid"] and changes.json()["approved_by"] == "manager"
+    whole_file = client.get(version["links"]["document_version"]["url"] + "/ifc-changes", headers=editor.headers)
+    assert whole_file.status_code == 404, "version 1 was uploaded as a whole file"
     download = client.get(new["links"]["document_version_download"]["url"], headers=editor.headers)
     assert download.status_code == 200 and b"YVT-A2" in download.content and b"'YVT-A'" not in download.content
     report = client.get(proposal, headers=editor.headers).json()

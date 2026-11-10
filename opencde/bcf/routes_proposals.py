@@ -26,6 +26,7 @@ from typing import Any
 
 import anyio
 from fastapi import APIRouter, HTTPException
+from ifc_lpg.validation import pack_report
 from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.accounts.roles import Role, at_least
@@ -134,9 +135,9 @@ def _copy_hashed(storage: LocalStorage, source: Path, key: str) -> tuple[int, st
     return storage.copy_in(source, key), digest.hexdigest()
 
 
-def _provenance(storage: LocalStorage, snippet_key: str) -> dict[str, Any]:
+def _change_set(storage: LocalStorage, snippet_key: str) -> dict[str, Any]:
     with storage.open_read(snippet_key) as handle:
-        return dict(json.loads(handle.read().decode("utf-8")).get("provenance") or {})
+        return dict(json.loads(handle.read().decode("utf-8")))
 
 
 @router.post(
@@ -194,7 +195,8 @@ async def proposal_approve(
         base_index = latest.version_index
     key = make_key("documents", new_id())
     size, sha256 = await anyio.to_thread.run_sync(_copy_hashed, storage, storage.path(str(node["storage_key"])), key)
-    provenance = await anyio.to_thread.run_sync(_provenance, storage, str(node["snippet_key"]))
+    change_set = await anyio.to_thread.run_sync(_change_set, storage, str(node["snippet_key"]))
+    provenance = dict(change_set.get("provenance") or {})
     proposer = str(node["author"])
     metadata = default_metadata(
         file_name=latest.file_name,
@@ -224,6 +226,10 @@ async def proposal_approve(
             storage_key=key,
             author=proposer,
             metadata=metadata,
+            parent_version_index=base_index,
+            approved_by=topic.username,
+            change_set_id=topic.guid,
+            change_set=pack_report(list(change_set.get("changes") or [])),
         )
     except BaseException:
         storage.delete(key)
@@ -281,11 +287,6 @@ async def _collisions(
             return [EVERYTHING]
         touched |= _touched(other)
     return sorted(key for key in _touched(mine) if key in touched)
-
-
-def _change_set(storage: LocalStorage, snippet_key: str) -> dict[str, Any]:
-    with storage.open_read(snippet_key) as handle:
-        return dict(json.loads(handle.read().decode("utf-8")))
 
 
 async def _schedule(ifcgraph: IfcGraphService, project_id: str, key: str, file_name: str, record: Any) -> None:

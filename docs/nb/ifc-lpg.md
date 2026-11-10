@@ -484,6 +484,17 @@ lastet opp som hel fil, er svaret `412 version_conflict` med de kolliderende
 attributtene i `conflicts` (`#123.Name`, eller GlobalId, sti og attributt; `*`
 for en hel fil), slik at klienten slår sammen treveis og sender igjen.
 
+En versjon bygget på en annen er en node med forelderen sin:
+`parent_version_index` og en lenke til forelderversjonen, på en versjon
+godkjent fra et endringssett og på en opplasting som oppga
+`base_version_index`. En versjon godkjent fra et endringssett bærer også
+`approved_by`, `change_set_id` (sakens guid) og selve endringene, som
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes` gir i
+skjemaets form, med basisen og hvem som foreslo og godkjente den; en versjon
+lastet opp som hel fil svarer `404` der. Hver versjon er fortsatt en hel fil,
+hentet som før; `opencde ifc-lpg prune` fjerner eldre versjoners grafer, siden
+hovedversjonen og kjeden av endringssett sier hva som ble endret.
+
 ## Kollisjonskontroll
 
 Et medlem sammenligner to IFC-dokumentversjoner i et prosjekt for kollisjoner,

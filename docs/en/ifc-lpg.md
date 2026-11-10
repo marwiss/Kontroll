@@ -480,6 +480,17 @@ with the colliding attributes in `conflicts` (`#123.Name`, or the GlobalId, the
 path and the attribute; `*` for a whole file), for the client to merge three
 ways and send again.
 
+A version built on another is a node with its parent: `parent_version_index`
+and a link to the parent version, on a version approved from a change set and
+on an upload that named `base_version_index`. A version approved from a change
+set also carries `approved_by`, `change_set_id` (the topic's guid) and the
+changes themselves, which `GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes`
+gives in the form of the schema, with its base and who proposed and approved
+it; a version uploaded as a whole file answers `404` there. Every version is
+still a whole file, downloaded as before; `opencde ifc-lpg prune` removes the
+graphs of older versions, since the head version and the chain of change sets
+tell what changed.
+
 ## Clash check
 
 A member compares two IFC document versions of a project for clashes, with the

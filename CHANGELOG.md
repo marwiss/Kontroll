@@ -10,6 +10,11 @@ the commit history.
 
 ## Unreleased
 
+- A version built on another is a node with its parent: `parent_version_index` and a `DERIVED_FROM` link, on a
+  version approved from a change set and on an upload with `base_version_index`. A version approved from a
+  change set carries `approved_by`, `change_set_id` and the changes, which
+  `GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes` gives (an extension; 404 for a whole-file
+  upload).
 - The server merges at the approval: when the document has moved on since the change set's base, the changes of
   the versions in between are compared attribute by attribute with the proposal's; when none collide, the change
   set is tried again on the latest version and approved on it, else `412 version_conflict` names the colliding

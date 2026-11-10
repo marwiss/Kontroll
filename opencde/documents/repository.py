@@ -207,11 +207,17 @@ class DocumentRepository:
         author: str,
         metadata: list[DocumentMetadataEntry],
         requested_document_id: str | None = None,
+        parent_version_index: int | None = None,
+        approved_by: str | None = None,
+        change_set_id: str | None = None,
+        change_set: str | None = None,
     ) -> VersionRecord:
         """A new document (``document_id`` None) or a new version of an existing one, in one transaction.
 
         ``requested_document_id`` gives a new document a known id (the seed uses it); it is ignored when
-        ``document_id`` names an existing document.
+        ``document_id`` names an existing document. A version built on another names it in
+        ``parent_version_index`` and is linked to it (``DERIVED_FROM``); one approved from a change set carries
+        ``approved_by``, ``change_set_id`` (the topic's guid) and ``change_set`` (the changes, packed) (ADR 0021).
         """
         now = now_iso()
         version_id = new_id()
@@ -275,9 +281,55 @@ class DocumentRepository:
             )
             if row is None:
                 raise HTTPException(404, "Project not found")
+            if parent_version_index is not None:
+                await tx.run(
+                    """
+                    MATCH (d:Document {document_id: $document_id})-[:HAS_VERSION]->(v:DocumentVersion {id: $id})
+                    SET v += $lineage
+                    WITH d, v
+                    MATCH (d)-[:HAS_VERSION]->(parent:DocumentVersion {version_index: $parent_index})
+                    CREATE (v)-[:DERIVED_FROM]->(parent)
+                    """,
+                    document_id=new_document_id,
+                    id=version_id,
+                    parent_index=parent_version_index,
+                    lineage={
+                        key: value
+                        for key, value in {
+                            "parent_version_index": parent_version_index,
+                            "approved_by": approved_by,
+                            "change_set_id": change_set_id,
+                            "change_set": change_set,
+                        }.items()
+                        if value is not None
+                    },
+                )
             return row
 
         return _record(await self.graph.write(work))
+
+    async def change_set(self, *, user_id: str, document_id: str, version_index: int) -> dict[str, Any] | None:
+        """The change set a version was approved from (ADR 0021), unpacked; None when it has none."""
+        row = await self.graph.one(
+            """
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                  -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
+            RETURN v.change_set AS change_set, v.change_set_id AS change_set_id, v.parent_version_index AS parent,
+                   v.approved_by AS approved_by, v.author AS author
+            """,
+            user_id=user_id,
+            document_id=document_id,
+            version_index=version_index,
+        )
+        if row is None or not row["change_set"]:
+            return None
+        return {
+            "change_set_id": row["change_set_id"],
+            "base": {"document_id": document_id, "version_index": int(row["parent"])},
+            "proposed_by": row["author"],
+            "approved_by": row["approved_by"],
+            "changes": unpack_report(row["change_set"]),
+        }
 
 
 def default_metadata(

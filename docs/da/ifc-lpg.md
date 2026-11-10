@@ -485,6 +485,17 @@ uploadet som hel fil, er svaret `412 version_conflict` med de kolliderende
 attributter i `conflicts` (`#123.Name`, eller GlobalId, sti og attribut; `*`
 for en hel fil), så klienten kan flette trevejs og sende igen.
 
+En version bygget på en anden er en knude med sin forælder:
+`parent_version_index` og et link til forælderversionen, på en version
+godkendt fra et ændringssæt og på en upload, der angav `base_version_index`.
+En version godkendt fra et ændringssæt bærer også `approved_by`,
+`change_set_id` (sagens guid) og selve ændringerne, som
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes` giver i
+skemaets form, med basen og hvem der foreslog og godkendte den; en version
+uploadet som hel fil svarer `404` dér. Hver version er stadig en hel fil,
+hentet som før; `opencde ifc-lpg prune` fjerner ældre versioners grafer, da
+hovedversionen og kæden af ændringssæt siger, hvad der ændrede sig.
+
 ## Kollisionskontrol
 
 Et medlem sammenligner to IFC-dokumentversioner i et projekt for kollisioner,

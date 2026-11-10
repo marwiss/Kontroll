@@ -480,6 +480,17 @@ eigindunum sem rekast á í `conflicts` (`#123.Name`, eða GlobalId, slóð og
 eigind; `*` fyrir heila skrá), svo að biðlarinn sameini þríátta og sendi
 aftur.
 
+Útgáfa sem byggir á annarri er hnútur með foreldri sínu:
+`parent_version_index` og tengill á foreldrisútgáfuna, á útgáfu sem samþykkt
+var úr breytingasetti og á upphali sem gaf `base_version_index`. Útgáfa
+samþykkt úr breytingasetti ber líka `approved_by`, `change_set_id` (guid
+málsins) og breytingarnar sjálfar, sem
+`GET /documents/1.0/documents/{id}/versions/{index}/ifc-changes` gefur í formi
+skemans, með grunninum og hver lagði til og samþykkti; útgáfa sem hlaðið var
+upp sem heilli skrá svarar `404` þar. Hver útgáfa er enn heil skrá, sótt eins
+og áður; `opencde ifc-lpg prune` fjarlægir gröf eldri útgáfna, því að
+aðalútgáfan og keðja breytingasettanna segja hvað breyttist.
+
 ## Árekstrarprófun
 
 Félagi ber saman tvær IFC-skjalaútgáfur verkefnis með tilliti til árekstra, með
