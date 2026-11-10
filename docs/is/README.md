@@ -519,12 +519,12 @@ hluta þess áfram. Vinnulagið er í [CONTRIBUTING.md](../../CONTRIBUTING.md) o
   19650 gera, koma síðar.
 - **Árekstrarprófun á báðum stöðum**: á þjóninum með IfcClash frá IfcOpenShell og í
   Dataspatium með eigin kjarna í JavaScript.
-- **Næst**: endapunktur fyrir
-  gervigreindarverkfæri (MCP) á þinni eigin tölvu, þar sem gervigreind leggur til og
-  manneskja samþykkir; prófun flokkana og eiginleika gagnvart bSDD; ný prófun
-  útgáfnanna þegar IDS verkefnisins breytist, með niðurstöðum buildingSMART tengdum
-  byggingarhlutum; séreignarsnið í gegnum IFC-útflutning upprunaforritanna; og
-  prófunarsvíta gegn kvaðningarinnspýtingu (prompt injection) í snippets og MCP.
+- **Næst**: endapunktur fyrir gervigreindarverkfæri (MCP) á þinni eigin tölvu, þar
+  sem gervigreind leggur til og manneskja samþykkir; prófun flokkana og eiginleika
+  gagnvart bSDD; ný prófun útgáfnanna þegar IDS verkefnisins breytist, með
+  niðurstöðum buildingSMART tengdum byggingarhlutum; séreignarsnið í gegnum
+  IFC-útflutning upprunaforritanna; og prófunarsvíta gegn kvaðningarinnspýtingu
+  (prompt injection) í snippets og MCP.
 
 ## Villur og tillögur
 

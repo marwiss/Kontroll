@@ -525,12 +525,11 @@ menneske eller AI-agent, der fører en del af det videre. Arbejdsgangene står i
   modellen med et IDS-udvalg, som ISO 19650's ansvarlige teams gør, kommer senere.
 - **Kollisionskontrol begge steder**: på serveren med IfcOpenShells IfcClash og i
   Dataspatium med dens egen kerne i JavaScript.
-- **Det næste**: et endepunkt
-  til AI-værktøjer (MCP) på din egen computer, hvor AI foreslår, og et menneske
-  godkender; kontrol af klassifikationer og egenskaber mod bSDD; en ny kontrol af
-  versionerne, når projektets IDS ændres, med buildingSMARTs fund knyttet til
-  bygningsdele; proprietære formater gennem kildeprogrammernes IFC-eksport; og en
-  testsuite mod promptinjektion i snippets og MCP.
+- **Det næste**: et endepunkt til AI-værktøjer (MCP) på din egen computer, hvor AI
+  foreslår, og et menneske godkender; kontrol af klassifikationer og egenskaber mod
+  bSDD; en ny kontrol af versionerne, når projektets IDS ændres, med buildingSMARTs
+  fund knyttet til bygningsdele; proprietære formater gennem kildeprogrammernes
+  IFC-eksport; og en testsuite mod promptinjektion i snippets og MCP.
 
 ## Fejl og forslag
 

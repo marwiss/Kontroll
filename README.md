@@ -531,12 +531,12 @@ Arbetssätten står i [CONTRIBUTING.md](CONTRIBUTING.md) och IFC-grafen i
   modellen med IDS-urval, som ISO 19650:s ansvariga team gör, kommer senare.
 - **Krocktest på båda ställena**: på servern med IfcOpenShells IfcClash och i
   Dataspatium med dess egen kärna i JavaScript.
-- **Härnäst**: en ändpunkt för
-  AI-verktyg (MCP) på den egna datorn, där AI föreslår och en människa godkänner;
-  kontroll av klassificeringar och egenskaper mot bSDD; omkontroll av versionerna
-  när projektets IDS ändras, med buildingSMARTs fynd kopplade till byggdelar;
-  proprietära format genom källprogrammens IFC-export; och en testsvit mot
-  promptinjektion i snippets och MCP.
+- **Härnäst**: en ändpunkt för AI-verktyg (MCP) på den egna datorn, där AI
+  föreslår och en människa godkänner; kontroll av klassificeringar och egenskaper
+  mot bSDD; omkontroll av versionerna när projektets IDS ändras, med
+  buildingSMARTs fynd kopplade till byggdelar; proprietära format genom
+  källprogrammens IFC-export; och en testsvit mot promptinjektion i snippets och
+  MCP.
 
 ## Fel och förslag
 

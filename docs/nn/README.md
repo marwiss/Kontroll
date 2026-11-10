@@ -523,12 +523,11 @@ Arbeidsmåtane står i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
   modellen med eit IDS-utval, slik dei ansvarlege teama i ISO 19650 gjer, kjem seinare.
 - **Kollisjonskontroll begge stader**: på serveren med IfcClash frå IfcOpenShell og i
   Dataspatium med den eigne kjernen i JavaScript.
-- **Det neste**: eit
-  endepunkt for AI-verktøy (MCP) på di eiga datamaskin, der AI gjer framlegg og eit
-  menneske godkjenner; kontroll av klassifikasjonar og eigenskapar mot bSDD; ein ny
-  kontroll av versjonane når IDS-en til prosjektet blir endra, med funna til
-  buildingSMART knytte til bygningsdelar; proprietære format gjennom IFC-eksporten til
-  kjeldeprogramma; og ei testsuite mot promptinjeksjon i snippets og MCP.
+- **Det neste**: eit endepunkt for AI-verktøy (MCP) på di eiga datamaskin, der AI gjer
+  framlegg og eit menneske godkjenner; kontroll av klassifikasjonar og eigenskapar mot
+  bSDD; ein ny kontroll av versjonane når IDS-en til prosjektet blir endra, med funna
+  til buildingSMART knytte til bygningsdelar; proprietære format gjennom IFC-eksporten
+  til kjeldeprogramma; og ei testsuite mot promptinjeksjon i snippets og MCP.
 
 ## Feil og framlegg
 

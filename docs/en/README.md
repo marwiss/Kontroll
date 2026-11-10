@@ -525,12 +525,11 @@ whoever, human or AI agent, carries a part of it further. The ways of working ar
   with an IDS selection, as ISO 19650's responsible teams do, come later.
 - **A clash check in both places**: on the server with IfcOpenShell's IfcClash and in
   Dataspatium with its own core in JavaScript.
-- **Next**: an endpoint for
-  AI tools (MCP) on your own computer, where AI proposes and a human approves; a
-  check of classifications and properties against bSDD; a new check of the versions
-  when the project's IDS changes, with buildingSMART's findings linked to building
-  elements; proprietary formats through the source programs' IFC export; and a test
-  suite against prompt injection in snippets and MCP.
+- **Next**: an endpoint for AI tools (MCP) on your own computer, where AI proposes
+  and a human approves; a check of classifications and properties against bSDD; a new
+  check of the versions when the project's IDS changes, with buildingSMART's findings
+  linked to building elements; proprietary formats through the source programs' IFC
+  export; and a test suite against prompt injection in snippets and MCP.
 
 ## Bugs and suggestions
 

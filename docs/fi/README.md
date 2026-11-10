@@ -546,12 +546,12 @@ IFC-graafi sivulla [ifc-lpg.md](ifc-lpg.md).
   IDS-valinnalla, kuten ISO 19650:n vastuuryhmät tekevät, tulevat myöhemmin.
 - **Törmäystarkastus molemmissa paikoissa**: palvelimella IfcOpenShellin IfcClashilla
   ja Dataspatiumissa sen omalla JavaScript-ytimellä.
-- **Seuraavaksi**: päätepiste
-  tekoälytyökaluille (MCP) omalla tietokoneella, jossa tekoäly ehdottaa ja ihminen
-  hyväksyy; luokitusten ja ominaisuuksien tarkistus bSDD:tä vasten; versioiden uusi
-  tarkistus, kun projektin IDS muuttuu, ja buildingSMARTin havainnot liitettyinä
-  rakennusosiin; suljetut tiedostomuodot lähdeohjelmien IFC-viennin kautta; ja
-  testisarja kehotteiden injektiota vastaan snippeteissä ja MCP:ssä.
+- **Seuraavaksi**: päätepiste tekoälytyökaluille (MCP) omalla tietokoneella, jossa
+  tekoäly ehdottaa ja ihminen hyväksyy; luokitusten ja ominaisuuksien tarkistus
+  bSDD:tä vasten; versioiden uusi tarkistus, kun projektin IDS muuttuu, ja
+  buildingSMARTin havainnot liitettyinä rakennusosiin; suljetut tiedostomuodot
+  lähdeohjelmien IFC-viennin kautta; ja testisarja kehotteiden injektiota vastaan
+  snippeteissä ja MCP:ssä.
 
 ## Virheet ja ehdotukset
 
