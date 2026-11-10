@@ -441,7 +441,7 @@ IFC-LPG, gjennom den spørjinga eller over Bolt.
   entitetar) blir importert på omkring eitt sekund; ein arkitektmodell på
   200 MB tek minutt.
 - `IfcModel`-noden ber `state`, `entities`, `relationships`, `skipped`,
-  `lossless`, `schema`, `ifc_project_guid`, tidsstempel og `error`. Administratorar kan
+  `lossless`, `geometry`, `schema`, `ifc_project_guid`, tidsstempel og `error`. Administratorar kan
   inspisere han i Neo4j Browser eller Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Sletting av eit prosjekt slettar entitetane til modellane i det.

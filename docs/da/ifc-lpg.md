@@ -438,7 +438,7 @@ kort IFC-LPG, gennem den forespørgsel eller over Bolt.
   (248 entiteter) importeres på omkring et sekund; en arkitektmodel på 200 MB
   tager minutter.
 - `IfcModel`-noden bærer `state`, `entities`, `relationships`, `skipped`,
-  `lossless`, `schema`, `ifc_project_guid`, tidsstempler og `error`. Administratorer kan
+  `lossless`, `geometry`, `schema`, `ifc_project_guid`, tidsstempler og `error`. Administratorer kan
   inspicere den i Neo4j Browser eller Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Sletning af et projekt sletter dets modellers entiteter med det.

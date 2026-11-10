@@ -444,7 +444,7 @@ myös piirtää graafin korttiinsa IFC-LPG tuon kyselyn kautta tai Boltilla.
   entiteettiä) tuodaan noin sekunnissa; 200 MB:n arkkitehtimalli vie
   minuutteja.
 - `IfcModel`-solmu kantaa kentät `state`, `entities`, `relationships`,
-  `skipped`, `lossless`, `schema`, `ifc_project_guid`, aikaleimat ja `error`.
+  `skipped`, `lossless`, `geometry`, `schema`, `ifc_project_guid`, aikaleimat ja `error`.
   Järjestelmänvalvojat voivat tarkastella sitä Neo4j Browserissa tai
   Memgraph Labissa:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.

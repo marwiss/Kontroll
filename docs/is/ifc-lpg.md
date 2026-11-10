@@ -429,7 +429,7 @@ spjaldinu IFC-LPG, í gegnum þá fyrirspurn eða yfir Bolt.
 - Ein umbreyting í einu; stór líkön fara í biðröð. Sýnilíkanið (248 einingar)
   er flutt inn á um einni sekúndu; 200 MB arkitektalíkan tekur mínútur.
 - `IfcModel`-hnúturinn ber `state`, `entities`, `relationships`, `skipped`,
-  `lossless`, `schema`, `ifc_project_guid`, tímastimpla og `error`. Stjórnendur geta
+  `lossless`, `geometry`, `schema`, `ifc_project_guid`, tímastimpla og `error`. Stjórnendur geta
   skoðað hann í Neo4j Browser eða Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Að eyða verkefni eyðir einingum líkana þess með því.

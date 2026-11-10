@@ -237,6 +237,7 @@ class IfcGraphService:
                 relationships=counts["relationships"],
                 skipped=header.get("skipped", 0),
                 lossless=header.get("lossless", False),
+                geometry=header.get("geometry"),  # skeleton, blocks or nodes (IFC-LPG 1.0.0 of 2026-11-10)
                 ifc_header=header.get("ifc_header"),
             )
             # Viewpoints created before the model finished (or before it was uploaded) get their links now.

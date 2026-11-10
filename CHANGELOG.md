@@ -10,6 +10,8 @@ the commit history.
 
 ## Unreleased
 
+- The `IfcModel` node records which form IFC-LPG converted the model in (`geometry`: `skeleton`, `blocks` or
+  `nodes`); the skeleton is the default since IFC-LPG 1.0.0 of 2026-11-10, with points for coordinate lists.
 - A clash check between two IFC document versions of a project, as an extension of the Documents API:
   `POST /documents/1.0/projects/{id}/ifc-clash` starts it (IfcClash in a worker process; modes `intersection` and
   `clearance`), `GET …/ifc-clash/{id}` gives the report in the form Dataspatium's own clash core writes, and

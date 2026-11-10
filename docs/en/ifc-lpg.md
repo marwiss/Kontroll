@@ -432,7 +432,7 @@ its card IFC-LPG, through that query or over Bolt.
   entities) imports in about a second; a 200 MB architectural model takes
   minutes.
 - The `IfcModel` node carries `state`, `entities`, `relationships`, `skipped`,
-  `lossless`, `schema`, `ifc_project_guid`, timestamps and `error`. Administrators can
+  `lossless`, `geometry`, `schema`, `ifc_project_guid`, timestamps and `error`. Administrators can
   inspect it in Neo4j Browser or Memgraph Lab:
   `MATCH (m:IfcModel) RETURN m.file_name, m.state, m.entities, m.error`.
 - Deleting a project deletes its models' entities with it.
