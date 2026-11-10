@@ -20,6 +20,13 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- On Memgraph, an administrator's graph query that runs past its time limit is stopped on the server. Memgraph does
+  not take the Bolt transaction timeout and went on running the statement for up to ten minutes after the answer
+  "time limit", holding its storage so that no schema statement got through meanwhile.
+- On Memgraph, a schema statement waits up to about two minutes for unique access to the storage, which a periodic
+  snapshot or a long write holds for seconds: the point index made again after every import, and the schema applied
+  at start. Before, it gave up after about seven seconds, and a model lost its boxes or the server did not start. A
+  transient error while the point index is dropped is no longer passed over, so a stale index is not left in place.
 - The production overlay starts without `OPENCDE_ACME_EMAIL`: Caddy refused an empty `email` and did not start, so
   the address was in practice required. The backup sidecar no longer inherits the image's health check, which asked
   for an API it does not run and showed it as unhealthy.

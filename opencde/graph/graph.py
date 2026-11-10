@@ -31,8 +31,9 @@ log = get_logger(__name__)
 
 T = TypeVar("T")
 
-DDL_ATTEMPTS = 6  # schema statements that meet a transient error, at growing intervals
+DDL_ATTEMPTS = 30  # schema statements that meet a transient error: about two minutes in all, at growing intervals
 DDL_RETRY_SECONDS = 0.5
+DDL_RETRY_MAX_SECONDS = 5.0
 
 
 class Tx:
@@ -90,8 +91,11 @@ class Graph:
         ``session.run``, which the driver does not retry. The server and a command
         such as ``opencde seed`` can apply the schema at the same moment, and the
         database then answers one of them with a transient error (a deadlock in
-        Neo4j), so that is retried here. Memgraph also raises when a constraint or
-        index already exists; that is treated as "nothing to do".
+        Neo4j), so that is retried here. Memgraph answers with a transient error too
+        while it cannot get unique access to its storage, which a periodic snapshot or
+        a long write holds for seconds, so the retries last about two minutes.
+        Memgraph also raises when a constraint or index already exists; that is
+        treated as "nothing to do".
         """
         attempt = 0
         while True:
@@ -109,7 +113,7 @@ class Graph:
                 if attempt >= DDL_ATTEMPTS:
                     raise
                 log.debug("schema_statement_retried", attempt=attempt)
-                await asyncio.sleep(DDL_RETRY_SECONDS * attempt)
+                await asyncio.sleep(min(DDL_RETRY_SECONDS * attempt, DDL_RETRY_MAX_SECONDS))
                 continue
             counters = summary.counters
             added = getattr(counters, "constraints_added", 0) + getattr(counters, "indexes_added", 0)

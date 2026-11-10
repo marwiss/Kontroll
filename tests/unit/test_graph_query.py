@@ -5,7 +5,16 @@ import pytest
 from neo4j.spatial import CartesianPoint
 from neo4j.time import Date, DateTime, Duration
 
-from opencde.admin.graph_query import REDACTED, QueryRejected, check_parameters, check_statement, json_value
+from opencde.admin.graph_query import (
+    QUERY_MARKER,
+    REDACTED,
+    QueryRejected,
+    check_parameters,
+    check_statement,
+    json_value,
+    stop_on_the_server,
+)
+from opencde.graph.dialect import MEMGRAPH, NEO4J
 
 ACCEPTED = [
     "MATCH (u:User)-[:MEMBER_OF]->(p:Project) RETURN u.username, p.name ORDER BY p.name LIMIT 10",
@@ -86,3 +95,41 @@ def test_answer_values_are_json_with_hashes_left_out() -> None:
     assert json_value(CartesianPoint((1.0, 2.0, 3.0))) == {"srid": 9157, "x": 1.0, "y": 2.0, "z": 3.0}
     assert json_value(b"\x00\x01") == "AAE="
     assert json_value(frozenset({"a"})) == ["a"]
+
+
+class _Transactions:
+    """A graph whose server lists two running transactions, one of them the query that ran past its limit."""
+
+    def __init__(self, dialect) -> None:
+        self.dialect = dialect
+        self.statements: list[str] = []
+
+    async def schema_rows(self, statement: str) -> list[dict]:
+        self.statements.append(statement)
+        if statement == "SHOW TRANSACTIONS":
+            return [
+                {"transaction_id": "9223372036854775808", "metadata": {QUERY_MARKER: "this one"}},
+                {"transaction_id": "9223372036854775809", "metadata": {}},
+            ]
+        return [{"killed": True}]
+
+
+async def test_memgraph_is_told_to_stop_the_query_that_ran_past_its_limit() -> None:
+    graph = _Transactions(MEMGRAPH)
+    assert await stop_on_the_server(graph, "this one") == 1  # type: ignore[arg-type]
+    assert graph.statements == ["SHOW TRANSACTIONS", 'TERMINATE TRANSACTIONS "9223372036854775808"']
+
+
+async def test_neo4j_stops_the_query_itself() -> None:
+    graph = _Transactions(NEO4J)
+    assert await stop_on_the_server(graph, "this one") == 0  # type: ignore[arg-type]
+    assert graph.statements == []
+
+
+def test_only_a_memgraph_transaction_id_of_digits_is_terminated() -> None:
+    assert MEMGRAPH.terminate_transaction("42") == 'TERMINATE TRANSACTIONS "42"'
+    for bad in ('42" OR 1=1', "", "abc"):
+        with pytest.raises(ValueError):
+            MEMGRAPH.terminate_transaction(bad)
+    with pytest.raises(ValueError):
+        NEO4J.terminate_transaction("42")

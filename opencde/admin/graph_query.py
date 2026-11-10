@@ -52,11 +52,16 @@ from opencde import audit
 from opencde.auth.dependencies import AdminPrincipal
 from opencde.deps import GraphDep, SettingsDep, client_ip
 from opencde.graph.graph import Graph
+from opencde.ids import new_id
+from opencde.logging import get_logger
 from opencde.settings import GraphDialect
 
 router = APIRouter(prefix="/admin/api/graph", tags=["Administration (extension)"])
 
+log = get_logger(__name__)
+
 MAX_STATEMENT_LENGTH = 20_000
+QUERY_MARKER = "opencde_graph_query"  # in a query's transaction metadata, so that it can be found and stopped
 AUDIT_STATEMENT_LENGTH = 500
 
 #: Properties that hold hashes of credentials. Never named in a statement, never in an answer.
@@ -267,14 +272,17 @@ async def run_read_query(
     """Run one reading statement in a read transaction, keep at most ``max_rows`` rows, stop at the time limit.
 
     Neo4j is told the transaction timeout and stops the statement itself; Memgraph is not (it does not
-    take the Bolt transaction timeout), so a client-side limit a second later covers both, and closing
-    the transaction discards whatever the server still holds.
+    take the Bolt transaction timeout), so a client-side limit a second later covers both. Memgraph also
+    goes on running a statement after the client has gone, for up to ten minutes, and holds its storage
+    meanwhile, so that no schema statement gets through; the transaction carries a marker in its metadata,
+    and at the limit the server is told to stop it.
     """
     tx_timeout = timeout_seconds if graph.dialect.name is GraphDialect.NEO4J else None
+    marker = new_id()
 
     async def work() -> QueryResult:
         async with graph.driver.session(database=graph.database, default_access_mode=READ_ACCESS) as session:
-            tx = await session.begin_transaction(timeout=tx_timeout)
+            tx = await session.begin_transaction(timeout=tx_timeout, metadata={QUERY_MARKER: marker})
             try:
                 result = await tx.run(cast("LiteralString", cypher), params)
                 columns = list(result.keys())
@@ -290,7 +298,28 @@ async def run_read_query(
                 with contextlib.suppress(Exception):
                     await tx.close()  # a rollback: nothing was written, and the rest of the stream is dropped
 
-    return await asyncio.wait_for(work(), timeout_seconds + 1.0)
+    try:
+        return await asyncio.wait_for(work(), timeout_seconds + 1.0)
+    except TimeoutError:
+        await stop_on_the_server(graph, marker)
+        raise
+
+
+async def stop_on_the_server(graph: Graph, marker: str) -> int:
+    """Stop the transactions that carry ``marker`` where the server would go on running them (Memgraph). Returns how
+    many were stopped; a failure here is logged and leaves the time limit's answer as it is."""
+    statement = graph.dialect.show_transactions
+    if statement is None:
+        return 0
+    stopped = 0
+    try:
+        for row in await graph.schema_rows(statement):
+            if (row.get("metadata") or {}).get(QUERY_MARKER) == marker:
+                await graph.schema_rows(graph.dialect.terminate_transaction(str(row.get("transaction_id"))))
+                stopped += 1
+    except Exception as exc:
+        log.warning("graph_query_not_stopped", error=type(exc).__name__)
+    return stopped
 
 
 # ---------------------------------------------------------------------------- the route

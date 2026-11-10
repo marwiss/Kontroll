@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import contextlib
 
+from neo4j.exceptions import ClientError
+
 from opencde.graph.dialect import GraphDialect
 from opencde.graph.graph import Graph
 from opencde.logging import get_logger
@@ -123,11 +125,12 @@ async def relabel_after_the_rename(graph: Graph) -> int:
 async def rebuild_point_indexes(graph: Graph) -> None:
     """Make the point indexes anew after points were set. Memgraph 3.14 does not keep a point index current (a
     point set after the index was made is not found through it), so there the index is dropped and made again;
-    Neo4j keeps its indexes up to date and nothing is done."""
+    Neo4j keeps its indexes up to date and nothing is done. Only a missing index is passed over when dropping;
+    a transient error goes through, so that a stale index is not left in place without a word."""
     if graph.dialect.name is not GraphDialect.MEMGRAPH:
         return
     for label, prop in POINT_INDEXES:
-        with contextlib.suppress(Exception):  # there was none yet
+        with contextlib.suppress(ClientError):  # there was none yet
             await graph.ddl(graph.dialect.drop_point_index(label, prop))
         await graph.ddl(graph.dialect.point_index(label, prop))
 

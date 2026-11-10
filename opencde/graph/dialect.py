@@ -82,6 +82,18 @@ class Dialect:
         return "SHOW CONSTRAINTS" if self.name is GraphDialect.NEO4J else "SHOW CONSTRAINT INFO"
 
     @property
+    def show_transactions(self) -> str | None:
+        """A statement listing the running transactions with their Bolt metadata, where the server needs to be told to
+        stop one: Memgraph does not take the Bolt transaction timeout, while Neo4j stops a statement at it."""
+        return "SHOW TRANSACTIONS" if self.name is GraphDialect.MEMGRAPH else None
+
+    def terminate_transaction(self, transaction_id: str) -> str:
+        """Memgraph's statement that stops a running transaction; its id is a number from ``SHOW TRANSACTIONS``."""
+        if self.name is not GraphDialect.MEMGRAPH or not transaction_id.isdigit():
+            raise ValueError("only a Memgraph transaction id of digits can be terminated")
+        return f'TERMINATE TRANSACTIONS "{transaction_id}"'
+
+    @property
     def already_exists_markers(self) -> tuple[str, ...]:
         """Substrings of the error a product raises when DDL is repeated. Treated as success."""
         return ("already exists", "AlreadyExists", "EquivalentSchemaRuleAlreadyExists", "ConstraintAlreadyExists")
