@@ -10,20 +10,21 @@ the commit history.
 
 ## Unreleased
 
-- A change set is tried on its base version when it is uploaded as a topic's snippet and the IFC-LPG module is
-  on: a worker applies the changes to the base version's file, the result gets the checks an upload gets, and
-  `GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gives the trial: `clean` when every change applied and
-  no finding is new compared with the base, else `issues`, with the new findings and a `proposal` issue per
-  change that could not be applied. `ifc_changes` in the capabilities document carries `tried` and
-  `proposal_url`.
 ## 3.0.0 — 2026-11-10
 
 Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of
 2026-11-08 is withdrawn and its notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
-upload, the refusal of uploads with validation errors, the precheck of a file and the schema of a change set.
-Works with Dataspatium 3.0.0.
+upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version. Works with
+Dataspatium 3.0.0.
+
+- A change set is tried on its base version when it is uploaded as a topic's snippet and the IFC-LPG module is
+  on: a worker applies the changes to the base version's file, the result gets the checks an upload gets, and
+  `GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gives the trial: `clean` when every change applied and
+  no finding is new compared with the base, else `issues`, with the new findings and a `proposal` issue per
+  change that could not be applied. `ifc_changes` in the capabilities document carries `tried` and
+  `proposal_url`.
 
 - The form of a proposed change to an IFC model: a change set as the `bim_snippet` of a BCF 3.0 topic, with
   `snippet_type` `DataregiumIfcChangeSet` (among a new project's values) and the published JSON Schema
