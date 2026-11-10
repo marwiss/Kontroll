@@ -37,7 +37,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
 
 ```json
 {
-  "server": {"name": "Dataregium OpenCDE server", "version": "2.0.0", "public_url": "https://cde.example.org"},
+  "server": {"name": "Dataregium OpenCDE server", "version": "1.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
   "scopes": ["profile", "bcf", "documents", "project", "admin"],
   "extensions": {

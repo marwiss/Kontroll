@@ -8,6 +8,13 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
+## 1.0.0 — 2026-11-10
+
+The 1 series: a document server for Dataspatium 1. It is the 2.0.0 code with `OPENCDE_APIS=["documents"]` set by the
+image, by `opencde init` and in `.env.example`, so a server offers the Foundation API and the Documents API only;
+`OPENCDE_APIS` in `.env` turns the BCF APIs on. A
+change to the 2 series is released again here under 1.0.0 as well. Works with Dataspatium 1.0.0.
+
 ## 2.0.0 — 2026-11-10
 
 Released again on 2026-11-10 under the name Dataregium (the second time that day), in step with Dataspatium

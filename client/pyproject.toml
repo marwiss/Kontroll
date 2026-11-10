@@ -1,6 +1,6 @@
 [project]
 name = "opencde-client"
-version = "2.0.0"
+version = "1.0.0"
 description = "Python client for buildingSMART OpenCDE servers: Foundation API 1.0, BCF API 3.0 and 2.1, and Documents API 1.0, with OAuth2 authorization code + PKCE."
 readme = "README.md"
 license = "LGPL-3.0-or-later"

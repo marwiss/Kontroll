@@ -43,7 +43,7 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
 | Verk | Skipun |
 |---|---|
 | Uppfæra í nýjasta image | `docker compose pull && docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d` |
-| Festa útgáfu | `OPENCDE_IMAGE_TAG=2.0.0` í `.env` (merkin fylgja GitHub-útgáfunum) |
+| Festa útgáfu | `OPENCDE_IMAGE_TAG=1.0.0` í `.env` (merkin fylgja GitHub-útgáfunum) |
 | Bjóða aðeins sum forritaskil | `OPENCDE_APIS=["bcf-2.1"]` í `.env` fyrir þjón sem býður aðeins BCF API 2.1, `["documents"]` fyrir skjalaþjón; öll þrjú sjálfgefið |
 | Atvikaskrár | `docker compose logs -f api` (JSON-línur) |
 | Heilsa | `https://cde.example.org/readyz`; síðan Stillingar í stjórnuninni |

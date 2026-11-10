@@ -203,6 +203,7 @@ def init(
         'OPENCDE_TRUSTED_PROXIES=["127.0.0.1"]' if dev else 'OPENCDE_TRUSTED_PROXIES=["127.0.0.1", "172.16.0.0/12"]',
         "OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true" if dev else "OPENCDE_ALLOW_LOCALHOST_REDIRECTS=false",
         "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true" if dev else "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false",
+        'OPENCDE_APIS=["documents"]',  # the 1 series is a document server
         "NEO4J_HEAP=512m",
         "NEO4J_PAGECACHE=256m",
         "OPENCDE_DEV_PORT=8000",

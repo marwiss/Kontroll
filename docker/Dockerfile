@@ -27,6 +27,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 
 FROM python:3.13-slim-trixie AS runtime
+# The 1 series is a document server: the Foundation API and the Documents API, unless .env says otherwise.
+ENV OPENCDE_APIS='["documents"]'
 # Apply the distribution's security updates and remove pip: the runtime needs no
 # package manager, and pip's vendored libraries are what image scanners flag
 # between rebuilds of the base image.

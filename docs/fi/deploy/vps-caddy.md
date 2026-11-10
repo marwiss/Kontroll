@@ -43,7 +43,7 @@ käyttäjät ja OAuth2-asiakkaat, joita sovelluksesi tarvitsevat.
 | Tehtävä | Komento |
 |---|---|
 | Päivitä uusimpaan imageen | `docker compose pull && docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d` |
-| Kiinnitä versio | `OPENCDE_IMAGE_TAG=2.0.0` `.env`-tiedostossa (tagit seuraavat GitHub-julkaisuja) |
+| Kiinnitä versio | `OPENCDE_IMAGE_TAG=1.0.0` `.env`-tiedostossa (tagit seuraavat GitHub-julkaisuja) |
 | Tarjoa vain osa rajapinnoista | `OPENCDE_APIS=["bcf-2.1"]` tiedostossa `.env` palvelimelle, joka tarjoaa vain BCF API 2.1:n, `["documents"]` dokumenttipalvelimelle; oletuksena kaikki kolme |
 | Lokit | `docker compose logs -f api` (JSON-rivejä) |
 | Kuntotarkistus | `https://cde.example.org/readyz`; hallinnan Asetukset-sivu |

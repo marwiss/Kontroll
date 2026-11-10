@@ -43,7 +43,7 @@ services:
       - no-new-privileges:true
 
   backup:
-    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-2.0.0}
+    image: ghcr.io/marwiss/opencdeserver:${OPENCDE_IMAGE_TAG:-1.0.0}
     restart: unless-stopped
     # The image's health check asks the API on port 8000, which this container does not serve.
     healthcheck:
