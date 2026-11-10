@@ -86,6 +86,7 @@
   "scope.profile": "Kuka olet (Foundation API current-user).",
   "scope.bcf": "Asioiden hallinta BCF API:n kautta.",
   "scope.documents": "Asiakirjojen vaihto Documents API:n kautta.",
+  "scope.project": "Niiden projektien hallinta, joista vastaat (jäsenet ja roolit).",
   "scope.admin": "Palvelimen hallinta (käyttäjät, projektit, asiakkaat, lokit) järjestelmänvalvojille.",
   "auth.error.title": "Ei voi jatkaa",
   "auth.error.hint": "Sinut tänne lähettänyt sovellus teki pyynnön, jota tämä palvelin ei voi hyväksyä, joten sinua ei ohjattu mihinkään. Sulje ikkuna ja ota yhteyttä sovelluksen ylläpitäjiin, jos ongelma jatkuu.",

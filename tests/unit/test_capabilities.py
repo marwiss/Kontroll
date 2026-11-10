@@ -19,7 +19,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert body["server"]["name"] == "Dataregium OpenCDE server" and body["server"]["public_url"] == "http://testserver"
     assert body["apis"] == {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"}
     assert body["bcf_versions"] == ["3.0", "2.1"]
-    assert body["scopes"] == ["profile", "bcf", "documents", "admin"]
+    assert body["scopes"] == ["profile", "bcf", "documents", "project", "admin"]
     extensions = body["extensions"]
     assert set(extensions) == {
         "dynamic_client_registration",
@@ -29,6 +29,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_queries",
         "ifc_clash",
         "ifc_precheck",
+        "project_administration",
         "headless_uploads",
         "ifc_diff",
         "ifc_geometry",
@@ -52,6 +53,13 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_diff"] == {"enabled": False}, "the diff needs the IFC-LPG module"
     assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-LPG module"
     assert extensions["ifc_changes"]["snippet_type"] == "DataregiumIfcChangeSet", "the form of a proposed change"
+    assert extensions["project_administration"] == {
+        "enabled": True,
+        "url": "/manage/1.0/projects",
+        "scope": "project",
+        "roles": ["viewer", "contributor", "editor", "manager"],
+        "for": "managers of a project",
+    }, "managers administer their projects (OB-41)"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0

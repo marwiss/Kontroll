@@ -18,6 +18,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from opencde import __version__
+from opencde.accounts.routes_manage import ROLES as MANAGE_ROLES
 from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
 from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE
@@ -92,6 +93,13 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 if settings.ifcgraph_enabled and settings.ifcgraph_clash_enabled and settings.offers("documents")
                 else {"enabled": False}
             ),
+            "project_administration": {
+                "enabled": True,
+                "url": "/manage/1.0/projects",
+                "scope": "project",
+                "roles": list(MANAGE_ROLES),
+                "for": "managers of a project",
+            },
             "headless_uploads": {
                 "enabled": settings.offers("documents"),
                 "url": "/documents/1.0/upload-documents",

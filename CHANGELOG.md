@@ -10,6 +10,11 @@ the commit history.
 
 ## Unreleased
 
+- Project administration by its managers (OB-41): a `manager` lists, adds (by exact user name), re-roles and removes
+  the members of their project under `/manage/1.0/projects/{id}/members`, with a token holding the new `project`
+  scope, which a client asks for explicitly; a project keeps at least one manager (`409 conflict`), the name changes
+  through the BCF API's PUT Project, and a deletion stays with the administrators. Every write is in the audit log as
+  `manage.*`. Announced as `project_administration`.
 - Where the products are, and the geometry (OB-37): after a conversion IFC-LPG's geometry worker runs once over the
   file, every product gets its box in the graph (`bbox_min`, `bbox_max`, `bbox_centre` as points on the `Entity`,
   with a point index on `bbox_centre`, in the archive and the working copy), and

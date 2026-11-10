@@ -40,7 +40,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
 {
   "server": {"name": "Dataregium OpenCDE server", "version": "3.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
-  "scopes": ["profile", "bcf", "documents", "admin"],
+  "scopes": ["profile", "bcf", "documents", "project", "admin"],
   "extensions": {
     "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
@@ -49,6 +49,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -394,6 +395,27 @@ jälkeen. Hylätty, epäonnistunut tai keskeytetty lause vastaa `400` ja
 `code: validation_error` sekä syyn, tietokannan oma viesti mukaan lukien.
 Jokainen kutsu, hylätty tai ei, jättää tapahtuman `admin.graph.query`, jossa
 ovat lauseen ensimmäiset 500 merkkiä, eivät koskaan parametrit.
+
+### Projektin hallinta sen vastuuhenkilöiden toimesta (laajennus)
+
+Projektin `manager` hallitsee sen jäseniä ja heidän roolejaan olematta
+ylläpitäjä. Tunnisteessa on oltava scope `project`, jota asiakas pyytää
+erikseen; rooli kussakin projektissa ratkaisee, ja projekti, jonka jäsen kutsuja
+ei ole, vastaa `404`. Jäsen lisätään tarkalla käyttäjänimellä, jotta
+vastuuhenkilö ei koskaan listaa palvelimen käyttäjiä, ja hänet näytetään
+käyttäjänimen, nimen ja roolin kanssa. Projektiin jää aina vähintään yksi
+`manager` (muuten `409 conflict`). Nimi muutetaan BCF API:n kautta
+(`PUT /bcf/3.0/projects/{project_id}`); projektin poistaminen kuuluu
+ylläpitäjille. Jokainen kirjoitus jättää tarkastustapahtuman (`manage.*`).
+Kyvykkyysasiakirja ilmoittaa sen nimellä `project_administration`.
+
+| Call | What it does |
+|---|---|
+| `GET /manage/1.0/projects` | projektit, joista kutsuja vastaa |
+| `GET /manage/1.0/projects/{project_id}/members` | jäsenet kentin `user_id`, `username`, `name` ja `role` |
+| `POST /manage/1.0/projects/{project_id}/members` | lisää `{"username", "role"}` (`201`) tai asettaa jäsenen roolin (`200`); `404`, jos käyttäjää ei ole |
+| `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | asettaa `{"role"}`: `viewer`, `contributor`, `editor` tai `manager` |
+| `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | poistaa jäsenen |
 
 ## 8. Testaaminen tätä palvelinta vasten
 

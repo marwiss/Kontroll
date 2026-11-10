@@ -39,7 +39,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
 {
   "server": {"name": "Dataregium OpenCDE server", "version": "3.0.0", "public_url": "https://cde.example.org"},
   "apis": {"foundation": "1.0", "bcf": "3.0", "documents": "1.0"},
-  "scopes": ["profile", "bcf", "documents", "admin"],
+  "scopes": ["profile", "bcf", "documents", "project", "admin"],
   "extensions": {
     "dynamic_client_registration": {"enabled": true, "public_clients": true, "initial_access_token": false, "approval": false, "unused_days": 30,
                                     "url": "/foundation/oauth2/reg"},
@@ -48,6 +48,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
     "ifc_geometry": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-geometry", "format": "model/gltf-binary", "lods": ["full", "box"]},
@@ -381,6 +382,27 @@ er hafnað, misheppnast eða er stöðvuð svarar `400` með
 `code: validation_error` og ástæðunni, eigin skilaboð gagnagrunnsins
 meðtalin. Hvert kall, hafnað eða ekki, skilur eftir endurskoðunaratburð
 `admin.graph.query` með fyrstu 500 táknum setningarinnar, aldrei stikunum.
+
+### Verkefnastjórnun ábyrgðarmanna (viðbót)
+
+`manager` í verkefni stjórnar meðlimum þess og hlutverkum þeirra án þess að
+vera stjórnandi þjónsins. Tókinn þarf að bera scope-ið `project`, sem biðlari
+biður sérstaklega um; hlutverkið í hverju verkefni ræður, og verkefni sem sá
+sem kallar er ekki meðlimur í svarar `404`. Meðlimi er bætt við með nákvæmu
+notandanafni, svo að ábyrgðarmaður telji aldrei upp notendur þjónsins, og hann
+er sýndur með notandanafni, nafni og hlutverki. Verkefni heldur alltaf að
+minnsta kosti einum `manager` (annars `409 conflict`). Nafninu er breytt með
+`PUT /bcf/3.0/projects/{project_id}` í BCF API; að eyða verkefni er í höndum
+stjórnenda. Hver skrif skilja eftir endurskoðunaratburð (`manage.*`).
+Getuskjalið tilkynnir það sem `project_administration`.
+
+| Call | What it does |
+|---|---|
+| `GET /manage/1.0/projects` | verkefnin sem sá sem kallar ber ábyrgð á |
+| `GET /manage/1.0/projects/{project_id}/members` | meðlimirnir með `user_id`, `username`, `name` og `role` |
+| `POST /manage/1.0/projects/{project_id}/members` | bætir við `{"username", "role"}` (`201`) eða setur hlutverk meðlims (`200`); `404` ef notandinn er ekki til |
+| `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | setur `{"role"}`: `viewer`, `contributor`, `editor` eða `manager` |
+| `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | fjarlægir meðliminn |
 
 ## 8. Prófanir gegn þessum þjóni
 

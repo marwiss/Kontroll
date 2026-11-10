@@ -86,6 +86,7 @@
   "scope.profile": "Hver þú ert (Foundation API current-user).",
   "scope.bcf": "Málameðferð um BCF API.",
   "scope.documents": "Skjalaskipti um Documents API.",
+  "scope.project": "Stjórnun verkefnanna sem þú berð ábyrgð á (meðlimir og hlutverk).",
   "scope.admin": "Stjórnun þjónsins (notendur, verkefni, biðlarar, skrár) fyrir stjórnendur.",
   "auth.error.title": "Ekki er hægt að halda áfram",
   "auth.error.hint": "Forritið sem sendi þig hingað gerði beiðni sem þessi þjónn getur ekki samþykkt, svo þér var ekki beint neitt. Lokaðu glugganum og hafðu samband við þá sem halda forritinu við ef vandinn er viðvarandi.",
