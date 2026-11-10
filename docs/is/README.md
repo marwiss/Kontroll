@@ -143,7 +143,7 @@ gagnagrunninum, og ekkert er opið fyrr en það hefur verið stillt.
   rekstraraðstæðu.
 - **Staða**: öll ellefu stig áætlunarinnar eru útfærð (forritaskilin þrjú,
   stjórnunin, biðlarasafnið, uppsetning í rekstur, IFC-LPG,
-  samþykktargátlistinn og öryggisherðingin); framlagið til IfcOpenShell hefur
+  samþykktargátlistinn og öryggisherðingin); framlag þjónsins til IfcOpenShell hefur
   ekki enn verið lagt fram.
 
 <img src="../images/signin.png" alt="Innskráningarsíðan sem biðlari opnar" width="240">
@@ -398,9 +398,9 @@ uv run ruff format . && uv run ruff check .
 uv run ty check opencde client/opencde_client
 ```
 
-Kóði og athugasemdir eru á ensku því að þjónninn og biðlarasafnið eiga að
-verða framlag til IfcOpenShell, en stíllinn fylgir venjum þess (ruff, 120
-dálkar). README er til á ensku, sænsku, dönsku, norsku (bokmál og nynorsk),
+Kóði og athugasemdir eru á ensku, og stíllinn fylgir venjum IfcOpenShell
+(ruff, 120 dálkar), svo að það haldist mögulegt að leggja þjóninn fram til
+IfcOpenShell. README er til á ensku, sænsku, dönsku, norsku (bokmál og nynorsk),
 finnsku og íslensku (`docs/<tungumál>/README.md`, sama skipan sem Dataspatium
 notar); skjölunin og vefviðmótið eru til á sömu tungumálum, með ensku
 alltaf sem einn kostinn, og sameiginleg hugtök fylgja orðalista Dataspatium.

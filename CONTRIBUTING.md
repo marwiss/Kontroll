@@ -28,8 +28,7 @@ issue too.
 
 Agree on the change in an issue first for anything beyond a small fix. Then
 send a pull request against `main` that follows the house rules, which are
-those of IfcOpenShell, where the server and the client library are meant to
-end up:
+those of IfcOpenShell, so that contributing the server there stays possible:
 
 - Code, comments, tests and commit messages are in English. Commit subjects
   are imperative and at most 50 characters; the body says why.

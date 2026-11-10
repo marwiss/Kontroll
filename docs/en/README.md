@@ -142,8 +142,8 @@ password, and nothing is open until it is configured.
   deployment scenario.
 - **Status**: all eleven stages of the plan are implemented (the three APIs,
   the administration, the client library, deployment, IFC-LPG, the acceptance
-  checklist and the security hardening); the contribution to IfcOpenShell has
-  not been proposed yet.
+  checklist and the security hardening); a contribution of the server to
+  IfcOpenShell has not been proposed.
 
 <img src="../images/signin.png" alt="The sign-in page a client opens" width="240">
 <img src="../images/upload.png" alt="The upload page, where the user gives the file a title and a version" width="340">
@@ -395,9 +395,9 @@ uv run ruff format . && uv run ruff check .
 uv run ty check opencde client/opencde_client
 ```
 
-Code and comments are in English because the server and the client library
-are intended to be contributed to IfcOpenShell, whose conventions (ruff, 120
-columns) the style follows. The README exists in English, Swedish, Danish,
+Code and comments are in English, and the style follows IfcOpenShell's
+conventions (ruff, 120 columns), so that contributing the server to
+IfcOpenShell stays possible. The README exists in English, Swedish, Danish,
 Norwegian (Bokmål and Nynorsk), Finnish and Icelandic (`docs/<lang>/README.md`,
 the layout Dataspatium uses); the documentation and the web UI are
 available in the same languages, with English always one of the choices, and

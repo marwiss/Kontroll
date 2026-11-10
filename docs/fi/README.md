@@ -422,9 +422,9 @@ uv run ruff format . && uv run ruff check .
 uv run ty check opencde client/opencde_client
 ```
 
-Koodi ja kommentit ovat englanniksi, koska palvelin ja asiakaskirjasto on
-tarkoitus luovuttaa IfcOpenShelliin, jonka käytäntöjä (ruff, 120 saraketta)
-tyyli noudattaa. README on englanniksi, ruotsiksi, tanskaksi, norjaksi
+Koodi ja kommentit ovat englanniksi, ja tyyli noudattaa IfcOpenShellin
+käytäntöjä (ruff, 120 saraketta), jotta palvelimen luovuttaminen
+IfcOpenShelliin pysyy mahdollisena. README on englanniksi, ruotsiksi, tanskaksi, norjaksi
 (bokmål ja nynorsk), suomeksi ja islanniksi (`docs/<kieli>/README.md`, sama
 rakenne kuin Dataspatiumissa); dokumentaatio ja selainkäyttöliittymä ovat
 saatavilla samoilla kielillä, englanti aina yhtenä

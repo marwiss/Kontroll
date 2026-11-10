@@ -144,7 +144,7 @@ databasepassord, og ingenting er ope før det er konfigurert.
   image for kvart utrullingsscenario.
 - **Status**: alle elleve etappane i planen er gjennomførte (dei tre API-ane,
   administrasjonen, klientbiblioteket, utrulling, IFC-LPG,
-  akseptansesjekklista og tryggingsherdinga); bidraget til IfcOpenShell er
+  akseptansesjekklista og tryggingsherdinga); eit bidrag av serveren til IfcOpenShell er
   enno ikkje føreslått.
 
 <img src="../images/signin.png" alt="Innloggingssida ein klient opnar" width="240">
@@ -401,9 +401,9 @@ uv run ruff format . && uv run ruff check .
 uv run ty check opencde client/opencde_client
 ```
 
-Kode og kommentarar er på engelsk fordi serveren og klientbiblioteket skal
-bidragast til IfcOpenShell, og stilen følgjer konvensjonane der (ruff, 120
-kolonnar). README finst på engelsk, svensk, dansk, norsk (bokmål og nynorsk),
+Kode og kommentarar er på engelsk, og stilen følgjer konvensjonane til
+IfcOpenShell (ruff, 120 kolonnar), slik at det held fram med å vere mogleg å
+bidra med serveren til IfcOpenShell. README finst på engelsk, svensk, dansk, norsk (bokmål og nynorsk),
 finsk og islandsk (`docs/<språk>/README.md`, same oppsett som Dataspatium);
 dokumentasjonen og webgrensesnittet finst på dei same språka, med
 engelsk alltid som eit val, og felles termar følgjer ordlista til
