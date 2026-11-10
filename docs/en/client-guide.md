@@ -375,7 +375,7 @@ above, and its live test suites run against the development stack
   The model's walls are `1Xezbq735AdBO_4DerG66G` (GTIN 3),
   `3eT96F_cnDsOufCEsotwtp` (GTIN 2) and `3k3LbXmTfDWODxdSuyCGYE` (GTIN 1),
   in property set `Reuse`; the same file is `tests/fixtures/three_walls_gtin.ifc`.
-- `docker compose -f compose.yaml -f compose.dev.yaml up -d` gives you a
+- `docker compose up -d` gives you a
   server on `http://127.0.0.1:8000` with Neo4j Browser on `:7484`.
 - Register a client for your app in the admin UI (`/admin` → Clients) or with
   `uv run opencde client create "My app" --redirect-uri http://127.0.0.1/callback --public`.

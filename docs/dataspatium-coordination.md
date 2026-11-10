@@ -67,7 +67,7 @@ debugging.
 ## Graph access in production
 
 Only the development overlay publishes Bolt. In production the IFC graph can be
-reached in two ways (decision A): the `compose.bolt.yaml` overlay for operators
+reached in two ways (decision A): the `docker/compose.bolt.yaml` overlay for operators
 who publish the port on purpose, and `POST /admin/api/graph/query`
 (`OPENCDE_GRAPH_QUERY_ENABLED`, off by default) for administrators holding the
 `admin` scope: one reading statement in a read transaction, answered as
@@ -325,7 +325,7 @@ All four were taken on 2026-11-05.
 - **A. Graph access in production**: the server-side read-only query endpoint,
   which keeps the database private and the authorization model, and in addition
   it must be *possible* to open the database port in production, closed by default
-  and only by an explicit administrator action: the `compose.bolt.yaml` overlay
+  and only by an explicit administrator action: the `docker/compose.bolt.yaml` overlay
   publishes Bolt with TLS from certificates the administrator provides,
   `OPENCDE_GRAPH_PUBLIC_BOLT_URL` announces the address in the capabilities
   document (`extensions.ifcgraph.bolt`), the settings page shows it, and production

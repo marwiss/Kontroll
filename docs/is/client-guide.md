@@ -380,7 +380,7 @@ allt ofangreint, og lifandi prófunarsvítur hans keyra gegn þróunarstaflanum
   Veggir líkansins eru `1Xezbq735AdBO_4DerG66G` (GTIN 3),
   `3eT96F_cnDsOufCEsotwtp` (GTIN 2) og `3k3LbXmTfDWODxdSuyCGYE` (GTIN 1), í
   eiginleikasettinu `Reuse`; sama skrá er `tests/fixtures/three_walls_gtin.ifc`.
-- `docker compose -f compose.yaml -f compose.dev.yaml up -d` gefur þér þjón á
+- `docker compose up -d` gefur þér þjón á
   `http://127.0.0.1:8000` með Neo4j Browser á `:7484`.
 - Skráðu biðlara fyrir forritið þitt í stjórnunarviðmótinu (`/admin` →
   Biðlarar) eða með

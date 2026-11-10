@@ -7,13 +7,13 @@ palvelinta, kun käytät jo jotakin niistä.
 
 ## Compose-tiedosto
 
-Käytä `compose.yaml`-tiedostoa yhdessä `compose.prod.yaml`-tiedoston kanssa
+Käytä `docker/compose.yaml`-tiedostoa yhdessä `docker/compose.prod.yaml`-tiedoston kanssa
 **ilman `proxy`-palvelua**: alustan oma välityspalvelin (Traefik Coolifyssa
 ja Dokployssa) päättää TLS:n. Yksinkertaisinta on pieni ylikirjoitustiedosto
 niiden rinnalla:
 
 ```yaml
-# compose.paas.yaml
+# docker/compose.paas.yaml
 services:
   proxy:
     profiles: ["disabled"]
@@ -24,7 +24,7 @@ services:
       traefik.http.services.opencde.loadbalancer.server.port: "8000"
 ```
 
-ja ota käyttöön `compose.yaml compose.prod.yaml compose.paas.yaml` yhtenä
+ja ota käyttöön `docker/compose.yaml docker/compose.prod.yaml docker/compose.paas.yaml` yhtenä
 pinona.
 
 ## Ympäristö

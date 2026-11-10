@@ -22,8 +22,9 @@ server.
 3. Start:
 
    ```sh
-   docker compose -f compose.yaml -f compose.tunnel.yaml up -d
-   docker compose -f compose.yaml -f compose.tunnel.yaml exec api opencde seed
+   # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.tunnel.yaml
+   docker compose up -d
+   docker compose exec api opencde seed
    ```
 
 The tunnel's edge terminates TLS; the server trusts the compose network as its

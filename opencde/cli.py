@@ -145,14 +145,14 @@ def _ask_for_values() -> tuple[str | None, list[str]]:
 
 def _say_what_comes_next(url: str, *, dev: bool) -> None:
     if dev:
-        compose = "docker compose -f compose.yaml -f compose.dev.yaml"
+        compose = "docker compose"
         steps = [
             f"{compose} up -d --build --wait",
             f"{compose} exec api opencde seed",
             f"Then open {url}/ and follow docs/en/quickstart.md.",
         ]
     else:
-        compose = "docker compose -f compose.yaml -f compose.prod.yaml"
+        compose = "docker compose"
         steps = [
             f"Check that {url.removeprefix('https://')} points at this machine and that ports 80 and 443 are open.",
             f"{compose} pull",
@@ -208,6 +208,11 @@ def init(
         "OPENCDE_DEV_PORT=8000",
         "OPENCDE_DEV_NEO4J_HTTP_PORT=7484",
         "OPENCDE_DEV_NEO4J_BOLT_PORT=7697",
+        # Which Compose files `docker compose` combines; the files live in docker/.
+        "COMPOSE_PATH_SEPARATOR=:",
+        "COMPOSE_FILE=docker/compose.yaml:docker/compose.dev.yaml"
+        if dev
+        else "COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml",
     ]
     if not dev:
         lines.append(f"OPENCDE_DOMAIN={url.removeprefix('https://')}")
@@ -219,11 +224,7 @@ def init(
     if guided:
         _say_what_comes_next(url, dev=dev)
         return
-    typer.echo(
-        "        next: docker compose -f compose.yaml -f compose.dev.yaml up -d --build"
-        if dev
-        else "        next: see docs/en/deploy/vps-caddy.md"
-    )
+    typer.echo("        next: docker compose up -d --build" if dev else "        next: see docs/en/deploy/vps-caddy.md")
 
 
 @app.command()

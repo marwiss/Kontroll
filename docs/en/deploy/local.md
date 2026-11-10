@@ -13,8 +13,8 @@ Everything runs in Docker on your machine; nothing is reachable from outside.
 git clone https://github.com/marwiss/Dataregium.git
 cd Dataregium
 uv run opencde init --dev                                 # writes .env with fresh secrets
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `opencde seed` creates demonstration users (an administrator, a manager, an
@@ -27,18 +27,18 @@ and prints the passwords once.
 | Administration | <http://127.0.0.1:8000/admin> (sign in as the administrator) |
 | Readiness | <http://127.0.0.1:8000/readyz> |
 | Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
-| Server log | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
+| Server log | `docker compose logs -f api` |
 
 The development overlay publishes Neo4j on 7484/7697 rather than the default
 7474/7687, which another Neo4j on the same machine often holds. Change the
 ports with `OPENCDE_DEV_*` in `.env`. Two checkouts on one machine share the
-Compose project name `dataregium` (`compose.yaml` sets it); give the second one
+Compose project name `dataregium` (`docker/compose.yaml` sets it); give the second one
 `COMPOSE_PROJECT_NAME=dataregium-2` and other ports in its `.env`.
 
 An installation made when the project was still called Kontroll has its data
 in volumes named `kontroll_…`. It keeps them by setting
 `COMPOSE_PROJECT_NAME=kontroll` in `.env`, which overrides the name in
-`compose.yaml`; without it, the next `up` starts a new project with empty
+`docker/compose.yaml`; without it, the next `up` starts a new project with empty
 volumes.
 
 ## Without Docker for the server
@@ -58,7 +58,8 @@ Bolt port of the development overlay.
 ## Memgraph instead of Neo4j
 
 ```sh
-docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d --build
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.memgraph.yaml:docker/compose.dev.yaml
+docker compose up -d --build
 ```
 
 Set `OPENCDE_GRAPH_DIALECT=memgraph` and `OPENCDE_GRAPH_USER=memgraph` in `.env`
@@ -87,5 +88,5 @@ The [quick start](../quickstart.md) has the complete steps and a troubleshooting
 ## Clean slate
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v   # removes the volumes: database and files
+docker compose down -v   # removes the volumes: database and files
 ```

@@ -28,10 +28,10 @@ hemmelige nøkkelen).
 ## 2. Start
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml pull
-docker compose -f compose.yaml -f compose.prod.yaml up -d
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde doctor
-docker compose -f compose.yaml -f compose.prod.yaml exec api opencde user create admin --admin
+docker compose pull
+docker compose up -d
+docker compose exec api opencde doctor
+docker compose exec api opencde user create admin --admin
 ```
 
 Den siste kommandoen skriver ut administratorens passord én gang. Logg inn på
@@ -42,10 +42,10 @@ brukerne og OAuth2-klientene programmene dine trenger.
 
 | Oppgave | Kommando |
 |---|---|
-| Oppdater til nyeste image | `docker compose -f compose.yaml -f compose.prod.yaml pull && docker compose -f compose.yaml -f compose.prod.yaml up -d` |
+| Oppdater til nyeste image | `docker compose pull && docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d` |
 | Lås en versjon | `OPENCDE_IMAGE_TAG=3.0.0` i `.env` (taggene følger GitHub-utgivelsene) |
 | Tilby bare noen API-er | `OPENCDE_APIS=["bcf-2.1"]` i `.env` for en server for bare BCF API 2.1, `["documents"]` for en dokumentserver; alle tre som standard |
-| Logger | `docker compose -f compose.yaml -f compose.prod.yaml logs -f api` (JSON-linjer) |
+| Logger | `docker compose logs -f api` (JSON-linjer) |
 | Helse | `https://cde.example.org/readyz`; siden Innstillinger i administrasjonen |
 | Sikkerhetskopier | hver natt til volumet `backups` av tjenesten `backup`; se [backup.md](backup.md) |
 | Trekk tilbake tilgang ved en hendelse | `docker compose ... exec api opencde revoke --all` (eller `--user`, `--client`) |

@@ -22,8 +22,9 @@ portar eller leige ein server.
 3. Start:
 
    ```sh
-   docker compose -f compose.yaml -f compose.tunnel.yaml up -d
-   docker compose -f compose.yaml -f compose.tunnel.yaml exec api opencde seed
+   # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.tunnel.yaml
+   docker compose up -d
+   docker compose exec api opencde seed
    ```
 
 Kanten til tunnelen terminerer TLS; serveren stolar på compose-nettverket som

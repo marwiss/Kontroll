@@ -42,7 +42,7 @@ OPENCDE_TRUSTED_PROXIES=["0.0.0.0/0"]
 
 ## Varmuuskopiot
 
-`compose.prod.yaml`-tiedoston `backup`-apukontti ei päde tässä. Ajasta
+`docker/compose.prod.yaml`-tiedoston `backup`-apukontti ei päde tässä. Ajasta
 `opencde backup /data/backups` (cron-työ tai alustan ajastettu tehtävä) ja
 kopioi kansio objektitallennukseen; Auralla on lisäksi omat
 tilannevedoksensa.
@@ -59,7 +59,8 @@ OPENCDE_GRAPH_PASSWORD=<Aurasta>
 ```
 
 ```bash
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.external-db.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.external-db.yaml
+docker compose up -d
 ```
 
 API ja varmuuskopiointi käyttävät silloin tätä tietokantaa. Memgraphille aseta myös

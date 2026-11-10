@@ -32,7 +32,7 @@ palvelimelta.
 
 ## Docker Composessa
 
-`compose.prod.yaml` ajaa `backup`-palvelua, joka kutsuu
+`docker/compose.prod.yaml` ajaa `backup`-palvelua, joka kutsuu
 `opencde backup /backups` kerran päivässä ja säilyttää 14 uusinta kansiota
 `backups`-taltiossa. Kopioi tuo taltio muualle (toiselle isännälle,
 objektitallennukseen); samalla levyllä kuin data oleva varmuuskopio on vain
@@ -47,7 +47,7 @@ Asennuksella, joka on säilyttänyt vanhan projektinimen, taltio on `kontroll_ba
 
 Palauttaaksesi uudelle isännälle käynnistä pino, kopioi varmuuskopiokansio
 `api`-konttiin (tai liitä se) ja aja
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /polku --force`.
+`docker compose exec api opencde restore /polku --force`.
 
 ## Testaa palautuksesi
 

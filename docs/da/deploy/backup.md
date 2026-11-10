@@ -29,7 +29,7 @@ bagefter, hvis kopien er gammel eller kommer fra en anden server.
 
 ## I Docker Compose
 
-`compose.prod.yaml` kører en tjeneste `backup`, der kalder
+`docker/compose.prod.yaml` kører en tjeneste `backup`, der kalder
 `opencde backup /backups` én gang om dagen og beholder de 14 nyeste mapper i
 volumen `backups`. Kopiér den volume et andet sted hen (en anden vært,
 objektlager); en sikkerhedskopi på samme disk som dataene er kun en halv
@@ -44,7 +44,7 @@ En installation, der har beholdt det gamle projektnavn, har volumen som `kontrol
 
 For at gendanne på en ny vært: start stakken, kopiér en sikkerhedskopimappe
 ind i containeren `api` (eller montér den), og kør
-`docker compose -f compose.yaml -f compose.prod.yaml exec api opencde restore /sti --force`.
+`docker compose exec api opencde restore /sti --force`.
 
 ## Test din gendannelse
 

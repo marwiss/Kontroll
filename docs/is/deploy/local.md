@@ -13,8 +13,8 @@ Allt keyrir í Docker á tölvunni þinni; ekkert er aðgengilegt að utan.
 git clone https://github.com/marwiss/Dataregium.git
 cd Dataregium
 uv run opencde init --dev                                 # skrifar .env með nýjum leyndarmálum
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-docker compose -f compose.yaml -f compose.dev.yaml exec api opencde seed
+docker compose up -d --build
+docker compose exec api opencde seed
 ```
 
 `opencde seed` býr til sýninotendur (stjórnanda og einn notanda fyrir hvert
@@ -27,18 +27,18 @@ opinberan OAuth2-biðlara, og prentar lykilorðin einu sinni.
 | Stjórnun | <http://127.0.0.1:8000/admin> (skráðu þig inn sem stjórnandinn) |
 | Viðbúnaður | <http://127.0.0.1:8000/readyz> |
 | Neo4j Browser | <http://127.0.0.1:7484> (Bolt `127.0.0.1:7697`) |
-| Atvikaskrá þjónsins | `docker compose -f compose.yaml -f compose.dev.yaml logs -f api` |
+| Atvikaskrá þjónsins | `docker compose logs -f api` |
 
 Þróunaryfirlagið birtir Neo4j á 7484/7697 frekar en sjálfgefnu gáttunum
 7474/7687, sem annar Neo4j á sömu tölvu heldur oft. Breyttu gáttunum með
 `OPENCDE_DEV_*` í `.env`. Tvö útgáfusöfn á sömu tölvu deila
-Compose-verkefnisheitinu `dataregium` (`compose.yaml` setur það); gefðu hinu
+Compose-verkefnisheitinu `dataregium` (`docker/compose.yaml` setur það); gefðu hinu
 síðara `COMPOSE_PROJECT_NAME=dataregium-2` og aðrar gáttir í sinni `.env`.
 
 Uppsetning sem var gerð meðan verkefnið hét enn Kontroll hefur gögnin sín í
 geymslum sem heita `kontroll_…`. Hún heldur þeim með
 `COMPOSE_PROJECT_NAME=kontroll` í `.env`, sem gengur framar heitinu í
-`compose.yaml`; án þess ræsir næsta `up` nýtt verkefni með tómum geymslum.
+`docker/compose.yaml`; án þess ræsir næsta `up` nýtt verkefni með tómum geymslum.
 
 ## Án Docker fyrir þjóninn
 
@@ -57,7 +57,8 @@ Bolt-gátt þróunaryfirlagsins.
 ## Memgraph í stað Neo4j
 
 ```sh
-docker compose -f compose.yaml -f compose.memgraph.yaml -f compose.dev.yaml up -d --build
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.memgraph.yaml:docker/compose.dev.yaml
+docker compose up -d --build
 ```
 
 Settu `OPENCDE_GRAPH_DIALECT=memgraph` og `OPENCDE_GRAPH_USER=memgraph` í
@@ -87,5 +88,5 @@ sýna þjónshlið kalla forritsins. Gátlistinn í heild er
 ## Hreint borð
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml down -v   # fjarlægir gagnageymslurnar: gagnagrunn og skrár
+docker compose down -v   # fjarlægir gagnageymslurnar: gagnagrunn og skrár
 ```

@@ -22,8 +22,9 @@ server.
 3. Starta:
 
    ```sh
-   docker compose -f compose.yaml -f compose.tunnel.yaml up -d
-   docker compose -f compose.yaml -f compose.tunnel.yaml exec api opencde seed
+   # .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.tunnel.yaml
+   docker compose up -d
+   docker compose exec api opencde seed
    ```
 
 Tunnelns kant terminerar TLS; servern litar på compose-nätet som sin proxy

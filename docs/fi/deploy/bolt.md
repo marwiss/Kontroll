@@ -42,9 +42,9 @@ mukaiset):
 ```sh
 D=cde.example.org
 mkdir -p certs/bolt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.crt" certs/bolt/public.crt
-docker compose -f compose.yaml -f compose.prod.yaml cp \
+docker compose cp \
   "proxy:/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$D/$D.key" certs/bolt/private.key
 chmod 644 certs/bolt/public.crt certs/bolt/private.key
 ```
@@ -66,7 +66,8 @@ OPENCDE_GRAPH_PUBLIC_BOLT_URL=bolt+s://cde.example.org:7687
 Käynnistä sitten tavallinen komentosi kerroksella täydennettynä:
 
 ```sh
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.bolt.yaml up -d
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.prod.yaml:docker/compose.bolt.yaml
+docker compose up -d
 ```
 
 Avaa palomuuri portille vain niille osoitteille, jotka sitä tarvitsevat
@@ -81,7 +82,7 @@ ja viralliset ajurit yhdistävät tietokantakäyttäjällä ja salasanalla.
 
 ## 3. Sulje se taas
 
-Poista `compose.bolt.yaml` komentoriviltä, tyhjennä
+Poista `docker/compose.bolt.yaml` `COMPOSE_FILE`-riviltä, tyhjennä
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` `.env`-tiedostosta ja aja `up -d` uudelleen.
 Portti katoaa isännästä, ja `bolt` palaa arvoon `null` kyvykkyysasiakirjassa.
 Kierrätä tietokannan salasana jälkeenpäin, jos se jaettiin laajemmalle kuin
@@ -89,7 +90,7 @@ oli tarkoitus.
 
 ## Memgraph
 
-`compose.memgraph.yaml`-tiedoston kanssa sama kerros julkaisee portin, mutta
+`docker/compose.memgraph.yaml`-tiedoston kanssa sama kerros julkaisee portin, mutta
 edellä olevat TLS-asetukset ovat Neo4j:n. Lisää sen sijaan Memgraphin liput
 sen `command`-kohtaan (`--bolt-cert-file=/certs/bolt/public.crt
 --bolt-key-file=/certs/bolt/private.key`) ja liitä sama hakemisto; Memgraph
