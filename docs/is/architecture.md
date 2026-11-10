@@ -54,7 +54,7 @@ flowchart LR
 | Hvað | Hvar | Lesa meira |
 |---|---|---|
 | Notendur, verkefni, mál, athugasemdir, sjónarhorn, lýsigögn skjala, biðlarar og endurskoðunarskráin | Grafgagnagrunnurinn | [Grafskema](graph-schema.md) |
-| Tókar, kóðar og biðlaraleyndarmál sem SHA-256-tætigildi; lykilorð sem Argon2id-tætigildi | Grafgagnagrunnurinn | [Öryggisvarnir](security/controls.md) |
+| Tókar, kóðar og biðlaraleyndarmál sem SHA-256-tætigildi; lykilorð sem Argon2id-tætigildi | Grafgagnagrunnurinn | `tests/security/` |
 | Upphlaðnar skrár og myndir sjónarhorna, undir nöfnum sem þjónninn velur | Skráageymslan í `OPENCDE_DATA_DIR` | [Documents API-ferli](flows/documents.md) |
 | Líkön sem hnútar og tengsl | Grafgagnagrunnurinn | [IFC-LPG](ifc-lpg.md) |
 | Eigin stillingar og leyndarmál þjónsins | `.env` eða `/run/secrets` | [Staðbundin prófun](deploy/local.md) |
@@ -77,14 +77,13 @@ flowchart LR
 - Síðurnar hafa engar innfelldar skriftur eða stíla, hvert eyðublað hefur undirritaðan
   tóka og hver síða virkar án JavaScript.
 
-[Ógnalíkanið](security/threat-model.md) segir gegn hverju þetta verndar, og
-[varnirnar](security/controls.md) nefna prófið að baki hverri aðgerð.
+Að baki hverri aðgerð hér er próf í `tests/security/`.
 
 ## Tveir gagnagrunnar
 
 Þjónninn keyrir á Neo4j eða Memgraph með sama Cypher. Aðeins skemasetningarnar eru
 ólíkar, og þær eru í `opencde/graph/dialect.py` ásamt listanum yfir föll sem kóðinn má
-ekki nota. Ástæðurnar eru í [ADR 0003](../adr/0003-dialect-neutral-cypher.md).
+ekki nota.
 
 ## Svona er hann prófaður
 
@@ -103,4 +102,3 @@ ekki nota. Ástæðurnar eru í [ADR 0003](../adr/0003-dialect-neutral-cypher.md
 - [Að smíða biðlara](client-guide.md): það sem biðlari þarf.
 - [Ferli](flows/oauth2.md): innskráning, [skjöl](flows/documents.md) og
   [BCF-sjónarhorn](flows/bcf-viewpoint.md) sem runurit.
-- [Högunarákvarðanir](../adr/): hvers vegna þetta er byggt svona.

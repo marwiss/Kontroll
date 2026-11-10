@@ -74,8 +74,7 @@ käyttäjät ja OAuth2-asiakkaat, joita sovelluksesi tarvitsevat.
 - Pidä `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false`, ellet tarvitse
   itsepalveluna tapahtuvaa asiakasrekisteröintiä (Foundation API 2.2.3);
   rekisteröi asiakkaat `/admin`-sivulla.
-- Kierrätä salainen avain ja tietokannan salasana käytäntösi mukaan
-  (`docs/fi/security/controls.md`), käynnistä uudelleen ja kirjaudu taas.
+- Kierrätä salainen avain ja tietokannan salasana käytäntösi mukaan, käynnistä uudelleen ja kirjaudu taas.
 - Aja `testssl.sh https://cde.example.org` ja tarkista
   <https://observatory.mozilla.org> ensimmäisen käynnistyksen jälkeen.
 - Palomuuri: salli vain 22 (omista osoitteistasi), 80 ja 443.

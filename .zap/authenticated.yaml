@@ -1,6 +1,6 @@
 # The nightly job's scan as someone signed in: the API from its document with bearer tokens, and
 # the administration through its pages with a session cookie. The baseline scan looks at what
-# anyone can reach; this one attacks what takes a sign-in. See docs/security/pentest-howto.md.
+# anyone can reach; this one attacks what takes a sign-in.
 #
 # The API goes first, since the scan sends the pages' forms again with their valid tokens, and
 # they can disable the user who holds the API's token. What ends the scan's own sign-in is left

@@ -55,7 +55,7 @@ flowchart LR
 | Mitä | Missä | Lue lisää |
 |---|---|---|
 | Käyttäjät, projektit, asiat, kommentit, näkymät, asiakirjojen metatiedot, asiakkaat ja tarkastusloki | Graafitietokanta | [Graafiskeema](graph-schema.md) |
-| Tokenit, koodit ja asiakassalaisuudet SHA-256-tiivisteinä; salasanat Argon2id-tiivisteinä | Graafitietokanta | [Turvallisuuskontrollit](security/controls.md) |
+| Tokenit, koodit ja asiakassalaisuudet SHA-256-tiivisteinä; salasanat Argon2id-tiivisteinä | Graafitietokanta | `tests/security/` |
 | Ladatut tiedostot ja näkymien kuvat palvelimen valitsemilla nimillä | Tiedostotallennus kansiossa `OPENCDE_DATA_DIR` | [Documents API -kulut](flows/documents.md) |
 | Mallit solmuina ja suhteina | Graafitietokanta | [IFC-LPG](ifc-lpg.md) |
 | Palvelimen omat asetukset ja salaisuudet | `.env` tai `/run/secrets` | [Paikallinen testi](deploy/local.md) |
@@ -79,15 +79,13 @@ flowchart LR
 - Sivuilla ei ole upotettuja skriptejä tai tyylejä, jokaisella lomakkeella on
   allekirjoitettu token, ja jokainen sivu toimii ilman JavaScriptiä.
 
-[Uhkamalli](security/threat-model.md) kertoo, miltä tämä suojaa, ja
-[kontrollit](security/controls.md) nimeävät kunkin toimen takana olevan testin.
+Jokaisen toimen takana on testi hakemistossa `tests/security/`.
 
 ## Kaksi tietokantaa
 
 Palvelin toimii Neo4j:llä tai Memgraphilla samalla Cypherillä. Vain skeemalauseet
 eroavat, ja ne ovat tiedostossa `opencde/graph/dialect.py` yhdessä luettelon kanssa
-funktioista, joita koodi ei saa käyttää. Perustelut ovat dokumentissa
-[ADR 0003](../adr/0003-dialect-neutral-cypher.md).
+funktioista, joita koodi ei saa käyttää.
 
 ## Näin sitä testataan
 
@@ -106,4 +104,3 @@ funktioista, joita koodi ei saa käyttää. Perustelut ovat dokumentissa
 - [Asiakassovelluksen rakentaminen](client-guide.md): mitä asiakas tarvitsee.
 - [Kulut](flows/oauth2.md): kirjautuminen, [asiakirjat](flows/documents.md) ja
   [BCF-näkymät](flows/bcf-viewpoint.md) sekvenssikaavioina.
-- [Arkkitehtuuripäätökset](../adr/): miksi se on rakennettu näin.

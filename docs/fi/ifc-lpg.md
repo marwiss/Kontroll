@@ -123,7 +123,7 @@ sekuntia.
 Kun `OPENCDE_IFC_LPG_GHERKIN_ENV` osoittaa niille ympäristön, lähetykset
 tarkistetaan myös buildingSMARTin `ifc-gherkin-rules`-sääntöjä vasten:
 normatiivisia sääntöjä ja alan käytäntöjä, jotka buildingSMARTin
-validointipalvelu tarkistaa skeeman lisäksi ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+validointipalvelu tarkistaa skeeman lisäksi (ADR 0012).
 Ne ajetaan skeematarkistuksen jälkeen samanlaisessa työprosessissa samoin
 rajoin ja niin kuin sääntökokoelman omat testit ne ajavat: behavella ja
 IfcOpenShell 0.8.6:lla, jota sääntökokoelman CI käyttää. Sääntökokoelman 722
@@ -161,7 +161,7 @@ minuutista kahteen minuuttiin.
 
 Lähetys tarkistetaan myös jokaista projektinsa IDS-asiakirjaa vasten:
 asiakirjaa, jonka uusimman version nimi päättyy `.ids`, enintään 50
-([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+(ADR 0015).
 IFC-LPG:n tarkistus lukee jokaisen IDS:n turvallisesti ja antaa sen
 IfcOpenShellin IfcTesterille, samalle tarkistimelle, jota Dataspatium ajaa
 selaimessa, jotta molemmat antavat saman tuloksen. Se ajetaan muiden
@@ -253,7 +253,7 @@ STEP-muotoon ja pakataan tekstiksi `StepBlock`-solmuihin, jotka riippuvat
 muuttaa siellä. Se ei voi olla tuotteiden ominaisuuksia, koska suuri osa siitä on
 tuotteiden yhteistä. Asetuksella `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` jokaisesta
 instanssista tulee sen sijaan solmu, moninkertaisella koolla ja tuontiajalla; kyselyt
-kestivät suunnilleen yhtä kauan [mittauksissa](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+kestivät suunnilleen yhtä kauan mittauksissa.
 
 | Tiedostossa | Graafissa |
 |---|---|
@@ -281,11 +281,11 @@ uutena versiona, jolloin se myös muunnetaan.
 Tätä muotoa ei lueta IfcOpenShellillä, josta tässä otetaan vain skeema. IfcOpenShell
 muuttaa joitakin arvoja lukiessaan (`.NULLENUM.` muuttuu `$`:ksi ja `($,$)` `()`:ksi), ja
 Teklan ja Archicadin tiedostoissa niitä on. Siksi työprosessi lukee tiedoston itse ja
-hylkää sen, mitä se ei osaa lukea. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) kertoo miksi ja
-[ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) miten tiedosto validoidaan.
+hylkää sen, mitä se ei osaa lukea. ADR 0010 kertoo miksi ja
+ADR 0011 miten tiedosto validoidaan.
 
 `--verify` kysyy, sisältävätkö kaksi tiedostoa saman mallin määritelmän
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md) mukaan: yksi yhteen, arvo arvolta ja ilman toleranssia, sijaintitieto
+ADR 0009 mukaan: yksi yhteen, arvo arvolta ja ilman toleranssia, sijaintitieto
 raportissa nimettynä. Valinnalla `--geometry` myös jokaisen tuotteen verkko rakennetaan,
 ja niitä verrataan bitti bitiltä. Mitkä tahansa kaksi tiedostoa voi verrata komennolla
 `python -m ifc_lpg.equivalence first.ifc second.ifc`.
@@ -362,7 +362,7 @@ otsakkeen tiedostot.
 
 Projektin jäsen esittää version mallille kysymyksiä nimeltä, samalla
 bearer-tunnisteella kuin Documents API:lle; vapaa Cypher jää ylläpitäjille
-([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+(ADR 0016).
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` luettelee
 kyselyt parametreineen ja sarakkeineen ja kertoo kentässä `model_state`, kuinka
 pitkällä mallin muunnos on. `GET …/ifc-queries/{name}` esittää yhden kyselyn,

@@ -146,8 +146,6 @@ databaslösenord, och inget är öppet förrän det har konfigurerats.
   administrationen, klientbiblioteket, driftsättning, IFC-LPG,
   acceptanschecklistan och säkerhetshärdningen); bidraget till IfcOpenShell
   är ännu inte föreslaget (utkast i [docs/upstream/](docs/upstream/)).
-  [docs/inventory.md](docs/inventory.md) visar vad prototypen från 2023 gjorde
-  och var varje funktion står i den nya koden.
 
 <img src="docs/images/signin.png" alt="Inloggningssidan som en klient öppnar" width="240">
 <img src="docs/images/upload.png" alt="Uppladdningssidan, där användaren ger filen titel och version" width="340">
@@ -255,19 +253,16 @@ står i [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md).
 - [docs/sv/flows/](docs/sv/flows/): sekvensdiagram för OAuth2-, Documents API- och BCF-viewpoint-flödena.
 - [docs/sv/graph-schema.md](docs/sv/graph-schema.md): grafmodellen.
 - [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md): den valfria IFC-LPG-modulen och exempel på Cypher-frågor.
-- [docs/sv/ui-styleguide.md](docs/sv/ui-styleguide.md): regler för serverns sidor och märket.
 - [docs/acceptance.md](docs/acceptance.md): checklista för visuell acceptans med
   oberoende klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](docs/dataspatium-coordination.md): vad
   Dataregium och Dataspatium delar och ägarens beslut.
-- [docs/inventory.md](docs/inventory.md): funktionsinventering av prototypen
-  från 2023 och status i omskrivningen, med noteringar om specifikationernas
-  egenheter.
-- [docs/adr/](docs/adr/): arkitekturbeslut (grafdatabas, opaka tokens, portabel
-  Cypher, webbgränssnitt utan ramverk, repostrategi).
-- [docs/sv/security/](docs/sv/security/): hotmodell, kontroller kopplade till tester,
-  OWASP ASVS nivå 2-checklistan, personuppgifter och lagringstid, och hur
-  skannrarna körs.
+- Arkitekturbeslut som ligger fast: grafdatabas som enda lager, opaka token i
+  stället för JWT, portabel Cypher för Neo4j och Memgraph, webbgränssnitt utan
+  ramverk, säkerhetskopia på applikationsnivå, BCF API 2.1 bredvid 3.0, en
+  förlustfri IFC-graf som läser och skriver STEP själv och valideras när den
+  skrivs, buildingSMARTs regler i en egen miljö, IFC-LPG som bibliotek, kontroll
+  mot projektets IDS och namngivna frågor för medlemmar.
 - [docs/upstream/](docs/upstream/): utkast till ärende och pull request för
   IfcOpenShell (inte skickade).
 - [spec/SOURCES.md](spec/SOURCES.md): de exakta specifikationsversioner
@@ -306,11 +301,24 @@ hålls på engelska.
   API-flödena; slutanvändare arbetar i en klient som Dataspatium eller Bonsai.
 - Sidorna finns på den här README-filens sju språk (byt längst ned på varje
   sida); kommandoraden och API:ernas felmeddelanden är på engelska.
-- Ingen extern granskning ännu. OAuch- och testssl-körningarna i
-  [docs/sv/security/pentest-howto.md](docs/sv/security/pentest-howto.md) är
+- Ingen extern granskning ännu. OAuch- och testssl-körningarna är
   operatörens steg före en produktionsdriftsättning.
 
-## Nästa i 3-serien
+## Personuppgifter
+
+Den som driver Dataregium åt andra är personuppgiftsansvarig för det här. Servern
+lagrar användarkonton (användarnamn, namn, valfri e-post, lösenordshash),
+projektmedlemskap, ärenden och kommentarer med författarnas namn, uppladdade
+filer med uppladdare, IFC-grafen med filens ägarhistorik och en granskningslogg
+över vem som gjorde vad och från vilken adress. Lösenord, token och hemligheter
+lagras bara som hashar. Token, sessioner, uppladdningssessioner och oanvända
+självregistrerade klienter går ut och städas av servern; granskningsloggen
+gallras av operatören. En administratör tar bort ett konto under `/admin/users`,
+och dess sessioner och token följer med; namnet står kvar på de ärenden personen
+skrev tills de tas bort. Granskningsloggen exporteras som CSV, BCF- och
+dokumentdata genom API:erna och hela databasen med `opencde backup`. Vad
+Dataspatium sparar i webbläsaren står i appens egen dokumentation.
+
 
 3.0.0 är 3-seriens första utgåva, gjord tillsammans med Dataspatium 3.0.0:
 IFC-grafen som en förlustfri modell, kontrollen av varje uppladdning och de
@@ -321,8 +329,8 @@ databasen, med Dataspatium som klienten som redigerar den och visar dess
 versioner. De officiella OpenCDE-API:erna förblir som buildingSMART definierar
 dem; det serien lägger till är tillägg till dem, under egna namn. Det här
 avsnittet säger vad som är beslutat och vad som bara är föreslaget, för den,
-människa eller AI-agent, som för en del av det vidare. Besluten finns i
-[docs/adr](docs/adr), arbetssätten i [CONTRIBUTING.md](CONTRIBUTING.md) och
+människa eller AI-agent, som för en del av det vidare. Besluten finns i korthet under
+[Lär dig mer](#lär-dig-mer), arbetssätten i [CONTRIBUTING.md](CONTRIBUTING.md) och
 IFC-grafen i [docs/sv/ifc-lpg.md](docs/sv/ifc-lpg.md).
 
 ### Beslutat

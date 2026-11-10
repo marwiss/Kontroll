@@ -55,7 +55,7 @@ flowchart LR
 | Hvad | Hvor | Læs mere |
 |---|---|---|
 | Brugere, projekter, sager, kommentarer, viewpoints, dokumentmetadata, klienter og revisionsloggen | Grafdatabasen | [Grafskema](graph-schema.md) |
-| Tokens, koder og klienthemmeligheder som SHA-256-hashes; kodeord som Argon2id-hashes | Grafdatabasen | [Sikkerhedskontroller](security/controls.md) |
+| Tokens, koder og klienthemmeligheder som SHA-256-hashes; kodeord som Argon2id-hashes | Grafdatabasen | `tests/security/` |
 | Uploadede filer og viewpoint-billeder under navne, serveren vælger | Fillageret i `OPENCDE_DATA_DIR` | [Documents API-forløb](flows/documents.md) |
 | Modeller som noder og relationer | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
 | Serverens egne indstillinger og hemmeligheder | `.env` eller `/run/secrets` | [Lokal test](deploy/local.md) |
@@ -78,15 +78,13 @@ flowchart LR
 - Siderne har ingen indlejrede scripts eller typografier, hver formular har en
   signeret token, og hver side virker uden JavaScript.
 
-[Trusselsmodellen](security/threat-model.md) siger, hvad dette beskytter imod, og
-[kontrollerne](security/controls.md) nævner testen bag hver foranstaltning.
+Hver foranstaltning her har en test bag sig i `tests/security/`.
 
 ## To databaser
 
 Serveren kører på Neo4j eller Memgraph med den samme Cypher. Kun skemasætningerne
 er forskellige, og de findes i `opencde/graph/dialect.py` sammen med listen over
-funktioner, koden ikke må bruge. Grundene står i
-[ADR 0003](../adr/0003-dialect-neutral-cypher.md).
+funktioner, koden ikke må bruge.
 
 ## Sådan testes den
 
@@ -105,4 +103,3 @@ funktioner, koden ikke må bruge. Grundene står i
 - [At bygge en klient](client-guide.md): det, en klient har brug for.
 - [Forløb](flows/oauth2.md): login, [dokumenter](flows/documents.md) og
   [BCF-viewpoints](flows/bcf-viewpoint.md) som sekvensdiagrammer.
-- [Arkitekturbeslutninger](../adr/): hvorfor det er bygget sådan.

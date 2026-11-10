@@ -146,8 +146,6 @@ databasekodeord, og intet er åbent, før det er konfigureret.
   administrationen, klientbiblioteket, udrulning, IFC-LPG, accepttjeklisten
   og sikkerhedshærdningen); bidraget til IfcOpenShell er
   endnu ikke foreslået (udkast i [docs/upstream/](../upstream/)).
-  [docs/inventory.md](../inventory.md) viser, hvad prototypen fra 2023
-  gjorde, og hvor hver funktion står i den nye kode.
 
 <img src="../images/signin.png" alt="Login-siden, som en klient åbner" width="240">
 <img src="../images/upload.png" alt="Upload-siden, hvor brugeren giver filen titel og version" width="340">
@@ -254,18 +252,16 @@ hvad de to projekter samordner, står i
 - [docs/da/flows/](flows/): sekvensdiagrammer for OAuth2-, Documents API- og BCF-viewpoint-forløbene.
 - [docs/da/graph-schema.md](graph-schema.md): grafmodellen.
 - [docs/da/ifc-lpg.md](ifc-lpg.md): det valgfrie IFC-LPG-modul og eksempler på Cypher-forespørgsler.
-- [docs/da/ui-styleguide.md](ui-styleguide.md): regler for serverens sider og mærket.
 - [docs/acceptance.md](../acceptance.md): tjekliste til visuel accept med
   uafhængige klienter (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): hvad
   Dataregium og Dataspatium deler, og ejerens beslutninger.
-- [docs/inventory.md](../inventory.md): funktionsoversigt over prototypen fra
-  2023 og status i omskrivningen, med noter om specifikationernes særheder.
-- [docs/adr/](../adr/): arkitekturbeslutninger (grafdatabase, opake tokens,
-  portabel Cypher, webgrænseflade uden frameworks, repostrategi).
-- [docs/da/security/](security/): trusselsmodel, kontroller knyttet til
-  tests, OWASP ASVS niveau 2-tjeklisten, personoplysninger og opbevaring, og
-  hvordan scannerne køres.
+- Arkitekturbeslutninger, der ligger fast: grafdatabase som eneste lager, opake
+  tokens i stedet for JWT, portabel Cypher til Neo4j og Memgraph, webgrænseflade
+  uden frameworks, sikkerhedskopi på applikationsniveau, BCF API 2.1 ved siden af
+  3.0, en tabsfri IFC-graf, der selv læser og skriver STEP og valideres, når den
+  skrives, buildingSMARTs regler i deres eget miljø, IFC-LPG som bibliotek,
+  kontrol mod projektets IDS og navngivne forespørgsler til medlemmer.
 - [docs/upstream/](../upstream/): udkast til issue og pull request til
   IfcOpenShell (ikke sendt).
 - [spec/SOURCES.md](../../spec/SOURCES.md): de præcise specifikationsversioner,
@@ -304,11 +300,24 @@ engelsk.
   slutbrugere arbejder i en klient som Dataspatium eller Bonsai.
 - Siderne findes på denne READMEs syv sprog (skift nederst på hver side);
   kommandolinjen og API'ernes fejlbeskeder er på engelsk.
-- Ingen ekstern revision endnu. OAuch- og testssl-kørslerne i
-  [docs/da/security/pentest-howto.md](security/pentest-howto.md) er
+- Ingen ekstern revision endnu. OAuch- og testssl-kørslerne er
   operatørens skridt før en produktionsudrulning.
 
-## Det næste i 3-serien
+## Personoplysninger
+
+Den, der driver Dataregium for andre, er dataansvarlig for disse data. Serveren
+gemmer brugerkonti (brugernavn, navn, valgfri e-mail, kodeordshash),
+projektmedlemskaber, sager og kommentarer med forfatternes navne, uploadede
+filer med uploader, IFC-grafen med filens ejerhistorik og en revisionslog over,
+hvem der gjorde hvad og fra hvilken adresse. Kodeord, tokens og hemmeligheder
+gemmes kun som hashes. Tokens, sessioner, uploadsessioner og ubrugte
+selvregistrerede klienter udløber og ryddes af serveren; revisionsloggen
+beskæres af operatøren. En administrator sletter en konto under `/admin/users`,
+og dens sessioner og tokens følger med; navnet bliver stående på de sager,
+personen skrev, indtil de slettes. Revisionsloggen eksporteres som CSV, BCF- og
+dokumentdata gennem API'erne og hele databasen med `opencde backup`. Hvad
+Dataspatium gemmer i browseren, står i appens egen dokumentation.
+
 
 3.0.0 er 3-seriens første udgivelse, lavet sammen med Dataspatium 3.0.0:
 IFC-grafen som en tabsfri model, kontrollen af hver upload og de navngivne
@@ -320,7 +329,7 @@ og viser dens versioner. De officielle OpenCDE-API'er forbliver, som
 buildingSMART definerer dem; det, serien lægger til, er udvidelser af dem under
 egne navne. Dette afsnit siger, hvad der er besluttet, og hvad der kun er
 foreslået, for den, menneske eller AI-agent, der fører en del af det videre.
-Beslutningerne står i [docs/adr](../adr), arbejdsgangene i
+Beslutningerne står i korte træk under [Lær mere](#lær-mere), arbejdsgangene i
 [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
 [docs/da/ifc-lpg.md](ifc-lpg.md).
 

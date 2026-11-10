@@ -85,7 +85,7 @@ Poista `compose.bolt.yaml` komentoriviltä, tyhjennä
 `OPENCDE_GRAPH_PUBLIC_BOLT_URL` `.env`-tiedostosta ja aja `up -d` uudelleen.
 Portti katoaa isännästä, ja `bolt` palaa arvoon `null` kyvykkyysasiakirjassa.
 Kierrätä tietokannan salasana jälkeenpäin, jos se jaettiin laajemmalle kuin
-oli tarkoitus (`docs/fi/security/controls.md`).
+oli tarkoitus.
 
 ## Memgraph
 

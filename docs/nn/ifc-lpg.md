@@ -123,7 +123,7 @@ eksempelfil og den skrivne kopien tok 3 til 66 sekund til saman.
 Når `OPENCDE_IFC_LPG_GHERKIN_ENV` peikar ut eit miljø for dei, blir
 opplastingar òg kontrollerte mot `ifc-gherkin-rules` frå buildingSMART: dei
 normative reglane og den bransjepraksisen som valideringstenesta til
-buildingSMART kontrollerer ut over skjemaet ([ADR 0012](../adr/0012-buildingsmarts-rules-run-in-an-environment-of-their-own.md)).
+buildingSMART kontrollerer ut over skjemaet (ADR 0012).
 Dei køyrer etter skjemakontrollen, i same slags arbeidsprosess med dei same
 grensene, og slik dei eigne testane til regelsettet køyrer dei: med behave og
 IfcOpenShell 0.8.6, som CI-en til regelsettet bruker. På dei 722 testfilene til
@@ -159,7 +159,7 @@ og to minutt for dei fleste.
 
 Ei opplasting blir òg kontrollert mot kvart IDS-dokument i prosjektet sitt: eit
 dokument der den nyaste versjonen har eit namn som sluttar på `.ids`, høgst 50
-([ADR 0015](../adr/0015-uploads-are-checked-against-the-projects-ids-documents.md)).
+(ADR 0015).
 Kontrollen i IFC-LPG les kvar IDS trygt og gir han til IfcTester frå
 IfcOpenShell, den same kontrollen som Dataspatium køyrer i nettlesaren, så dei
 to gir same utfall. Han køyrer etter dei andre kontrollane, i same slags
@@ -251,7 +251,7 @@ rekkjevidda til Cypher, og det kan ikkje endrast der. Det kan ikkje vere eigensk
 produkta, sidan mykje av det blir delt mellom dei. Med
 `OPENCDE_IFC_LPG_INCLUDE_GEOMETRY=true` blir kvar instans ein node i staden, til fleire
 gonger storleiken og importtida; spørjingar tok omtrent like lang tid i
-[målingane](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md).
+målingane.
 
 | I fila | I grafen |
 |---|---|
@@ -278,11 +278,11 @@ av dokumentet sitt, noko som òg konverterer henne.
 Denne forma blir ikkje lesen med IfcOpenShell, som her berre står for skjemaet.
 IfcOpenShell endrar nokre verdiar ved lesing (`.NULLENUM.` blir `$`, og `($,$)` blir
 `()`), og filer frå Tekla og Archicad har slike. Difor les arbeidsprosessen fila sjølv og
-avviser det han ikkje kan lese. [ADR 0010](../adr/0010-a-lossless-graph-reads-and-writes-step-itself.md) seier kvifor, og
-[ADR 0011](../adr/0011-a-file-written-from-the-graph-is-validated.md) korleis ei fil blir validert.
+avviser det han ikkje kan lese. ADR 0010 seier kvifor, og
+ADR 0011 korleis ei fil blir validert.
 
 `--verify` spør om dei to filene rommar den same modellen, etter definisjonen i
-[ADR 0009](../adr/0009-what-makes-two-ifc-files-the-same-model.md): ein til ein, verdi for verdi og utan toleranse, med georeferansen
+ADR 0009: ein til ein, verdi for verdi og utan toleranse, med georeferansen
 namngjeven i rapporten. Med `--geometry` blir òg meshen til kvart produkt bygd, og dei
 blir samanlikna bit for bit. To vilkårlege filer kan samanliknast med
 `python -m ifc_lpg.equivalence first.ifc second.ifc`.
@@ -358,7 +358,7 @@ saka.
 
 Eit medlem av eit prosjekt stiller spørsmål til modellen i ein versjon ved
 namn, med det same bearer-tokenet som for Documents API; fri Cypher blir
-verande hos administratorane ([ADR 0016](../adr/0016-members-ask-the-ifc-graph-named-queries.md)).
+verande hos administratorane (ADR 0016).
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` viser
 spørjingane med parametrar og kolonnar og seier i `model_state` kor langt
 konverteringa av modellen har kome. `GET …/ifc-queries/{name}` stiller éi,

@@ -2,7 +2,7 @@
  * Base styles: the font, a small reset, typography, focus handling, page layout and utilities.
  * Everything references tokens.css; no literal colours or sizes here. The rules follow
  * Dataspatium's base.css (same type scale, focus ring, scrollbars and utilities) so that the
- * server's pages and the app read as one product; see docs/ui-styleguide.md.
+ * server's pages and the app read as one product; see docs/dataspatium-coordination.md ("One look").
  */
 
 /* Inter, the same three weights Dataspatium ships, self-hosted (SIL Open Font License, fonts/LICENSE). */

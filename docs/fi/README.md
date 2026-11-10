@@ -153,9 +153,7 @@ mikään ole auki ennen kuin se on määritetty.
   rajapintaa, hallinta, asiakaskirjasto, käyttöönotto, IFC-LPG,
   hyväksymistarkistuslista ja tietoturvan kovennus); osallistumista
   IfcOpenShelliin ei ole vielä ehdotettu (luonnokset kansiossa
-  [docs/upstream/](../upstream/)). [docs/inventory.md](../inventory.md)
-  kertoo, mitä vuoden 2023 prototyyppi teki ja missä kukin toiminto on
-  uudessa koodissa.
+  [docs/upstream/](../upstream/)
 
 <img src="../images/signin.png" alt="Kirjautumissivu, jonka asiakas avaa" width="240">
 <img src="../images/upload.png" alt="Lataussivu, jolla käyttäjä antaa tiedostolle otsikon ja version" width="340">
@@ -266,19 +264,17 @@ sovittavat yhteen, on tiedostossa
 - [docs/fi/flows/](flows/): OAuth2-, Documents API- ja BCF-näkymäkulkujen sekvenssikaaviot.
 - [docs/fi/graph-schema.md](graph-schema.md): graafimalli.
 - [docs/fi/ifc-lpg.md](ifc-lpg.md): valinnainen IFC-LPG-moduuli ja esimerkkejä Cypher-kyselyistä.
-- [docs/fi/ui-styleguide.md](ui-styleguide.md): palvelimen sivujen ja tunnuksen säännöt.
 - [docs/acceptance.md](../acceptance.md): visuaalisen hyväksymisen
   tarkistuslista riippumattomilla asiakasohjelmilla (Bonsai, ifc-lite, Dataspatium).
 - [docs/dataspatium-coordination.md](../dataspatium-coordination.md): mitä
   Dataregium ja Dataspatium jakavat sekä omistajan päätökset.
-- [docs/inventory.md](../inventory.md): vuoden 2023 prototyypin
-  toimintoluettelo ja tilanne uudelleenkirjoituksessa sekä huomioita
-  spesifikaatioiden erikoisuuksista.
-- [docs/adr/](../adr/): arkkitehtuuripäätökset (graafitietokanta, läpinäkymättömät
-  tokenit, siirrettävä Cypher, kehyksetön selainkäyttöliittymä, repostrategia).
-- [docs/fi/security/](security/): uhkamalli, testeihin kytketyt kontrollit,
-  OWASP ASVS tason 2 tarkistuslista, henkilötiedot ja säilytysajat sekä
-  skannerien ajaminen.
+- Arkkitehtuuripäätökset, jotka pysyvät: graafitietokanta ainoana
+  tallennuspaikkana, läpinäkymättömät tokenit JWT:n sijaan, siirrettävä Cypher
+  Neo4j:lle ja Memgraphille, kehyksetön selainkäyttöliittymä, varmuuskopiointi
+  sovellustasolla, BCF API 2.1 version 3.0 rinnalla, häviötön IFC-graafi, joka
+  lukee ja kirjoittaa STEPin itse ja validoidaan kirjoitettaessa, buildingSMARTin
+  säännöt omassa ympäristössään, IFC-LPG kirjastona, tarkistus projektin IDS:ää
+  vasten ja nimetyt kyselyt jäsenille.
 - [docs/upstream/](../upstream/): luonnokset IfcOpenShellin issueksi ja pull
   requestiksi (ei lähetetty).
 - [spec/SOURCES.md](../../spec/SOURCES.md): tarkat spesifikaatioversiot,
@@ -319,11 +315,26 @@ IfcOpenShell-luonnokset ja CONTRIBUTING pidetään englanniksi.
   Dataspatiumissa tai Bonsaissa.
 - Sivut ovat tämän README-tiedoston seitsemällä kielellä (vaihda jokaisen sivun
   alareunasta); komentorivi ja rajapintojen virheviestit ovat englanniksi.
-- Ulkoista auditointia ei ole vielä tehty. Tiedostossa
-  [docs/fi/security/pentest-howto.md](security/pentest-howto.md) kuvatut
-  OAuch- ja testssl-ajot ovat ylläpitäjän askeleet ennen tuotantokäyttöönottoa.
+- Ulkoista auditointia ei ole vielä tehty. OAuch- ja testssl-ajot ovat
+  ylläpitäjän askeleet ennen tuotantokäyttöönottoa.
 
-## Seuraavaksi 3-sarjassa
+## Henkilötiedot
+
+Se, joka ylläpitää Dataregiumia muille, on näiden tietojen rekisterinpitäjä.
+Palvelin tallentaa käyttäjätilit (käyttäjänimi, nimi, valinnainen sähköposti,
+salasanan tiiviste), projektijäsenyydet, aiheet ja kommentit tekijöiden
+nimineen, ladatut tiedostot lataajineen, IFC-graafin tiedoston
+omistajahistorioineen sekä tarkastuslokin siitä, kuka teki mitä ja mistä
+osoitteesta. Salasanat, tokenit ja salaisuudet tallennetaan vain tiivisteinä.
+Tokenit, istunnot, latausistunnot ja käyttämättömät itserekisteröidyt asiakkaat
+vanhenevat, ja palvelin siivoaa ne; tarkastuslokin karsii ylläpitäjä.
+Ylläpitäjä poistaa tilin kohdassa `/admin/users`, ja sen istunnot ja tokenit
+poistuvat mukana; nimi jää henkilön kirjoittamiin aiheisiin, kunnes ne
+poistetaan. Tarkastusloki viedään CSV-muodossa, BCF- ja dokumenttitiedot
+rajapintojen kautta ja koko tietokanta komennolla `opencde backup`. Se, mitä
+Dataspatium säilyttää selaimessa, kerrotaan sovelluksen omassa
+dokumentaatiossa.
+
 
 3.0.0 on 3-sarjan ensimmäinen julkaisu, tehty yhdessä Dataspatium 3.0.0:n
 kanssa: IFC-graafi häviöttömänä mallina, jokaisen lähetyksen tarkistus ja
@@ -335,7 +346,7 @@ sitä ja näyttää sen versiot. Viralliset OpenCDE-rajapinnat pysyvät sellaisi
 kuin buildingSMART ne määrittelee; se, mitä sarja lisää, on niiden laajennuksia
 omilla nimillään. Tämä osio kertoo, mikä on päätetty ja mikä vain ehdotettu,
 sille, ihmiselle tai tekoälyagentille, joka vie osan siitä eteenpäin. Päätökset
-ovat kansiossa [docs/adr](../adr), käytännöt tiedostossa
+on tiivistetty kohdassa [Lue lisää](#lue-lisää), käytännöt tiedostossa
 [CONTRIBUTING.md](../../CONTRIBUTING.md) ja IFC-graafi sivulla
 [docs/fi/ifc-lpg.md](ifc-lpg.md).
 

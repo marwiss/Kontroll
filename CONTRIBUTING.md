@@ -22,9 +22,9 @@ For a security vulnerability do not open an issue: follow
 When the server and a client disagree, the specification decides
 (`spec/`, pinned revisions in [spec/SOURCES.md](spec/SOURCES.md)). Report a
 specification problem, or a place where the specification is silent, as an
-issue too: the list of such quirks lives in
-[docs/inventory.md](docs/inventory.md) (section 10), with the client side's
-view from Dataspatium.
+issue too: the known quirks are listed in
+[docs/dataspatium-coordination.md](docs/dataspatium-coordination.md)
+("Specification quirks"), with the client side's view from Dataspatium.
 
 ## Code changes
 
@@ -42,16 +42,14 @@ end up:
   `uv run ty check opencde client/opencde_client` are clean; no cosmetic
   changes to unrelated code.
 - A new endpoint is route + schema + conformance test + security test + docs
-  in one series of commits, with a row in [docs/inventory.md](docs/inventory.md).
-- The golden rules in [docs/security/controls.md](docs/security/controls.md)
-  hold: Cypher takes parameters only, every query starts at the user node,
+  in one series of commits.
+- The golden rules hold: Cypher takes parameters only, every query starts at the user node,
   nothing secret is logged, nothing client-provided lands in a file path,
   and everything that expires carries `expires_at`.
 - Cypher stays portable between Neo4j and Memgraph (ADR 0003): no APOC, no
   `elementId()`/`id()` as keys, no Neo4j-only functions.
-- Web pages are server-rendered with the design system in `opencde/ui/`,
-  work without JavaScript, and follow
-  [docs/ui-styleguide.md](docs/ui-styleguide.md).
+- Web pages are server-rendered with the design system in `opencde/ui/`
+  and work without JavaScript.
 
 Run the suites before you push:
 
@@ -69,8 +67,8 @@ Danish, Norwegian (Bokmål and Nynorsk), Finnish and Icelandic: the English
 pages under `docs/`, the translations under `docs/<lang>/`. English is the
 source, and a change to a page is made in all seven languages in the same
 commit (`tests/unit/test_docs.py` checks that they keep up). The project logs
-(`acceptance.md`, `inventory.md`, `dataspatium-coordination.md`), the ADRs,
-the upstream drafts and this file stay in English. Shared terms follow
+(`acceptance.md`, `dataspatium-coordination.md`), the upstream drafts and
+this file stay in English. Shared terms follow
 the glossary that Dataregium and [Dataspatium](https://github.com/marwiss/Dataspatium)
 keep together (`presets/i18n-shared.json` there); keep "viewpoint" and the
 API names untranslated, and send corrections of a translation as an issue or

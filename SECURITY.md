@@ -15,20 +15,20 @@ mitigation plan as soon as the problem is understood.
 
 ## What we do
 
-- The threat model, the controls and the tests that prove them, the OWASP ASVS
-  Level 2 checklist, personal data and retention, and how to run the scanners
-  are documented in `docs/security/` (translations under
-  `docs/<language>/security/`).
+- Every security control has at least one automated test in `tests/security/`;
+  the suite is the list of controls. What the server stores about people, and
+  for how long, is in the README ("Personal data").
 - Every push runs the security test suite (`tests/security/`), contract fuzzing
   with Schemathesis, browser tests, static analysis (ruff, Bandit, Semgrep) and
   the checks for known vulnerabilities and leaked secrets (pip-audit, gitleaks).
   Every night dynamic scanning (OWASP ZAP), a longer Schemathesis run and an image
   scan (Trivy) run as well; every release scans its image and ships an SBOM.
 - OAuth2 compliance (OAuch) and TLS (testssl.sh) are checked by hand against a
-  deployment, as `docs/security/pentest-howto.md` describes; they are the
-  operator's steps before production and have not been run against a production
-  deployment yet. The known gaps are listed at the end of
-  `docs/security/asvs-checklist.md`.
+  deployment; they are the operator's steps before production and have not been
+  run against a production deployment yet. Known gaps: no second factor on the
+  sign-in page, no sender-constrained tokens (DPoP), no breached-password check,
+  no per-user storage quota, backups not encrypted by the server, no external
+  penetration test.
 - Dependencies are pinned in `uv.lock` and updated by Dependabot.
 - The container runs as an unprivileged user on a read-only file system; the
   database stays on the private network unless an administrator publishes its

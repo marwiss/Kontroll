@@ -74,8 +74,7 @@ notendur og OAuth2-biðlara sem forritin þín þurfa.
 - Haltu `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=false` nema þú þurfir
   sjálfsafgreidda biðlaraskráningu (Foundation API 2.2.3); skráðu biðlara í
   `/admin`.
-- Skiptu um leynilykilinn og lykilorð gagnagrunnsins samkvæmt þinni stefnu
-  (`docs/is/security/controls.md`), endurræstu og skráðu þig inn aftur.
+- Skiptu um leynilykilinn og lykilorð gagnagrunnsins samkvæmt þinni stefnu, endurræstu og skráðu þig inn aftur.
 - Keyrðu `testssl.sh https://cde.example.org` og athugaðu
   <https://observatory.mozilla.org> eftir fyrstu ræsingu.
 - Eldveggur: leyfðu aðeins 22 (frá þínum vistföngum), 80 og 443.
