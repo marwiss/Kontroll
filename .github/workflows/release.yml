@@ -38,6 +38,10 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.IMAGE }}
+          # latest only by the rule below: a semver tag makes the action add latest of itself, so that a 2.x
+          # released after 3.0.0 took latest away from it on 2026-11-10.
+          flavor: |
+            latest=false
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -48,6 +52,7 @@ jobs:
         with:
           images: ${{ env.IMAGE }}
           flavor: |
+            latest=false
             suffix=-gherkin,onlatest=true
           tags: |
             type=semver,pattern={{version}}
