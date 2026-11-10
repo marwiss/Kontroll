@@ -92,10 +92,35 @@ palvelin ei ole sidottu yhteen sovellukseen.
    kehitysylikerros välttää Neo4j:n oletusportit, jotka toinen Neo4j samalla
    koneella usein varaa).
 5. **Lisää demodata ja kirjaudu.**
-   `docker compose exec api opencde seed` (Podmanilla: `podman compose exec api opencde seed`)
-   luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran.
-   Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja
-   avaa `/admin`.
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose exec api opencde seed
+   ```
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose exec api opencde seed
+   ```
+
+   </details>
+
+   <details>
+   <summary><b>Ilman konttia</b></summary>
+
+   ```sh
+   uv run opencde seed
+   ```
+
+   </details>
+
+   Komento luo demokäyttäjät ja -projektit ja tulostaa niiden salasanat kerran. Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja avaa `/admin`.
 6. **Yhdistä asiakasohjelma.** Rekisteröi sovelluksesi kohdassa *Asiakkaat*
    (tai anna sen rekisteröityä itse, kun
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se osoitteeseen

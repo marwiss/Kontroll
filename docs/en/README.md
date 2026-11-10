@@ -91,9 +91,35 @@ is not tied to any one application.
    development overlay avoids Neo4j's default ports, which another Neo4j on
    the same machine often occupies).
 5. **Add demo data and sign in.**
-   `docker compose exec api opencde seed` (with Podman: `podman compose exec api opencde seed`)
-   creates demonstration users and projects and prints their passwords once.
-   Sign in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose exec api opencde seed
+   ```
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose exec api opencde seed
+   ```
+
+   </details>
+
+   <details>
+   <summary><b>Without a container</b></summary>
+
+   ```sh
+   uv run opencde seed
+   ```
+
+   </details>
+
+   The command creates demonstration users and projects and prints their passwords once. Sign in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
 6. **Connect a client.** Register your application under *Clients* (or let it
    register itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point
    it at `http://127.0.0.1:8000`; [Dataspatium](#dataregium-and-dataspatium) and

@@ -91,9 +91,35 @@ inte bunden till något enskilt program.
    utvecklingsöverlagringen undviker Neo4j:s standardportar, som ofta upptas
    av en annan Neo4j på samma dator).
 5. **Lägg in demodata och logga in.**
-   `docker compose exec api opencde seed` (med Podman: `podman compose exec api opencde seed`)
-   skapar demoanvändare och projekt och skriver ut deras lösenord en gång.
-   Logga in på <http://127.0.0.1:8000/signin> som `admin` och öppna `/admin`.
+
+   <details open>
+   <summary><b>Docker</b></summary>
+
+   ```sh
+   docker compose exec api opencde seed
+   ```
+
+   </details>
+
+   <details>
+   <summary><b>Podman</b></summary>
+
+   ```sh
+   podman compose exec api opencde seed
+   ```
+
+   </details>
+
+   <details>
+   <summary><b>Utan container</b></summary>
+
+   ```sh
+   uv run opencde seed
+   ```
+
+   </details>
+
+   Kommandot skapar demoanvändare och projekt och skriver ut deras lösenord en gång. Logga in på <http://127.0.0.1:8000/signin> som `admin` och öppna `/admin`.
 6. **Anslut en klient.** Registrera din app under *Klienter* (eller låt den
    registrera sig själv när `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) och
    peka den mot `http://127.0.0.1:8000`; [Dataspatium](#dataregium-och-dataspatium)
