@@ -237,6 +237,29 @@ PolyForm Strict der), og README-fila til Dataspatium fortel korleis appen
 blir henta. Klientsida er skildra i README-fila til Dataspatium og
 dokumentasjonen der.
 
+### Utgåvene 1, 2 og 3
+
+Kvart hovudnummer er éi utgåve som blir gjeven ut på nytt etter kvart som ho
+veks, og det same nummeret av Dataspatium høyrer til henne. Dei tre skil seg
+slik:
+
+- **1.0.0** er ein dokumenttenar: Foundation API 1.0 (versjonar, innlogging
+  med OAuth2 og PKCE, gjeldande brukar, sjølvregistrering av klientar når
+  operatøren tillèt det) og Documents API 1.0 (velje, laste opp og hente
+  dokument og versjonane deira). Det er 2.0.0-koden med berre Documents API
+  slått på (`OPENCDE_APIS`), for Dataspatium 1.
+- **2.0.0** legg til BCF API 3.0 og 2.1 på dei same dataa (saker, kommentarar,
+  viewpoints, dokument), webadministrasjonen på sju språk, førespurnadsloggen
+  og den valfrie IFC-LPG-modulen som lagar ein graf av kvar opplasta IFC-fil,
+  for Dataspatium 2.
+- **3.0.0** gjer grafen tapsfri slik at fila kan skrivast tilbake, kontrollerer
+  kvar opplasting mot IFC-skjemaet, reglane til buildingSMART og
+  IDS-dokumenta i prosjektet, gjev medlemmer namngjevne spørjingar,
+  kollisjonskontroll mellom to versjonar, basisversjon ved opplasting, ei
+  sperre mot valideringsfeil med førehandskontroll, og endringssett som blir
+  prøvde og godkjende til nye versjonar, for Dataspatium 3. IFC-LPG er eit
+  eige bibliotek.
+
 ## Lær meir
 
 - [docs/nn/quickstart.md](quickstart.md): Dataregium og Dataspatium saman på tjue

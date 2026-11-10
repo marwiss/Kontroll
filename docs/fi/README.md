@@ -248,6 +248,28 @@ siellä), ja Dataspatiumin README kertoo, miten sovellus ladataan.
 Asiakaspuoli kuvataan Dataspatiumin README-tiedostossa ja sen
 dokumentaatiossa.
 
+### Julkaisut 1, 2 ja 3
+
+Jokainen pääversio on yksi julkaisu, joka julkaistaan uudelleen sen kasvaessa,
+ja Dataspatiumin sama numero kuuluu sen pariin. Kolme eroavat näin:
+
+- **1.0.0** on dokumenttipalvelin: Foundation API 1.0 (versiot, kirjautuminen
+  OAuth2:lla ja PKCE:llä, nykyinen käyttäjä, asiakkaiden itserekisteröinti,
+  kun operaattori sallii sen) ja Documents API 1.0 (dokumenttien ja niiden
+  versioiden valinta, lähetys ja lataus). Se on 2.0.0-koodi, jossa vain
+  Documents API on käytössä (`OPENCDE_APIS`), Dataspatium 1:lle.
+- **2.0.0** lisää BCF API 3.0:n ja 2.1:n samaan dataan (asiat, kommentit,
+  näkymät, dokumentit), seitsenkielisen verkkohallinnan, pyyntölokin ja
+  valinnaisen IFC-LPG-moduulin, joka tekee graafin jokaisesta lähetetystä
+  IFC-tiedostosta, Dataspatium 2:lle.
+- **3.0.0** tekee graafista häviöttömän niin, että tiedosto voidaan kirjoittaa
+  takaisin, tarkistaa jokaisen lähetyksen IFC-skeemaa, buildingSMARTin sääntöjä
+  ja projektin IDS-dokumentteja vasten, antaa jäsenille nimetyt kyselyt,
+  kahden version törmäystarkastuksen, perustaversion lähetettäessä, eston
+  validointivirheille ennakkotarkistuksineen sekä muutosjoukot, jotka
+  kokeillaan ja hyväksytään uusiksi versioiksi, Dataspatium 3:lle. IFC-LPG on
+  oma kirjastonsa.
+
 ## Lue lisää
 
 - [docs/fi/quickstart.md](quickstart.md): Dataregium ja Dataspatium yhdessä

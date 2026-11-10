@@ -236,6 +236,28 @@ for sig: dette repo bundter ikke Dataspatium (licenserne er forskellige, AGPL
 her og PolyForm Strict der), og Dataspatiums README beskriver, hvordan appen
 hentes. Klientsiden beskrives i Dataspatiums README og dens dokumentation.
 
+### Udgivelserne 1, 2 og 3
+
+Hvert hovednummer er én udgivelse, der udgives igen, efterhånden som den
+vokser, og det samme nummer af Dataspatium hører til den. De tre adskiller sig
+sådan:
+
+- **1.0.0** er en dokumentserver: Foundation API 1.0 (versioner, login med
+  OAuth2 og PKCE, den aktuelle bruger, selvregistrering af klienter, når
+  operatøren tillader det) og Documents API 1.0 (vælge, uploade og hente
+  dokumenter og deres versioner). Det er 2.0.0-koden med kun Documents API
+  slået til (`OPENCDE_APIS`), til Dataspatium 1.
+- **2.0.0** tilføjer BCF API 3.0 og 2.1 på de samme data (sager, kommentarer,
+  viewpoints, dokumenter), webadministrationen på syv sprog, forespørgselsloggen
+  og det valgfrie IFC-LPG-modul, der laver en graf af hver uploadet IFC-fil,
+  til Dataspatium 2.
+- **3.0.0** gør grafen tabsfri, så filen kan skrives tilbage, kontrollerer hver
+  upload mod IFC-skemaet, buildingSMARTs regler og projektets IDS-dokumenter,
+  giver medlemmer navngivne forespørgsler, kollisionskontrol mellem to
+  versioner, basisversion ved upload, en spærring mod valideringsfejl med
+  forhåndskontrol, og ændringssæt, der prøves og godkendes til nye versioner,
+  til Dataspatium 3. IFC-LPG er et selvstændigt bibliotek.
+
 ## Lær mere
 
 - [docs/da/quickstart.md](quickstart.md): Dataregium og Dataspatium sammen på tyve

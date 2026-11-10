@@ -234,6 +234,27 @@ upp hvor fyrir sig: þetta safn pakkar Dataspatium ekki með (leyfin eru ólík,
 AGPL hér og PolyForm Strict þar), og README Dataspatium lýsir hvernig forritið
 er sótt. Biðlarahliðinni er lýst í README Dataspatium og skjölun þess.
 
+### Útgáfurnar 1, 2 og 3
+
+Hvert aðalnúmer er ein útgáfa sem er gefin út aftur eftir því sem hún vex, og
+sama númer Dataspatium á saman við hana. Þær þrjár eru ólíkar svona:
+
+- **1.0.0** er skjalaþjónn: Foundation API 1.0 (útgáfur, innskráning með OAuth2
+  og PKCE, núverandi notandi, sjálfskráning biðlara þegar rekstraraðili leyfir
+  það) og Documents API 1.0 (velja, hlaða upp og sækja skjöl og útgáfur
+  þeirra). Það er 2.0.0-kóðinn með aðeins Documents API kveikt (`OPENCDE_APIS`),
+  fyrir Dataspatium 1.
+- **2.0.0** bætir við BCF API 3.0 og 2.1 á sömu gögnum (mál, athugasemdir,
+  sjónarhorn, skjöl), vefstjórnuninni á sjö tungumálum, beiðnaskránni og
+  valfrjálsu IFC-LPG-einingunni sem gerir graf úr hverri upphlaðinni IFC-skrá,
+  fyrir Dataspatium 2.
+- **3.0.0** gerir grafið taplaust svo að skrána megi skrifa til baka, prófar
+  hvert upphal gagnvart IFC-skemanu, reglum buildingSMART og IDS-skjölum
+  verkefnisins, gefur þátttakendum nefndar fyrirspurnir, árekstrarprófun milli
+  tveggja útgáfna, grunnútgáfu við upphal, lás gegn sannprófunarvillum með
+  forprófun, og breytingasett sem eru reynd og samþykkt í nýjar útgáfur, fyrir
+  Dataspatium 3. IFC-LPG er sjálfstætt safn.
+
 ## Lærðu meira
 
 - [docs/is/quickstart.md](quickstart.md): Dataregium og Dataspatium saman á tuttugu
