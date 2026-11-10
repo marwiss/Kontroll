@@ -24,7 +24,7 @@ from opencde.admin import router as admin_router
 from opencde.admin.access import install_page_handlers
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
-from opencde.bootstrap import make_graph, make_storage, wait_for_graph
+from opencde.bootstrap import make_graph, make_storage, make_workcopy, wait_for_graph
 from opencde.documents import routes_api as documents_api
 from opencde.documents import routes_changes as documents_changes
 from opencde.documents import routes_clash as documents_clash
@@ -99,9 +99,12 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.state.settings = settings
         app.state.started_at = time.monotonic()  # the administration API reports the uptime from it
         app.state.graph = make_graph(settings)
+        app.state.workcopy = make_workcopy(settings)
         app.state.storage = make_storage(settings)
         app.state.ifcgraph = (
-            IfcGraphService(app.state.graph, app.state.storage, settings) if settings.ifcgraph_enabled else None
+            IfcGraphService(app.state.graph, app.state.storage, settings, workcopy=app.state.workcopy)
+            if settings.ifcgraph_enabled
+            else None
         )
         cleaner = ExpiryCleaner(
             app.state.graph,
@@ -127,6 +130,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         if startup_wait_seconds > 0:
             await wait_for_graph(app.state.graph, startup_wait_seconds)
             await apply_schema(app.state.graph)
+            if app.state.workcopy is not None:
+                await wait_for_graph(app.state.workcopy, startup_wait_seconds)
+                await apply_schema(app.state.workcopy)
             cleaner.start()
         try:
             yield
@@ -134,6 +140,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             await cleaner.stop()
             if app.state.ifcgraph is not None:
                 await app.state.ifcgraph.shutdown()
+            if app.state.workcopy is not None:
+                await app.state.workcopy.close()
             if app.state.requestlog is not None:
                 await app.state.requestlog.close()
             await app.state.graph.close()

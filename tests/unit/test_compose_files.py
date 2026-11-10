@@ -56,6 +56,13 @@ def test_the_local_engine_publishes_the_api_on_the_loopback_only(tmp_path: Path)
     assert "ports" not in services["graph"], "the database is never published"
 
 
+def test_the_working_copy_joins_the_private_network_unpublished(tmp_path: Path) -> None:
+    services = _config(tmp_path, "compose.local.yaml", "compose.workcopy.yaml")
+    assert "ports" not in services["workcopy"] and services["workcopy"]["image"].startswith("docker.io/memgraph/")
+    assert services["api"]["environment"]["OPENCDE_WORKCOPY_GRAPH_URI"] == "bolt://workcopy:7687"
+    assert services["api"]["depends_on"]["workcopy"]["condition"] == "service_healthy"
+
+
 def test_an_external_database_leaves_the_container_out(tmp_path: Path) -> None:
     address = "neo4j+s://xxxx.databases.neo4j.io"
     services = _config(

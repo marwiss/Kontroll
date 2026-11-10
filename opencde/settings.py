@@ -197,6 +197,16 @@ class Settings(BaseSettings):
     graph_password: SecretStr = SecretStr("")
     graph_database: str | None = Field(None, description="Database name. Defaults to 'neo4j' or 'memgraph' by dialect.")
     graph_connect_timeout_seconds: float = Field(5.0, gt=0)
+    # --- the working copy (ADR 0024) ---------------------------------------
+    workcopy_graph_uri: str | None = Field(
+        None,
+        description="Bolt URI of a second graph, the working copy, where the head model of every document is "
+        "imported too for fast queries (Memgraph, in memory); the first graph stays the archive. Empty: none.",
+    )
+    workcopy_graph_dialect: GraphDialect = Field(GraphDialect.MEMGRAPH, description="The working copy's dialect.")
+    workcopy_graph_user: str = ""
+    workcopy_graph_password: SecretStr = SecretStr("")
+    workcopy_graph_database: str | None = Field(None, description="The working copy's database name; by dialect.")
     cleanup_interval_seconds: int = Field(
         60, ge=5, description="How often expired codes, tokens and sessions are deleted."
     )
@@ -418,6 +428,14 @@ class Settings(BaseSettings):
             raise ValueError(f"OPENCDE_GRAPH_URI must use one of {', '.join(GRAPH_URI_SCHEMES)}")
         return value
 
+    @field_validator("workcopy_graph_uri")
+    @classmethod
+    def _workcopy_uri(cls, value: str | None) -> str | None:
+        value = (value or "").strip() or None
+        if value is not None and not value.startswith(GRAPH_URI_SCHEMES):
+            raise ValueError(f"OPENCDE_WORKCOPY_GRAPH_URI must use one of {', '.join(GRAPH_URI_SCHEMES)}")
+        return value
+
     @field_validator("graph_public_bolt_url")
     @classmethod
     def _check_public_bolt_url(cls, value: str | None) -> str | None:
@@ -500,6 +518,16 @@ class Settings(BaseSettings):
         if self.graph_database:
             return self.graph_database
         return {GraphDialect.NEO4J: "neo4j", GraphDialect.MEMGRAPH: "memgraph"}[self.graph_dialect]
+
+    @property
+    def has_workcopy(self) -> bool:
+        return self.workcopy_graph_uri is not None
+
+    @property
+    def workcopy_database_name(self) -> str:
+        if self.workcopy_graph_database:
+            return self.workcopy_graph_database
+        return {GraphDialect.NEO4J: "neo4j", GraphDialect.MEMGRAPH: "memgraph"}[self.workcopy_graph_dialect]
 
     def url(self, path: str) -> str:
         """Absolute URL for a server path, built from the public URL."""

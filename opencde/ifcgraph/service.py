@@ -84,7 +84,10 @@ def _ruleset_of(env: Path) -> str:
 
 
 class IfcGraphService:
-    def __init__(self, graph: Graph, storage: LocalStorage, settings: Settings) -> None:
+    def __init__(
+        self, graph: Graph, storage: LocalStorage, settings: Settings, *, workcopy: Graph | None = None
+    ) -> None:
+        self.workcopy = workcopy  # the second graph that holds the head model of every document (ADR 0024)
         self.graph = graph
         self.storage = storage
         self.settings = settings
@@ -150,11 +153,12 @@ class IfcGraphService:
         task.add_done_callback(self._tasks.discard)
 
     async def resume_interrupted(self) -> None:
-        """Start over the conversions a stopped server left behind.
+        """Start over the conversions a stopped server left behind, and tidy the working copy (ADR 0024).
 
         A queued model belongs to whichever server process takes it first (``_claim``). A running one may be
         running in another process, so it is given up only when twice the time limit has passed since it started.
         """
+        await self.tidy_workcopy()
         rows = await self.graph.run(
             """
             MATCH (m:IfcModel)
@@ -258,6 +262,8 @@ class IfcGraphService:
                     records = workdir / "records.jsonl"
                     header = await self._convert(source, records)
                     counts = await import_records(self.graph, model_id, records)
+                    if self.workcopy is not None:
+                        await self._copy_to_workcopy(model_id, header, records)
                 except Exception as exc:
                     log.warning("ifcgraph_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:500])
                     with contextlib.suppress(Exception):
@@ -283,6 +289,89 @@ class IfcGraphService:
                 log.warning("ifcgraph_link_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:200])
                 linked = 0
             log.info("ifcgraph_imported", model_id=model_id, linked=linked, **counts)
+
+    # -- the working copy (ADR 0024) ------------------------------------------------------------------
+
+    async def _copy_to_workcopy(self, model_id: str, header: dict[str, Any], records: Path) -> None:
+        """Import the same records into the working copy, as the head model of its document, replacing the model
+        of the version before. A failure here is logged and never fails the conversion: the archive is the truth."""
+        workcopy = self.workcopy
+        if workcopy is None:
+            return
+        try:
+            row = await self.graph.one("MATCH (m:IfcModel {id: $id}) RETURN properties(m) AS model", id=model_id)
+            if row is None or not row["model"].get("document_id"):
+                return  # a BCF project document has no head to keep
+            model = dict(row["model"])
+            older = await workcopy.run(
+                "MATCH (m:IfcModel {document_id: $document_id}) WHERE m.id <> $id RETURN m.id AS id",
+                document_id=model["document_id"],
+                id=model_id,
+            )
+            for old in older:
+                await delete_model(workcopy, old["id"])
+            await delete_model(workcopy, model_id)
+            await workcopy.run(
+                """
+                CREATE (:IfcModel {
+                    id: $id, project_id: $project_id, document_id: $document_id, version_index: $version_index,
+                    file_name: $file_name, state: $state, schema: $schema, geometry: $geometry, created_at: $now
+                })
+                """,
+                id=model_id,
+                project_id=model.get("project_id"),
+                document_id=model.get("document_id"),
+                version_index=model.get("version_index"),
+                file_name=model.get("file_name"),
+                state=STATE_RUNNING,
+                schema=header.get("schema"),
+                geometry=header.get("geometry"),
+                now=now_iso(),
+            )
+            counts = await import_records(workcopy, model_id, records)
+            await workcopy.run(
+                "MATCH (m:IfcModel {id: $id}) SET m.state = $state, m.done_at = $now, m += $fields",
+                id=model_id,
+                state=STATE_DONE,
+                now=now_iso(),
+                fields={"entities": counts["nodes"], "relationships": counts["relationships"]},
+            )
+            log.info("ifcgraph_workcopy_updated", model_id=model_id, **counts)
+        except Exception as exc:
+            log.warning("ifcgraph_workcopy_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:300])
+            with contextlib.suppress(Exception):  # the archive is untouched; the copy can be made again
+                await delete_model(workcopy, model_id, keep_model=True)
+                await workcopy.run("MATCH (m:IfcModel {id: $id}) SET m.state = $state", id=model_id, state=STATE_FAILED)
+
+    async def in_workcopy(self, model_id: str) -> bool:
+        """Whether a version's model is in the working copy, so that a query can run there."""
+        if self.workcopy is None:
+            return False
+        try:
+            row = await self.workcopy.one(
+                "MATCH (m:IfcModel {id: $id, state: $done}) RETURN m.id AS id", id=model_id, done=STATE_DONE
+            )
+        except Exception as exc:
+            log.warning("ifcgraph_workcopy_unavailable", error=type(exc).__name__)
+            return False
+        return row is not None
+
+    async def tidy_workcopy(self) -> int:
+        """Drop models the archive no longer has (a deleted project, a pruned model). Returns how many went."""
+        if self.workcopy is None:
+            return 0
+        try:
+            rows = await self.workcopy.run("MATCH (m:IfcModel) RETURN m.id AS id")
+            gone = 0
+            for row in rows:
+                kept = await self.graph.one("MATCH (m:IfcModel {id: $id}) RETURN m.id AS id", id=row["id"])
+                if kept is None:
+                    await delete_model(self.workcopy, row["id"])
+                    gone += 1
+            return gone
+        except Exception as exc:
+            log.warning("ifcgraph_workcopy_unavailable", error=type(exc).__name__)
+            return 0
 
     # -- checking an upload against the IFC schema ------------------------------------------------
 

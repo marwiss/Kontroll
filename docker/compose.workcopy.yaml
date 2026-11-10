@@ -1,0 +1,33 @@
+# The working copy (ADR 0024): a Memgraph beside the archive, in memory, where the head model of every
+# document is imported too, so that the named queries answer from it. Add to any stack:
+#   COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml:docker/compose.workcopy.yaml
+# Nothing is published to the host; the API reaches it on the private network.
+
+services:
+  workcopy:
+    image: docker.io/memgraph/memgraph:3.14.0
+    restart: unless-stopped
+    command: ["--log-level=WARNING", "--storage-wal-enabled=false", "--storage-snapshot-interval-sec=0"]
+    volumes:
+      - workcopy-data:/var/lib/memgraph
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'RETURN 1;' | mgconsole --host 127.0.0.1 --port 7687 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    environment:
+      OPENCDE_WORKCOPY_GRAPH_URI: "bolt://workcopy:7687"
+      OPENCDE_WORKCOPY_GRAPH_DIALECT: memgraph
+    depends_on:
+      workcopy:
+        condition: service_healthy
+
+volumes:
+  workcopy-data:

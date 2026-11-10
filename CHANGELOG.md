@@ -10,6 +10,10 @@ the commit history.
 
 ## Unreleased
 
+- The working copy: with `OPENCDE_WORKCOPY_GRAPH_URI` a second graph, Memgraph in memory, holds the head model of
+  every document too, imported from the same records, and answers the named queries for it; the archive keeps
+  every version. `docker/compose.workcopy.yaml` adds the Memgraph; `GET …/ifc-queries` says `workcopy`, `/readyz`
+  reports its state, the capabilities document announces it in `ifcgraph.workcopy` (ADR 0024).
 - The local engine: `OPENCDE_ENVIRONMENT=local` for Dataregium on a person's own computer behind Dataspatium
   (ADR 0023). The server keeps to the loopback (public URL, interface, a `421` for any other `Host`), needs a
   database password and a secret key, names its CORS origins and answers Chrome's Private Network Access

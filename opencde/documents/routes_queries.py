@@ -30,6 +30,7 @@ from opencde.ifcgraph.queries import (
     TIMEOUT_SECONDS,
     InvalidParameters,
 )
+from opencde.ifcgraph.service import IfcGraphDep
 from opencde.settings import Settings
 
 TAG = "IFC queries (extension)"
@@ -55,6 +56,9 @@ class IfcQuery(BaseModel):
 
 
 class IfcQueries(BaseModel):
+    workcopy: bool = Field(
+        False, description="True when the version's model is in the working copy, which answers the queries (ADR 0024)."
+    )
     model_state: str = Field(
         description="`done` when the queries can be asked; `queued`, `running` or `failed` before or instead."
     )
@@ -71,8 +75,9 @@ class IfcQueryAnswer(BaseModel):
 
 async def _model_state(
     graph: Graph, documents: Any, settings: Settings, user_id: str, document_id: str, version_index: int
-) -> str:
-    """How far the version's model has come; 404 when the user may not see the version or it has no model."""
+) -> tuple[str, str]:
+    """How far the version's model has come, and its id; 404 when the user may not see the version or it has no
+    model."""
     if not settings.ifcgraph_enabled:
         raise HTTPException(404, "The IFC-LPG module is off on this server")
     if not is_uuid(document_id):
@@ -81,14 +86,14 @@ async def _model_state(
         """
         MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:IfcModel)
         WHERE m.document_id = $document_id AND m.version_index = $version_index
-        RETURN m.state AS state ORDER BY m.created_at DESC LIMIT 1
+        RETURN m.state AS state, m.id AS id ORDER BY m.created_at DESC LIMIT 1
         """,
         user_id=user_id,
         document_id=document_id,
         version_index=version_index,
     )
     if rows:
-        return str(rows[0]["state"])
+        return str(rows[0]["state"]), str(rows[0]["id"])
     if await documents.version(user_id=user_id, document_id=document_id, version_index=version_index):
         raise HTTPException(404, "This version has no IFC graph: it is not an IFC file, or came before the module")
     raise HTTPException(404, "Document version not found")
@@ -106,11 +111,13 @@ async def ifc_queries(
     documents: DocumentsDep,
     graph: GraphDep,
     settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
 ) -> IfcQueries:
     """The queries, their parameters and columns, and how far the model's conversion has come."""
     document_id = normalize_guid(document_id) if is_uuid(document_id) else document_id
-    state = await _model_state(graph, documents, settings, principal.user_id, document_id, version_index)
+    state, model_id = await _model_state(graph, documents, settings, principal.user_id, document_id, version_index)
     return IfcQueries(
+        workcopy=ifcgraph is not None and await ifcgraph.in_workcopy(model_id),
         model_state=state,
         max_rows=MAX_ROWS,
         queries=[
@@ -205,11 +212,13 @@ async def ifc_query(
     documents: DocumentsDep,
     graph: GraphDep,
     settings: SettingsDep,
+    ifcgraph: IfcGraphDep,
 ) -> IfcQueryAnswer:
-    """The rows the query finds, at most `max_rows` of them. 409 while the model is still being converted."""
+    """The rows the query finds, at most `max_rows` of them. 409 while the model is still being converted. The
+    working copy answers when it holds the model (ADR 0024)."""
     query = QUERIES.get(name)
     document_id = normalize_guid(document_id) if is_uuid(document_id) else document_id
-    state = await _model_state(graph, documents, settings, principal.user_id, document_id, version_index)
+    state, model_id = await _model_state(graph, documents, settings, principal.user_id, document_id, version_index)
     if query is None:
         raise HTTPException(404, f"There is no named query {name}")
     try:
@@ -219,8 +228,11 @@ async def ifc_query(
     if state != "done":
         raise HTTPException(409, f"The IFC graph of this version is {state}, not done")
     params = {**values, "user_id": principal.user_id, "document_id": document_id, "version_index": version_index}
+    target, cypher = graph, query.cypher
+    if ifcgraph is not None and ifcgraph.workcopy is not None and await ifcgraph.in_workcopy(model_id):
+        target, cypher, params = ifcgraph.workcopy, query.cypher_in_workcopy, {**values, "model_id": model_id}
     try:
-        result = await run_read_query(graph, query.cypher, params, max_rows=MAX_ROWS, timeout_seconds=TIMEOUT_SECONDS)
+        result = await run_read_query(target, cypher, params, max_rows=MAX_ROWS, timeout_seconds=TIMEOUT_SECONDS)
     except TimeoutError:
         raise HTTPException(400, f"The query exceeded the time limit of {TIMEOUT_SECONDS:g} seconds") from None
     except Neo4jError as exc:

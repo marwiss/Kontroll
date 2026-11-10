@@ -5,6 +5,7 @@
 #   compose.prod.yaml      production behind Caddy with automatic TLS and nightly backups
 #   compose.tunnel.yaml    public https through a Cloudflare Tunnel for client tests
 #   compose.memgraph.yaml  Memgraph instead of Neo4j (add to any of the above)
+#   compose.workcopy.yaml  a Memgraph working copy beside the archive (add to any of the above)
 #
 #   docker compose up -d
 #

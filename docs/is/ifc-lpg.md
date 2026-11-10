@@ -424,8 +424,8 @@ snippet-tegundina; kerfisstjóri bætir henni við gildi eldra verkefnis.
 Breytingasett nefnir grunnútgáfu sína, hver lagði það til, með
 gervigreindarlíkaninu og verkfærakallinu þar sem gervigreind gerði það, og
 breytingar sínar, hverja á einni eigind eins tilviks. Tilvikið er nefnt með
-STEP-auðkenni sínu, eða með GlobalId og slóð frá rótfestu einingunni í
-eigindaheitum IFC með vísum. `set` gefur eigindinni gildi, `add` og `remove`
+GlobalId og slóð frá rótfestu einingunni í eigindaheitum IFC með vísum, og með
+STEP-auðkenni sínu aðeins þar sem ekkert GlobalId nær því. `set` gefur eigindinni gildi, `add` og `remove`
 breyta einum lið safns, og `copy` biður um afrit af tilviki sem fleiri deila og
 breytist annars fyrir öll. Gildi er einfalt gildi, tilvik (`{"step_id": 120}`,
 eða GlobalId með slóð), gildi af tagi
@@ -537,6 +537,29 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
 {"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
  "b": {"document_id": "…", "version_index": 2},
  "mode": "intersection", "tolerance": 0.001}
+```
+
+## Vinnueintakið
+
+Við hlið safnsins getur þjónninn haldið vinnueintaki: öðru grafi, Memgraph í
+minni, þangað sem líkan aðalútgáfu hvers skjals er líka flutt inn (ADR 0024).
+Safnið heldur hverri útgáfu og er áfram sannleikurinn; vinnueintakið heldur
+einu líkani á hvert skjal, því síðast umbreytta, og svarar nefndu
+fyrirspurnunum fyrir það, svo að stórt líkan sé lesið úr minni.
+`OPENCDE_WORKCOPY_GRAPH_URI` nefnir það (`OPENCDE_WORKCOPY_GRAPH_DIALECT`,
+`_USER`, `_PASSWORD` og `_DATABASE` við hliðina); yfirlagið
+`docker/compose.workcopy.yaml` bætir Memgraph við hvaða stafla sem er, óbirtu.
+Umbreyting flytur sömu færslur inn í bæði gröfin í máltækishlutlausu formi
+IFC-LPG, kemur í stað fyrra líkans skjalsins í vinnueintakinu og bregst aldrei
+vegna vinnueintaksins: afrit sem ekki var hægt að gera er merkt `failed` þar
+og safnið er ósnert. Líkan sem safnið hefur ekki lengur yfirgefur vinnueintakið
+í næstu tiltekt. `GET …/ifc-queries` segir í `workcopy` hvort líkan útgáfunnar
+sé þar, `/readyz` greinir frá ástandi vinnueintaksins án þess að vera háð því,
+og getuskjalið segir í `ifcgraph.workcopy` hvort eitt sé stillt.
+
+```sh
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml:docker/compose.workcopy.yaml
+docker compose up -d
 ```
 
 ## Fyrirspurnir frá Dataspatium

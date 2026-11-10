@@ -425,8 +425,9 @@ it to the schema and answers `400` with what is wrong. A new project allows the
 snippet type; an administrator adds it to an older project's values. A change
 set names its base version, who proposed it, with the AI model and the tool
 call where an AI did, and its changes, each on one attribute of one instance.
-The instance is named by its STEP id, or by a GlobalId and a path from the
-rooted entity in IFC's attribute names with indexes. `set` gives the attribute
+The instance is named by a GlobalId and a path from the rooted entity in
+IFC's attribute names with indexes, and by its STEP id only where no GlobalId
+reaches it. `set` gives the attribute
 a value, `add` and `remove` change one member of an aggregate, and `copy` asks
 for a copy of an instance that several share, which otherwise changes for all
 of them. A value is a scalar, an instance (`{"step_id": 120}`, or a GlobalId
@@ -538,6 +539,30 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
 {"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
  "b": {"document_id": "…", "version_index": 2},
  "mode": "intersection", "tolerance": 0.001}
+```
+
+## The working copy
+
+Beside the archive, the server can keep a working copy: a second graph,
+Memgraph in memory, where the head model of every document is imported too
+(ADR 0024). The archive keeps every version and stays the truth; the working
+copy holds one model per document, the latest converted, and answers the named
+queries for it, so that a large model is read from memory. `OPENCDE_WORKCOPY_GRAPH_URI`
+names it (`OPENCDE_WORKCOPY_GRAPH_DIALECT`, `_USER`, `_PASSWORD` and `_DATABASE`
+beside it); the overlay `docker/compose.workcopy.yaml` adds the Memgraph to
+any stack, unpublished. A conversion imports the same records into both graphs
+in IFC-LPG's dialect-neutral form, replaces the document's model from before
+in the working copy, and never fails on the working copy's account: a copy
+that could not be made is marked `failed` there and the archive is untouched. A
+model the archive no longer has leaves the working copy at the next cleanup
+round. `GET …/ifc-queries` says in `workcopy` whether the version's model is
+there, `/readyz` reports the working copy's state without depending on it, and
+the capabilities document says in `ifcgraph.workcopy` whether one is
+configured.
+
+```sh
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml:docker/compose.workcopy.yaml
+docker compose up -d
 ```
 
 ## Querying from Dataspatium

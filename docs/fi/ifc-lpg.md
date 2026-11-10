@@ -438,9 +438,9 @@ sen skeemassa ja vastaa `400` kertoen, mikä on vialla. Uusi projekti sallii
 snippet-tyypin; ylläpitäjä lisää sen vanhemman projektin arvoihin.
 Muutosjoukko nimeää perustaversionsa, ehdottajansa, tekoälymallin ja
 työkalukutsun kun ehdottaja oli tekoäly, sekä muutoksensa, kunkin yhden
-instanssin yhteen attribuuttiin. Instanssi nimetään STEP-tunnisteellaan tai
-GlobalId:llä ja polulla juurrutetusta entiteetistä IFC:n attribuuttinimin ja
-indeksein. `set` antaa attribuutille arvon, `add` ja `remove` muuttavat yhtä
+instanssin yhteen attribuuttiin. Instanssi nimetään GlobalId:llä ja polulla
+juurrutetusta entiteetistä IFC:n attribuuttinimin ja indeksein, ja
+STEP-tunnisteellaan vain, kun mikään GlobalId ei tavoita sitä. `set` antaa attribuutille arvon, `add` ja `remove` muuttavat yhtä
 aggregaatin jäsentä, ja `copy` pyytää kopion usean jakamasta instanssista, joka
 muuten muuttuisi kaikille. Arvo on skalaari, instanssi (`{"step_id": 120}` tai
 GlobalId polkuineen), tyypitetty arvo
@@ -554,6 +554,30 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
 {"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
  "b": {"document_id": "…", "version_index": 2},
  "mode": "intersection", "tolerance": 0.001}
+```
+
+## Työkopio
+
+Arkiston rinnalla palvelin voi pitää työkopiota: toista graafia, Memgraphia
+muistissa, johon jokaisen dokumentin pääversion malli tuodaan myös
+(ADR 0024). Arkisto säilyttää jokaisen version ja pysyy totuutena; työkopio
+pitää yhden mallin dokumenttia kohden, viimeksi muunnetun, ja vastaa sen
+nimettyihin kyselyihin, jotta suuri malli luetaan muistista.
+`OPENCDE_WORKCOPY_GRAPH_URI` nimeää sen (`OPENCDE_WORKCOPY_GRAPH_DIALECT`,
+`_USER`, `_PASSWORD` ja `_DATABASE` sen rinnalla); peite
+`docker/compose.workcopy.yaml` lisää Memgraphin mihin tahansa pinoon
+julkaisematta sitä. Muunnos tuo samat tietueet molempiin graafeihin IFC-LPG:n
+murreriippumattomassa muodossa, korvaa dokumentin aiemman mallin työkopiossa
+eikä koskaan epäonnistu työkopion takia: kopio, jota ei voitu tehdä, merkitään
+siellä tilaan `failed`, eikä arkistoon kosketa. Malli, jota arkistossa ei enää
+ole, poistuu työkopiosta seuraavalla siivouskierroksella. `GET …/ifc-queries`
+kertoo kentässä `workcopy`, onko version malli siellä, `/readyz` raportoi
+työkopion tilan olematta siitä riippuvainen, ja kyvykkyysdokumentti kertoo
+kentässä `ifcgraph.workcopy`, onko sellainen määritetty.
+
+```sh
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml:docker/compose.workcopy.yaml
+docker compose up -d
 ```
 
 ## Kyselyt Dataspatiumista

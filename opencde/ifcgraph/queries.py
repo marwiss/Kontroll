@@ -29,6 +29,11 @@ WHERE m.document_id = $document_id AND m.version_index = $version_index AND m.st
 WITH m ORDER BY m.created_at DESC LIMIT 1
 """
 
+#: The same model in the working copy, by the id the archive gave it (ADR 0024).
+WORKCOPY_MODEL = """
+MATCH (m:IfcModel {id: $model_id, state: 'done'})
+"""
+
 _CLASS = re.compile(r"^Ifc[A-Za-z0-9]{1,64}$")
 _GUID = re.compile(r"^[0-9A-Za-z_$]{22}$")
 
@@ -87,6 +92,12 @@ class NamedQuery:
     @property
     def cypher(self) -> str:
         return MODEL + self.body
+
+    @property
+    def cypher_in_workcopy(self) -> str:
+        """The same query on the working copy (ADR 0024), where the archive has already found the model and
+        checked the membership: it names the model by id and holds no accounts."""
+        return WORKCOPY_MODEL + self.body
 
     def bind(self, raw: Mapping[str, str]) -> dict[str, str | None]:
         """The query's parameters from what a client sent; raises :class:`InvalidParameters`."""

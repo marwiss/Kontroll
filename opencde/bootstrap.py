@@ -12,7 +12,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from opencde.graph.dialect import get_dialect
-from opencde.graph.driver import create_driver, ping_within
+from opencde.graph.driver import create_driver, create_workcopy_driver, ping_within
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
 from opencde.logging import get_logger
@@ -41,6 +41,15 @@ async def wait_for_graph(graph: Graph, timeout_seconds: float, step_seconds: flo
 
 def make_graph(settings: Settings) -> Graph:
     return Graph(create_driver(settings), settings.database_name, get_dialect(settings.graph_dialect))
+
+
+def make_workcopy(settings: Settings) -> Graph | None:
+    """The working copy beside the archive (ADR 0024), when one is configured."""
+    if not settings.has_workcopy:
+        return None
+    return Graph(
+        create_workcopy_driver(settings), settings.workcopy_database_name, get_dialect(settings.workcopy_graph_dialect)
+    )
 
 
 def make_storage(settings: Settings) -> LocalStorage:

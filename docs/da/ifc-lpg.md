@@ -431,8 +431,9 @@ skemaet og svarer `400` med, hvad der er galt. Et nyt projekt tillader
 snippettypen; en administrator føjer den til et ældre projekts værdier. Et
 ændringssæt angiver sin basisversion, hvem der foreslog det, med AI-modellen og
 værktøjskaldet, hvor en AI gjorde det, og sine ændringer, hver på én attribut
-hos én instans. Instansen angives med sit STEP-id eller med et GlobalId og en
-sti fra den rodfæstede entitet i IFC's attributnavne med indeks. `set` giver
+hos én instans. Instansen angives med et GlobalId og en sti fra den
+rodfæstede entitet i IFC's attributnavne med indeks, og med sit STEP-id kun,
+når intet GlobalId når den. `set` giver
 attributten en værdi, `add` og `remove` ændrer ét medlem af et aggregat, og
 `copy` beder om en kopi af en instans, som flere deler, og som ellers ændres
 for dem alle. En værdi er en skalar, en instans (`{"step_id": 120}` eller et
@@ -542,6 +543,30 @@ POST /documents/1.0/projects/{project_id}/ifc-clash
 {"a": {"document_id": "…", "version_index": 1, "types": ["IfcWall"]},
  "b": {"document_id": "…", "version_index": 2},
  "mode": "intersection", "tolerance": 0.001}
+```
+
+## Arbejdskopien
+
+Ved siden af arkivet kan serveren holde en arbejdskopi: en anden graf,
+Memgraph i hukommelsen, hvor hovedversionens model for hvert dokument også
+importeres (ADR 0024). Arkivet beholder hver version og forbliver sandheden;
+arbejdskopien holder én model pr. dokument, den senest konverterede, og
+besvarer de navngivne forespørgsler for den, så en stor model læses fra
+hukommelsen. `OPENCDE_WORKCOPY_GRAPH_URI` angiver den
+(`OPENCDE_WORKCOPY_GRAPH_DIALECT`, `_USER`, `_PASSWORD` og `_DATABASE` ved siden
+af); overlejringen `docker/compose.workcopy.yaml` føjer Memgraph til enhver
+stak, uden at den offentliggøres. En konvertering importerer de samme poster i
+begge grafer i IFC-LPG's dialektneutrale form, erstatter dokumentets tidligere
+model i arbejdskopien og fejler aldrig på arbejdskopiens vegne: en kopi, der
+ikke kunne laves, markeres `failed` dér, og arkivet røres ikke. En model,
+arkivet ikke længere har, forlader arbejdskopien ved næste oprydningsrunde.
+`GET …/ifc-queries` siger i `workcopy`, om versionens model er der, `/readyz`
+rapporterer arbejdskopiens tilstand uden at afhænge af den, og
+kapabilitetsdokumentet siger i `ifcgraph.workcopy`, om en er konfigureret.
+
+```sh
+# .env: COMPOSE_FILE=docker/compose.yaml:docker/compose.local.yaml:docker/compose.workcopy.yaml
+docker compose up -d
 ```
 
 ## Forespørgsler fra Dataspatium

@@ -15,10 +15,29 @@ log = get_logger(__name__)
 
 def create_driver(settings: Settings) -> AsyncDriver:
     """Build the driver. No network traffic happens until the first query."""
-    return AsyncGraphDatabase.driver(
+    return make_driver(
         settings.graph_uri,
-        auth=(settings.graph_user, settings.graph_password.get_secret_value()),
-        connection_timeout=settings.graph_connect_timeout_seconds,
+        settings.graph_user,
+        settings.graph_password.get_secret_value(),
+        settings.graph_connect_timeout_seconds,
+    )
+
+
+def create_workcopy_driver(settings: Settings) -> AsyncDriver:
+    """The driver of the working copy (ADR 0024); the caller checks that one is configured."""
+    return make_driver(
+        settings.workcopy_graph_uri or "",
+        settings.workcopy_graph_user,
+        settings.workcopy_graph_password.get_secret_value(),
+        settings.graph_connect_timeout_seconds,
+    )
+
+
+def make_driver(uri: str, user: str, password: str, connect_timeout_seconds: float) -> AsyncDriver:
+    return AsyncGraphDatabase.driver(
+        uri,
+        auth=(user, password),
+        connection_timeout=connect_timeout_seconds,
         max_connection_lifetime=30 * 60,
         user_agent="dataregium-opencde",
         # Neo4j sends advisory notifications (for example "property does not
