@@ -154,6 +154,9 @@ omaa osoitetta.
   entiteetille.
 - Kokoelmat hyväksyvät OData-kyselyt: `$filter` (esim. `topic_status eq
   'Open' and labels/any(l: l eq 'Safety')`), `$orderby`, `$top`, `$skip`.
+- Luettelossa ilman `$top`-arvoa tai sitä suuremmalla kuin 1000 on enintään 1000
+  merkintää. Kun osumia on enemmän, vastauksessa on `X-Total-Count` niiden määrällä ja
+  `Link: <…>; rel="next"` loppujen osoitteella (laajennus).
 - `PUT` korvaa koko objektin: lähetä jokainen kenttä, jonka haluat säilyttää.
 - Viewpointien kuvat ovat base64-koodattua PNG:tä tai JPEG:tä; palvelin
   tarkistaa tavut.
@@ -239,6 +242,10 @@ kääntää, kun `message` pysyy englanninkielisenä lauseena ihmisille:
 ```json
 {"message": "This operation needs the 'admin' scope", "code": "insufficient_scope"}
 ```
+
+API-dokumentti (`/openapi.json`) ilmoittaa pyynnölle, jota palvelin ei pysty
+lukemaan, `400` tällä rungolla, kuten palvelin vastaa, siinä missä FastAPI itse
+ilmoittaisi `422`.
 
 | `code` | Tila | Milloin | Mitä asiakas tekee |
 |---|---|---|---|
