@@ -40,6 +40,7 @@ OTHER_ROUTES = {
     ("PUT", "/bcf/2.1/projects/{project_id}/topics/events"),
     ("DELETE", "/bcf/2.1/projects/{project_id}/topics/events"),
     ("GET", "/documents/1.0/projects/{project_id}/ifc-merge/report"),  # "report" is then a merge id
+    ("GET", "/documents/1.0/projects/{project_id}/ifc-merge/prepare"),  # and "prepare"
 }
 
 

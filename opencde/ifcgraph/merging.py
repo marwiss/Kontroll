@@ -8,6 +8,10 @@ for each (``a``, ``b`` or ``new``). ``merge_building`` makes the merged model C 
 and B. Here a ``manager`` of A's project runs it as a job: C is written out as a file, the file becomes the next
 version of A's document, with A's version as its parent, and is converted and checked as an upload is; C itself is
 then taken out of the graph again, and A and B do not change.
+
+Where B's schema or length unit is not A's, ``prepare_other`` first makes a copy of B migrated to A's schema and
+with its lengths in A's unit (IFC-LPG F25 a), as a job of its own whose model stands in for B in the report and the
+merge for a day, and is then taken out by the cleanup.
 """
 
 from __future__ import annotations
@@ -22,7 +26,7 @@ from typing import TYPE_CHECKING, Any
 
 from ifc_lpg.files import Limits
 from ifc_lpg.importer import delete_model
-from ifc_lpg.merge import MergeConflict, MergeError, merge_building, merge_report
+from ifc_lpg.merge import MergeConflict, MergeError, merge_building, merge_report, prepare_other
 from ifc_lpg.validation import pack_report, unpack_report
 
 from opencde.documents.repository import DocumentRepository, default_metadata
@@ -42,6 +46,10 @@ STATE_RUNNING = "running"
 STATE_DONE = "done"
 STATE_FAILED = "failed"
 STATE_CONFLICT = "conflict"  # objects of both models differ, and no choice was made for them
+STATE_EXPIRED = "expired"  # a prepared model taken out again
+KIND_MERGE = "merge"
+KIND_PREPARE = "prepare"  # B made ready for A: migrated to its schema, with its lengths in its unit
+PREPARED_SECONDS = 24 * 3600  # how long a prepared model stands in for B
 
 
 def limits_of(service: IfcGraphService) -> Limits:
@@ -66,18 +74,22 @@ async def report(service: IfcGraphService, request: dict[str, Any]) -> dict[str,
     )
 
 
-async def schedule(service: IfcGraphService, *, project_id: str, author: str, request: dict[str, Any]) -> str:
-    """Queue a merge into a project; returns the merge's id."""
+async def schedule(
+    service: IfcGraphService, *, project_id: str, author: str, request: dict[str, Any], kind: str = KIND_MERGE
+) -> str:
+    """Queue a merge into a project, or the preparation of B for one (``kind``); returns the job's id."""
     merge_id = new_id()
     await service.graph.run(
         """
         MATCH (p:Project {project_id: $project_id})
         CREATE (p)-[:HAS_MERGE]->(:IfcMerge {
-            id: $id, project_id: $project_id, state: $state, request: $request, author: $author, created_at: $now
+            id: $id, project_id: $project_id, kind: $kind, state: $state, request: $request, author: $author,
+            created_at: $now
         })
         """,
         project_id=project_id,
         id=merge_id,
+        kind=kind,
         state=STATE_QUEUED,
         request=json.dumps(request, separators=(",", ":")),
         author=author,
@@ -110,7 +122,7 @@ async def run(service: IfcGraphService, merge_id: str) -> None:
             """
             MATCH (j:IfcMerge {id: $id, state: $queued})
             SET j.state = $running, j.running_at = $now, j.model_id = $model_id
-            RETURN j.project_id AS project_id, j.request AS request, j.author AS author
+            RETURN j.project_id AS project_id, j.request AS request, j.author AS author, j.kind AS kind
             """,
             id=merge_id,
             queued=STATE_QUEUED,
@@ -122,6 +134,9 @@ async def run(service: IfcGraphService, merge_id: str) -> None:
             return
         project_id, author = str(rows[0]["project_id"]), str(rows[0]["author"])
         request = json.loads(rows[0]["request"])
+        if rows[0]["kind"] == KIND_PREPARE:
+            await _prepare(service, merge_id, request, model_id)
+            return
         try:
             merged = await merge_building(
                 service.graph,
@@ -155,6 +170,47 @@ async def run(service: IfcGraphService, merge_id: str) -> None:
         merged.pop("model", None)
         await _set(service, merge_id, STATE_DONE, version_index=version_index, report=pack_report([merged]))
         log.info("ifc_merge_done", merge_id=merge_id, version_index=version_index)
+
+
+async def _prepare(service: IfcGraphService, merge_id: str, request: dict[str, Any], model_id: str) -> None:
+    """B migrated to A's schema and with its lengths in A's unit, as the model ``model_id``, for a day."""
+    try:
+        prepared = await prepare_other(
+            service.graph,
+            request["other"]["model_id"],
+            model_id,
+            base_id=request["base"]["model_id"],
+            limits=limits_of(service),
+        )
+    except Exception as exc:
+        await _set(service, merge_id, STATE_FAILED, error=f"{type(exc).__name__}: {exc}"[:500])
+        log.warning("ifc_merge_prepare_failed", merge_id=merge_id, error=type(exc).__name__)
+        await _drop(service, model_id)
+        return
+    prepared.pop("model", None)
+    await _set(service, merge_id, STATE_DONE, expires_at=later_iso(PREPARED_SECONDS), report=pack_report([prepared]))
+    log.info("ifc_merge_prepared", merge_id=merge_id)
+
+
+async def prepared(
+    service: IfcGraphService, *, user_id: str, project_id: str, prepare_id: str
+) -> dict[str, Any] | None:
+    """A preparation of this project that is done and has not expired: its model's id and what it was asked for."""
+    row = await service.graph.one(
+        """
+        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
+              -[:HAS_MERGE]->(j:IfcMerge {id: $id, kind: $kind, state: $done})
+        WHERE j.expires_at > $now
+        RETURN j.model_id AS model_id, j.request AS request
+        """,
+        user_id=user_id,
+        project_id=project_id,
+        id=prepare_id,
+        kind=KIND_PREPARE,
+        done=STATE_DONE,
+        now=now_iso(),
+    )
+    return {"model_id": row["model_id"], "request": json.loads(row["request"])} if row else None
 
 
 async def _drop(service: IfcGraphService, model_id: str) -> None:
@@ -270,7 +326,9 @@ async def job(service: IfcGraphService, *, user_id: str, project_id: str, merge_
     found = unpack_report(node.get("report"))
     return {
         "merge_id": node["id"],
+        "kind": node.get("kind") or KIND_MERGE,
         "state": node["state"],
+        "expires_at": node.get("expires_at"),
         "author": node.get("author"),
         "created_at": node.get("created_at"),
         "finished_at": node.get("finished_at"),
@@ -286,8 +344,18 @@ async def job(service: IfcGraphService, *, user_id: str, project_id: str, merge_
 
 
 async def resume(service: IfcGraphService) -> None:
-    """After a stop: a merge that was running is failed and its C taken out, and a queued one starts."""
+    """After a stop: a job that was running is failed and its model taken out, and a queued one starts. Each round,
+    a prepared model whose day is over is taken out too."""
     given_up = later_iso(-2 * float(service.settings.ifcgraph_timeout_seconds))
+    expired = await service.graph.run(
+        "MATCH (j:IfcMerge {kind: $kind, state: $done}) WHERE j.expires_at <= $now RETURN j.id AS id, j.model_id AS model_id",
+        kind=KIND_PREPARE,
+        done=STATE_DONE,
+        now=now_iso(),
+    )
+    for row in expired:
+        await _drop(service, str(row["model_id"]))
+        await _set(service, str(row["id"]), STATE_EXPIRED)
     rows = await service.graph.run(
         """
         MATCH (j:IfcMerge)

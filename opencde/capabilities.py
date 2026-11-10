@@ -161,6 +161,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "enabled": True,
                     "url": "/documents/1.0/projects/{project_id}/ifc-merge",
                     "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report",
+                    "prepare_url": "/documents/1.0/projects/{project_id}/ifc-merge/prepare",
                     "choices": ["a", "b", "new"],
                     "roles": ["manager"],
                 }

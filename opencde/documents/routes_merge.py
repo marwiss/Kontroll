@@ -10,6 +10,10 @@ place, ``new`` keeps both with a new GlobalId for B's). ``POST …/ifc-merge`` l
 it, with a choice for each object that differs or one ``default`` for them all, as a job: the merged model is checked
 against A and B, written out, made the next version of A's document with A's version as its parent, and converted
 and checked as an upload is. ``GET …/ifc-merge/{id}`` follows the job.
+
+Where B's schema or length unit is not A's, ``POST …/ifc-merge/prepare`` first makes a copy of B migrated to A's
+schema and with its lengths in A's unit (IFC-LPG F25 a), as a job of its own; its id, given as ``other.prepared``,
+makes that copy stand in for B in the report and the merge for a day.
 """
 
 from __future__ import annotations
@@ -50,6 +54,17 @@ class IfcMergeOther(BaseModel):
     project_id: str = Field(max_length=64, description="The project of model B; this project or another of yours.")
     document_id: str = Field(max_length=64, description="The document of model B.")
     version_index: int = Field(ge=1, le=1_000_000_000, description="B's version.")
+    prepared: str | None = Field(
+        None,
+        max_length=64,
+        description="A preparation of this version of B for this base (`POST …/ifc-merge/prepare`), done: its copy of "
+        "B, migrated to A's schema and with A's length unit, stands in for B.",
+    )
+
+
+class IfcMergePrepareRequest(BaseModel):
+    base: IfcMergeBase
+    other: IfcMergeOther
 
 
 class IfcMergeRequest(BaseModel):
@@ -67,9 +82,12 @@ class IfcMergeRequest(BaseModel):
 
 class IfcMergeJob(BaseModel):
     merge_id: str
+    kind: str = Field(description="`merge`, or `prepare` for a copy of B made ready for A.")
     state: str = Field(
-        description="`queued`, `running`, `done`, `conflict` (a differing object has no choice) or `failed`."
+        description="`queued`, `running`, `done`, `conflict` (a differing object has no choice), `failed`, or `expired` "
+        "for a prepared copy whose day is over."
     )
+    expires_at: str | None = Field(None, description="Until when a prepared copy stands in for B.")
     author: str | None = None
     created_at: str | None = None
     finished_at: str | None = None
@@ -102,9 +120,10 @@ async def _service(
 
 
 async def _resolved(
-    service: IfcGraphService, principal: Principal, project_id: str, body: IfcMergeRequest
+    service: IfcGraphService, principal: Principal, project_id: str, body: IfcMergeRequest | IfcMergePrepareRequest
 ) -> dict[str, Any]:
-    """The request with the converted models of both versions, each found from the caller's own memberships."""
+    """The request with the converted models of both versions, each found from the caller's own memberships, and a
+    prepared copy of B in B's place where one is named."""
     spec = body.model_dump()
     sides = (("base", project_id), ("other", body.other.project_id))
     for side, side_project in sides:
@@ -121,6 +140,24 @@ async def _resolved(
             raise HTTPException(404, f"No converted model of the {side} version")
         spec[side]["model_id"] = model["id"]
     spec["other"]["project_id"] = normalize_guid(body.other.project_id)
+    prepare_id = spec["other"].pop("prepared", None)
+    if prepare_id is not None:
+        found = (
+            await merging.prepared(
+                service, user_id=principal.user_id, project_id=project_id, prepare_id=normalize_guid(prepare_id)
+            )
+            if is_uuid(prepare_id)
+            else None
+        )
+        same = found is not None and all(
+            found["request"][side][key] == spec[side][key]
+            for side, keys in (("base", ("document_id", "version_index")), ("other", ("document_id", "version_index")))
+            for key in keys
+        )
+        if found is None or not same:
+            raise HTTPException(404, "No prepared copy of that version of B for that base; prepare it again")
+        spec["other"]["model_id"] = found["model_id"]
+        spec["other"]["prepared"] = normalize_guid(prepare_id)
     return spec
 
 
@@ -208,6 +245,42 @@ async def start_merge(
     return IfcMergeJob(**found, url=_url(request, pid, merge_id))
 
 
+@router.post(
+    "/projects/{project_id}/ifc-merge/prepare",
+    summary="Make a copy of B ready for a merge: migrated to A's schema, with its lengths in A's unit",
+    response_model=IfcMergeJob,
+    response_model_exclude_none=True,
+    status_code=202,
+)
+async def start_prepare(
+    request: Request,
+    response: Response,
+    principal: DocumentsPrincipal,
+    project_id: ProjectId,
+    body: IfcMergePrepareRequest,
+    ifcgraph: IfcGraphDep,
+    settings: SettingsDep,
+    users: UsersDep,
+) -> IfcMergeJob:
+    """For an `editor` or a `manager` of this project who is a member of B's project. The copy is made in the
+    background; when the answer's `url` says `done`, give its `merge_id` as `other.prepared` to the report and the
+    merge, until `expires_at`. Units other than the length unit that differ make it `failed`, with the reason."""
+    service, pid, role = await _service(ifcgraph, settings, users, principal.user_id, project_id)
+    if not at_least(role, Role.EDITOR):
+        raise HTTPException(403, "Only an editor or a manager prepares a model for a merge")
+    if body.other.prepared is not None:
+        raise HTTPException(400, "A prepared copy is not prepared again; name B's version")
+    spec = await _resolved(service, principal, pid, body)
+    job_id = await merging.schedule(
+        service, project_id=pid, author=principal.username, request=spec, kind=merging.KIND_PREPARE
+    )
+    found = await merging.job(service, user_id=principal.user_id, project_id=pid, merge_id=job_id)
+    if found is None:  # the project vanished under us
+        raise HTTPException(404, "Project not found")
+    response.headers["Location"] = _url(request, pid, job_id)
+    return IfcMergeJob(**found, url=_url(request, pid, job_id))
+
+
 @router.get(
     "/projects/{project_id}/ifc-merge/{merge_id}",
     summary="A merge into this project, and what it did",
@@ -230,6 +303,6 @@ async def get_merge(
     found = await merging.job(service, user_id=principal.user_id, project_id=pid, merge_id=normalize_guid(merge_id))
     if found is None:
         raise HTTPException(404, "Merge not found")
-    if found.get("report") is not None and found.get("base") is not None:
+    if found.get("report") is not None and found.get("base") is not None and found["kind"] == merging.KIND_MERGE:
         found["report"] = _public(found["report"], found)
     return IfcMergeJob(**found, url=_url(request, pid, found["merge_id"]))
