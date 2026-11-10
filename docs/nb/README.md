@@ -182,6 +182,7 @@ med den samme versjonen av Dataspatium.
 - **Administrasjon** i nettleseren (`/admin`) og på kommandolinjen: brukere og
   prosjektrollene deres, prosjekter, klienter, sesjoner, revisjonsloggen og
   helsekontrollene; hver bruker har `/account` for eget passord og egne apper.
+  En `manager` administrerer medlemmene og rollene i sitt eget prosjekt.
 - **Tillegg**, merket som det: et kapabilitetsdokument
   (`/.well-known/dataregium`), en stabil feilkode i hvert feilsvar og en
   forespørselslogg for feilsøking av klienter.
@@ -205,9 +206,13 @@ med den samme versjonen av Dataspatium.
   kontrolleres først.
 - **Spørsmål til modellen** for medlemmer: navngitte spørringer, hva som er
   endret siden en versjon, sammenligning av to versjoner og kollisjonskontroll.
+- **Geometrien som glTF**: hver versjon som binær glTF med delte mesher og en
+  node per bygningsdel, og en boks per bygningsdel i grafen for spørsmål om hva
+  som er nær.
 - **Endringer som forslag**: et endringssett i en BCF-sak prøves mot sin
   basisversjon, og en `manager` godkjenner det til neste versjon, slått sammen
-  med det som kom imellom.
+  med det som kom imellom; en kollisjon viser verdien i basen, i den siste
+  versjonen og i forslaget.
 - **En lokal motor** på din egen datamaskin bak Dataspatium, med en arbeidskopi
   i minnet for store modeller, og opplasting uten nettsiden for godkjente
   klienter.

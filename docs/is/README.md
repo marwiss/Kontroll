@@ -182,7 +182,7 @@ við sömu útgáfu af Dataspatium.
 - **Stjórnun** í vafranum (`/admin`) og á skipanalínunni: notendur og hlutverk
   þeirra í verkefnum, verkefni, biðlarar, lotur, endurskoðunarskráin og
   heilsuprófanirnar; hver notandi hefur `/account` fyrir eigið lykilorð og eigin
-  forrit.
+  forrit. `manager` stjórnar meðlimum og hlutverkum í eigin verkefni.
 - **Viðbætur**, merktar sem slíkar: getuskjal (`/.well-known/dataregium`),
   stöðugur villukóði í hverju villusvari og beiðnaskrá til villuleitar biðlara.
 - **Biðlarasafn** í Python ([client/](../../client/)) með keyranlegum dæmum, og
@@ -205,9 +205,13 @@ við sömu útgáfu af Dataspatium.
   skrá.
 - **Spurningar til líkansins** fyrir meðlimi: nefndar fyrirspurnir, hvað hefur
   breyst frá útgáfu, samanburður tveggja útgáfna og árekstrarprófun.
+- **Rúmfræðin sem glTF**: hver útgáfa sem tvíundar-glTF með samnýttum möskvum og
+  hnút á hvern byggingarhluta, og kassi á hvern byggingarhluta í netinu fyrir
+  spurningar um hvað er nálægt.
 - **Breytingar sem tillögur**: breytingasafn í BCF-máli er prófað gagnvart
   grunnútgáfu sinni og `manager` samþykkir það sem næstu útgáfu, sameinað því
-  sem kom á milli.
+  sem kom á milli; árekstur sýnir gildi grunnsins, nýjustu útgáfunnar og
+  tillögunnar.
 - **Staðbundin vél** á þinni eigin tölvu á bak við Dataspatium, með vinnueintak
   í minni fyrir stór líkön, og upphleðsla án vefsíðunnar fyrir samþykkta
   biðlara.

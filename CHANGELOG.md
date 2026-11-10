@@ -8,7 +8,17 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## Unreleased
+## 3.0.0 — 2026-11-10
+
+Released again on 2026-11-10 (the fourth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and
+earlier on 2026-11-10 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
+and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
+upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
+the merge, the version nodes and the diff between two versions, the local engine, the working copy, headless
+uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per element in the graph, the merge by
+instance with the three values of a conflict, the administration of a project by its managers, and a server in a
+cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
 - The production overlay starts without `OPENCDE_ACME_EMAIL`: Caddy refused an empty `email` and did not start, so
   the address was in practice required. The backup sidecar no longer inherits the image's health check, which asked
@@ -43,16 +53,6 @@ the commit history.
 - IFC-LPG's form version 2: a styled item (`IfcStyledItem`) is always a node in the skeleton form, so that every
   style can be changed, and a path reaches a mesh's style and layer from an instance in a block; new conversions
   carry `form_version` 2, and models converted before keep form 1. IFC-LPG is locked at 6a8e2cb.
-
-## 3.0.0 — 2026-11-10
-
-Released again on 2026-11-10 (the third time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and
-earlier on 2026-11-10 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
-can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
-and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
-upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
-the merge, the version nodes and the diff between two versions, the local engine, the working copy, headless
-uploads, and IFC-LPG's labels without Ifc. Works with Dataspatium 3.0.0.
 
 - IFC-LPG names its own labels without Ifc (its release of 2026-11-10): `Model` and `Entity` instead of `IfcModel`
   and `IfcEntity`; `StepBlock`, `model_id`, `step_id`, the relationships and the properties are as before, and a

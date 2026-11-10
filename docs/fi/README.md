@@ -187,7 +187,8 @@ yhteen saman Dataspatiumin version kanssa.
 - **Hallinta** selaimessa (`/admin`) ja komentorivillä: käyttäjät ja heidän
   projektiroolinsa, projektit, asiakkaat, istunnot, tarkastusloki ja
   terveystarkistukset; jokaisella käyttäjällä on `/account` omaa salasanaa ja
-  omia sovelluksia varten.
+  omia sovelluksia varten. `manager` hallitsee oman projektinsa jäseniä ja
+  rooleja.
 - **Laajennukset**, sellaisiksi merkittyinä: kyvykkyysasiakirja
   (`/.well-known/dataregium`), vakaa virhekoodi jokaisessa virhevastauksessa ja
   pyyntöloki asiakkaiden vianetsintään.
@@ -211,9 +212,13 @@ yhteen saman Dataspatiumin version kanssa.
   tarkistaa ensin.
 - **Kysymyksiä mallille** jäsenille: nimetyt kyselyt, mikä on muuttunut jonkin
   version jälkeen, kahden version vertailu ja törmäystarkastus.
+- **Geometria glTF:nä**: jokainen versio binäärisenä glTF:nä jaetuin meshein ja
+  solmu rakennusosaa kohti, sekä laatikko rakennusosaa kohti graafissa
+  läheisyyttä koskevia kysymyksiä varten.
 - **Muutokset ehdotuksina**: BCF-asian muutosjoukko kokeillaan perusversiota
   vasten, ja `manager` hyväksyy sen seuraavaksi versioksi yhdistettynä siihen,
-  mitä välissä tuli.
+  mitä välissä tuli; törmäys näyttää perusversion, uusimman version ja
+  ehdotuksen arvon.
 - **Paikallinen moottori** omalla tietokoneellasi Dataspatiumin takana, suurille
   malleille työkopio muistissa, ja lähetys ilman verkkosivua hyväksytyille
   asiakkaille.

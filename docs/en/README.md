@@ -180,6 +180,7 @@ version of Dataspatium.
 - **Administration** in the browser (`/admin`) and on the command line: users
   and their project roles, projects, clients, sessions, the audit log and the
   health checks; every user has `/account` for their password and applications.
+  A `manager` manages the members and roles of their own project.
 - **Extensions**, marked as such: a capabilities document
   (`/.well-known/dataregium`), a stable error code in every error body and a
   request log for debugging clients.
@@ -204,9 +205,13 @@ version of Dataspatium.
   checked first.
 - **Questions to the model** for members: named queries, what changed since a
   version, comparison of two versions and a clash check.
+- **The geometry as glTF**: every version as binary glTF with shared meshes and
+  a node per element, and a box per element in the graph for questions about
+  what is near.
 - **Changes as proposals**: a change set in a BCF topic is tried on its base
   version, and a `manager` approves it into the next version, merged with what
-  came between.
+  came between; a conflict shows the base's, the latest version's and the
+  proposal's value.
 - **A local engine** on your own computer behind Dataspatium, with a working
   copy in memory for large models, and uploads without the browser page for
   approved clients.
