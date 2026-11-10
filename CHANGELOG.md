@@ -8,7 +8,15 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## Unreleased
+## 3.0.0 — 2026-11-10
+
+Released again on 2026-11-10 (the third time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and
+earlier on 2026-11-10 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
+and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
+upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
+the merge, the version nodes and the diff between two versions, the local engine, the working copy, headless
+uploads, and IFC-LPG's labels without Ifc. Works with Dataspatium 3.0.0.
 
 - IFC-LPG names its own labels without Ifc (its release of 2026-11-10): `Model` and `Entity` instead of `IfcModel`
   and `IfcEntity`; `StepBlock`, `model_id`, `step_id`, the relationships and the properties are as before, and a
@@ -52,15 +60,6 @@ the commit history.
   gets a comment with the version's address and the status `Closed` where the project has it. `412
   version_conflict` when the document has moved on since the base, `409` when the trial is not clean.
   `ifc_changes` in the capabilities document carries `approve_url`.
-## 3.0.0 — 2026-11-10
-
-Released again on 2026-11-10 under the name Dataregium, in step with Dataspatium 3.0.0; the release of
-2026-11-08 is withdrawn and its notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
-can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
-and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
-upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version. Works with
-Dataspatium 3.0.0.
-
 - A change set is tried on its base version when it is uploaded as a topic's snippet and the IFC-LPG module is
   on: a worker applies the changes to the base version's file, the result gets the checks an upload gets, and
   `GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal` gives the trial: `clean` when every change applied and
