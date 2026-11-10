@@ -11,6 +11,11 @@ updates:
     groups:
       python-minor-and-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # openapi-core 0.23 holds it below 0.9, so a bump of its own cannot be resolved and failed the job;
+      # it moves with openapi-core instead.
+      - dependency-name: "openapi-spec-validator"
+        versions: [">=0.9"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
