@@ -159,6 +159,9 @@ omdirigeringa, ikkje berre mot skjemaet si eiga adresse.
   entitet.
 - Samlingar godtek OData: `$filter` (t.d. `topic_status eq 'Open' and
   labels/any(l: l eq 'Safety')`), `$orderby`, `$top`, `$skip`.
+- Ei liste utan `$top`, eller med ein større enn 1000, har høgst 1000 postar. Når
+  fleire treffer, har svaret `X-Total-Count` med talet på dei og
+  `Link: <…>; rel="next"` med adressa til resten (ei utviding).
 - `PUT` erstattar heile objektet: send kvart felt du vil halde på.
 - Bilete i viewpoints er base64-koda PNG eller JPEG; serveren sjekkar
   bytane.
@@ -280,6 +283,10 @@ menneske:
 ```json
 {"message": "This operation needs the 'admin' scope", "code": "insufficient_scope"}
 ```
+
+API-dokumentet (`/openapi.json`) oppgjev `400` med denne kroppen for ein
+førespurnad serveren ikkje kan lese, slik serveren svarar, der FastAPI sjølv ville
+oppgje `422`.
 
 | `code` | Status | Når | Kva ein klient gjer |
 |---|---|---|---|

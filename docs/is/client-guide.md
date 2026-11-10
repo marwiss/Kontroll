@@ -158,6 +158,9 @@ nefnir líka uppruna redirect-URI þíns (eða callback-URL), svo vafrinn fylgi
   einingu.
 - Söfn taka við OData: `$filter` (t.d. `topic_status eq 'Open' and
   labels/any(l: l eq 'Safety')`), `$orderby`, `$top`, `$skip`.
+- Listi án `$top`, eða með stærra en 1000, hefur í mesta lagi 1000 færslur. Þegar
+  fleiri passa ber svarið `X-Total-Count` með fjölda þeirra og `Link: <…>; rel="next"`
+  með slóð afgangsins (viðbót).
 - `PUT` kemur í stað alls hlutarins: sendu hvert svið sem þú vilt halda.
 - Myndir í viewpoint eru base64-kóðuð PNG eða JPEG; þjónninn athugar bætin.
 - Hvert `GET` ber `ETag`; `If-None-Match` svarar `304`.
@@ -276,6 +279,10 @@ brugðist við eða þýtt, meðan `message` er áfram ensk setning fyrir fólk:
 ```json
 {"message": "This operation needs the 'admin' scope", "code": "insufficient_scope"}
 ```
+
+API-skjalið (`/openapi.json`) gefur upp `400` með þessu meginmáli fyrir beiðni sem
+þjónninn getur ekki lesið, eins og þjónninn svarar, þar sem FastAPI sjálft myndi
+gefa upp `422`.
 
 | `code` | Staða | Þegar | Hvað biðlari gerir |
 |---|---|---|---|
