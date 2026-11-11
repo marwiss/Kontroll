@@ -10,8 +10,8 @@ the commit history.
 
 ## 3.0.0 — 2026-11-11
 
-Released again on 2026-11-11 (the fifth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and
-2026-11-10 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+Released again on 2026-11-11 (the sixth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
+2026-11-10 and earlier on 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
 upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
@@ -40,8 +40,7 @@ cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
   converted and checked as an upload. A conflict names the objects that lack a choice, and a base that is not the
   latest gets 412. Where B's schema or length unit is not A's, `POST …/ifc-merge/prepare` first makes a copy of B
   migrated to A's schema and with A's length unit, which stands in for B for a day. Announced as `ifc_merge`.
-  IFC-LPG is pinned at 749e7cb, where the check of the merged model still refuses `b` or `new` for a single
-  product of an IFC2X3 model; such a job fails with the reason, and nothing becomes a version.
+  IFC-LPG is pinned at 3ecc7e2.
 - A list of topics, comments or events without `$top`, or with one above 1000, still holds at most 1000 entries, and
   now says so when more match: `X-Total-Count` with their number and `Link: <…>; rel="next"` with the address of the
   rest, which a browser may read.
