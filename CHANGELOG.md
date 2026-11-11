@@ -10,7 +10,7 @@ the commit history.
 
 ## 3.0.0 — 2026-11-11
 
-Released again on 2026-11-11 (the seventh time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
+Released again on 2026-11-11 (the eighth time) with Dataspatium 3.0.0; the releases of 2026-11-08,
 2026-11-10 and earlier on 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
@@ -20,6 +20,16 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- A new version of an IDS document has the latest version of every IFC document in the project checked again, at
+  most 500, so that the reports follow the project's requirements as they are now; before, an IDS applied only to
+  the IFC versions uploaded after it.
+- A `manager` sets up the teams of a project under `/manage/1.0/projects/{id}/teams`: a name, a responsible member
+  with at least the role `editor`, the members, and an IDS document of the project that points out the team's part
+  of the model. The trial of a change set lists in `teams` those whose part it touches; a change to the part of one
+  team is approved by that team's responsible alone, and one across several teams' parts, or none, by a `manager`.
+  The capabilities document gives `teams_url` under `project_administration`.
+- A merge compares units by kind, SI base and scale, so that two spellings of the same unit count as one; a class with
+  no counterpart in A's schema stops the preparation of B with what it is. IFC-LPG is pinned at 318d466.
 - The report of a version gets the check `graph` once its model is converted: an instance that nothing with a
   GlobalId reaches is a warning of the kind `reachability`, with its STEP id, and a product whose shape the geometry
   pass could not build is an issue of the kind `geometry`. Neither refuses the file.
