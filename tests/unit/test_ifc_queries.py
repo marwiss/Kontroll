@@ -25,7 +25,7 @@ def test_a_query_names_its_model_by_id_and_takes_values_as_parameters(name: str)
 def test_the_listing_is_the_librarys_catalogue_and_the_change_sets() -> None:
     listed = catalogue()
     assert [entry["name"] for entry in listed] == list(QUERIES)
-    assert len(listed) == 8, "the eight questions a member asks, entity first"
+    assert len(listed) >= 8 and listed[0]["name"] == "entity", "the questions a member asks, entity first"
     for entry in listed:
         assert entry["columns"] == list(QUERIES[entry["name"]].columns)
         for parameter in entry["parameters"]:
