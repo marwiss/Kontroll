@@ -10,7 +10,7 @@ the commit history.
 
 ## 3.0.0 — 2026-11-11
 
-Released again on 2026-11-11 (the eighth time) with Dataspatium 3.0.0; the releases of 2026-11-08,
+Released again on 2026-11-11 (the ninth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
 2026-11-10 and earlier on 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
@@ -20,6 +20,11 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- A preparation of B that meets what A's schema has no equivalent of, such as IFC2X3's IfcWindowStyle in IFC4X3 or
+  the owner histories IFC2X3 requires, ends in `conflict` with the problems and the options for each; a new
+  `POST …/ifc-merge/prepare` with `resolutions` chooses, and an unknown choice is refused with 400. The converted
+  copy is checked against B, and one with issues B did not have is not made (`failed`, with them in `report.new`).
+  IFC-LPG is pinned at d8d75b9.
 - A new version of an IDS document has the latest version of every IFC document in the project checked again, at
   most 500, so that the reports follow the project's requirements as they are now; before, an IDS applied only to
   the IFC versions uploaded after it.
