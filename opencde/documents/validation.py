@@ -152,19 +152,32 @@ class IfcValidationIssue(_Report):
     kind: str = Field(
         description="What found it: `schema`, `entity_rule`, `simpletype_rule` or `global_rule` of the IFC schema, "
         "`gherkin` for one of buildingSMART's ifc-gherkin-rules, `ids` for a specification of one of the project's "
-        "IDS documents, `reachability` for an instance that no GlobalId reaches, or `geometry` for a product whose "
-        "shape the geometry pass could not build."
+        "IDS documents, `bsdd` for a classification reference that buildingSMART's Data Dictionary does not know, or "
+        "a set or a property that its IFC dictionary does not list, `reachability` for an instance that no GlobalId "
+        "reaches, or `geometry` for a product whose shape the geometry pass could not build."
     )
     rule: str | None = Field(
         None,
         description="The code of the gherkin rule, as in `GRP001`, or the identifier of the IDS specification, or "
-        "else its name.",
+        "else its name; for `bsdd`, the dictionary, as in `buildingsmart/ifc/4.3`.",
     )
     severity: str = Field(description="`error` or `warning`.")
     message: str = Field(description="The validator's words, which may quote the file; at most 1,000 characters.")
-    step_id: int | None = Field(None, description="The number of the instance in the file, as in `#123`.")
-    global_id: str | None = Field(None, description="The GlobalId of the instance, when it is a rooted entity.")
-    attribute: str | None = Field(None, description="The attribute the issue is about, when the validator says.")
+    step_id: int | None = Field(
+        None,
+        description="The number of the instance in the file, as in `#123`; for `bsdd`, the classification "
+        "reference or the property set.",
+    )
+    global_id: str | None = Field(
+        None,
+        description="The GlobalId of the instance, when it is a rooted entity; for `bsdd`, of an object the "
+        "reference or set is on, whose class the message names.",
+    )
+    attribute: str | None = Field(
+        None,
+        description="The attribute the issue is about, when the validator says; for `bsdd`, the reference's "
+        "attribute that names the URI, or the set and its property, as in `Pset_WallCommon.Colour`.",
+    )
     document_id: str | None = Field(None, description="For `ids`: the IDS document whose specification found it.")
 
 
@@ -197,10 +210,16 @@ class IfcValidationSpecification(_Report):
 
 
 class IfcValidationCheck(_Report):
-    name: str = Field(description="`schema`, `gherkin`, `ids`, or `graph` for what the converted model shows.")
+    name: str = Field(
+        description="`schema`, `gherkin`, `ids`, `bsdd` for buildingSMART's Data Dictionary, or `graph` for what "
+        "the converted model shows."
+    )
     state: Literal["done", "failed"] = Field(description="`failed` when the check could not be made at all.")
     ruleset: str = Field(description="What the check ran, and which version of it.")
     issue_count: int = Field(description="How many issues this check found.")
+    error: str | None = Field(
+        None, description="For a `failed` check that says why, as `bsdd` does: how bSDD was out of reach."
+    )
     rules_not_run: list[IfcValidationRuleNotRun] = Field(
         default_factory=list,
         description="Rules that raised an exception, so their verdict is unknown, or IDS documents that could not be "

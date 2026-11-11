@@ -56,6 +56,8 @@ SAFE_SETTINGS = (
     "admin_ui_enabled",
     "server_assigned_id_prefix",
     "ifcgraph_enabled",
+    "bsdd_enabled",
+    "bsdd_api_url",
     "request_log_enabled",
     "request_log_retention_hours",
     "cors_origins",

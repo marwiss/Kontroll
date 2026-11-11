@@ -200,6 +200,8 @@
   "docs.details.validation_schema": "IFC-skjemaet",
   "docs.details.validation_message": "Beskrivelse",
   "docs.details.ids_rule": "IDS: {rule}",
+  "docs.details.bsdd": "bSDD",
+  "docs.details.bsdd_rule": "bSDD: {rule}",
   "docs.details.ids_title": "IDS-kontroll",
   "docs.details.ids_lead": "Hver spesifikasjon i prosjektets IDS-dokumenter, i den versjonen som var den nyeste da filen ble kontrollert.",
   "docs.details.ids_specification": "Spesifikasjon",

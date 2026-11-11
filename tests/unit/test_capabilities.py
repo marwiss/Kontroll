@@ -28,6 +28,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifcgraph",
         "ifc_queries",
         "ifc_clash",
+        "ifc_validation",
         "ifc_precheck",
         "project_administration",
         "publication",
@@ -51,6 +52,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifcgraph"] == {"enabled": False, "bolt": None, "workcopy": False}
     assert extensions["ifc_queries"] == {"enabled": False}, "the queries need the IFC-LPG module"
     assert extensions["ifc_clash"] == {"enabled": False}, "the clash check is off until configured"
+    assert extensions["ifc_validation"] == {"enabled": False}, "the checks of an upload need the IFC-LPG module"
     assert extensions["ifc_precheck"] == {"enabled": False}, "the precheck needs the IFC-LPG module"
     assert extensions["ifc_diff"] == {"enabled": False}, "the diff needs the IFC-LPG module"
     assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-LPG module"
@@ -149,3 +151,18 @@ def test_the_named_queries_are_announced_with_the_module(tmp_path: Path) -> None
         assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
     with TestClient(create_app(make_settings(tmp_path, apis=["bcf-2.1"]), startup_wait_seconds=0)) as client:
         assert client.get("/.well-known/dataregium").json()["extensions"]["ifc_queries"] == {"enabled": False}
+
+
+def test_the_checks_of_an_upload_are_announced_with_whether_bsdd_is_asked(tmp_path: Path) -> None:
+    for enabled in (False, True):
+        settings = make_settings(tmp_path, ifcgraph_enabled=True, bsdd_enabled=enabled)
+        with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+            announced = client.get("/.well-known/dataregium").json()["extensions"]["ifc_validation"]
+            assert announced == {
+                "enabled": True,
+                "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation",
+                "bsdd": enabled,
+            }, "bSDD is asked only when the operator turns it on (OB-42)"
+    off = make_settings(tmp_path, ifcgraph_enabled=True, ifcgraph_validate_uploads=False, bsdd_enabled=True)
+    with TestClient(create_app(off, startup_wait_seconds=0)) as client:
+        assert client.get("/.well-known/dataregium").json()["extensions"]["ifc_validation"] == {"enabled": False}

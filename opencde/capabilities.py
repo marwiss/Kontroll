@@ -135,6 +135,15 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 if settings.ifcgraph_enabled and settings.ifcgraph_spatial and settings.offers("documents")
                 else {"enabled": False}
             ),
+            "ifc_validation": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation",
+                    "bsdd": settings.bsdd_enabled,
+                }
+                if settings.ifcgraph_enabled and settings.ifcgraph_validate_uploads and settings.offers("documents")
+                else {"enabled": False}
+            ),
             "ifc_precheck": (
                 {"enabled": True, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"}
                 if settings.ifcgraph_enabled and settings.ifcgraph_validate_uploads and settings.offers("documents")

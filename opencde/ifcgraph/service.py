@@ -8,8 +8,9 @@ imported, and the record ends in state ``done`` or ``failed`` with counts or an
 error. A file uploaded as a document version is also checked against the IFC
 schema (``validation.py``), with the result on a ``Validation`` node below
 the version, which the Documents API shows (ADR 0011), against buildingSMART's
-rules where they are installed (ADR 0012), and against the IDS documents of its
-project (ADR 0015). Two versions are compared for clashes on request, in the
+rules where they are installed (ADR 0012), against the IDS documents of its
+project (ADR 0015), and against buildingSMART's Data Dictionary when enabled
+(OB-42, ``bsdd.py``). Two versions are compared for clashes on request, in the
 same worker pattern (ADR 0019, ``clash.py``). One job runs at a time, the check
 of a file before its conversion.
 """
@@ -44,6 +45,9 @@ from opencde.graph.graph import Graph
 from opencde.graph.schema import SchemaGraph, library_dialect
 from opencde.ids import new_id
 from opencde.ifcgraph import merging
+from opencde.ifcgraph.bsdd import BsddClient, BsddUnavailable
+from opencde.ifcgraph.bsdd import check as check_bsdd
+from opencde.ifcgraph.bsdd import ruleset as bsdd_ruleset
 from opencde.ifcgraph.gltf import LODS, build_glb
 from opencde.logging import get_logger
 from opencde.settings import Settings
@@ -81,8 +85,23 @@ def _failure(exc: Exception) -> dict[str, Any]:
 
 
 def _issue_key(issue: dict[str, Any]) -> tuple[Any, ...]:
-    """What makes a finding the same one in the base and in the proposal: the GlobalId where there is one."""
-    return (issue.get("kind"), issue.get("rule"), issue.get("global_id") or str(issue.get("message", ""))[:200])
+    """What makes a finding the same one in the base and in the proposal: the GlobalId where there is one, and the
+    attribute, which tells apart the properties of one set that bSDD does not list (OB-42)."""
+    return (
+        issue.get("kind"),
+        issue.get("rule"),
+        issue.get("attribute"),
+        issue.get("global_id") or str(issue.get("message", ""))[:200],
+    )
+
+
+def _made(checks: Any, name: str) -> bool:
+    """Whether the stored checks of a report include the check ``name``, made."""
+    try:
+        made = json.loads(checks) if isinstance(checks, str) else []
+        return any(check.get("name") == name and check.get("state") == STATE_DONE for check in made)
+    except (ValueError, AttributeError):
+        return False
 
 
 def _ids_ruleset() -> str:
@@ -132,6 +151,7 @@ class IfcGraphService:
         self.conversions: ConversionStore = ConversionRepository(self.store)
         self.storage = storage
         self.settings = settings
+        self.bsdd: BsddClient | None = None  # made on the first check against bSDD; its cache lives on (OB-42)
         self._tasks: set[asyncio.Task[None]] = set()
         self._lock = asyncio.Semaphore(1)
 
@@ -248,6 +268,8 @@ class IfcGraphService:
         for task in list(self._tasks):
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await task
+        if self.bsdd is not None:
+            await self.bsdd.aclose()
 
     async def wait_idle(self) -> None:
         """For tests: wait until every scheduled conversion has finished."""
@@ -541,7 +563,7 @@ class IfcGraphService:
         return row["of_version"] or row["of_precheck"]
 
     async def _run_checks(self, storage_key: str, file_name: str, project_id: str | None) -> dict[str, Any]:
-        """The IFC schema, buildingSMART's rules and the project's IDS documents on one file.
+        """The IFC schema, buildingSMART's rules, the project's IDS documents and bSDD on one file.
 
         The fields of an ``Validation`` node in state ``done``; an exception when the file could not be checked.
         """
@@ -559,6 +581,7 @@ class IfcGraphService:
             report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
             gherkin = await self._gherkin(source)
             ids = await self._ids(source, await self._ids_documents(project_id) if project_id else [])
+            dictionary = await self._bsdd(source)
         checks: list[dict[str, Any]] = [
             {
                 "name": "schema",
@@ -571,7 +594,7 @@ class IfcGraphService:
         total = int(report["issue_count"])
         errors = int(report.get("error_count", total))
         truncated = bool(report["truncated"])
-        for other in (gherkin, ids):
+        for other in (gherkin, ids, dictionary):
             if other is None:
                 continue
             checks.append(other["check"])
@@ -812,7 +835,8 @@ class IfcGraphService:
                   -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
             OPTIONAL MATCH (v)-[:HAS_VALIDATION]->(r:Validation {state: $done})
             WITH v, r ORDER BY r.created_at DESC
-            RETURN v.storage_key AS storage_key, v.file_name AS file_name, r.report AS base_report
+            RETURN v.storage_key AS storage_key, v.file_name AS file_name, r.report AS base_report,
+                   r.checks AS base_checks
             LIMIT 1
             """,
             project_id=project_id,
@@ -847,13 +871,18 @@ class IfcGraphService:
             summary = json.loads(answer.strip().splitlines()[-1])
             await asyncio.to_thread(self.storage.copy_in, out, key)
             teams, teams_error = await self._parts_touched(project_id, source, out, changes)
+            # A base checked before bSDD was asked, or while it was out of reach, is asked about now, so that the
+            # trial keeps only the findings the change set brings (OB-42).
+            base_bsdd = None
+            if version["base_report"] is not None and not _made(version["base_checks"], "bsdd"):
+                base_bsdd = await self._bsdd(source)
         checked = await self._run_checks(key, "proposal.ifc", project_id)
         if version["base_report"] is None:
             base_issues = unpack_report(
                 (await self._run_checks(str(version["storage_key"]), str(version["file_name"]), project_id))["report"]
             )
         else:
-            base_issues = unpack_report(version["base_report"])
+            base_issues = unpack_report(version["base_report"]) + (base_bsdd["issues"] if base_bsdd else [])
         known = {_issue_key(issue) for issue in base_issues}
         new = [issue for issue in unpack_report(checked["report"]) if _issue_key(issue) not in known]
         problems = [
@@ -1221,6 +1250,41 @@ class IfcGraphService:
             "error_count": int(report["error_count"]),
             "truncated": bool(report["truncated"]),
         }
+
+    def _bsdd_client(self) -> BsddClient:
+        """The client that asks buildingSMART's Data Dictionary, made once per server process for its cache."""
+        if self.bsdd is None:
+            self.bsdd = BsddClient(
+                self.settings.bsdd_api_url,
+                timeout_seconds=self.settings.bsdd_timeout_seconds,
+                cache_seconds=self.settings.bsdd_cache_seconds,
+            )
+        return self.bsdd
+
+    async def _bsdd(self, source: Path) -> dict[str, Any] | None:
+        """The file's references to buildingSMART's Data Dictionary and its Pset_ and Qto_ sets against bSDD, when
+        enabled (OB-42): a worker reads them out of the file, and the client asks bSDD about each URI. None when the
+        check is off. bSDD out of reach, or the lookups outrunning the time limit, fails this check and nothing else;
+        what the file says stays out of the log."""
+        if not self.settings.bsdd_enabled:
+            return None
+        client = self._bsdd_client()
+        timeout = self.settings.ifcgraph_timeout_seconds
+        memory = str(self.settings.ifcgraph_memory_mb)
+        command = [sys.executable, "-m", "opencde.ifcgraph.bsdd_refs", str(source), "--memory-mb", memory]
+        try:
+            answer = await self._in_a_process(command, "reading the bSDD references")
+            found = json.loads(answer.strip().splitlines()[-1])
+            async with asyncio.timeout(timeout):
+                return await check_bsdd(found, client)
+        except Exception as exc:
+            if isinstance(exc, TimeoutError):
+                error = f"the lookups at bSDD exceeded {timeout} s"
+            else:
+                error = str(exc) if isinstance(exc, BsddUnavailable) else f"{type(exc).__name__}: {exc}"
+            log.warning("ifc_bsdd_failed", error=type(exc).__name__)
+        check = {"name": "bsdd", "state": STATE_FAILED, "ruleset": bsdd_ruleset(client.host), "issue_count": 0}
+        return {"check": {**check, "error": error[:300]}, "issues": [], "error_count": 0, "truncated": False}
 
     def _prepare_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
         """The IFC file to convert; an ``.ifczip`` is unpacked with a cap on the unpacked size."""

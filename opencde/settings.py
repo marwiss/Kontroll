@@ -404,6 +404,24 @@ class Settings(BaseSettings):
     ifcgraph_gtin_property: str = Field(
         "GTIN", validation_alias=_ifc("gtin_property"), description="Property within that set."
     )
+    # --- buildingSMART's Data Dictionary (OB-42) ----------------------------
+    bsdd_enabled: bool = Field(
+        False,
+        description="Check the classification references of every IFC upload, and the Pset_ and Qto_ sets of an "
+        "IFC 4.3 file, against buildingSMART's Data Dictionary (bSDD) over the network, as the check `bsdd` of the "
+        "version's report. Off unless the server may reach bSDD.",
+    )
+    bsdd_api_url: str = Field(
+        "https://api.bsdd.buildingsmart.org",
+        description="Where bSDD's API answers: the official release, or https://test.bsdd.buildingsmart.org.",
+    )
+    bsdd_timeout_seconds: float = Field(10.0, gt=0, le=120, description="The time limit of each question to bSDD.")
+    bsdd_cache_seconds: int = Field(
+        86_400,
+        ge=0,
+        description="How long an answer of bSDD is kept in memory, so that a server process asks about a URI once "
+        "a day; 0 asks every time.",
+    )
 
     # --- logging ----------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
@@ -466,6 +484,14 @@ class Settings(BaseSettings):
             raise ValueError(f"OPENCDE_WORKCOPY_GRAPH_URI must use one of {', '.join(GRAPH_URI_SCHEMES)}")
         return value
 
+    @field_validator("bsdd_api_url")
+    @classmethod
+    def _check_bsdd_api_url(cls, value: str) -> str:
+        value = value.strip().rstrip("/")
+        if not value.startswith(("http://", "https://")):
+            raise ValueError("OPENCDE_BSDD_API_URL must start with http:// or https://")
+        return value
+
     @field_validator("graph_public_bolt_url")
     @classmethod
     def _check_public_bolt_url(cls, value: str | None) -> str | None:
@@ -495,6 +521,8 @@ class Settings(BaseSettings):
                 )
             if self.allow_localhost_redirects:
                 raise ValueError("OPENCDE_ALLOW_LOCALHOST_REDIRECTS is only allowed outside production")
+            if self.bsdd_enabled and not self.bsdd_api_url.startswith("https://"):
+                raise ValueError("OPENCDE_BSDD_API_URL must be https in production")
         elif self.environment == "local":
             host = urlsplit(self.public_url).hostname or ""
             if not self.public_url.startswith(("http://", "https://")) or host not in LOOPBACK_HOSTS:

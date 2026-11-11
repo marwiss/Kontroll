@@ -200,6 +200,8 @@
   "docs.details.validation_schema": "IFC schema",
   "docs.details.validation_message": "Description",
   "docs.details.ids_rule": "IDS: {rule}",
+  "docs.details.bsdd": "bSDD",
+  "docs.details.bsdd_rule": "bSDD: {rule}",
   "docs.details.ids_title": "IDS check",
   "docs.details.ids_lead": "Each specification of the project's IDS documents, in the version that was the latest when this file was checked.",
   "docs.details.ids_specification": "Specification",

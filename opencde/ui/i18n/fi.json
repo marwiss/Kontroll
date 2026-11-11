@@ -200,6 +200,8 @@
   "docs.details.validation_schema": "IFC-skeema",
   "docs.details.validation_message": "Kuvaus",
   "docs.details.ids_rule": "IDS: {rule}",
+  "docs.details.bsdd": "bSDD",
+  "docs.details.bsdd_rule": "bSDD: {rule}",
   "docs.details.ids_title": "IDS-tarkistus",
   "docs.details.ids_lead": "Projektin IDS-asiakirjojen jokainen määrittely siinä versiossa, joka oli uusin, kun tiedosto tarkistettiin.",
   "docs.details.ids_specification": "Määrittely",
