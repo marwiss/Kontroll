@@ -8,24 +8,25 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 1.0.0 — 2026-11-10
+## 1.0.0 — 2026-11-11
 
-Released again on 2026-11-10 from the 2.0.0 of the same day (the third time that day), in step with Dataspatium
-1.0.0; the releases earlier that day are withdrawn. It has the administration of a project by its managers, a
-production stack that starts without an e-mail address, the longer waits for Memgraph's storage, a word on a list
-cut at 1000 and 400 in the API document, as 2.0.0 has.
+Released again on 2026-11-11 from the 2.0.0 of the same day, in step with Dataspatium 1.0.0 and its review before
+sharing; the two releases of 2026-11-10 and the one earlier on 2026-11-11 are withdrawn. It has the administration
+of a project by its managers, a production stack that starts without an e-mail address, the longer waits for
+Memgraph's storage, a word on a list cut at 1000 and 400 in the API document, as 2.0.0 has.
 
 The 1 series: a document server for Dataspatium 1. It is the 2.0.0 code with `OPENCDE_APIS=["documents"]` set by the
 image, by `opencde init` and in `.env.example`, so a server offers the Foundation API and the Documents API only;
 `OPENCDE_APIS` in `.env` turns the BCF APIs on. A
 change to the 2 series is released again here under 1.0.0 as well. Works with Dataspatium 1.0.0.
 
-## 2.0.0 — 2026-11-10
+## 2.0.0 — 2026-11-11
 
-Released again on 2026-11-10 under the name Dataregium (the fourth time that day), in step with Dataspatium
-2.0.0; the release of 2026-11-07 and the three earlier on 2026-11-10 are withdrawn and their notes are folded in
-here. Since the release earlier that day it has the administration of a project by its managers, the same as
-3.0.0's. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
+Released again on 2026-11-11 under the name Dataregium, in step with Dataspatium 2.0.0 and its road data,
+files, heights and central banks; the release of 2026-11-07, the four on 2026-11-10 and the one earlier on
+2026-11-11 are withdrawn and their notes are folded in
+here. Since the first release on 2026-11-10 it has the administration of a project by its managers, the same
+as 3.0.0's. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
 project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
 and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
 Dataspatium's, and this release takes the first number again. The commits
