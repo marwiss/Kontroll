@@ -64,6 +64,9 @@ def test_the_server_proposes_removing_what_no_global_id_reaches(ifc_client: tupl
     request = {"document_id": document_id, "version_index": 1}
     viewer = login_as(client, world, "viewer")
     assert client.post(url, json=request, headers=viewer.headers).status_code == 403, "a viewer makes no topic"
+    contributor = login_as(client, world, "contributor")
+    refused = client.post(url, json=request, headers=contributor.headers)
+    assert refused.status_code == 403 and "editor or manager" in refused.json()["message"], "nor proposes (F35 a)"
     made = client.post(url, json=request, headers=editor.headers)
     assert made.status_code == 201, made.text
     proposal = made.json()

@@ -82,3 +82,35 @@ def test_the_schema_is_public_and_the_snippet_is_held_to_it(client: TestClient, 
         client.put(f"{topics}/{other['guid']}/snippet", content=b"ISO-10303-21;", headers=editor.headers).status_code
         == 200
     )
+
+
+def test_only_an_editor_or_a_manager_proposes_a_change_set(client: TestClient, world: World) -> None:
+    """F35 a: a contributor reports and an editor proposes, through BCF API 3.0 and 2.1 alike."""
+    contributor = login_as(client, world, "contributor")
+    editor = login_as(client, world, "editor")
+    snippet = {
+        "snippet_type": SNIPPET_TYPE,
+        "is_external": False,
+        "reference": "changes.json",
+        "reference_schema": f"http://testserver{SCHEMA_PATH}",
+    }
+    topic = make_topic(client, world, contributor, bim_snippet=snippet)  # the topic is the contributor's own
+    body = json.dumps(change_set()).encode()
+    for version in ("3.0", "2.1"):
+        url = f"/bcf/{version}/projects/{world.project_id}/topics/{topic['guid']}/snippet"
+        refused = client.put(url, content=body, headers=contributor.headers)
+        assert refused.status_code == 403 and refused.json()["code"] == "forbidden", version
+        assert "proposing a change set" in refused.json()["message"] and "editor or manager" in refused.text
+    url = f"/bcf/3.0/projects/{world.project_id}/topics/{topic['guid']}/snippet"
+    assert client.get(url, headers=editor.headers).status_code == 404, "nothing was kept"
+    assert client.put(url, content=body, headers=editor.headers).status_code == 200, "an editor proposes it"
+
+    # A contributor still uploads a snippet of another type to a topic of their own.
+    other = make_topic(
+        client,
+        world,
+        contributor,
+        bim_snippet={"snippet_type": ".ifc", "is_external": False, "reference": "m.ifc", "reference_schema": "x"},
+    )
+    url = f"/bcf/3.0/projects/{world.project_id}/topics/{other['guid']}/snippet"
+    assert client.put(url, content=b"ISO-10303-21;", headers=contributor.headers).status_code == 200

@@ -65,12 +65,13 @@ async def unreachable_proposal(
     """A topic with a change set that deletes, by STEP id, every instance of the version that nothing with a GlobalId
     reaches, tried on the version like any change set; a `manager` approves it into the next version.
 
-    Needs the `bcf` scope and the `createTopic` action. 404 when the version has no converted model, 409 when
-    nothing in it is out of reach.
+    Needs the `bcf` scope and the `createTopic` action, and the role `editor` or `manager`, who propose change sets.
+    404 when the version has no converted model, 409 when nothing in it is out of reach.
     """
     if ifcgraph is None or not settings.ifcgraph_enabled:
         raise HTTPException(404, "The IFC-LPG module is off on this server")
     ctx.require(ctx.can("createTopic", entity="project"), "createTopic")
+    ctx.require_proposer()
     if not is_uuid(body.document_id):
         raise HTTPException(404, "No converted model of that version")
     model = await ifcgraph.model_of_version(

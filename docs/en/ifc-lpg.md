@@ -499,6 +499,11 @@ the form.
 }
 ```
 
+Only an `editor` or a `manager` of the project proposes a change set (ADR 0028):
+a `contributor` who uploads one, even to a topic of their own, gets `403` with
+the reason, and nothing is kept, while a snippet of another type is uploaded as
+before. The same holds for the change set the server proposes below.
+
 `delete` removes an instance named by its STEP id that nothing refers to, such as one that no GlobalId reaches;
 an instance something still refers to is skipped and named in the trial. The server proposes such a change set
 itself with `POST /documents/1.0/projects/{id}/ifc-unreachable` and the version as `document_id` and

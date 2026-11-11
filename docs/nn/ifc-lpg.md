@@ -507,6 +507,12 @@ prøvd når forslaget blir prøvd, det neste steget; i dag held serveren forma.
 }
 ```
 
+Berre ein `editor` eller ein `manager` i prosjektet føreslår eit endringssett
+(ADR 0028): ein `contributor` som lastar opp eitt, også til si eiga sak, får
+`403` med grunngjevinga, og ingenting blir lagra, medan ein snippet av ein annan
+type blir lasta opp som før. Det same gjeld endringssettet som serveren føreslår
+nedanfor.
+
 `delete` fjernar ein instans som blir peika ut med STEP-id-en sin, og som ingenting refererer til, som ein som ingen
 GlobalId når; ein instans som noko framleis refererer til, blir hoppa over og nemnd i prøvinga. Serveren gjer sjølv
 framlegg om eit slikt endringssett med `POST /documents/1.0/projects/{id}/ifc-unreachable` og versjonen som

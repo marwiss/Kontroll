@@ -8,9 +8,9 @@ one project role per user plus authorship of the entity:
 
 * ``viewer``: read everything in the project.
 * ``contributor``: create topics, comments and viewpoints; edit and delete
-  what they created themselves.
+  what they created themselves, but propose no change set.
 * ``editor``: everything a contributor can, on all entities; also upload
-  documents and edit file references.
+  documents, edit file references and propose change sets.
 * ``manager``: everything, including renaming the project, deleting topics
   and managing members.
 
@@ -31,6 +31,8 @@ class Role(StrEnum):
 
 
 _RANK = {Role.VIEWER: 0, Role.CONTRIBUTOR: 1, Role.EDITOR: 2, Role.MANAGER: 3}
+# The least role that proposes a change set (F35 a, ADR 0028): a contributor reports, an editor proposes.
+PROPOSER = Role.EDITOR
 
 PROJECT_ACTIONS_ALL = ("update", "createTopic", "createDocument")
 TOPIC_ACTIONS_ALL = (

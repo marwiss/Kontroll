@@ -15,7 +15,15 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Path
 
-from opencde.accounts.roles import Role, at_least, comment_actions, project_actions, topic_actions, viewpoint_actions
+from opencde.accounts.roles import (
+    PROPOSER,
+    Role,
+    at_least,
+    comment_actions,
+    project_actions,
+    topic_actions,
+    viewpoint_actions,
+)
 from opencde.auth.dependencies import BcfPrincipal
 from opencde.deps import ProjectsDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
@@ -51,6 +59,15 @@ class ProjectContext:
 
     def require_role(self, minimum: Role, action: str) -> None:
         self.require(at_least(self.role, minimum), action)
+
+    def require_proposer(self) -> None:
+        """A change set is an ``editor``'s or a ``manager``'s to propose (F35 a); 403 says so to anyone else."""
+        if not at_least(self.role, PROPOSER):
+            raise HTTPException(
+                403,
+                f"Your role '{self.role.value}' does not allow proposing a change set here; that takes the role "
+                "editor or manager",
+            )
 
     def project_actions(self) -> list[str]:
         return project_actions(self.role)

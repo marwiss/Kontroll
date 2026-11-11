@@ -495,6 +495,11 @@ reynd, næsta skref; í dag heldur þjónninn forminu.
 }
 ```
 
+Aðeins `editor` eða `manager` verkefnisins leggur til breytingasafn (ADR 0028):
+`contributor` sem sendir það, líka í eigið mál, fær `403` með ástæðunni og
+ekkert er geymt, en snippet af annarri gerð er sent eins og áður. Hið sama
+gildir um breytingasafnið sem þjónninn leggur til hér á eftir.
+
 `delete` fjarlægir tilvik sem bent er á með STEP-auðkenni sínu og ekkert vísar til, eins og tilvik sem ekkert GlobalId
 nær; tilvik sem eitthvað vísar enn til er sleppt og nefnt í prófuninni. Þjónninn leggur sjálfur til slíkt
 breytingasafn með `POST /documents/1.0/projects/{id}/ifc-unreachable` og útgáfunni sem `document_id` og

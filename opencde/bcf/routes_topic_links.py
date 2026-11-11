@@ -58,13 +58,16 @@ async def snippet_put(
 ) -> Response:
     """Upload the snippet as the request body. The topic's ``bim_snippet`` must already describe it.
 
-    A snippet of the type `DataregiumIfcChangeSet` is held to the change set's schema
-    (`GET /documents/1.0/ifc-changes/schema`), and 400 says what is wrong with it; when the IFC-LPG module is on,
-    the change set is then tried on its base version (`GET …/ifc-proposal`).
+    A snippet of the type `DataregiumIfcChangeSet` proposes a change set: that takes the role `editor` or `manager`
+    (403 otherwise), the snippet is held to the change set's schema (`GET /documents/1.0/ifc-changes/schema`), and
+    400 says what is wrong with it; when the IFC-LPG module is on, the change set is then tried on its base version
+    (`GET …/ifc-proposal`).
     """
     topic.require_topic_action("updateBimSnippet")
     if topic.topic.bim_snippet is None:
         raise HTTPException(400, "Set bim_snippet on the topic before uploading the snippet file")
+    if topic.topic.bim_snippet.snippet_type == SNIPPET_TYPE:
+        topic.project.require_proposer()  # before a byte of it is kept
     key = make_key("snippets", topic.guid, "bin")
     size = await receive_upload(request, storage, key, settings.max_upload_bytes)
     if topic.topic.bim_snippet.snippet_type == SNIPPET_TYPE:

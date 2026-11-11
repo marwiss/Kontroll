@@ -514,6 +514,11 @@ ehdotusta kokeiltaessa, seuraavassa vaiheessa; tänään palvelin pitää muodon
 }
 ```
 
+Vain projektin `editor` tai `manager` ehdottaa muutosjoukkoa (ADR 0028):
+`contributor`, joka lähettää sellaisen, myös omaan asiaansa, saa vastauksen
+`403` syineen, eikä mitään tallenneta, kun taas muuntyyppinen snippet lähetetään
+kuten ennenkin. Sama koskee muutosjoukkoa, jonka palvelin ehdottaa jäljempänä.
+
 `delete` poistaa STEP-tunnisteellaan osoitetun instanssin, johon mikään ei viittaa, kuten sellaisen, jota mikään GlobalId
 ei tavoita; instanssi, johon jokin vielä viittaa, ohitetaan ja mainitaan kokeilussa. Palvelin ehdottaa itse tällaista
 muutosjoukkoa pyynnöllä `POST /documents/1.0/projects/{id}/ifc-unreachable`, jossa versio annetaan kenttinä

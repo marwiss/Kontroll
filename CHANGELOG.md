@@ -27,6 +27,10 @@ cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
   is audited. Every member reads it with `GET /documents/1.0/projects/{id}/ai-policy` (an extension); the answers
   the OpenCDE specifications define do not carry it. `OPENCDE_MCP_ENABLED`, off by default, announces the MCP
   endpoint for AI programs as `mcp` in the capabilities document: `/mcp`, the revisions of the protocol, newest
+  first, the scopes `mcp` and `mcp:propose`, `default_ai_policy` and the policy's address as `ai_policy_url`. A
+  change set is proposed by an `editor` or a `manager` alone: a `contributor` who uploads one with
+  `PUT …/topics/{guid}/snippet`, through BCF API 3.0 or 2.1, or asks for one with `POST …/ifc-unreachable` gets
+  `403` with the reason; snippets of other types are uploaded as before.
   first, the scopes `mcp` and `mcp:propose`, `default_ai_policy` and the policy's address as `ai_policy_url`.
   the OpenCDE specifications define do not carry it.
 - A change set carries Dataspatium's write tools as `ops` in the form `ops_form` `dataspatium-tools/1`:
