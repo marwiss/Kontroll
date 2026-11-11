@@ -5,10 +5,17 @@ When a topic's ``bim_snippet`` of the type ``DataregiumIfcChangeSet`` is uploade
 server applies the changes to the base version's file in a worker process, runs the checks an upload gets on the
 result and compares the findings with the base version's: the proposal is ``clean`` when every change applied and no
 finding is new, else ``issues``. ``GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal`` gives the trial to every
-member of the project, with the same bearer token as the topic. ``POST …/ifc-proposal/approve`` lets a ``manager``
-make a clean trial the next version of the base document: the applied file becomes the version, with the base,
-the change set and who proposed and approved it in its metadata; the topic gets a comment with the version's
-address and the status ``Closed`` where the project has it. An AI only proposes: approval is a person's.
+member of the project, with the same bearer token as the topic. ``POST …/ifc-proposal/approve`` lets a ``manager``,
+or a team's responsible (below), make a clean trial the next version of the base document: the applied file becomes
+the version, with the base, the change set and who proposed and approved it in its metadata; the topic gets a comment
+with the version's address and the status ``Closed`` where the project has it. An AI only proposes: approval is a
+person's.
+
+Where the project has teams (``accounts/teams.py``), the trial also finds the teams whose part of the model the
+change set touches. A change to the part of one team is approved by that team's responsible alone (F20 a); one that
+touches the parts of several teams, or of none, by a ``manager`` (F21 b), and so is one whose parts could not be
+found. The responsible is the team's at the time of the approval, so a manager who sets another one lets them
+approve.
 
 When the document has moved on since the base, the server merges (ADR 0021): the changes of the versions in
 between, each approved from a change set, are compared attribute by attribute with the proposal's; when none
@@ -30,6 +37,7 @@ from ifc_lpg.validation import pack_report
 from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.accounts.roles import Role, at_least
+from opencde.accounts.teams import TeamRepository, TeamsDep
 from opencde.bcf.comments import CommentsDep
 from opencde.bcf.schemas import CommentPOST, Component, Components, TopicPUT, ViewpointPOST, Visibility
 from opencde.bcf.topic_access import TopicCtx, TopicsDep
@@ -42,6 +50,7 @@ from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion
 from opencde.documents.validation import IfcValidationCheck, IfcValidationIssue
 from opencde.errors import CODE_VERSION_CONFLICT, ApiError
 from opencde.ids import new_id
+from opencde.ifcgraph.parts import owning_objects
 from opencde.ifcgraph.service import STATE_CLEAN, IfcGraphDep, IfcGraphService
 from opencde.storage import LocalStorage, make_key
 
@@ -59,6 +68,11 @@ class IfcProposalBase(BaseModel):
 
     document_id: str
     version_index: int
+
+
+class IfcProposalTeam(BaseModel):
+    team_id: str
+    name: str
 
 
 class IfcProposalReport(BaseModel):
@@ -86,6 +100,10 @@ class IfcProposalReport(BaseModel):
     error: str | None = Field(None, description="Why the trial could not run, when it `failed`.")
     approved_by: str | None = Field(None, description="Who approved it, when it is `approved`.")
     version_index: int | None = Field(None, description="The version it became, when it is `approved`.")
+    teams: list[IfcProposalTeam] = Field(
+        default_factory=list, description="The teams whose part of the model the change set touches."
+    )
+    teams_error: str | None = Field(None, description="Why the teams' parts could not be found, when they could not.")
 
 
 def _report(node: dict[str, Any]) -> IfcProposalReport:
@@ -108,7 +126,30 @@ def _report(node: dict[str, Any]) -> IfcProposalReport:
         error=node.get("error"),
         approved_by=node.get("approved_by"),
         version_index=None if node.get("version_index") is None else int(node["version_index"]),
+        teams=[
+            IfcProposalTeam(team_id=str(team["team_id"]), name=str(team["name"])) for team in node.get("teams") or []
+        ],
+        teams_error=node.get("teams_error"),
     )
+
+
+async def _may_approve(topic: TopicCtx, teams: TeamRepository, node: dict[str, Any]) -> None:
+    """F20 a and F21 b: the responsible of the one team whose part the change set touches approves it, as that team
+    has it set up now; a change set that touches the parts of several teams, or of none, or whose parts are unknown,
+    a ``manager``."""
+    current = {team["team_id"]: team for team in await teams.of_project(topic.project_id)}
+    touched = [current[team["team_id"]] for team in node.get("teams") or [] if team.get("team_id") in current]
+    if len(touched) == 1 and not node.get("teams_error"):
+        if topic.user_id != touched[0]["responsible_user_id"]:
+            raise HTTPException(
+                403, f"Only the responsible of the team {touched[0]['name']} approves a change to its part"
+            )
+        return
+    if not at_least(topic.role, Role.MANAGER):
+        raise HTTPException(
+            403,
+            "Only a manager approves a change set" + (" that touches the parts of several teams" if touched else ""),
+        )
 
 
 @router.get(
@@ -159,21 +200,22 @@ async def proposal_approve(
     projects: ProjectsDep,
     storage: StorageDep,
     settings: SettingsDep,
+    teams: TeamsDep,
 ) -> DocumentVersion:
-    """A `manager` approves a `clean` trial: the answer is the new version as the Documents API gives it, with
+    """A `manager`, or the responsible of the one team whose part the change set touches, approves a `clean` trial:
+    the answer is the new version as the Documents API gives it, with
     `base_version_index`, `change_set_id`, `proposed_by`, `approved_by` and, where an AI proposed it, `ai_model` and
     `tool_call` in its metadata, and the topic gets a viewpoint that selects the changed elements (OB-32). When the
     document has moved on since the base, the change set is tried again on
     the latest version and approved on it, unless one of its attributes was changed in between: then 412
     `version_conflict` with the colliding attributes in `conflicts`. 403 for other roles, 409 when the trial is not
     clean or was approved already."""
-    if not at_least(topic.role, Role.MANAGER):
-        raise HTTPException(403, "Only a manager approves a change set")
     if ifcgraph is None:
         raise HTTPException(404, "Change sets are not tried on this server: the IFC-LPG module is off")
     node = await ifcgraph.proposal(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid)
     if node is None:
         raise HTTPException(404, "This topic has no change set that was tried")
+    await _may_approve(topic, teams, node)
     if node["state"] != STATE_CLEAN:
         raise HTTPException(409, f"The trial is {node['state']}; only a clean one is approved")
     document_id, base_index = str(node["base_document_id"]), int(node["base_version_index"])
@@ -198,6 +240,7 @@ async def proposal_approve(
         node = await ifcgraph.proposal(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid)
         if node is None:
             raise HTTPException(404, "This topic has no change set that was tried")
+        await _may_approve(topic, teams, node)  # tried on the latest, it may touch other parts
         base_index = latest.version_index
     key = make_key("documents", new_id())
     size, sha256 = await anyio.to_thread.run_sync(_copy_hashed, storage, storage.path(str(node["storage_key"])), key)
@@ -276,7 +319,6 @@ async def proposal_approve(
 
 
 MAX_SELECTED = 1_000
-INVERSE_DEPTH = 4
 
 
 def _changed_guids(applied: Path, changes: list[dict[str, Any]]) -> tuple[list[str], list[float], float | None]:
@@ -294,7 +336,7 @@ def _changed_guids(applied: Path, changes: list[dict[str, Any]]) -> tuple[list[s
             guids.add(str(change["guid"]))
         elif change.get("step_id") is not None:
             try:
-                guids.update(_owning_objects(model, model.by_id(int(change["step_id"]))))
+                guids.update(owning_objects(model, model.by_id(int(change["step_id"]))))
             except RuntimeError:
                 continue
         if len(guids) >= MAX_SELECTED:
@@ -315,26 +357,6 @@ def _changed_guids(applied: Path, changes: list[dict[str, Any]]) -> tuple[list[s
     centre = [sum(point[i] for point in points) / len(points) for i in range(3)]
     extent = max((max(abs(point[i] - centre[i]) for point in points) for i in range(3)), default=0.0) * 2
     return selected, centre, extent or None
-
-
-def _owning_objects(model: Any, entity: Any) -> set[str]:
-    found: set[str] = set()
-    seen: set[int] = set()
-    frontier = [entity]
-    for _ in range(INVERSE_DEPTH + 1):
-        next_frontier = []
-        for item in frontier:
-            if item.id() in seen:
-                continue
-            seen.add(item.id())
-            if item.is_a("IfcObjectDefinition"):
-                found.add(item.GlobalId)
-                continue
-            next_frontier.extend(model.get_inverse(item))
-        if found or not next_frontier:
-            break
-        frontier = next_frontier
-    return found
 
 
 async def _keys(

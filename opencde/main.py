@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 
 from opencde import __version__, capabilities, health
 from opencde.accounts import routes_manage as manage_routes
+from opencde.accounts import routes_teams as team_routes
 from opencde.admin import api as admin_api
 from opencde.admin import graph_query, routes_requests
 from opencde.admin import router as admin_router
@@ -242,6 +243,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(web_routes.router)
     app.include_router(account_routes.router)
     app.include_router(manage_routes.router)
+    app.include_router(team_routes.router)
     if settings.admin_ui_enabled:
         app.include_router(admin_router.router)
     if settings.admin_api_enabled:

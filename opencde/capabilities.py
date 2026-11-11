@@ -96,6 +96,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
             "project_administration": {
                 "enabled": True,
                 "url": "/manage/1.0/projects",
+                "teams_url": "/manage/1.0/projects/{project_id}/teams",
                 "scope": "project",
                 "roles": list(MANAGE_ROLES),
                 "for": "managers of a project",

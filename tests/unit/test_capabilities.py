@@ -58,6 +58,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["project_administration"] == {
         "enabled": True,
         "url": "/manage/1.0/projects",
+        "teams_url": "/manage/1.0/projects/{project_id}/teams",
         "scope": "project",
         "roles": ["viewer", "contributor", "editor", "manager"],
         "for": "managers of a project",

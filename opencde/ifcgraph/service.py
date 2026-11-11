@@ -37,6 +37,7 @@ from ifc_lpg.paths import PathError, canonical_path, resolve, unreachable
 from ifc_lpg.spatial import geometry_issues, import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
+from opencde.accounts.teams import TeamRepository
 from opencde.graph.graph import Graph
 from opencde.graph.schema import rebuild_point_indexes
 from opencde.ids import new_id
@@ -905,6 +906,7 @@ class IfcGraphService:
             answer = await self._in_a_process(command, "applying the change set")
             summary = json.loads(answer.strip().splitlines()[-1])
             await asyncio.to_thread(self.storage.copy_in, out, key)
+            teams, teams_error = await self._parts_touched(project_id, source, out, changes)
         checked = await self._run_checks(key, "proposal.ifc", project_id)
         if version["base_report"] is None:
             base_issues = unpack_report(
@@ -938,7 +940,33 @@ class IfcGraphService:
             "ruleset": checked["ruleset"],
             "checks": checked["checks"],
             "report": pack_report(issues),
+            "teams": json.dumps(teams, separators=(",", ":")),
+            "teams_error": teams_error,
         }
+
+    async def _parts_touched(
+        self, project_id: str, base: Path, changed: Path, changes: Path
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        """The teams whose part of the model the change set touches (F11 b, F19 a), and why that is unknown when it
+        is: then a ``manager`` approves."""
+        parts = [part for part in await TeamRepository(self.graph).parts(project_id) if part["storage_key"]]
+        if not parts:
+            return [], None
+        command = [sys.executable, "-m", "opencde.ifcgraph.parts", "--memory-mb", str(self.settings.ifcgraph_memory_mb)]
+        command += ["--", str(base), str(changed), str(changes)]
+        command += [str(self.storage.path(str(part["storage_key"]))) for part in parts]
+        try:
+            answer = json.loads(
+                (await self._in_a_process(command, "finding the teams' parts")).strip().splitlines()[-1]
+            )
+        except Exception as exc:
+            log.warning("ifc_proposal_parts_failed", error=type(exc).__name__)
+            return [], f"the teams' parts could not be found: {type(exc).__name__}"
+        touched = [
+            {"team_id": parts[index]["team_id"], "name": parts[index]["name"]} for index in sorted(set(answer["teams"]))
+        ]
+        unread = [str(parts[int(error["ids"])]["name"]) for error in answer.get("errors") or []]
+        return touched, (f"the IDS of these teams could not be read: {', '.join(unread)}" if unread else None)
 
     async def approve(self, *, proposal_id: str, approved_by: str, version_index: int) -> None:
         """The trial became a version (ADR 0021): who approved it and which version it is."""
@@ -1112,6 +1140,7 @@ class IfcGraphService:
         node = dict(row["node"])
         node["issues"] = unpack_report(node.pop("report", None))
         node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
+        node["teams"] = json.loads(node["teams"]) if node.get("teams") else []
         return node
 
     def _gherkin_env(self) -> Path | None:
