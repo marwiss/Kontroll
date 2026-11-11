@@ -589,6 +589,8 @@ med, objektene med en GlobalId som begge har (`collisions`, med `same` og det
 og kontekstene og plasseringene til A som brukes. Der innholdet i et slikt objekt er
 forskjellig, tas et valg for det: `a` beholder As, `b` setter Bs i stedet, og `new`
 beholder begge, Bs med en ny GlobalId; `default` gir ett valg for alle.
+En enhet av et slag som A ikke har, som en arealenhet, følger med inn i As enheter og
+listes i `units_added`; en enhet av et slag som begge har, må være den samme.
 
 En `manager` i prosjektet starter sammenslåingen med `POST …/ifc-merge` og samme
 kropp. Den kjører som en jobb i konverteringskøen, og svarets `url` gir tilstanden:

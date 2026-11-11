@@ -591,6 +591,8 @@ der gælder), de relationer, der udelades, fordi de kun peger ud af bygningen, o
 kontekster og placeringer, der bruges. Hvor indholdet af et sådant objekt er
 forskelligt, træffes et valg for det: `a` beholder A's, `b` sætter B's i stedet, og
 `new` beholder begge, B's med et nyt GlobalId; `default` giver ét valg for dem alle.
+En enhed af en art, som A ikke har, som en arealenhed, følger med ind i A's enheder og
+listes i `units_added`; en enhed af en art, som begge har, skal være den samme.
 
 En `manager` i projektet starter sammenfletningen med `POST …/ifc-merge` og samme
 krop. Den kører som et job i konverteringskøen, og svarets `url` giver dens tilstand:

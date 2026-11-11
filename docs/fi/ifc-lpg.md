@@ -604,6 +604,8 @@ rakennuksen ulkopuolelle, sekä A:n kontekstit ja sijoitukset, joita käytetää
 tällaisen objektin sisältö eroaa, sille tehdään valinta: `a` pitää A:n objektin, `b`
 panee B:n objektin sen tilalle ja `new` pitää molemmat, B:n objektin uudella
 GlobalId:llä; `default` antaa yhden valinnan kaikille.
+Yksikkö, jonka lajia A:lla ei ole, kuten pinta-alayksikkö, tulee mukaan A:n yksiköihin
+ja näkyy kentässä `units_added`; molemmilla olevan lajin yksikön on oltava sama.
 
 Projektin `manager` käynnistää yhdistämisen kutsulla `POST …/ifc-merge` samalla
 rungolla. Se ajetaan työnä muunnosjonossa, ja vastauksen `url` antaa sen tilan:

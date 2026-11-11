@@ -588,6 +588,8 @@ alone, and the contexts and placements of A that are used. Where the content of 
 an object differs, a choice is made for it: `a` keeps A's, `b` puts B's in its
 place, and `new` keeps both, B's with a new GlobalId; `default` gives one choice for
 all of them.
+A unit of a kind A has none of, such as an area unit, comes along into A's units
+and is listed in `units_added`; a unit of a kind both have must be the same.
 
 A `manager` of the project starts the merge with `POST …/ifc-merge` and the same
 body. It runs as a job in the conversion queue, and the answer's `url` gives its

@@ -585,6 +585,8 @@ venslin sem eru skilin eftir af því að þau vísa aðeins út úr byggingunni
 samhengi og staðsetningar A sem eru notuð. Þar sem innihald slíks hlutar er ólíkt er
 valið fyrir hann: `a` heldur hlut A, `b` setur hlut B í hans stað, og `new` heldur
 báðum, hlut B með nýtt GlobalId; `default` gefur eitt val fyrir þá alla.
+Eining af tegund sem A hefur enga af, eins og flatarmálseining, fylgir með inn í
+einingar A og er talin upp í `units_added`; eining af tegund sem bæði hafa verður að vera sú sama.
 
 `manager` verkefnisins ræsir sameininguna með `POST …/ifc-merge` og sama meginmáli.
 Hún keyrir sem verk í umbreytingarbiðröðinni, og `url` svarsins gefur stöðu hennar:

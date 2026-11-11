@@ -598,6 +598,8 @@ som gjeld), relasjonane som blir utelatne fordi dei berre peikar ut av bygningen
 kontekstane og plasseringane til A som blir brukte. Der innhaldet i eit slikt objekt
 er ulikt, blir det teke eit val for det: `a` held på A sitt, `b` set B sitt i staden,
 og `new` held på begge, B sitt med ein ny GlobalId; `default` gjev eitt val for alle.
+Ei eining av eit slag som A ikkje har, som ei arealeining, følgjer med inn i einingane
+til A og blir lista i `units_added`; ei eining av eit slag som begge har, må vere den same.
 
 Ein `manager` i prosjektet startar samanslåinga med `POST …/ifc-merge` og same
 kropp. Ho køyrer som ein jobb i konverteringskøen, og `url` i svaret gjev tilstanden:

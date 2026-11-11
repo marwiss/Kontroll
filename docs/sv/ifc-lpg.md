@@ -594,6 +594,8 @@ som gäller), sambanden som lämnas utanför för att de bara pekar ut ur byggna
 A:s kontexter och placeringar som används. Där innehållet i ett sådant objekt
 skiljer sig görs ett val för det: `a` behåller A:s, `b` sätter B:s i dess ställe, och
 `new` behåller båda, B:s med ett nytt GlobalId; `default` ger ett val för alla.
+En enhet av ett slag som A saknar, som en areaenhet, följer med in i A:s enheter och
+listas i `units_added`; en enhet av ett slag som båda har måste vara densamma.
 
 En `manager` i projektet startar sammanfogningen med `POST …/ifc-merge` och samma
 kropp. Den körs som ett jobb i konverteringskön, och svarets `url` ger dess
