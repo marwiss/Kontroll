@@ -28,8 +28,8 @@ MAX_LIST_ITEMS = 200
 MAX_ITEM_LENGTH = 100
 
 # What a project owns: the relationships that deleting it follows, and no others. CREATED_BY and UPLOADED_BY lead to
-# users, and from a user MEMBER_OF leads to every project the user is in. RELATED_TO, SAME_AS and CONCERNS point at what
-# need not be this project's alone. A new kind of node below a project needs its relationship here.
+# users, and from a user MEMBER_OF leads to every project the user is in. RELATED_TO and CONCERNS point at what need
+# not be this project's alone. A new kind of node below a project needs its relationship here.
 OWNED_RELATIONSHIPS = (
     "HAS_EXTENSIONS",
     "HAS_TOPIC",

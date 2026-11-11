@@ -83,7 +83,7 @@ def test_seeding_builds_the_graph_of_the_sample_model(
             await apply_schema(graph)
             loaded = await seeding.seed(graph, storage=storage)
             model = await seeding.build_sample_graph(graph, storage, settings, loaded)
-            links = await graph.run("MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN w.GlobalId AS guid")
+            links = await graph.run("MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN w.GlobalId AS guid")
             return model, links
         finally:
             await graph.close()
@@ -208,7 +208,7 @@ def test_uploaded_model_becomes_graph_and_components_link(
         database = client.app.state.settings.database_name  # type: ignore[attr-defined]
         rows, _, _ = driver.execute_query(
             """
-            MATCH (c:Component)-[:SAME_AS]->(e:Entity)
+            MATCH (c:Component), (e:Entity {GlobalId: c.ifc_guid})
             RETURN c.ifc_guid AS guid, c.gtin AS gtin, e.Name AS name ORDER BY c.position
             """,
             database_=database,
@@ -275,7 +275,7 @@ def test_components_created_before_the_model_are_linked_when_it_finishes(
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
         while True:
             rows, _, _ = driver.execute_query(
-                "MATCH (c:Component)-[:SAME_AS]->(e:Entity) RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
+                "MATCH (c:Component) WHERE c.gtin IS NOT NULL RETURN c.ifc_guid AS guid, c.gtin AS gtin ORDER BY guid",
                 database_=client.app.state.settings.database_name,  # type: ignore[attr-defined]
             )
             linked = [(r["guid"], r["gtin"]) for r in rows]

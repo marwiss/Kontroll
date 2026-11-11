@@ -51,7 +51,7 @@ verkefni eru sömu orð og í Dataspatium.
 | IFC-graf | Upphlaðið líkan sem hnútar og tengsl í gagnagrunninum, valfrjálst |
 | IFC-LPG | Einingin sem breytir IFC-skrám í IFC-graf og til baka, hét IFC-graph fram í nóvember 2026 |
 | `GlobalId` | Varanlegt auðkenni staks í IFC-skrá |
-| `SAME_AS` | Tengslin frá einingu sjónarhorns til staksins í líkani |
+| `gtin` | GTIN staksins sem eining sjónarhorns nefnir, lesið úr líkaninu og geymt á einingunni |
 | GTIN | Global Trade Item Number, númer vöru; hér lesið úr eiginleikasafninu `Reuse` |
 | Cypher | Fyrirspurnamál grafgagnagrunnsins |
 | Bolt | Eigin tenging gagnagrunnsins, valfrjáls fyrir þá sem spyrja grafið beint |

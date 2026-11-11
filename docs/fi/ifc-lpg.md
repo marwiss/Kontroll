@@ -270,7 +270,7 @@ Se eroaa artikkelista seuraavasti:
   solmut, joilla on luotu tunniste.
 - Useat mallit jakavat yhden tietokannan ja erotetaan toisistaan `model_id`:n
   avulla. Artikkelissa on yksi malli tietokantaa kohden.
-- Suhdetyypit kirjoitetaan isoin kirjaimin, ja `SAME_AS` sekä GTIN-kopio on
+- Suhdetyypit kirjoitetaan isoin kirjaimin, ja GTIN-kopio BCF-komponentteihin on
   lisätty tässä.
 
 Artikkeli huomauttaa, että sen graafi kadottaa luetteloiden järjestyksen, koska
@@ -366,19 +366,21 @@ RETURN latest.file_name AS model, count(e) AS products
 
 Kun viewpoint luodaan komponenttien kanssa, jokainen komponentti, jonka
 `ifc_guid` vastaa jonkin projektin tuodun mallin rakennusosan
-`GlobalId`-arvoa, saa `SAME_AS`-suhteen siihen. Sama linkitys ajetaan
-projektin jokaiselle olemassa olevalle komponentille, kun mallin tuonti
-valmistuu, joten myös ennen mallin lähettämistä tai sen muuntamisen aikana
-luodut viewpointit linkitetään. Jos rakennusosa kantaa määritettyä
-ominaisuutta (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), sen arvo kopioidaan komponenttiin
-`gtin`-kenttänä. Tämä on vuoden 2023 tutkimusraportin käyttötapaus:
-tarkastus (BCF-asia), joka viittaa GTIN-koodilla tunnistettuihin
-rakennustuotteisiin.
+`GlobalId`-arvoa, saa määritetyn ominaisuuden
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`)
+arvon kenttään `gtin`, kun rakennusosalla on sellainen: palvelin hakee
+GlobalId-tunnukset mallista IFC-LPG:n `property_values`-funktiolla ja tallentaa
+arvon komponenttiin eikä tee suhdetta malliin; rakennusosa löytyy
+`GlobalId`-tunnuksellaan. Sama haku ajetaan projektin jokaiselle olemassa
+olevalle komponentille, kun mallin tuonti valmistuu, joten myös ennen mallin
+lähettämistä tai sen muuntamisen aikana luodut viewpointit saavat GTIN-arvonsa.
+Tämä on vuoden 2023 tutkimusraportin käyttötapaus: tarkastus (BCF-asia), joka
+osoittaa GTIN-tunnuksella yksilöityihin rakennustuotteisiin.
 
 ```cypher
 // Mihin tuotteisiin tämä viewpoint viittaa, ja mitkä ovat niiden GTIN-koodit?
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```
 
@@ -391,7 +393,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Jokainen asia, joka koskee annettua rakennusosaa.
-MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (:Component {ifc_guid: $guid})<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -404,6 +406,8 @@ otsakkeen tiedostot.
 Projektin jäsen esittää version mallille kysymyksiä nimeltä, samalla
 bearer-tunnisteella kuin Documents API:lle; vapaa Cypher jää ylläpitäjille
 (ADR 0016).
+Kyselyt ovat IFC-LPG:n luettelo (`ifc_lpg.queries`), joten kirjastoon lisätty
+kysely ilmestyy tänne.
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` luettelee
 kyselyt parametreineen ja sarakkeineen ja kertoo kentässä `model_state`, kuinka
 pitkällä mallin muunnos on. `GET …/ifc-queries/{name}` esittää yhden kyselyn,
@@ -716,7 +720,7 @@ kanssa kehitettävä selainasiakas, ajaa Cypheriä tätä graafia vasten
 Neo4j-lähteensä kautta Boltilla (WebSocket Bolt-portissa), kun ylläpitäjä
 avaa tietokannan, kuten kehityspäällyste tekee osoitteessa `127.0.0.1:7697`.
 Sen Dataregium-työtila käyttää yllä olevia malleja (mallit, luokat,
-komponentit `SAME_AS`-suhteen kautta, uusin valmis malli asiakirjaa kohti);
+komponentit `GlobalId`-tunnuksella, uusin valmis malli asiakirjaa kohti);
 kyselyt ovat Dataspatiumin dokumentaatiossa (`docs/grafer.md`). Tuotantopalvelin
 ei julkaise Boltia; hallintarajapinnan graafikysely
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) antaa

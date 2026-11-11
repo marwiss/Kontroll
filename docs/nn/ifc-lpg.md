@@ -268,8 +268,8 @@ Ho skil seg frå artikkelen på desse punkta:
   med ein generert identifikator.
 - Fleire modellar deler éin database og blir skilde med `model_id`. Artikkelen har
   éin modell per database.
-- Relasjonstypane blir skrivne med store bokstavar, og `SAME_AS` og kopien av GTIN
-  er tillegg her.
+- Relasjonstypane blir skrivne med store bokstavar, og kopien av GTIN til
+  BCF-komponentane er eit tillegg her.
 
 Artikkelen peikar på at grafen hans mistar rekkjefølgja i lister, sidan ein relasjon
 ikkje seier kvar i ei liste målet stod. Her seier `position` det.
@@ -363,18 +363,21 @@ RETURN latest.file_name AS model, count(e) AS products
 
 Når eit viewpoint blir oppretta med komponentar, får kvar komponent der
 `ifc_guid` matchar `GlobalId` til ein bygningsdel i ein av dei importerte
-modellane i prosjektet, ein `SAME_AS`-relasjon til han. Den same koplinga
-køyrer for kvar eksisterande komponent i prosjektet når ein modell er ferdig
-importert, så viewpoints oppretta før modellen vart lasta opp, eller medan
-han framleis vart konvertert, blir òg kopla. Om bygningsdelen ber den
-konfigurerte eigenskapen (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), blir verdien kopiert til komponenten
-som `gtin`. Dette er bruksområdet frå forskingsrapporten frå 2023: ein
-kontroll (BCF-sak) som peikar på byggjevarer identifiserte med GTIN.
+modellane i prosjektet, verdien av den konfigurerte eigenskapen
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`)
+som `gtin`, når bygningsdelen har ein: tenaren slår opp GlobalId-ane i modellen
+gjennom `property_values` i IFC-LPG og lagrar verdien på komponenten, og lagar
+ingen relasjon inn i modellen; bygningsdelen blir funnen gjennom `GlobalId` sin.
+Det same oppslaget køyrer for kvar eksisterande komponent i prosjektet når ein
+modell er ferdig importert, så viewpoints oppretta før modellen vart lasta opp,
+eller medan han framleis vart konvertert, får òg GTIN-ane sine. Det er
+brukstilfellet i forskingsrapporten frå 2023: ei synfaring (BCF-sak) som peikar
+på byggjevarer identifiserte med GTIN.
 
 ```cypher
 // Kva produkt peikar dette viewpointet på, og kva er GTIN-ane deira?
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```
 
@@ -387,7 +390,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Kvar sak som rører ved ein gjeven bygningsdel.
-MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (:Component {ifc_guid: $guid})<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -400,6 +403,8 @@ saka.
 Eit medlem av eit prosjekt stiller spørsmål til modellen i ein versjon ved
 namn, med det same bearer-tokenet som for Documents API; fri Cypher blir
 verande hos administratorane (ADR 0016).
+Spørjingane er katalogen til IFC-LPG (`ifc_lpg.queries`), så ei som blir lagd til
+i biblioteket, dukkar opp her.
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` viser
 spørjingane med parametrar og kolonnar og seier i `model_state` kor langt
 konverteringa av modellen har kome. `GET …/ifc-queries/{name}` stiller éi,
@@ -709,7 +714,7 @@ blir utvikla saman med denne serveren, køyrer Cypher mot denne grafen gjennom
 Neo4j-kjelda si over Bolt (WebSocket på Bolt-porten) når operatøren
 eksponerer databasen, slik utviklingsoverlegget gjer på `127.0.0.1:7697`.
 Dataregium-arbeidsområdet der brukar mønstera ovanfor (modellar, klassar,
-komponentar via `SAME_AS`, den siste ferdige modellen per dokument);
+komponentar gjennom `GlobalId`, den siste ferdige modellen per dokument);
 spørjingane ligg i dokumentasjonen til Dataspatium (`docs/grafer.md`). Ein
 produksjonsserver publiserer ikkje Bolt; grafspørjinga i
 administrasjons-API-et (`OPENCDE_GRAPH_QUERY_ENABLED`,

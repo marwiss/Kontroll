@@ -21,6 +21,7 @@ import contextlib
 import hashlib
 import importlib.metadata
 import json
+import re
 import sys
 import tempfile
 import zipfile
@@ -31,15 +32,17 @@ from typing import Annotated, Any
 from fastapi import Depends, Request
 from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
-from ifc_lpg.graph import FORM_VERSION
-from ifc_lpg.importer import delete_blocks, delete_model, import_records
+from ifc_lpg.graph import FORM_VERSION, rebuild_point_indexes
+from ifc_lpg.importer import delete_model, import_records
 from ifc_lpg.paths import PathError, canonical_path, resolve, unreachable
+from ifc_lpg.queries import MAX_GLOBAL_IDS, property_values
 from ifc_lpg.spatial import geometry_issues, import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
 from opencde.accounts.teams import TeamRepository
+from opencde.admin.graph_query import ReadingGraph
 from opencde.graph.graph import Graph
-from opencde.graph.schema import rebuild_point_indexes
+from opencde.graph.schema import SchemaGraph, library_dialect
 from opencde.ids import new_id
 from opencde.ifcgraph import merging
 from opencde.ifcgraph.gltf import LODS, build_glb
@@ -210,7 +213,7 @@ class IfcGraphService:
             if f"ifcgraph-{row['id']}" in waiting_here:
                 continue
             if row["state"] == STATE_RUNNING:
-                await delete_model_entities(self.graph, row["id"])
+                await delete_model(self.graph, row["id"], keep_model=True)
                 await self._set_state(row["id"], STATE_QUEUED)
             log.info("ifcgraph_resumed", model_id=row["id"])
             self._start(row["id"], row["storage_key"], row["file_name"])
@@ -303,7 +306,7 @@ class IfcGraphService:
                 except Exception as exc:
                     log.warning("ifcgraph_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:500])
                     with contextlib.suppress(Exception):
-                        await delete_model_entities(self.graph, model_id)
+                        await delete_model(self.graph, model_id, keep_model=True)
                     await self._set_state(model_id, STATE_FAILED, error=f"{type(exc).__name__}: {exc}"[:500])
                     return
                 await self._set_state(
@@ -357,14 +360,14 @@ class IfcGraphService:
             await self._in_a_process(command, "the geometry")
             counts = await import_spatial(self.graph, model_id, records)
             failed = await asyncio.to_thread(geometry_issues, records)
-            await rebuild_point_indexes(self.graph)
+            await rebuild_point_indexes(SchemaGraph(self.graph), library_dialect(self.graph))
             key = make_key("geometry", model_id, "jsonl")
             await asyncio.to_thread(self.storage.copy_in, records, key)
             await self.graph.run("MATCH (m:Model {id: $id}) SET m.geometry_key = $key", id=model_id, key=key)
             if self.workcopy is not None and await self.in_workcopy(model_id):
                 try:
                     await import_spatial(self.workcopy, model_id, records)
-                    await rebuild_point_indexes(self.workcopy)
+                    await rebuild_point_indexes(SchemaGraph(self.workcopy), library_dialect(self.workcopy))
                 except Exception as exc:  # the archive has the boxes; the copy can be made again
                     log.warning("ifcgraph_workcopy_spatial_failed", model_id=model_id, error=type(exc).__name__)
             log.info("ifcgraph_spatial", model_id=model_id, **counts)
@@ -1417,44 +1420,52 @@ class IfcGraphService:
             arguments = [sys.executable, "-m", *command(source), "--memory-mb", str(self.settings.ifcgraph_memory_mb)]
             return json.loads(await self._in_a_process(arguments, what, answers=(0, 1)))
 
-    # -- linking BCF components ----------------------------------------------------------------------
+    # -- the GTIN of BCF components -----------------------------------------------------------------
 
     async def link_viewpoint(self, *, project_id: str, viewpoint_guid: str) -> int:
-        """``SAME_AS`` from one viewpoint's components to the project's finished models, plus GTIN (at viewpoint POST)."""
-        return await self._link(
-            """
-            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(v:Viewpoint {guid: $guid})
-                  -[:HAS_COMPONENT]->(c:Component)
-            WHERE c.ifc_guid IS NOT NULL
-            MATCH (m:Model {project_id: $project_id, state: 'done'})
-            MATCH (e:Entity {model_id: m.id, GlobalId: c.ifc_guid})
-            """,
-            project_id=project_id,
-            guid=viewpoint_guid,
+        """The GTIN onto one viewpoint's components from the project's finished models (at viewpoint POST)."""
+        models = await self.graph.run(
+            "MATCH (m:Model {project_id: $project_id, state: 'done'}) RETURN m.id AS id", project_id=project_id
         )
+        found = 0
+        for model in models:
+            found += await self._copy_gtin(
+                model["id"], _VIEWPOINT_COMPONENTS, project_id=project_id, guid=viewpoint_guid
+            )
+        return found
 
     async def _link_model(self, model_id: str) -> int:
-        """``SAME_AS`` from every component of the project to a model that has just finished importing."""
-        return await self._link(
-            """
-            MATCH (m:Model {id: $model_id})
-            MATCH (:Project {project_id: m.project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(:Viewpoint)
-                  -[:HAS_COMPONENT]->(c:Component)
-            WHERE c.ifc_guid IS NOT NULL
-            MATCH (e:Entity {model_id: m.id, GlobalId: c.ifc_guid})
-            """,
-            model_id=model_id,
-        )
+        """The GTIN onto every component of the project from a model that has just finished importing."""
+        row = await self.graph.one("MATCH (m:Model {id: $id}) RETURN m.project_id AS project_id", id=model_id)
+        if row is None or not row["project_id"]:
+            return 0
+        return await self._copy_gtin(model_id, _PROJECT_COMPONENTS, project_id=row["project_id"])
 
-    async def _link(self, scope: str, **params: Any) -> int:
-        """Merge the ``SAME_AS`` edges for the ``(c, e)`` pairs a scope matches and copy the GTIN property."""
-        rows = await self.graph.run(
-            scope + _LINK_TAIL,
-            pset=self.settings.ifcgraph_gtin_property_set,
-            prop=self.settings.ifcgraph_gtin_property,
-            **params,
-        )
-        return int(rows[0]["linked"]) if rows else 0
+    async def _copy_gtin(self, model_id: str, scope: str, **params: Any) -> int:
+        """Look the GlobalIds of the components a scope matches up in the model (IFC-LPG's ``property_values``)
+        and copy the configured property, the GTIN, onto the components that name them; a component keeps its
+        GTIN where the model lacks the property. No relationship into the model is made: the element is found by
+        its ``GlobalId``. Returns how many of the GlobalIds the model has."""
+        rows = await self.graph.run(scope + "WHERE c.ifc_guid IS NOT NULL RETURN DISTINCT c.ifc_guid AS guid", **params)
+        guids = [str(row["guid"]) for row in rows if _GUID.match(str(row["guid"]))]
+        found = 0
+        for start in range(0, len(guids), MAX_GLOBAL_IDS):
+            values = await property_values(
+                ReadingGraph(self.graph),
+                model_id,
+                pset=self.settings.ifcgraph_gtin_property_set,
+                property=self.settings.ifcgraph_gtin_property,
+                global_ids=guids[start : start + MAX_GLOBAL_IDS],
+            )
+            found += len(values)
+            gtins = [{"guid": v["global_id"], "gtin": str(v["value"])} for v in values if v["value"] is not None]
+            if gtins:
+                await self.graph.run(
+                    "UNWIND $gtins AS gtin\n" + scope + "WHERE c.ifc_guid = gtin.guid SET c.gtin = gtin.gtin",
+                    gtins=gtins,
+                    **params,
+                )
+        return found
 
     async def status(self, project_id: str) -> list[dict[str, Any]]:
         rows = await self.graph.run(
@@ -1641,28 +1652,16 @@ class IfcGraphService:
         return row
 
 
-# The shared tail of both linking queries: the edge, then the GTIN from the configured property set.
-_LINK_TAIL = """
-            MERGE (c)-[:SAME_AS]->(e)
-            WITH c, e
-            OPTIONAL MATCH (e)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)-[:RELATING_PROPERTY_DEFINITION]
-                  ->(ps:IfcPropertySet {Name: $pset})-[:HAS_PROPERTIES]->(p:IfcPropertySingleValue {Name: $prop})
-            WITH c, e, collect(p.NominalValue)[0] AS gtin
-            SET c.gtin = CASE WHEN gtin IS NULL THEN c.gtin ELSE toString(gtin) END
-            RETURN count(DISTINCT e) AS linked
-            """
-
-
-async def delete_model_entities(graph: Graph, model_id: str) -> None:
-    """Remove a model's entities but keep the ``Model`` node (so a failure stays visible)."""
-    await delete_blocks(graph, model_id)
-    while True:
-        rows = await graph.run(
-            "MATCH (n:Entity {model_id: $model_id}) WITH n LIMIT 2000 DETACH DELETE n RETURN count(*) AS n",
-            model_id=model_id,
-        )
-        if not rows or int(rows[0]["n"]) < 2000:
-            break
+# The components a GTIN is copied onto, one viewpoint's or the project's; ``c`` is the component.
+_VIEWPOINT_COMPONENTS = """
+MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(:Viewpoint {guid: $guid})
+      -[:HAS_COMPONENT]->(c:Component)
+"""
+_PROJECT_COMPONENTS = """
+MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic)-[:HAS_VIEWPOINT]->(:Viewpoint)
+      -[:HAS_COMPONENT]->(c:Component)
+"""
+_GUID = re.compile(r"^[0-9A-Za-z_$]{22}$")  # a component's ifc_guid that is no GlobalId has nothing to look up
 
 
 def ifcgraph_service(request: Request) -> IfcGraphService | None:

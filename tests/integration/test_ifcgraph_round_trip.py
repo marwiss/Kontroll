@@ -23,7 +23,7 @@ from opencde.bootstrap import make_graph, make_storage
 from opencde.cli import app
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
-from opencde.ifcgraph.service import IfcGraphService, delete_model_entities
+from opencde.ifcgraph.service import IfcGraphService
 from opencde.settings import Settings
 from tests import conftest
 from tests.integration.conftest import GraphTarget
@@ -178,7 +178,7 @@ def test_an_upload_comes_back_builds_the_same_and_answers_the_same_queries(
             await apply_schema(graph)
             loaded = await seeding.seed(graph, storage=storage)
             model = await seeding.build_sample_graph(graph, storage, settings, loaded)
-            links = await graph.run("MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN w.GlobalId AS guid")
+            links = await graph.run("MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN w.GlobalId AS guid")
             gtins = await graph.run(
                 """
                 MATCH (w:IfcWall)-[:IS_DEFINED_BY]->(:IfcRelDefinesByProperties)-[:RELATING_PROPERTY_DEFINITION]
@@ -255,7 +255,7 @@ def test_a_model_goes_with_its_blocks(graph_target: GraphTarget, clean_database:
             await through_the_graph(graph, source, tmp_path, as_nodes=False)
             blocks = (await graph.run("MATCH (b:StepBlock) RETURN count(b) AS n"))[0]["n"]
             texts = await graph.run("MATCH (:Model {id: 'model'})-[:HAS_STEP_BLOCK]->(b) RETURN b.instances AS n")
-            await delete_model_entities(graph, "model")
+            await delete_model(graph, "model", keep_model=True)
             after_failure = (await graph.run("MATCH (b:StepBlock) RETURN count(b) AS n"))[0]["n"]
             await graph.run("MATCH (m:Model {id: 'model'}) DETACH DELETE m")
             await through_the_graph(graph, source, tmp_path, as_nodes=False)

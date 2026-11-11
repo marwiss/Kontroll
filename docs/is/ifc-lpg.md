@@ -258,8 +258,8 @@ Hún er frábrugðin greininni á þennan hátt:
   búnu til auðkenni.
 - Mörg líkön deila einum gagnagrunni og eru aðgreind með `model_id`. Greinin hefur
   eitt líkan í hverjum gagnagrunni.
-- Venslagerðir eru skrifaðar með hástöfum, og `SAME_AS` og afrit af GTIN eru
-  viðbætur hér.
+- Venslagerðir eru skrifaðar með hástöfum, og afrit af GTIN á BCF-einingar er
+  viðbót hér.
 
 Greinin bendir á að graf hennar glati röð í listum, því að vensl segja ekki hvar í
 lista markmið þeirra stóð. Hér segir `position` það.
@@ -351,18 +351,21 @@ RETURN latest.file_name AS model, count(e) AS products
 
 Þegar viewpoint er búið til með einingum fær hver eining, þar sem `ifc_guid`
 passar við `GlobalId` byggingarhluta í einu af innfluttum líkönum
-verkefnisins, `SAME_AS`-vensl við hann. Sama tenging keyrir fyrir hverja
-fyrirliggjandi einingu verkefnisins þegar innflutningi líkans lýkur, svo
-viewpoint sem voru búin til áður en líkaninu var hlaðið upp, eða meðan það
-var enn í umbreytingu, eru tengd líka. Ef byggingarhlutinn ber stillta
-eiginleikann (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), er gildi hans afritað á eininguna
-sem `gtin`. Þetta er notkunartilvik rannsóknarskýrslunnar frá 2023: skoðun
-(BCF-mál) sem vísar á byggingarvörur sem eru auðkenndar með GTIN.
+verkefnisins, gildi stilltu eigindarinnar
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`)
+sem `gtin`, þegar byggingarhlutinn hefur það: þjónninn flettir GlobalId-unum
+upp í líkaninu með `property_values` í IFC-LPG og geymir gildið á einingunni, og
+býr engin vensl til inn í líkanið; byggingarhlutinn finnst með `GlobalId` sínu.
+Sama uppfletting keyrir fyrir hverja fyrirliggjandi einingu verkefnisins þegar
+innflutningi líkans lýkur, svo viewpoint sem voru búin til áður en líkaninu var
+hlaðið upp, eða meðan það var enn í umbreytingu, fá líka GTIN sín. Þetta er
+notkunartilvikið í rannsóknarskýrslunni frá 2023: skoðun (BCF-mál) sem bendir á
+byggingarvörur auðkenndar með GTIN.
 
 ```cypher
 // Á hvaða vörur vísar þetta viewpoint, og hvaða GTIN hafa þær?
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```
 
@@ -375,7 +378,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Hvert mál sem snertir tiltekinn byggingarhluta.
-MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (:Component {ifc_guid: $guid})<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -388,6 +391,8 @@ málsins.
 Meðlimur verkefnis spyr líkan útgáfu spurninga eftir nafni, með sama
 bearer-tóka og fyrir Documents API; frjáls Cypher er áfram hjá stjórnendum
 (ADR 0016).
+Fyrirspurnirnar eru skrá IFC-LPG (`ifc_lpg.queries`), svo ein sem bætt er við
+safnið birtist hér.
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` telur
 upp fyrirspurnirnar með færibreytum og dálkum og segir í `model_state` hve
 langt umbreyting líkansins er komin. `GET …/ifc-queries/{name}` ber eina
@@ -693,7 +698,7 @@ RETURN e.GlobalId, e.ifc_class, point.distance(e.bbox_centre, w.bbox_centre) AS 
 Neo4j-uppsprettu sína yfir Bolt (WebSocket á Bolt-gáttinni) þegar
 rekstraraðilinn opnar gagnagrunninn, eins og þróunaryfirlagið gerir á
 `127.0.0.1:7697`. Dataregium-vinnusvæði þess notar mynstrin að ofan (líkön,
-flokka, einingar um `SAME_AS`, nýjasta lokna líkanið á hvert skjal);
+flokka, einingar með `GlobalId`, nýjasta lokna líkanið á hvert skjal);
 fyrirspurnirnar eru í skjölun Dataspatium (`docs/grafer.md`).
 Framleiðsluþjónn birtir ekki Bolt; graffyrirspurn stjórnunarforritaskilanna
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gefur

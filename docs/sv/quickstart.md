@@ -148,7 +148,7 @@ till `bolt://127.0.0.1:7697` som `neo4j` med lösenordet från `.env`) svarar p�
 frågan med väggen kopplad till viewpointens komponent:
 
 ```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN c, w
 ```
 
 En modell som du skickar från Dataspatium blir en graf på samma sätt. För att prova,

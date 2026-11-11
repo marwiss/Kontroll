@@ -17,7 +17,7 @@ from neo4j.exceptions import Neo4jError
 from opencde import __version__
 from opencde.graph.driver import ping_within
 from opencde.graph.graph import Graph
-from opencde.graph.schema import UNIQUE
+from opencde.graph.schema import KEYED
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
 from opencde.timeutil import now_iso
@@ -100,8 +100,8 @@ async def schema_check(graph: Graph) -> Check:
         rows = await graph.schema_rows(graph.dialect.list_constraints)
     except Neo4jError as exc:
         return Check("schema", False, "schema_unlisted", {"code": exc.code})
-    counts = {"found": len(rows), "expected": len(UNIQUE)}
-    complete = len(rows) >= len(UNIQUE)
+    counts = {"found": len(rows), "expected": len(KEYED)}
+    complete = len(rows) >= len(KEYED)
     return Check("schema", complete, "schema_count" if complete else "schema_short", counts)
 
 

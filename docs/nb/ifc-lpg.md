@@ -263,8 +263,8 @@ Den skiller seg fra artikkelen på disse punktene:
   en generert identifikator.
 - Flere modeller deler én database og skilles med `model_id`. Artikkelen har én
   modell per database.
-- Relasjonstypene skrives med store bokstaver, og `SAME_AS` og kopien av GTIN er
-  tillegg her.
+- Relasjonstypene skrives med store bokstaver, og kopien av GTIN til
+  BCF-komponentene er et tillegg her.
 
 Artikkelen påpeker at grafen dens mister rekkefølgen i lister, siden en relasjon
 ikke sier hvor i en liste målet sto. Her sier `position` det.
@@ -358,18 +358,21 @@ RETURN latest.file_name AS model, count(e) AS products
 
 Når et viewpoint opprettes med komponenter, får hver komponent hvis
 `ifc_guid` matcher `GlobalId` til en bygningsdel i en av prosjektets
-importerte modeller, en `SAME_AS`-relasjon til den. Den samme koblingen
-kjører for hver eksisterende komponent i prosjektet når en modell er ferdig
-importert, så viewpoints opprettet før modellen ble lastet opp, eller mens
-den fortsatt ble konvertert, kobles også. Hvis bygningsdelen bærer den
-konfigurerte egenskapen (`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`,
-`OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`), kopieres verdien til komponenten som
-`gtin`. Dette er bruksområdet fra forskningsrapporten fra 2023: en kontroll
-(BCF-sak) som peker på byggevarer identifisert med GTIN.
+importerte modeller, verdien av den konfigurerte egenskapen
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`)
+som `gtin`, når bygningsdelen har en: serveren slår opp GlobalId-ene i modellen
+gjennom IFC-LPGs `property_values` og lagrer verdien på komponenten, og lager
+ingen relasjon inn i modellen; bygningsdelen finnes gjennom sin `GlobalId`. Det
+samme oppslaget kjører for hver eksisterende komponent i prosjektet når en
+modell er ferdig importert, så viewpoints opprettet før modellen ble lastet opp,
+eller mens den fortsatt ble konvertert, får også sine GTIN. Det er
+brukstilfellet i forskningsrapporten fra 2023: en befaring (BCF-sak) som peker
+på byggevarer identifisert med GTIN.
 
 ```cypher
 // Hvilke produkter peker dette viewpointet på, og hva er GTIN-ene deres?
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```
 
@@ -382,7 +385,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Hver sak som berører en gitt bygningsdel.
-MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (:Component {ifc_guid: $guid})<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -395,6 +398,8 @@ sakens hode.
 Et medlem av et prosjekt stiller spørsmål til en versjons modell ved navn, med
 det samme bearer-tokenet som for Documents API; fri Cypher forblir
 administratorenes (ADR 0016).
+Spørringene er IFC-LPGs katalog (`ifc_lpg.queries`), så en som legges til i
+biblioteket, dukker opp her.
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` viser
 spørringene med parametere og kolonner og sier i `model_state` hvor langt
 konverteringen av modellen har kommet. `GET …/ifc-queries/{name}` stiller én,
@@ -696,7 +701,7 @@ utvikles sammen med denne serveren, kjører Cypher mot denne grafen gjennom
 Neo4j-kilden sin over Bolt (WebSocket på Bolt-porten) når operatøren
 eksponerer databasen, slik utviklingsoverlegget gjør på `127.0.0.1:7697`.
 Dataregium-arbeidsområdet dets bruker mønstrene ovenfor (modeller, klasser,
-komponenter via `SAME_AS`, den siste ferdige modellen per dokument);
+komponenter gjennom `GlobalId`, den siste ferdige modellen per dokument);
 spørringene ligger i Dataspatiums dokumentasjon (`docs/grafer.md`). En
 produksjonsserver publiserer ikke Bolt; administrasjons-API-ets grafspørring
 (`OPENCDE_GRAPH_QUERY_ENABLED`, [client-guide.md §7](client-guide.md)) gir

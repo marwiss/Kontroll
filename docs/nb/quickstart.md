@@ -147,7 +147,7 @@ Eksempelmodellen er allerede en graf, fordi `OPENCDE_IFC_LPG_ENABLED=true` sto i
 spørringen med veggen koblet til viewpointets komponent:
 
 ```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN c, w
 ```
 
 En modell du sender fra Dataspatium, blir en graf på samme måte. For å prøve det,

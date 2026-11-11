@@ -150,7 +150,7 @@ ja tiedoston `.env` salasanalla) vastaa tähän kyselyyn seinällä, joka on lin
 viewpointin komponenttiin:
 
 ```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN c, w
 ```
 
 Dataspatiumista lähettämästäsi mallista tulee graafi samalla tavalla. Kokeillaksesi

@@ -9,11 +9,10 @@ startup and is idempotent on both Neo4j and Memgraph.
 
 from __future__ import annotations
 
-import contextlib
+from ifc_lpg.graph import UNIQUE as LIBRARY_UNIQUE
+from ifc_lpg.graph import Dialect as LibraryDialect
+from ifc_lpg.graph import ensure_schema
 
-from neo4j.exceptions import ClientError
-
-from opencde.graph.dialect import GraphDialect
 from opencde.graph.graph import Graph
 from opencde.logging import get_logger
 
@@ -46,10 +45,11 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("SelectionSession", "id"),
     ("Event", "id"),
     ("AuditEvent", "id"),
-    ("Model", "id"),
-    ("Entity", "id"),
-    ("StepBlock", "id"),
 )
+
+#: Every label with a unique key, IFC-LPG's included (``ifc_lpg.graph.UNIQUE``): what the backup keys nodes by and
+#: the doctor counts. The library makes its own constraints and indexes (``ensure_schema``).
+KEYED: tuple[tuple[str, str], ...] = (*UNIQUE, *LIBRARY_UNIQUE)
 
 # Additional lookup and sort indexes.
 INDEXES: tuple[tuple[str, str], ...] = (
@@ -71,15 +71,11 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("SelectionSession", "expires_at"),
     ("SelectionSession", "token_hash"),
     ("DocumentVersion", "version_index"),
-    ("Entity", "GlobalId"),
-    ("Entity", "model_id"),
+    ("Component", "ifc_guid"),
     ("Model", "project_id"),
     ("RequestLog", "at"),
     ("RequestLog", "expires_at"),
 )
-
-# Point indexes: where the products are (IFC-LPG's spatial layer, ``bbox_centre`` on every product with a shape).
-POINT_INDEXES: tuple[tuple[str, str], ...] = (("Entity", "bbox_centre"),)
 
 # Labels whose nodes carry ``expires_at`` and may be deleted once it has passed. Only self-registered
 # clients carry it (unused ones expire); manually created clients have no ``expires_at`` and stay.
@@ -131,22 +127,43 @@ async def relabel_after_the_rename(graph: Graph) -> int:
     return changed
 
 
-async def rebuild_point_indexes(graph: Graph) -> None:
-    """Make the point indexes anew after points were set. Memgraph 3.14 does not keep a point index current (a
-    point set after the index was made is not found through it), so there the index is dropped and made again;
-    Neo4j keeps its indexes up to date and nothing is done. Only a missing index is passed over when dropping;
-    a transient error goes through, so that a stale index is not left in place without a word."""
-    if graph.dialect.name is not GraphDialect.MEMGRAPH:
-        return
-    for label, prop in POINT_INDEXES:
-        with contextlib.suppress(ClientError):  # there was none yet
-            await graph.ddl(graph.dialect.drop_point_index(label, prop))
-        await graph.ddl(graph.dialect.point_index(label, prop))
+def library_dialect(graph: Graph) -> LibraryDialect:
+    """The graph's dialect as IFC-LPG names it."""
+    return graph.dialect.name.value
+
+
+class SchemaGraph:
+    """The graph to IFC-LPG's schema statements (its ``SchemaGraph`` protocol): one statement at a time, where one
+    that exists already is no error, as :meth:`Graph.ddl` does it."""
+
+    def __init__(self, graph: Graph) -> None:
+        self.graph = graph
+
+    async def ddl(self, statement: str) -> None:
+        await self.graph.ddl(statement)
+
+
+async def drop_same_as(graph: Graph) -> int:
+    """Remove the ``SAME_AS`` relationships earlier releases made from a BCF component to the element it names: since
+    2026-11-11 (step one of IFC-LPG's F38 a) the GTIN comes through the library's lookup and the element is found by
+    the component's ``GlobalId``. In batches, idempotent and cheap once done. Returns how many went."""
+    gone = 0
+    while True:
+        rows = await graph.run(
+            "MATCH ()-[r:SAME_AS]->() WITH r LIMIT $batch DELETE r RETURN count(*) AS n", batch=RELABEL_BATCH
+        )
+        done = int(rows[0]["n"]) if rows else 0
+        gone += done
+        if done < RELABEL_BATCH:
+            break
+    if gone:
+        log.info("same_as_removed", relationships=gone)
+    return gone
 
 
 async def apply_schema(graph: Graph) -> int:
-    """Create missing constraints and indexes, and relabel what the renames left behind. Returns how many
-    statements changed the schema."""
+    """Create missing constraints and indexes, the library's too, and relabel what the renames left behind.
+    Returns how many of the server's own statements changed the schema."""
     changed = 0
     dialect = graph.dialect
     for label, prop in UNIQUE:
@@ -157,9 +174,8 @@ async def apply_schema(graph: Graph) -> int:
     for label, prop in INDEXES:
         if await graph.ddl(dialect.index(label, prop)):
             changed += 1
-    for label, prop in POINT_INDEXES:
-        if await graph.ddl(dialect.point_index(label, prop)):
-            changed += 1
+    await ensure_schema(SchemaGraph(graph), library_dialect(graph))
     (log.info if changed else log.debug)("schema_applied", dialect=dialect.name.value, changed=changed)
     await relabel_after_the_rename(graph)
+    await drop_same_as(graph)
     return changed

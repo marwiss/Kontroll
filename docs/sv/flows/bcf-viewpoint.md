@@ -20,7 +20,7 @@ sequenceDiagram
     A->>S: POST …/topics/{guid}/viewpoints (kamera, komponenter, bild)
     S->>F: Spara bilden under ett namn som servern väljer
     S->>G: Skapa Viewpoint och dess Component
-    S->>G: Länka komponenter till färdiga modeller med SAME_AS, om IFC-grafen är på
+    S->>G: Kopiera GTIN från de färdiga modellerna till komponenterna, om IFC-grafen är på
     S-->>A: 201 viewpoint med guid
     A->>S: POST …/topics/{guid}/comments (comment, viewpoint_guid)
     S-->>A: 201 kommentar
@@ -62,10 +62,11 @@ Ett projekt som användaren inte är medlem i finns inte för hen (404).
 ## Från en viewpoint till modellen
 
 När [IFC-LPG](../ifc-lpg.md) är på får varje komponent som nämner ett `GlobalId`
-en `SAME_AS`-relation till det elementet i projektets färdiga modeller, också när
-modellen laddas upp efteråt.
+som projektets färdiga modeller har elementets GTIN som `gtin`, också när modellen
+laddas upp efteråt; själva elementet hittas genom sitt `GlobalId`:
 
 ```cypher
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```

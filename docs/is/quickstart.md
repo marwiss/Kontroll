@@ -143,7 +143,7 @@ Sýnilíkanið er þegar orðið graf, því að `OPENCDE_IFC_LPG_ENABLED=true` 
 með veggnum tengdum við íhlut viewpointsins:
 
 ```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN c, w
 ```
 
 Líkan sem þú sendir úr Dataspatium verður að grafi á sama hátt. Til að prófa það

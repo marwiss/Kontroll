@@ -266,10 +266,11 @@ class QueryResult(BaseModel):
     truncated: bool
 
 
-async def run_read_query(
-    graph: Graph, cypher: str, params: dict[str, Any], *, max_rows: int, timeout_seconds: float
-) -> QueryResult:
-    """Run one reading statement in a read transaction, keep at most ``max_rows`` rows, stop at the time limit.
+async def read_records(
+    graph: Graph, cypher: str, params: dict[str, Any], *, timeout_seconds: float, max_rows: int | None = None
+) -> tuple[list[str], list[dict[str, Any]], bool]:
+    """Run one reading statement in a read transaction and stop at the time limit: the columns, the records as
+    the driver gives them (at most ``max_rows`` when given), and whether there were more.
 
     Neo4j is told the transaction timeout and stops the statement itself; Memgraph is not (it does not
     take the Bolt transaction timeout), so a client-side limit a second later covers both. Memgraph also
@@ -280,20 +281,20 @@ async def run_read_query(
     tx_timeout = timeout_seconds if graph.dialect.name is GraphDialect.NEO4J else None
     marker = new_id()
 
-    async def work() -> QueryResult:
+    async def work() -> tuple[list[str], list[dict[str, Any]], bool]:
         async with graph.driver.session(database=graph.database, default_access_mode=READ_ACCESS) as session:
             tx = await session.begin_transaction(timeout=tx_timeout, metadata={QUERY_MARKER: marker})
             try:
                 result = await tx.run(cast("LiteralString", cypher), params)
                 columns = list(result.keys())
-                rows: list[list[Any]] = []
+                records: list[dict[str, Any]] = []
                 truncated = False
                 async for record in result:
-                    if len(rows) >= max_rows:
+                    if max_rows is not None and len(records) >= max_rows:
                         truncated = True
                         break
-                    rows.append([json_value(value) for value in record.values()])
-                return QueryResult(columns=columns, rows=rows, truncated=truncated)
+                    records.append(dict(record.items()))
+                return columns, records, truncated
             finally:
                 with contextlib.suppress(Exception):
                     await tx.close()  # a rollback: nothing was written, and the rest of the stream is dropped
@@ -303,6 +304,38 @@ async def run_read_query(
     except TimeoutError:
         await stop_on_the_server(graph, marker)
         raise
+
+
+async def run_read_query(
+    graph: Graph, cypher: str, params: dict[str, Any], *, max_rows: int, timeout_seconds: float
+) -> QueryResult:
+    """The administrators' form of :func:`read_records`: at most ``max_rows`` rows, as lists of JSON values."""
+    columns, records, truncated = await read_records(
+        graph, cypher, params, timeout_seconds=timeout_seconds, max_rows=max_rows
+    )
+    rows = [[json_value(record[column]) for column in columns] for record in records]
+    return QueryResult(columns=columns, rows=rows, truncated=truncated)
+
+
+class ReadingGraph:
+    """A graph to IFC-LPG's named queries (``ifc_lpg.queries``): ``run`` as the library's ``Graph`` protocol, and
+    ``read`` for its reading statements through :func:`read_records`, with the read transaction, the time limit
+    and the stop on the server. The server's own :class:`Graph` is not handed over as it is: its ``read`` runs a
+    transaction function and means something else."""
+
+    def __init__(self, graph: Graph) -> None:
+        self.graph = graph
+
+    async def run(self, query: str, /, **params: Any) -> list[dict[str, Any]]:
+        return await self.graph.run(query, **params)
+
+    async def read_rows(
+        self, statement: str, params: dict[str, Any], *, timeout_seconds: float
+    ) -> list[dict[str, Any]]:
+        _columns, records, _truncated = await read_records(
+            self.graph, statement, params, timeout_seconds=timeout_seconds
+        )
+        return records
 
 
 async def stop_on_the_server(graph: Graph, marker: str) -> int:

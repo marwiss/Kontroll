@@ -17,7 +17,7 @@ from opencde.documents.repository import DocumentRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.dialect import NEO4J
 from opencde.graph.graph import Graph
-from opencde.graph.schema import RENAMED_LABELS, apply_schema, relabel_after_the_rename
+from opencde.graph.schema import RENAMED_LABELS, apply_schema, drop_same_as, relabel_after_the_rename
 from opencde.ids import new_id
 from opencde.seed import (
     SAMPLE_MODEL,
@@ -64,6 +64,20 @@ async def test_what_earlier_releases_labelled_with_ifc_is_relabelled_at_startup(
         rows = await graph.run(f"MATCH (n:{new} {{id: $id}}) RETURN labels(n) AS labels", id=ids[old])
         assert rows and rows[0]["labels"] == [new], f"{old} became {new}"
     assert await relabel_after_the_rename(graph) == 0, "nothing is left to relabel"
+
+
+async def test_the_same_as_relationships_of_earlier_releases_are_removed_at_startup(graph: Graph) -> None:
+    """A component reaches its element by GlobalId since step one of IFC-LPG's F38 a; the old edges go, the nodes stay."""
+    await graph.run(
+        "CREATE (:Component {id: $c, ifc_guid: $guid})-[:SAME_AS]->(:Entity {id: $e, GlobalId: $guid})",
+        c=new_id(),
+        e=new_id(),
+        guid="1Xezbq735AdBO_4DerG66G",
+    )
+    assert await drop_same_as(graph) == 1
+    assert await drop_same_as(graph) == 0, "nothing is left to remove"
+    rows = await graph.run("MATCH (c:Component), (e:Entity {GlobalId: c.ifc_guid}) RETURN count(*) AS n")
+    assert rows[0]["n"] == 1, "the nodes stay and still meet by GlobalId"
 
 
 async def test_the_doctor_counts_the_constraints_on_both_products(graph: Graph) -> None:

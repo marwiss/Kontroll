@@ -6,7 +6,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from neo4j.exceptions import ClientError as Neo4jClientError
 from neo4j.exceptions import TransientError
 
 from opencde.accounts.roles import Role, comment_actions, project_actions, topic_actions, viewpoint_actions
@@ -15,7 +14,6 @@ from opencde.auth.passwords import hash_password, password_problems, verify_pass
 from opencde.graph import graph as graph_module
 from opencde.graph.dialect import FORBIDDEN_CYPHER, MEMGRAPH, NEO4J
 from opencde.graph.graph import Graph
-from opencde.graph.schema import rebuild_point_indexes
 from opencde.ids import hash_secret, is_uuid, new_id, new_secret, normalize_guid, secrets_equal
 from opencde.storage import LocalStorage, TooLargeError, make_key
 from opencde.timeutil import canonical_iso, is_expired, later_iso, now_iso, parse_iso, to_iso
@@ -232,16 +230,3 @@ async def test_a_schema_statement_waits_at_most_a_few_seconds_at_a_time(monkeypa
         await Graph(driver, "memgraph", MEMGRAPH).ddl("CREATE POINT INDEX ON :Entity(bbox_centre)")  # type: ignore[arg-type]
     assert max(waits) == graph_module.DDL_RETRY_MAX_SECONDS
     assert 60 <= sum(waits) <= 180
-
-
-async def test_the_point_index_is_made_again_when_there_was_none(monkeypatch: pytest.MonkeyPatch) -> None:
-    driver = _DdlDriver(Neo4jClientError("no such index"), None)
-    await rebuild_point_indexes(Graph(driver, "memgraph", MEMGRAPH))  # type: ignore[arg-type]
-    assert driver.calls == 2
-
-
-async def test_a_transient_error_while_dropping_the_point_index_is_not_hidden(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(graph_module, "DDL_RETRY_SECONDS", 0)
-    driver = _DdlDriver(*[TransientError("Cannot get unique access to the storage")] * graph_module.DDL_ATTEMPTS)
-    with pytest.raises(TransientError):
-        await rebuild_point_indexes(Graph(driver, "memgraph", MEMGRAPH))  # type: ignore[arg-type]

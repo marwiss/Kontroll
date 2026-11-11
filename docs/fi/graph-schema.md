@@ -119,7 +119,7 @@ erDiagram
 |---|---|---|---|
 | `Comment` | `guid` | `topic_guid`, `date`, `author`, `comment`, `viewpoint_guid`, `modified_date`, `modified_author` | `viewpoint_guid`:n on nimettävä saman asian viewpoint |
 | `Viewpoint` | `guid` | `index`, `author`, `creation_date`, `camera_kind`, `camera` (JSON), `lines` (JSON), `clipping_planes` (JSON), `snapshot_type`, `storage_key`, `has_components`, `default_visibility`, `has_hints`, `spaces_visible`, `space_boundaries_visible`, `openings_visible` | Muuttumaton. Geometria on JSON-tekstiä: opaakkia ja samanlaista molemmissa tietokannoissa |
-| `Component` | `id` | `role` (`selection`, `coloring`, `exception`), `group_index`, `position`, `color`, `ifc_guid`, `originating_system`, `authoring_tool_id` | Yksi solmu esiintymää kohti; IFC-graafi linkittää `ifc_guid`:n mallin elementteihin (vaihe 9) |
+| `Component` | `id`, indeksoitu `ifc_guid` | `role` (`selection`, `coloring`, `exception`), `group_index`, `position`, `color`, `ifc_guid`, `originating_system`, `authoring_tool_id` | Yksi solmu esiintymää kohti; IFC-graafi linkittää `ifc_guid`:n mallin elementteihin (vaihe 9) |
 | `Bitmap` | `guid` | `position`, `bitmap_type`, `storage_key`, `height`, `loc_*`, `nrm_*`, `up_*` | Kuvatavut tallennustilassa polussa `bitmaps/<guid>.<tyyppi>` |
 | `FileRef` | `id` | `position`, `ifc_project`, `ifc_spatial_structure_element`, `filename`, `date`, `reference` | Asian otsakkeen tiedostot (BCF 3.3) |
 | `DocumentReference` | `guid` | `document_guid` tai `url`, `description`, `created_at` | Tasan yksi kahdesta kohteesta |
@@ -174,7 +174,6 @@ erDiagram
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
-    Component }o--o| Entity : SAME_AS
 ```
 
 | Nimiö | Avain | Ominaisuudet | Huomautukset |

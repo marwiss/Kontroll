@@ -5,7 +5,7 @@
 model, with their parameters and columns, and says how far the model's conversion has come. ``GET …/ifc-queries/{name}``
 asks one, with its parameters in the query string, and answers ``{"name", "columns", "rows", "truncated"}``, rows as
 lists in the order of the columns, as the administrators' graph query does. The same bearer token as the Documents API
-reaches both; the statements are in ``ifcgraph/queries.py``.
+reaches both; the statements are IFC-LPG's (``ifc_lpg.queries``, through ``ifcgraph/queries.py``).
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from fastapi import APIRouter, HTTPException, Path, Query, Request
 from neo4j.exceptions import Neo4jError
 from pydantic import BaseModel, Field
 
-from opencde.admin.graph_query import run_read_query
+from opencde.admin.graph_query import ReadingGraph
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import GraphDep, SettingsDep
 from opencde.documents.repository import DocumentsDep
@@ -29,6 +29,7 @@ from opencde.ifcgraph.queries import (
     QUERIES,
     TIMEOUT_SECONDS,
     InvalidParameters,
+    run_query,
 )
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.settings import Settings
@@ -227,16 +228,17 @@ async def ifc_query(
         raise HTTPException(400, str(exc)) from None
     if state != "done":
         raise HTTPException(409, f"The IFC graph of this version is {state}, not done")
-    params = {**values, "user_id": principal.user_id, "document_id": document_id, "version_index": version_index}
-    target, cypher = graph, query.cypher
+    target = graph
     if ifcgraph is not None and ifcgraph.workcopy is not None and await ifcgraph.in_workcopy(model_id):
-        target, cypher, params = ifcgraph.workcopy, query.cypher_in_workcopy, {**values, "model_id": model_id}
+        target = ifcgraph.workcopy
     try:
-        result = await run_read_query(target, cypher, params, max_rows=MAX_ROWS, timeout_seconds=TIMEOUT_SECONDS)
+        answer = await run_query(
+            ReadingGraph(target), model_id, name, values, max_rows=MAX_ROWS, timeout_seconds=TIMEOUT_SECONDS
+        )
     except TimeoutError:
         raise HTTPException(400, f"The query exceeded the time limit of {TIMEOUT_SECONDS:g} seconds") from None
     except Neo4jError as exc:
         if "TimedOut" in (exc.code or ""):
             raise HTTPException(400, f"The query exceeded the time limit of {TIMEOUT_SECONDS:g} seconds") from None
         raise
-    return IfcQueryAnswer(name=query.name, columns=result.columns, rows=result.rows, truncated=result.truncated)
+    return IfcQueryAnswer(**answer)

@@ -116,7 +116,7 @@ erDiagram
 |---|---|---|---|
 | `Comment` | `guid` | `topic_guid`, `date`, `author`, `comment`, `viewpoint_guid`, `modified_date`, `modified_author` | `viewpoint_guid` skal nævne et viewpoint i samme sag |
 | `Viewpoint` | `guid` | `index`, `author`, `creation_date`, `camera_kind`, `camera` (JSON), `lines` (JSON), `clipping_planes` (JSON), `snapshot_type`, `storage_key`, `has_components`, `default_visibility`, `has_hints`, `spaces_visible`, `space_boundaries_visible`, `openings_visible` | Uforanderligt. Geometri er JSON-tekst: opak og identisk i begge databaser |
-| `Component` | `id` | `role` (`selection`, `coloring`, `exception`), `group_index`, `position`, `color`, `ifc_guid`, `originating_system`, `authoring_tool_id` | Én node per forekomst; IFC-grafen knytter `ifc_guid` til modelelementer (etape 9) |
+| `Component` | `id`, indekseret `ifc_guid` | `role` (`selection`, `coloring`, `exception`), `group_index`, `position`, `color`, `ifc_guid`, `originating_system`, `authoring_tool_id` | Én node per forekomst; IFC-grafen knytter `ifc_guid` til modelelementer (etape 9) |
 | `Bitmap` | `guid` | `position`, `bitmap_type`, `storage_key`, `height`, `loc_*`, `nrm_*`, `up_*` | Billedbytes i lageret under `bitmaps/<guid>.<type>` |
 | `FileRef` | `id` | `position`, `ifc_project`, `ifc_spatial_structure_element`, `filename`, `date`, `reference` | Filerne i sagens hoved (BCF 3.3) |
 | `DocumentReference` | `guid` | `document_guid` eller `url`, `description`, `created_at` | Præcis ét af de to mål |
@@ -171,7 +171,6 @@ erDiagram
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
-    Component }o--o| Entity : SAME_AS
 ```
 
 | Label | Nøgle | Egenskaber | Noter |

@@ -20,7 +20,7 @@ sequenceDiagram
     A->>S: POST …/topics/{guid}/viewpoints (myndavél, einingar, mynd)
     S->>F: Vista myndina undir nafni sem þjónninn velur
     S->>G: Búa til Viewpoint og Component-hnúta þess
-    S->>G: Tengja einingar við fullbúin líkön með SAME_AS, ef IFC-grafið er virkt
+    S->>G: Afrita GTIN úr fullbúnu líkönunum á einingarnar, ef IFC-grafið er virkt
     S-->>A: 201 sjónarhorn með guid
     A->>S: POST …/topics/{guid}/comments (comment, viewpoint_guid)
     S-->>A: 201 athugasemd
@@ -61,11 +61,12 @@ Verkefni sem notandinn á ekki aðild að er ekki til fyrir hann (404).
 
 ## Frá sjónarhorni til líkansins
 
-Þegar [IFC-LPG](../ifc-lpg.md) er virkt fær hver eining sem nefnir `GlobalId`
-`SAME_AS`-tengsl við það stak í fullbúnum líkönum verkefnisins, einnig þegar líkanið er
-hlaðið upp síðar.
+Þegar [IFC-LPG](../ifc-lpg.md) er virkt fær hver eining sem nefnir `GlobalId` sem
+fullbúin líkön verkefnisins hafa GTIN staksins sem `gtin`, einnig þegar líkanið er
+hlaðið upp síðar; stakið sjálft finnst með `GlobalId` þess:
 
 ```cypher
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```

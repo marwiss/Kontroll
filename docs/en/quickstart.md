@@ -149,7 +149,7 @@ to `bolt://127.0.0.1:7697` as `neo4j` with the password from `.env`) answers thi
 query with the wall linked to the viewpoint's component:
 
 ```cypher
-MATCH (c:Component)-[:SAME_AS]->(w:IfcWall) RETURN c, w
+MATCH (c:Component), (w:IfcWall {GlobalId: c.ifc_guid}) RETURN c, w
 ```
 
 A model you send from Dataspatium becomes a graph the same way. To try it, press

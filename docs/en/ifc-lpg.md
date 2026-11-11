@@ -260,8 +260,8 @@ It differs from the article in these ways:
   of their own with a generated identifier.
 - Several models share one database, told apart by `model_id`. The article
   keeps one model per database.
-- Relationship types are written in upper case, and `SAME_AS` and the copy of
-  the GTIN are added here.
+- Relationship types are written in upper case, and the copy of the GTIN onto
+  BCF components is added here.
 
 The article notes that its graph loses the order of lists, since a relationship
 does not say where in a list its target stood. Here `position` says that.
@@ -355,18 +355,21 @@ RETURN latest.file_name AS model, count(e) AS products
 
 When a viewpoint is created with components, every component whose `ifc_guid`
 matches the `GlobalId` of an element in one of the project's imported models
-gets a `SAME_AS` relationship to it. The same linking runs for every existing
-component of the project when a model finishes importing, so viewpoints created
-before the model was uploaded, or while it was still converting, are linked
-too. If the element carries the configured property
-(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`),
-its value is copied to the component as `gtin`. This is the use case of the
-2023 research report: an inspection (BCF topic) pointing at building products
-identified by GTIN.
+gets the value of the configured property
+(`OPENCDE_IFC_LPG_GTIN_PROPERTY_SET=Reuse`, `OPENCDE_IFC_LPG_GTIN_PROPERTY=GTIN`)
+as `gtin`, when the element has one: the server looks the GlobalIds up in the
+model through IFC-LPG's `property_values` and keeps the value on the component,
+and makes no relationship into the model; the element is found by its
+`GlobalId`. The same lookup runs for every existing component of the project
+when a model finishes importing, so viewpoints created before the model was
+uploaded, or while it was still converting, get their GTINs too. This is the
+use case of the 2023 research report: an inspection (BCF topic) pointing at
+building products identified by GTIN.
 
 ```cypher
 // Which products does this viewpoint point at, and what are their GTINs?
-MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)-[:SAME_AS]->(e:IfcProduct)
+MATCH (:Viewpoint {guid: $viewpoint})-[:HAS_COMPONENT]->(c:Component)
+MATCH (e:IfcProduct {GlobalId: c.ifc_guid})
 RETURN c.ifc_guid, e.Name, c.gtin
 ```
 
@@ -379,7 +382,7 @@ RETURN w.GlobalId, w.Name, p.NominalValue
 
 ```cypher
 // Every issue that touches a given element.
-MATCH (e:Entity {GlobalId: $guid})<-[:SAME_AS]-(:Component)<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
+MATCH (:Component {ifc_guid: $guid})<-[:HAS_COMPONENT]-(v:Viewpoint)<-[:HAS_VIEWPOINT]-(t:Topic)
 RETURN DISTINCT t.server_assigned_id, t.title, t.topic_status
 ```
 
@@ -391,6 +394,8 @@ models as `ifc_project`, which lets clients fill in the topic header's files.
 A member of a project asks a version's model questions by name, with the same
 bearer token as the Documents API; free Cypher stays with administrators
 (ADR 0016).
+The queries are IFC-LPG's catalogue (`ifc_lpg.queries`), so one added to the
+library appears here.
 `GET /documents/1.0/documents/{id}/versions/{index}/ifc-queries` lists the
 queries with their parameters and columns, and says in `model_state` how far
 the model's conversion has come. `GET …/ifc-queries/{name}` asks one, with its
@@ -698,7 +703,7 @@ developed together with this server, runs Cypher against this graph through
 its Neo4j source over Bolt (WebSocket on the Bolt port) when the operator
 exposes the database, as the development overlay does on `127.0.0.1:7697`.
 Its Dataregium workspace uses the patterns above (models, classes, components
-through `SAME_AS`, the latest finished model per document); the queries live in
+by `GlobalId`, the latest finished model per document); the queries live in
 Dataspatium's documentation (`docs/grafer.md`). A production server does not publish Bolt;
 the administration API's graph query (`OPENCDE_GRAPH_QUERY_ENABLED`,
 [client-guide.md §7](client-guide.md)) gives administrators read-only Cypher

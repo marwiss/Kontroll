@@ -21,7 +21,7 @@ from typing import Any
 
 from opencde import __version__
 from opencde.graph.graph import Graph
-from opencde.graph.schema import UNIQUE
+from opencde.graph.schema import KEYED
 from opencde.storage import CATEGORIES, LocalStorage
 from opencde.timeutil import now_iso
 
@@ -29,7 +29,7 @@ FORMAT = 1
 BATCH = 1000
 MAX_BATCH_BYTES = 16 * 1024 * 1024
 _NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_KEY_PROPS = sorted({prop for _, prop in UNIQUE})
+_KEY_PROPS = sorted({prop for _, prop in KEYED})
 _KEY_PROJECTION = "{" + ", ".join(f".{prop}" for prop in _KEY_PROPS) + "}"
 
 
@@ -54,7 +54,7 @@ class Manifest:
 
 def node_key(labels: list[str], props: dict[str, Any]) -> tuple[str, str, Any] | None:
     """``(label, property, value)`` identifying a node across databases, or None when it has no unique key."""
-    for label, prop in UNIQUE:
+    for label, prop in KEYED:
         if label in labels and props.get(prop) is not None:
             return label, prop, props[prop]
     return None
@@ -87,7 +87,7 @@ async def export(graph: Graph, storage: LocalStorage, target_dir: Path) -> Manif
     # A command-line operation: nothing else runs on this event loop, so blocking file work is fine here.
     target_dir.mkdir(parents=True, exist_ok=False)  # noqa: ASYNC240
     present = await _present_labels(graph)
-    primary = [(label, prop) for label, prop in UNIQUE if label in present]
+    primary = [(label, prop) for label, prop in KEYED if label in present]
     covered = {label for label, _ in primary}
     nodes = relationships = skipped = 0
     seen: set[tuple[str, str, Any]] = set()
