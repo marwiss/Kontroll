@@ -60,6 +60,7 @@ IFC_SUFFIXES = (".ifc", ".ifczip", ".ifcxml")
 IDS_SUFFIX = ".ids"
 # The IDS documents of one project an upload is checked against, and the specifications its report keeps (ADR 0015).
 MAX_IDS_DOCUMENTS = 50
+MAX_RECHECKS = 500  # the IFC documents of a project checked again at once when its IDS changes (OB-43.1)
 PRECHECK_SECONDS = 24 * 3600  # a file checked without becoming a version is kept this long (ADR 0021)
 MAX_SPECIFICATIONS = 1_000
 
@@ -140,6 +141,8 @@ class IfcGraphService:
         ``checked`` brings the result of a check made before the version existed (``check_now``).
         """
         if not self.wants(file_name):
+            if version_id is not None and file_name.lower().endswith(IDS_SUFFIX):
+                await self.recheck_after_ids(project_id)
             return None
         if version_id is not None and self.settings.ifcgraph_validate_uploads:
             if checked is None:
@@ -1159,6 +1162,31 @@ class IfcGraphService:
             "error_count": int(report["error_count"]),
             "truncated": bool(report["truncated"]),
         }
+
+    async def recheck_after_ids(self, project_id: str) -> int:
+        """A new version of an IDS document: the latest version of every IFC document in the project is checked again,
+        so that its report follows the project's requirements as they are now (OB-43.1). Returns how many were queued;
+        the reports show the newest check, and the checks run one at a time behind the others."""
+        if not self.settings.ifcgraph_validate_uploads:
+            return 0
+        rows = await self.graph.run(
+            """
+            MATCH (:Project {project_id: $id})-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
+            WITH d, v ORDER BY v.version_index DESC
+            WITH d, collect(v)[0] AS v
+            WHERE any(suffix IN $suffixes WHERE toLower(v.file_name) ENDS WITH suffix)
+            RETURN v.id AS id, v.storage_key AS storage_key, v.file_name AS file_name
+            ORDER BY d.document_id
+            LIMIT $limit
+            """,
+            id=project_id,
+            suffixes=list(IFC_SUFFIXES[:2]),
+            limit=MAX_RECHECKS,
+        )
+        for row in rows:
+            await self._queue_validation(str(row["id"]), str(row["storage_key"]), str(row["file_name"]))
+        log.info("ifc_recheck_after_ids", project_id=project_id, versions=len(rows))
+        return len(rows)
 
     async def _ids_documents(self, project_id: str) -> list[dict[str, Any]]:
         """The latest version of every IDS document in the project of the file being checked (ADR 0015)."""

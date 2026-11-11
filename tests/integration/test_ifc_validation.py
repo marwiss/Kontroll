@@ -275,3 +275,24 @@ def test_a_check_a_stopped_server_left_behind_starts_over(
                 assert "failed" not in states().values(), states()
                 time.sleep(0.5)
         assert states()["just-started"] == "running", "it may be running in another server process"
+
+
+def test_a_new_ids_document_has_the_models_checked_again(ifc_client: tuple[TestClient, World]) -> None:
+    """OB-43.1: the requirements of a project change with its IDS, and the latest version of every IFC document follows."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    model = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    before = checked(client, editor, model)
+    assert before["ifc_validation_status"] == ["passed"], "no IDS yet, and the model is valid"
+    notes = upload(client, world, editor, "notes.txt", b"not a requirement")
+    assert checked(client, editor, model)["ifc_validation_checked_at"] == before["ifc_validation_checked_at"]
+
+    upload(client, world, editor, "walls.ids", (FIXTURES_DIR / "walls.ids").read_bytes())
+    after = checked(client, editor, model)
+    assert after["ifc_validation_status"] == ["issues"], "the walls lack the fire rating the new IDS asks for"
+    assert after["ifc_validation_checked_at"] > before["ifc_validation_checked_at"]
+    assert any(ruleset.startswith("IfcTester ") for ruleset in after["ifc_validation_ruleset"])
+    body = client.get(after["ifc_validation_report"][0], headers=editor.headers).json()
+    assert [check["name"] for check in body["checks"] if check["name"] == "ids"] == ["ids"]
+    assert notes["version_index"] == 1
