@@ -158,8 +158,9 @@ document whose latest version has a name ending in `.ids`, at most 50 of them
 IFC-LPG's check reads each IDS safely and gives it to IfcOpenShell's IfcTester,
 the checker Dataspatium runs in the browser, so that the two give the same
 verdict. It runs after the other checks, in the same kind of worker with the
-same limits. An IDS uploaded later applies to the IFC versions uploaded after
-it.
+same limits. A new version of an IDS document has the latest version of every IFC document
+in the project checked again, at most 500, so that its report follows the
+requirements as they are now; older versions keep the report they had.
 
 Every requirement an element fails is an issue of the kind `ids`, with the
 severity `error`, the specification's identifier or name in `rule`, and the IDS

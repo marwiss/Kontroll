@@ -166,8 +166,9 @@ asiakirjaa, jonka uusimman version nimi päättyy `.ids`, enintään 50
 IFC-LPG:n tarkistus lukee jokaisen IDS:n turvallisesti ja antaa sen
 IfcOpenShellin IfcTesterille, samalle tarkistimelle, jota Dataspatium ajaa
 selaimessa, jotta molemmat antavat saman tuloksen. Se ajetaan muiden
-tarkistusten jälkeen, samanlaisessa työprosessissa samoin rajoin. Myöhemmin
-lähetetty IDS koskee sen jälkeen lähetettyjä IFC-versioita.
+tarkistusten jälkeen, samanlaisessa työprosessissa samoin rajoin. IDS-asiakirjan uusi versio saa projektin jokaisen IFC-asiakirjan uusimman version tarkistetuksi uudelleen,
+enintään 500, jotta sen raportti seuraa vaatimuksia sellaisina kuin ne nyt ovat; vanhemmat versiot pitävät
+raporttinsa.
 
 Jokaisesta vaatimuksesta, jota elementti ei täytä, tulee huomautus lajia `ids`,
 vakavuudella `error`, määrittelyn tunnisteella tai nimellä kentässä `rule` ja

@@ -158,8 +158,8 @@ nýjasta útgáfan ber nafn sem endar á `.ids`, mest 50
 Prófun IFC-LPG les hvert IDS á öruggan hátt og afhendir það IfcTester frá
 IfcOpenShell, sama prófara og Dataspatium keyrir í vafranum, svo að hvort
 tveggja gefi sömu niðurstöðu. Hún keyrir á eftir hinum prófununum, í sams konar
-vinnsluferli með sömu mörkum. IDS sem er hlaðið upp síðar gildir um þær
-IFC-útgáfur sem er hlaðið upp á eftir því.
+vinnsluferli með sömu mörkum. Ný útgáfa IDS-skjals lætur prófa aftur nýjustu útgáfu hvers IFC-skjals í verkefninu, í mesta lagi 500, svo
+að skýrsla hennar fylgi kröfunum eins og þær eru núna; eldri útgáfur halda skýrslunni sem þær höfðu.
 
 Hver krafa sem eining uppfyllir ekki verður athugasemd af gerðinni `ids`, með
 alvarleikann `error`, auðkenni eða heiti forskriftarinnar í `rule` og

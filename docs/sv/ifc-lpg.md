@@ -162,8 +162,8 @@ dokument vars senaste version har ett namn som slutar på `.ids`, högst 50
 IFC-LPG:s kontroll läser varje IDS säkert och lämnar den till IfcOpenShells
 IfcTester, samma kontrollant som Dataspatium kör i webbläsaren, så att de två
 ger samma utslag. Den körs efter de andra kontrollerna, i samma slags
-arbetsprocess med samma gränser. En IDS som laddas upp senare gäller de
-IFC-versioner som laddas upp efter den.
+arbetsprocess med samma gränser. En ny version av ett IDS-dokument gör att den senaste versionen av varje IFC-dokument i projektet kontrolleras
+om, högst 500, så att dess rapport följer kraven som de är nu; äldre versioner behåller den rapport de hade.
 
 Varje krav som ett element inte uppfyller blir en anmärkning av slaget `ids`,
 med allvarligheten `error`, specifikationens identifierare eller namn i `rule`
