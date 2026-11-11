@@ -88,6 +88,17 @@ def checked(client: TestClient, session: Session, version: dict[str, Any]) -> di
         time.sleep(0.5)
 
 
+def settled(client: TestClient, session: Session, url: str) -> dict[str, Any]:
+    """The validation report once the graph check has joined it, which happens when the conversion is done, or as it
+    is after a minute: the report does not change after that, so two reads of it compare equal."""
+    deadline = time.monotonic() + 60
+    while True:
+        body = client.get(url, headers=session.headers).json()
+        if any(check["name"] == "graph" for check in body["checks"]) or time.monotonic() > deadline:
+            return body
+        time.sleep(0.5)
+
+
 def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tuple[TestClient, World]) -> None:
     client, world = ifc_client
     editor = login_as(client, world, "editor")
@@ -107,14 +118,13 @@ def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tupl
     entries = checked(client, editor, twice)
     assert entries["ifc_validation_status"] == ["issues"] and int(entries["ifc_validation_issues"][0]) >= 1
     report_url = entries["ifc_validation_report"][0]
-    body = client.get(report_url, headers=editor.headers).json()
+    body = settled(client, editor, report_url)
     assert body["status"] == "issues" and body["issue_count"] == len(body["issues"]) and body["truncated"] is False
     assert body["checked_at"] == entries["ifc_validation_checked_at"][0]
     assert any(issue["global_id"] == WALLS[0] and "IfcRoot.UR1" in issue["message"] for issue in body["issues"])
 
     viewer = login_as(client, world, "viewer")
-    seen = client.get(report_url, headers=viewer.headers).json()  # the graph check may have joined the report since
-    assert (seen["status"], seen["issues"]) == (body["status"], body["issues"]), "every member may read it"
+    assert client.get(report_url, headers=viewer.headers).json() == body, "every member may read it"
     outsider = login_as(client, world, "outsider")
     assert client.get(report_url, headers=outsider.headers).status_code == 404
     assert client.get(report_url).status_code == 401
