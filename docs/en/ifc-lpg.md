@@ -173,6 +173,36 @@ An IDS document that cannot be read, such as one with a DTD, is listed under
 `rules_not_run` with the reason, and the others are checked all the same. The
 version's page shows the specifications in a table of their own.
 
+### buildingSMART Data Dictionary (bSDD)
+
+With `OPENCDE_BSDD_ENABLED=true`, an upload is also checked against buildingSMART's Data Dictionary, after the IDS
+check. A worker reads the file's references to it: every `IfcClassificationReference` whose `Location` is a bSDD URI,
+such as `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, or whose `Identification`
+(`ItemReference` in IFC2X3) is a code in the dictionary whose URI its `Location` or its classification holds, with the
+objects it is on; and the properties of every set named `Pset_…` or `Qto_…`. The server then asks bSDD's API at
+`OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) about each URI, with a time limit on each question
+(`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 seconds) and two retries when bSDD answers 429 or 5xx, and keeps each answer in
+memory for a day (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 asks every time). Nothing the file names is fetched: a URI
+goes to bSDD's API as a parameter, and one on another host than `identifier.buildingsmart.org` is reported instead.
+The check is off by default, since it sends the file's URIs and the names of its sets to bSDD; in production its
+address must be https.
+
+Everything it finds is a warning of the kind `bsdd`, with the classification reference or the set in `step_id`, the
+GlobalId of one of the objects it is on in `global_id`, and that object's class in the message:
+
+- a classification reference whose class or property bSDD does not know, with the dictionary in `rule` and the
+  attribute that names it in `attribute`; a model may use a dictionary that bSDD has not published;
+- in a file of IFC 4.3, a set that bSDD's IFC dictionary (`buildingsmart/ifc/4.3`) does not have, or a property that
+  it does not list in that set, with the set and the property in `attribute`, as in `Pset_WallCommon.Colour`.
+
+bSDD publishes that one IFC dictionary, so the sets of an IFC4 or IFC2X3 file, whose schemas define them otherwise,
+are not checked; and `Reference`, which IFC 4.3 gives nearly every set and bSDD leaves out of all of them, is not
+reported. The check's `ruleset` names bSDD's host and the dictionaries the file was checked against. It reads at most
+1,000 references and 500 sets, and a warning says when a file has more. When bSDD cannot be reached, or does not
+answer as its API does, the check is `failed` with the reason in its `error`, and the other checks stand: bSDD out of
+reach is never an error of the model. The precheck and the trial of a change set make the check too, and the
+capabilities document says whether it is on, as `bsdd` in `ifc_validation`.
+
 ### What the converted model shows
 
 Once the model is converted, the report gets a check `graph` of its own, with two kinds of issues. An instance that

@@ -20,6 +20,13 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- With `OPENCDE_BSDD_ENABLED=true`, an upload is also checked against buildingSMART's Data Dictionary: the check
+  `bsdd` of its report warns of a classification reference whose class bSDD does not know, and, in a file of IFC 4.3,
+  of a `Pset_` or `Qto_` set or a property of one that bSDD's IFC dictionary does not list, each with the STEP id of
+  the reference or set and the GlobalId of an object it is on. bSDD out of reach fails the check with the reason in
+  its new `error`, never the file. Off by default; `OPENCDE_BSDD_API_URL`, `OPENCDE_BSDD_TIMEOUT_SECONDS` and
+  `OPENCDE_BSDD_CACHE_SECONDS` tune it, and the capabilities document announces it as `bsdd` in the new
+  `ifc_validation`.
 - `GET /documents/1.0/documents/{id}/ifc-proposals` lists the change sets tried against a document for a member
   of its project, newest first: the topic, the trial's state, the base version, who proposed it, the version an
   approved one became, and the addresses of the trial (`proposal_url`) and of its approval (`approve_url`); cut

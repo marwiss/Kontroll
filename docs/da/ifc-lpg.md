@@ -175,6 +175,36 @@ den gav. Et IDS-dokument, der ikke kan læses, for eksempel et med en DTD, står
 under `rules_not_run` med grunden, og de andre kontrolleres alligevel.
 Versionens side viser specifikationerne i en tabel for sig.
 
+### buildingSMART Data Dictionary (bSDD)
+
+Med `OPENCDE_BSDD_ENABLED=true` kontrolleres en upload også mod buildingSMARTs Data Dictionary, efter IDS-kontrollen.
+En arbejdsproces læser filens henvisninger dertil: hver `IfcClassificationReference`, hvis `Location` er en bSDD-URI,
+som `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, eller hvis `Identification`
+(`ItemReference` i IFC2X3) er en kode i den ordbog, hvis URI dens `Location` eller dens klassifikation har, med de
+objekter, den sidder på; og egenskaberne i hvert egenskabssæt, der hedder `Pset_…` eller `Qto_…`. Serveren spørger
+derefter bSDD's API på `OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) om hver URI, med en tidsgrænse
+for hvert spørgsmål (`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekunder) og to nye forsøg, når bSDD svarer 429 eller 5xx, og
+beholder hvert svar i hukommelsen et døgn (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spørger hver gang). Intet, som filen
+navngiver, hentes: en URI går til bSDD's API som en parameter, og en på en anden vært end
+`identifier.buildingsmart.org` rapporteres i stedet. Kontrollen er slået fra som standard, fordi den sender filens
+URI'er og navnene på dens egenskabssæt til bSDD; i produktion skal adressen være https.
+
+Alt, hvad den finder, er en advarsel af typen `bsdd`, med klassifikationsreferencen eller egenskabssættet i `step_id`,
+GlobalId for et af de objekter, den sidder på, i `global_id` og objektets klasse i meddelelsen:
+
+- en klassifikationsreference, hvis klasse eller egenskab bSDD ikke kender, med ordbogen i `rule` og den attribut, der
+  navngiver den, i `attribute`; en model kan bruge en ordbog, som bSDD ikke har udgivet;
+- i en fil i IFC 4.3 et egenskabssæt, som bSDD's IFC-ordbog (`buildingsmart/ifc/4.3`) ikke har, eller en egenskab, som
+  den ikke viser i det sæt, med sættet og egenskaben i `attribute`, som `Pset_WallCommon.Colour`.
+
+bSDD udgiver kun den ene IFC-ordbog, så egenskabssættene i en fil i IFC4 eller IFC2X3, hvis skemaer definerer dem
+anderledes, kontrolleres ikke; og `Reference`, som IFC 4.3 giver næsten hvert egenskabssæt, og som bSDD udelader i dem
+alle, rapporteres ikke. Kontrollens `ruleset` navngiver bSDD's vært og de ordbøger, filen blev kontrolleret mod. Den
+læser højst 1.000 referencer og 500 egenskabssæt, og en advarsel siger til, når en fil har flere. Når bSDD ikke kan
+nås, eller ikke svarer, som dens API gør, er kontrollen `failed` med grunden i sit `error`, og de andre kontroller
+står ved magt: at bSDD ikke kan nås, er aldrig en fejl i modellen. Forhåndskontrollen og prøvningen af et ændringssæt
+foretager også kontrollen, og kapabilitetsdokumentet siger, om den er slået til, som `bsdd` i `ifc_validation`.
+
 ### Det, den konverterede model viser
 
 Når modellen er konverteret, får rapporten sin egen kontrol, `graph`, med to slags bemærkninger. En instans, som intet

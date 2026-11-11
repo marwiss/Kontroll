@@ -172,6 +172,36 @@ hægt að lesa, til dæmis með DTD, er talið upp undir `rules_not_run` ásamt
 ástæðunni, og hin eru samt prófuð. Síða útgáfunnar sýnir forskriftirnar í
 sérstakri töflu.
 
+### buildingSMART Data Dictionary (bSDD)
+
+Með `OPENCDE_BSDD_ENABLED=true` er upphal líka prófað gegn Data Dictionary frá buildingSMART, á eftir IDS-prófuninni.
+Vinnsluferli les tilvísanir skrárinnar þangað: hverja `IfcClassificationReference` þar sem `Location` er bSDD-URI,
+eins og `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, eða þar sem `Identification`
+(`ItemReference` í IFC2X3) er kóði í orðabókinni sem URI í `Location` hennar eða í flokkun hennar vísar á, ásamt
+hlutunum sem hún er á; og eiginleika hvers eiginleikasafns sem heitir `Pset_…` eða `Qto_…`. Þjónninn spyr síðan API
+bSDD á `OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) um hvert URI, með tímamörkum á hverri spurningu
+(`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekúndur) og tveimur endurtekningum þegar bSDD svarar 429 eða 5xx, og geymir hvert
+svar í minni í sólarhring (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spyr í hvert sinn). Ekkert sem skráin nefnir er
+sótt: URI fer til API bSDD sem færibreyta, og URI á öðrum hýsli en `identifier.buildingsmart.org` er tilkynnt í
+staðinn. Prófunin er sjálfgefið af, þar sem hún sendir URI skrárinnar og heiti eiginleikasafna hennar til bSDD; í
+framleiðslu verður vistfangið að vera https.
+
+Allt sem hún finnur er viðvörun af gerðinni `bsdd`, með flokkunartilvísunina eða eiginleikasafnið í `step_id`,
+GlobalId eins af hlutunum sem tilvísunin eða safnið er á í `global_id` og flokk þess hlutar í skilaboðunum:
+
+- flokkunartilvísun þar sem bSDD þekkir ekki flokkinn eða eiginleikann, með orðabókina í `rule` og eigindið sem nefnir
+  hann í `attribute`; líkan getur notað orðabók sem bSDD hefur ekki gefið út;
+- í skrá í IFC 4.3, eiginleikasafn sem IFC-orðabók bSDD (`buildingsmart/ifc/4.3`) hefur ekki, eða eiginleiki sem hún
+  telur ekki upp í því safni, með safnið og eiginleikann í `attribute`, eins og `Pset_WallCommon.Colour`.
+
+bSDD gefur aðeins út þessa einu IFC-orðabók, svo eiginleikasöfn í skrá í IFC4 eða IFC2X3, sem skemu þeirra skilgreina
+á annan hátt, eru ekki prófuð; og `Reference`, sem IFC 4.3 gefur nær hverju eiginleikasafni og bSDD sleppir úr þeim
+öllum, er ekki tilkynnt. `ruleset` prófunarinnar nefnir hýsil bSDD og orðabækurnar sem skráin var prófuð gegn. Hún les
+í mesta lagi 1.000 tilvísanir og 500 eiginleikasöfn, og viðvörun segir til þegar skrá hefur fleiri. Þegar ekki næst í
+bSDD, eða það svarar ekki eins og API þess gerir, er prófunin `failed` með ástæðunni í `error`, og hinar prófanirnar
+standa: að ekki náist í bSDD er aldrei villa í líkaninu. Forprófunin og prófun breytingasafns gera líka prófunina, og
+getuskjalið segir hvort hún er á, sem `bsdd` í `ifc_validation`.
+
 ### Það sem umbreytta líkanið sýnir
 
 Þegar líkanið hefur verið umbreytt fær skýrslan eigin prófun, `graph`, með tvenns konar athugasemdum. Tilvik sem

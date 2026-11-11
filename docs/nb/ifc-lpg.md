@@ -175,6 +175,36 @@ IDS-dokument som ikke kan leses, for eksempel ett med en DTD, står under
 `rules_not_run` med grunnen, og de andre kontrolleres likevel. Versjonens side
 viser spesifikasjonene i en egen tabell.
 
+### buildingSMART Data Dictionary (bSDD)
+
+Med `OPENCDE_BSDD_ENABLED=true` kontrolleres en opplasting også mot buildingSMARTs Data Dictionary, etter
+IDS-kontrollen. En arbeidsprosess leser filens henvisninger dit: hver `IfcClassificationReference` der `Location` er
+en bSDD-URI, som `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, eller der
+`Identification` (`ItemReference` i IFC2X3) er en kode i den ordboken som URI-en i dens `Location` eller dens
+klassifikasjon peker på, med objektene den sitter på; og egenskapene i hvert egenskapssett som heter `Pset_…` eller
+`Qto_…`. Serveren spør deretter bSDDs API på `OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) om hver
+URI, med en tidsgrense for hvert spørsmål (`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekunder) og to nye forsøk når bSDD
+svarer 429 eller 5xx, og beholder hvert svar i minnet et døgn (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spør hver gang).
+Ingenting filen navngir, hentes: en URI går til bSDDs API som en parameter, og en på en annen vert enn
+`identifier.buildingsmart.org` rapporteres i stedet. Kontrollen er slått av som standard, fordi den sender filens
+URI-er og navnene på egenskapssettene dens til bSDD; i produksjon må adressen være https.
+
+Alt den finner, er en advarsel av typen `bsdd`, med klassifikasjonsreferansen eller egenskapssettet i `step_id`,
+GlobalId-en til et av objektene den sitter på, i `global_id`, og klassen til objektet i meldingen:
+
+- en klassifikasjonsreferanse der bSDD ikke kjenner klassen eller egenskapen, med ordboken i `rule` og attributtet som
+  navngir den, i `attribute`; en modell kan bruke en ordbok som bSDD ikke har publisert;
+- i en fil i IFC 4.3, et egenskapssett som IFC-ordboken til bSDD (`buildingsmart/ifc/4.3`) ikke har, eller en egenskap
+  den ikke viser i det settet, med settet og egenskapen i `attribute`, som `Pset_WallCommon.Colour`.
+
+bSDD publiserer bare den ene IFC-ordboken, så egenskapssettene i en fil i IFC4 eller IFC2X3, der skjemaene definerer
+dem annerledes, kontrolleres ikke; og `Reference`, som IFC 4.3 gir nesten hvert egenskapssett og bSDD utelater fra
+alle, rapporteres ikke. Kontrollens `ruleset` navngir verten til bSDD og ordbøkene filen ble kontrollert mot. Den
+leser høyst 1 000 referanser og 500 egenskapssett, og en advarsel sier fra når en fil har flere. Når bSDD ikke kan
+nås, eller ikke svarer slik API-et gjør, er kontrollen `failed` med grunnen i `error`, og de andre kontrollene står
+seg: at bSDD ikke kan nås, er aldri en feil i modellen. Forhåndskontrollen og prøvingen av et endringssett gjør også
+kontrollen, og kapabilitetsdokumentet sier om den er slått på, som `bsdd` i `ifc_validation`.
+
 ### Det den konverterte modellen viser
 
 Når modellen er konvertert, får rapporten en egen kontroll, `graph`, med to slags merknader. En instans som ingenting
