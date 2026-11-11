@@ -30,7 +30,7 @@ OPTIONAL MATCH (t)-[:HAS_MEMBER]->(m:User)-[:MEMBER_OF]->(p)
 WITH t, r, collect(DISTINCT m.username) AS members
 RETURN t.id AS team_id, t.name AS name, t.ids_document_id AS ids_document_id, r.id AS responsible_user_id,
        r.username AS responsible, members, t.created_at AS created_at, t.updated_at AS updated_at
-ORDER BY t.name, t.id
+ORDER BY name, team_id
 LIMIT $limit
 """
 
@@ -133,14 +133,14 @@ class TeamRepository:
         return await self.graph.run(
             """
             MATCH (p:Project {project_id: $project_id})-[:HAS_TEAM]->(t:Team)
-            OPTIONAL MATCH (t)-[:RESPONSIBLE]->(r:User)
             MATCH (p)-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
             WHERE d.document_id = t.ids_document_id
-            WITH t, r, v ORDER BY v.version_index DESC
-            WITH t, r, collect(v)[0] AS v
+            WITH t, v ORDER BY v.version_index DESC
+            WITH t, collect(v)[0] AS v
+            OPTIONAL MATCH (t)-[:RESPONSIBLE]->(r:User)
             RETURN t.id AS team_id, t.name AS name, r.id AS responsible_user_id, r.username AS responsible,
                    v.storage_key AS storage_key, v.version_index AS ids_version_index
-            ORDER BY t.name, t.id
+            ORDER BY name, team_id
             LIMIT $limit
             """,
             project_id=project_id,
