@@ -25,6 +25,7 @@ _EXTENDED = re.compile(r"""filename\*\s*=\s*(?:utf-8|UTF-8)''([^;]+)""")
 _QUOTED = re.compile(r'filename\s*=\s*"((?:[^"\\]|\\.)*)"')
 _TOKEN = re.compile(r"filename\s*=\s*([^;\s]+)")
 _UNSAFE = re.compile(r"[\x00-\x1f\x7f\"\\/:*?<>|]")
+_HEADER_UNSAFE = re.compile(r"[\x00-\x1f\x7f\"\\]")  # what would end the header line or the quoted name
 CHUNK = 64 * 1024
 
 
@@ -51,8 +52,13 @@ def filename_from_content_disposition(header: str | None) -> str | None:
 
 
 def attachment_header(filename: str) -> str:
-    """``attachment; filename="ascii"; filename*=UTF-8''percent-encoded`` (RFC 6266, RFC 8187)."""
-    ascii_name = filename.encode("ascii", "replace").decode("ascii").replace("?", "_") or "file"
+    """``attachment; filename="ascii"; filename*=UTF-8''percent-encoded`` (RFC 6266, RFC 8187).
+
+    A Documents API file name is kept as the client gave it, so the plain name here drops what would end the header
+    line or close the quotes; the encoded name carries every character.
+    """
+    ascii_name = filename.encode("ascii", "replace").decode("ascii").replace("?", "_")
+    ascii_name = _HEADER_UNSAFE.sub("_", ascii_name) or "file"
     return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename, safe='')}"
 
 
