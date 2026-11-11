@@ -611,6 +611,8 @@ einingu A. Þegar það er `done` lætur `merge_id` þess, gefið sem `other.pre
 afritið koma í stað B í skýrslunni og sameiningunni þar til `expires_at`, sólarhring
 síðar; þá fjarlægir þjónninn það. Önnur eining sem er ólík er ekki umreiknuð, og
 verkið mistekst á henni.
+Flokk sem á sér enga hliðstæðu í skema A, eins og IfcWindowStyle úr IFC2X3 í
+IFC4X3, er ekki hægt að flytja, og verkið mistekst með því hver hann er.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

@@ -615,6 +615,8 @@ As enhet. Når den er `done`, gjør dens `merge_id`, gitt som `other.prepared`, 
 kopien står for B i rapporten og sammenslåingen til `expires_at`, et døgn senere;
 deretter fjerner serveren den. En annen enhet som er forskjellig, konverteres ikke,
 og jobben feiler med den.
+En klasse uten motstykke i As skjema, som IFC2X3s IfcWindowStyle i IFC4X3, kan
+ikke migreres, og jobben feiler med hva den er.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

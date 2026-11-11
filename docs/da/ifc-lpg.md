@@ -617,6 +617,8 @@ i A's enhed. Når det er `done`, får dets `merge_id`, givet som `other.prepared
 kopien til at stå for B i rapporten og sammenfletningen indtil `expires_at`, et døgn
 senere; derefter fjerner serveren den. En anden enhed, der er forskellig, konverteres
 ikke, og jobbet fejler med den.
+En klasse uden modstykke i A's skema, som IFC2X3's IfcWindowStyle i IFC4X3, kan
+ikke migreres, og jobbet fejler med, hvad den er.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

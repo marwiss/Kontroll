@@ -631,6 +631,8 @@ jonka pituudet ovat A:n yksikössä. Kun työ on `done`, sen `merge_id` kentäss
 `other.prepared` panee kopion B:n paikalle raportissa ja yhdistämisessä hetkeen
 `expires_at` asti, vuorokauden ajan; sen jälkeen palvelin poistaa sen. Muuta eroavaa
 yksikköä ei muunneta, ja työ epäonnistuu sen vuoksi.
+Luokkaa, jolla ei ole vastinetta A:n skeemassa, kuten IFC2X3:n IfcWindowStyle
+IFC4X3:ssa, ei voi siirtää, ja työ epäonnistuu kertoen, mikä se on.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

@@ -620,6 +620,8 @@ längder i A:s enhet. När det är `done` gör dess `merge_id`, givet som
 `other.prepared`, att kopian står för B i rapporten och sammanfogningen till
 `expires_at`, ett dygn senare; sedan tar servern bort den. En annan enhet som skiljer
 sig konverteras inte, och jobbet misslyckas med den.
+En klass utan motsvarighet i A:s schema, som IFC2X3:s IfcWindowStyle i IFC4X3,
+kan inte migreras, och jobbet misslyckas med vad den är.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

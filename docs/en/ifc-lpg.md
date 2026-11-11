@@ -616,6 +616,8 @@ in A's unit. When it is `done`, its `merge_id` given as `other.prepared` makes t
 copy stand in for B in the report and the merge until `expires_at`, a day later;
 then the server takes it out. Another unit that differs is not converted, and the
 job fails with it.
+A class with no counterpart in A's schema, such as IFC2X3's IfcWindowStyle in
+IFC4X3, cannot be migrated, and the job fails with what it is.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

@@ -626,6 +626,8 @@ lengdene i eininga til A. Når han er `done`, gjer `merge_id`-en hans, gjeven so
 `other.prepared`, at kopien står for B i rapporten og samanslåinga til `expires_at`,
 eit døgn seinare; deretter fjernar serveren han. Ei anna eining som er ulik, blir
 ikkje konvertert, og jobben feilar med henne.
+Ein klasse utan motstykke i skjemaet til A, som IfcWindowStyle frå IFC2X3 i
+IFC4X3, kan ikkje migrerast, og jobben feilar med kva ho er.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
