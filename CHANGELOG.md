@@ -8,28 +8,45 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## Unreleased
+## 3.0.0 — 2026-11-11
 
-- The report of a version gets the check `graph` once its model is converted: an instance that nothing with a
-  GlobalId reaches is a warning of the kind `reachability`, with its STEP id, and a product whose shape the geometry
-  pass could not build is an issue of the kind `geometry`. Neither refuses the file. IFC-LPG is pinned at 8177587.
-- A change set can delete an instance named by its STEP id that nothing refers to (the op `delete`); one that
-  something still refers to is skipped and named in the trial. `POST /documents/1.0/projects/{id}/ifc-unreachable`
-  makes the server propose such a change set for a version: a BCF topic that deletes every instance no GlobalId
-  reaches, tried and approved like any other.
-
-## 3.0.0 — 2026-11-10
-
-Released again on 2026-11-10 (the fourth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and
-earlier on 2026-11-10 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+Released again on 2026-11-11 (the fifth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08 and
+2026-11-10 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
 upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
 the merge, the version nodes and the diff between two versions, the local engine, the working copy, headless
 uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per element in the graph, the merge by
-instance with the three values of a conflict, the administration of a project by its managers, and a server in a
+instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- The report of a version gets the check `graph` once its model is converted: an instance that nothing with a
+  GlobalId reaches is a warning of the kind `reachability`, with its STEP id, and a product whose shape the geometry
+  pass could not build is an issue of the kind `geometry`. Neither refuses the file.
+- A change set can delete an instance named by its STEP id that nothing refers to (the op `delete`); one that
+  something still refers to is skipped and named in the trial. `POST /documents/1.0/projects/{id}/ifc-unreachable`
+  makes the server propose such a change set for a version: a BCF topic that deletes every instance no GlobalId
+  reaches, tried and approved like any other.
+- A `manager` publishes a version with `POST /documents/1.0/documents/{id}/versions/{index}/publication`: the
+  server keeps its file as one archive, `.ifczip` for an IFC file and `.zip` for another, and the version's
+  metadata gets `published_at`, `published_by` and `publication`. A version is published once, and not while it is
+  being checked or when its check found errors (409). Every member reads `GET …/publication` and downloads the
+  archive from `…/publication/download`. Announced as `publication`.
+- The building of one model comes into another project's model as the next version of its document:
+  `POST /documents/1.0/projects/{id}/ifc-merge/report` tells a member of both projects what would come along and
+  lists the objects both have with a GlobalId, with whether their content is the same; `POST …/ifc-merge` lets a
+  `manager` make it as a job, with a choice for each differing object (`a`, `b` or `new`) or a `default`. The
+  merged model is checked against both, written out as the next version with the base as its parent, and
+  converted and checked as an upload. A conflict names the objects that lack a choice, and a base that is not the
+  latest gets 412. Where B's schema or length unit is not A's, `POST …/ifc-merge/prepare` first makes a copy of B
+  migrated to A's schema and with A's length unit, which stands in for B for a day. Announced as `ifc_merge`.
+  IFC-LPG is pinned at 749e7cb, where the check of the merged model still refuses `b` or `new` for a single
+  product of an IFC2X3 model; such a job fails with the reason, and nothing becomes a version.
+- A list of topics, comments or events without `$top`, or with one above 1000, still holds at most 1000 entries, and
+  now says so when more match: `X-Total-Count` with their number and `Link: <…>; rel="next"` with the address of the
+  rest, which a browser may read.
+- The API document (`/openapi.json`) gives `400` with the error body for a request the server cannot read, as the
+  server answers, where it said FastAPI's `422`.
 - On Memgraph, an administrator's graph query that runs past its time limit is stopped on the server. Memgraph does
   not take the Bolt transaction timeout and went on running the statement for up to ten minutes after the answer
   "time limit", holding its storage so that no schema statement got through meanwhile.
@@ -197,8 +214,9 @@ cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
 project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
 and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
-Dataspatium's, and this release takes the first number again. No history is rewritten: the
-commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
+Dataspatium's, and this release takes the first number again. The commits
+stay, and only the earlier releases and tags went; later the same day every commit got the noreply
+address of its author, with the same content and new hashes. Works with Dataspatium 2.0.0, which also
 speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
 - The server is called Dataregium; it was Kontroll until 8 November 2026. The capabilities document is
