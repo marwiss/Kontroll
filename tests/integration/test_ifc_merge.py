@@ -81,7 +81,7 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
     assert conflict["state"] == "conflict" and "version_index" not in conflict
     assert [c["global_id"] for c in conflict["report"]["collisions"] if c["choice"] is None] == [WALL]
 
-    chosen = client.post(url, json={**request, "choices": {WALL: "new"}}, headers=manager.headers)
+    chosen = client.post(url, json={**request, "choices": {WALL: "a"}}, headers=manager.headers)
     assert chosen.status_code == 202, chosen.text
     done = finished(client, editor, chosen.json()["url"])
     assert done["state"] == "done", done.get("error")
@@ -94,8 +94,8 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
     assert entries["merged_building"] == [BUILDING] and entries["merged_from_document"] == [b["document_id"]]
     assert entries["base_version_index"] == ["1"] and entries["approved_by"] == ["manager"]
     merged = client.get(second["links"]["document_version_download"]["url"], headers=editor.headers).content
-    assert b"'YVT-Z'" in merged and b"'YVT-A'" in merged, "both walls"
-    assert merged.count(WALL.encode()) == 1, "A's keeps its GlobalId, and B's has a new one"
+    assert b"'YVT-A'" in merged and b"'YVT-Z'" not in merged, "A's wall stays, by the choice"
+    assert merged.count(WALL.encode()) == 1
     first = client.get(a["links"]["document_version_download"]["url"], headers=editor.headers).content
     assert first == MODEL.read_bytes(), "A's version is as it was"
     graph_check(client, editor, a["document_id"], 2)  # the new version is converted and checked as an upload is
@@ -109,10 +109,12 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
 
 @pytest.mark.xfail(
     strict=True,
-    reason="IFC-LPG babbf11: the choice b for a product leaves A's placement of it placing nothing, and the check of the "
-    "merged model finds that (reported 2026-11-11)",
+    reason="IFC-LPG 749e7cb: b or new for one product of an IFC2X3 model gives placements that place nothing, a wall "
+    "without its material or a second IfcRelDefinesByType, and the check of the merged model refuses it (reported "
+    "2026-11-11, fixed in IFC-LPG, not yet locked)",
 )
-def test_b_puts_bs_wall_in_the_place_of_as(ifc_client: tuple[TestClient, World]) -> None:
+@pytest.mark.parametrize(("choice", "kept"), [("b", (b"'YVT-Z'",)), ("new", (b"'YVT-A'", b"'YVT-Z'"))])
+def test_b_or_new_for_one_wall(ifc_client: tuple[TestClient, World], choice: str, kept: tuple[bytes, ...]) -> None:
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
@@ -125,7 +127,7 @@ def test_b_puts_bs_wall_in_the_place_of_as(ifc_client: tuple[TestClient, World])
         "base": {"document_id": a["document_id"], "version_index": 1},
         "other": {"project_id": world.project_id, "document_id": b["document_id"], "version_index": 1},
         "building": BUILDING,
-        "choices": {WALL: "b"},
+        "choices": {WALL: choice},
     }
     started = client.post(
         f"/documents/1.0/projects/{world.project_id}/ifc-merge", json=request, headers=manager.headers
@@ -134,7 +136,8 @@ def test_b_puts_bs_wall_in_the_place_of_as(ifc_client: tuple[TestClient, World])
     assert done["state"] == "done", done.get("error")
     second = client.get(a["links"]["document_versions"]["url"], headers=editor.headers).json()["documents"][1]
     merged = client.get(second["links"]["document_version_download"]["url"], headers=editor.headers).content
-    assert b"'YVT-Z'" in merged and b"'YVT-A'" not in merged, "B's wall took the place of A's"
+    assert all(name in merged for name in kept), "b puts B's wall in A's place, and new keeps both"
+    assert (b"'YVT-A'" in merged) == (choice == "new")
 
 
 def prepared_in_metres(client: TestClient, world: World) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -185,7 +188,7 @@ def test_a_model_in_another_length_unit_is_prepared_first(ifc_client: tuple[Test
 
 @pytest.mark.xfail(
     strict=True,
-    reason="IFC-LPG babbf11: prepare_other gives B a solid angle unit A does not have, SQUAREDEGREE where A has "
+    reason="IFC-LPG 749e7cb: prepare_other gives B a solid angle unit A does not have, SQUAREDEGREE where A has "
     "STERADIAN, so the report refuses the copy (reported 2026-11-11)",
 )
 def test_the_prepared_copy_stands_in_for_b(ifc_client: tuple[TestClient, World]) -> None:
