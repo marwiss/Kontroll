@@ -12,6 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from opencde.main import create_app
+from tests.conftest import FIXTURES_DIR
 from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import Session
@@ -22,6 +23,7 @@ from tests.integration.test_web_signin import web_sign_in
 pytestmark = pytest.mark.integration
 
 BUILDING = "3AMeTOOFsdVLZuNV0$27s5"
+SPACES_BUILDING = "0000000000000000000VNc"  # the building of two_spaces.ifc, IFC4
 WALL = "1Xezbq735AdBO_4DerG66G"
 
 
@@ -31,6 +33,19 @@ def ifc_client(graph_target: GraphTarget, clean_database: None, tmp_path: Any) -
     world = build_world(settings)
     with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
         yield client, world
+
+
+def spaces_with_a_context() -> bytes:
+    """two_spaces.ifc (IFC4) with a representation context, which IFC2X3 requires of a project and IFC4 does not."""
+    data = (FIXTURES_DIR / "two_spaces.ifc").read_bytes()
+    project = b"#1=IFCPROJECT('0000000000000000000RW8',$,'Two spaces',$,$,$,$,"
+    assert data.count(project + b"$,#2);") == 1
+    head, tail = data.replace(project + b"$,#2);", project + b"(#20),#2);").rsplit(b"ENDSEC;", 1)
+    context = (
+        b"#20=IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,#21,$);\n"
+        b"#21=IFCAXIS2PLACEMENT3D(#22,$,$);\n#22=IFCCARTESIANPOINT((0.,0.,0.));\n"
+    )
+    return head + context + b"ENDSEC;" + tail
 
 
 def finished(client: TestClient, session: Session, url: str) -> dict[str, Any]:
@@ -197,3 +212,57 @@ def test_the_prepared_copy_stands_in_for_b(ifc_client: tuple[TestClient, World])
     assert merged.status_code == 202, merged.text
     done = finished(client, manager, merged.json()["url"])
     assert done["state"] == "done" and done["version_index"] == 2, done.get("error")
+
+
+def test_a_model_in_another_schema_is_prepared_with_a_choice(ifc_client: tuple[TestClient, World]) -> None:
+    """IFC-LPG F32 and F33 a: B in IFC4 cannot become IFC2X3 without owner histories, so the preparation asks; the
+    caller chooses, the copy is checked, and it stands in for B."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    a = upload(client, world, editor, "a.ifc", MODEL.read_bytes())
+    b = upload(client, world, editor, "two_spaces.ifc", spaces_with_a_context())
+    graph_check(client, editor, a["document_id"], 1)
+    graph_check(client, editor, b["document_id"], 1)
+    url = f"/documents/1.0/projects/{world.project_id}/ifc-merge"
+    sides: dict[str, Any] = {
+        "base": {"document_id": a["document_id"], "version_index": 1},
+        "other": {"project_id": world.project_id, "document_id": b["document_id"], "version_index": 1},
+    }
+    refused = client.post(url + "/report", json={**sides, "building": SPACES_BUILDING}, headers=editor.headers)
+    assert refused.status_code == 422 and "schema" in refused.json()["message"]
+
+    unknown = client.post(
+        url + "/prepare", json={**sides, "resolutions": {"owner_history": "x"}}, headers=editor.headers
+    )
+    assert unknown.status_code == 400 and "resolution" in unknown.json()["message"], "an unknown choice, before any job"
+    asked = client.post(url + "/prepare", json=sides, headers=editor.headers)
+    assert asked.status_code == 202, asked.text
+    conflict = finished(client, editor, asked.json()["url"])
+    assert conflict["state"] == "conflict", conflict.get("error")
+    problems = {problem["key"]: problem for problem in conflict["report"]["problems"]}
+    assert "owner_history" in problems and "owner" in problems["owner_history"]["options"]
+    assert all(problem["count"] >= 1 for problem in problems.values())
+
+    chosen = {key: problem["options"][0] for key, problem in problems.items()}
+    chosen["owner_history"] = "owner"
+    made = client.post(url + "/prepare", json={**sides, "resolutions": chosen}, headers=editor.headers)
+    assert made.status_code == 202, made.text
+    prepared = finished(client, editor, made.json()["url"])
+    assert prepared["state"] == "done", prepared.get("report") or prepared.get("error")
+    assert prepared["resolutions"] == chosen and prepared["report"]["check"] == "passed"
+
+    other = {**sides["other"], "prepared": prepared["merge_id"]}
+    report = client.post(
+        url + "/report", json={**sides, "other": other, "building": SPACES_BUILDING}, headers=editor.headers
+    )
+    assert report.status_code == 200, report.text
+    assert report.json()["objects"] >= 3, "the building, its storey and its two spaces"
+    merged = client.post(url, json={**sides, "other": other, "building": SPACES_BUILDING}, headers=manager.headers)
+    assert merged.status_code == 202, merged.text
+    done = finished(client, manager, merged.json()["url"])
+    assert done["state"] == "done" and done["version_index"] == 2, done.get("error")
+    second = client.get(a["links"]["document_versions"]["url"], headers=editor.headers).json()["documents"][1]
+    content = client.get(second["links"]["document_version_download"]["url"], headers=editor.headers).content
+    assert b"FILE_SCHEMA(('IFC2X3'))" in content and b"'Kitchen'" in content, "B's spaces in A's schema"

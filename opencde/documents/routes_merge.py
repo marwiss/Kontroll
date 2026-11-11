@@ -13,7 +13,9 @@ and checked as an upload is. ``GET …/ifc-merge/{id}`` follows the job.
 
 Where B's schema or length unit is not A's, ``POST …/ifc-merge/prepare`` first makes a copy of B migrated to A's
 schema and with its lengths in A's unit (IFC-LPG F25 a), as a job of its own; its id, given as ``other.prepared``,
-makes that copy stand in for B in the report and the merge for a day.
+makes that copy stand in for B in the report and the merge for a day. What A's schema has no equivalent of, such as
+IFC2X3's IfcWindowStyle in IFC4X3, ends the preparation in ``conflict`` with the problems and the options for each;
+the caller prepares again with ``resolutions`` (IFC-LPG F32). A copy with issues B did not have is refused (F33 a).
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Request, Response
 from ifc_lpg.merge import MergeError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from opencde.accounts.roles import Role, at_least
 from opencde.auth.dependencies import DocumentsPrincipal
@@ -62,9 +64,26 @@ class IfcMergeOther(BaseModel):
     )
 
 
+MAX_RESOLUTIONS = 100
+
+
 class IfcMergePrepareRequest(BaseModel):
     base: IfcMergeBase
     other: IfcMergeOther
+    resolutions: dict[str, str] | None = Field(
+        None,
+        max_length=MAX_RESOLUTIONS,
+        description="For each problem of an earlier `conflict`, by its `key`, one of its `options`: `type`, `proxy`, "
+        "`leave_out`, `polyline`, `owner`, `virtual`, `dated` or `assignment`.",
+    )
+
+    @field_validator("resolutions")
+    @classmethod
+    def _known_resolutions(cls, value: dict[str, str] | None) -> dict[str, str] | None:
+        for key, choice in (value or {}).items():
+            if len(key) > 64 or choice not in merging.RESOLUTIONS:
+                raise ValueError(f"a resolution is one of {', '.join(merging.RESOLUTIONS)}, not {choice!r}")
+        return value
 
 
 class IfcMergeRequest(BaseModel):
@@ -88,6 +107,7 @@ class IfcMergeJob(BaseModel):
         "for a prepared copy whose day is over."
     )
     expires_at: str | None = Field(None, description="Until when a prepared copy stands in for B.")
+    resolutions: dict[str, str] | None = Field(None, description="The choices a preparation was made with.")
     author: str | None = None
     created_at: str | None = None
     finished_at: str | None = None
@@ -264,7 +284,9 @@ async def start_prepare(
 ) -> IfcMergeJob:
     """For an `editor` or a `manager` of this project who is a member of B's project. The copy is made in the
     background; when the answer's `url` says `done`, give its `merge_id` as `other.prepared` to the report and the
-    merge, until `expires_at`. Units other than the length unit that differ make it `failed`, with the reason."""
+    merge, until `expires_at`. `conflict` lists in `report.problems` what A's schema has no equivalent of, each with
+    its `key` and `options`: prepare again with `resolutions`. `failed` with `report.new` means the converted copy
+    had issues B did not have, and it was not made; a unit of a kind both have that differs fails it too."""
     service, pid, role = await _service(ifcgraph, settings, users, principal.user_id, project_id)
     if not at_least(role, Role.EDITOR):
         raise HTTPException(403, "Only an editor or a manager prepares a model for a merge")

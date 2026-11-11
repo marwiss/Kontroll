@@ -11,7 +11,9 @@ then taken out of the graph again, and A and B do not change.
 
 Where B's schema or length unit is not A's, ``prepare_other`` first makes a copy of B migrated to A's schema and
 with its lengths in A's unit (IFC-LPG F25 a), as a job of its own whose model stands in for B in the report and the
-merge for a day, and is then taken out by the cleanup.
+merge for a day, and is then taken out by the cleanup. What A's schema has no equivalent of ends the job in
+``conflict`` with the problems and the options for each, until the caller chooses with ``resolutions`` (IFC-LPG
+F32, ``RESOLUTIONS``); a copy with issues that B did not have is not made, and the job fails with them (F33 a).
 """
 
 from __future__ import annotations
@@ -26,7 +28,16 @@ from typing import TYPE_CHECKING, Any
 
 from ifc_lpg.files import Limits
 from ifc_lpg.importer import delete_model
-from ifc_lpg.merge import MergeConflict, MergeError, merge_building, merge_report, prepare_other
+from ifc_lpg.merge import (
+    RESOLUTIONS,
+    MergeConflict,
+    MergeError,
+    PrepareConflict,
+    PrepareError,
+    merge_building,
+    merge_report,
+    prepare_other,
+)
 from ifc_lpg.validation import pack_report, unpack_report
 
 from opencde.documents.repository import DocumentRepository, default_metadata
@@ -50,6 +61,7 @@ STATE_EXPIRED = "expired"  # a prepared model taken out again
 KIND_MERGE = "merge"
 KIND_PREPARE = "prepare"  # B made ready for A: migrated to its schema, with its lengths in its unit
 PREPARED_SECONDS = 24 * 3600  # how long a prepared model stands in for B
+__all__ = ["RESOLUTIONS"]  # the choices a preparation takes, as IFC-LPG names them
 
 
 def limits_of(service: IfcGraphService) -> Limits:
@@ -173,15 +185,28 @@ async def run(service: IfcGraphService, merge_id: str) -> None:
 
 
 async def _prepare(service: IfcGraphService, merge_id: str, request: dict[str, Any], model_id: str) -> None:
-    """B migrated to A's schema and with its lengths in A's unit, as the model ``model_id``, for a day."""
+    """B migrated to A's schema and with its lengths in A's unit, as the model ``model_id``, for a day; ``conflict``
+    with the problems and their options when a choice is needed, ``failed`` with the new issues when the copy has
+    issues B did not have."""
     try:
         prepared = await prepare_other(
             service.graph,
             request["other"]["model_id"],
             model_id,
             base_id=request["base"]["model_id"],
+            resolutions=request.get("resolutions") or None,
             limits=limits_of(service),
         )
+    except PrepareConflict as exc:
+        await _set(service, merge_id, STATE_CONFLICT, report=pack_report([exc.report]))
+        log.info("ifc_merge_prepare_conflict", merge_id=merge_id, problems=len(exc.report.get("problems") or []))
+        await _drop(service, model_id)
+        return
+    except PrepareError as exc:
+        await _set(service, merge_id, STATE_FAILED, error=str(exc)[:500], report=pack_report([exc.report]))
+        log.info("ifc_merge_prepare_refused", merge_id=merge_id, new=int(exc.report.get("new_count") or 0))
+        await _drop(service, model_id)
+        return
     except Exception as exc:
         await _set(service, merge_id, STATE_FAILED, error=f"{type(exc).__name__}: {exc}"[:500])
         log.warning("ifc_merge_prepare_failed", merge_id=merge_id, error=type(exc).__name__)
@@ -337,6 +362,7 @@ async def job(service: IfcGraphService, *, user_id: str, project_id: str, merge_
         if request
         else None,
         "building": request.get("building"),
+        "resolutions": request.get("resolutions") if node.get("kind") == KIND_PREPARE else None,
         "version_index": node.get("version_index"),
         "error": node.get("error"),
         "report": found[0] if found else None,
