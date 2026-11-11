@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 from typing import Any
 
 from fastapi import APIRouter, Query, Request
@@ -132,6 +133,15 @@ async def sessions_action(request: Request, admin: AdminDep, graph: GraphDep, to
 # ---------------------------------------------------------------------------- audit log
 
 
+def _details_text(details: Any) -> str:
+    """An event's details as the JSON they were stored as, for the page and the CSV: never Python's own repr."""
+    if not details:
+        return ""
+    if isinstance(details, str):
+        return details
+    return json.dumps(details, sort_keys=True, ensure_ascii=False, default=str)
+
+
 def _audit_rows(graph_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
@@ -140,7 +150,7 @@ def _audit_rows(graph_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "actor": row.get("actor") or "",
             "client_id": row.get("client_id") or "",
             "ip": row.get("ip") or "",
-            "details": row.get("details") or "",
+            "details": _details_text(row.get("details")),
         }
         for row in graph_rows
     ]
