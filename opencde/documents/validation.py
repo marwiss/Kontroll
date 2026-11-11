@@ -2,7 +2,7 @@
 """How the check of an uploaded IFC file is shown: in the version's metadata, and as a report (an extension).
 
 The IFC module checks every IFC file uploaded as a document version against the IFC schema, in the background, and
-keeps the result on an ``IfcValidation`` node below the version (``IfcGraphService``, ADR 0011). The upload is never
+keeps the result on an ``Validation`` node below the version (``IfcGraphService``, ADR 0011). The upload is never
 held back by it. The metadata of the version, which any Documents API client can read, carries a summary and the address
 of the report; the report lists the issues, each with the GlobalId of its element where it has one.
 """
@@ -22,7 +22,7 @@ MAX_ISSUES = 10_000  # as many issues as a report lists
 
 @dataclass(frozen=True)
 class Validation:
-    """What an ``IfcValidation`` node says; ``issues`` only when they were asked for."""
+    """What an ``Validation`` node says; ``issues`` only when they were asked for."""
 
     state: str
     issue_count: int | None = None

@@ -40,7 +40,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("BcfDocument", "guid"),
     ("Document", "document_id"),
     ("DocumentVersion", "id"),
-    ("IfcValidation", "id"),
+    ("Validation", "id"),
     ("UploadSession", "id"),
     ("UploadPart", "id"),
     ("SelectionSession", "id"),
@@ -94,18 +94,27 @@ EXPIRING_LABELS: tuple[str, ...] = (
     "SelectionSession",
     "Client",
     "RequestLog",
-    "IfcPrecheck",
+    "Precheck",
 )
 
 
-#: IFC-LPG named its own labels without Ifc on 2026-11-10 (its 61a2d69): what was converted before is relabelled
+#: A label that begins with Ifc is one of IFC's classes: IFC-LPG named its own labels without it on 2026-11-10 (its
+#: 61a2d69), and the server's own records followed on 2026-11-11 (F23 a). What earlier releases made is relabelled
 #: at startup, in batches, so that the queries and the exports find it. Idempotent and cheap once done.
-RENAMED_LABELS: tuple[tuple[str, str], ...] = (("IfcModel", "Model"), ("IfcEntity", "Entity"))
+RENAMED_LABELS: tuple[tuple[str, str], ...] = (
+    ("IfcModel", "Model"),
+    ("IfcEntity", "Entity"),
+    ("IfcValidation", "Validation"),
+    ("IfcPrecheck", "Precheck"),
+    ("IfcProposal", "Proposal"),
+    ("IfcClash", "Clash"),
+    ("IfcMerge", "Merge"),
+)
 RELABEL_BATCH = 5000
 
 
 async def relabel_after_the_rename(graph: Graph) -> int:
-    """Give nodes converted before IFC-LPG's rename their new labels. Returns how many nodes changed."""
+    """Give nodes made before the renames their new labels. Returns how many nodes changed."""
     changed = 0
     for old, new in RENAMED_LABELS:
         while True:
@@ -136,7 +145,7 @@ async def rebuild_point_indexes(graph: Graph) -> None:
 
 
 async def apply_schema(graph: Graph) -> int:
-    """Create missing constraints and indexes, and relabel what IFC-LPG's rename left behind. Returns how many
+    """Create missing constraints and indexes, and relabel what the renames left behind. Returns how many
     statements changed the schema."""
     changed = 0
     dialect = graph.dialect

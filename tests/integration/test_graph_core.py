@@ -17,7 +17,7 @@ from opencde.documents.repository import DocumentRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.dialect import NEO4J
 from opencde.graph.graph import Graph
-from opencde.graph.schema import apply_schema
+from opencde.graph.schema import RENAMED_LABELS, apply_schema, relabel_after_the_rename
 from opencde.ids import new_id
 from opencde.seed import (
     SAMPLE_MODEL,
@@ -52,6 +52,18 @@ async def test_the_schema_can_be_applied_twice_at_once_on_an_empty_database(grap
         await graph.run("DROP INDEX $name", name=row["name"])
     await asyncio.gather(apply_schema(graph), apply_schema(graph), apply_schema(graph))
     assert await apply_schema(graph) == 0, "the schema is complete afterwards"
+
+
+async def test_what_earlier_releases_labelled_with_ifc_is_relabelled_at_startup(graph: Graph) -> None:
+    """IFC-LPG's labels and the server's own records lost their Ifc (B-37, F23 a); nodes made before are relabelled."""
+    ids = {old: new_id() for old, _ in RENAMED_LABELS}
+    for old, id_ in ids.items():
+        await graph.run(f"CREATE (:{old} {{id: $id}})", id=id_)
+    assert await relabel_after_the_rename(graph) == len(ids)
+    for old, new in RENAMED_LABELS:
+        rows = await graph.run(f"MATCH (n:{new} {{id: $id}}) RETURN labels(n) AS labels", id=ids[old])
+        assert rows and rows[0]["labels"] == [new], f"{old} became {new}"
+    assert await relabel_after_the_rename(graph) == 0, "nothing is left to relabel"
 
 
 async def test_the_doctor_counts_the_constraints_on_both_products(graph: Graph) -> None:

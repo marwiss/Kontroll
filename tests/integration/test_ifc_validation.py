@@ -247,7 +247,7 @@ def test_a_check_a_stopped_server_left_behind_starts_over(
                 MATCH (p:Project {project_id: $project_id})
                 CREATE (p)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id, title: 'a', latest_index: 1})
                        -[:HAS_VERSION]->(:DocumentVersion {id: $version_id, version_index: 1})
-                       -[:HAS_VALIDATION]->(r:IfcValidation {
+                       -[:HAS_VALIDATION]->(r:Validation {
                            id: $id, file_name: 'a.ifc', storage_key: $key, created_at: $now
                        })
                 SET r.state = CASE WHEN $id = 'queued' THEN 'queued' ELSE 'running' END, r += $fields
@@ -264,7 +264,7 @@ def test_a_check_a_stopped_server_left_behind_starts_over(
 
         def states() -> dict[str, str]:
             records, _, _ = driver.execute_query(
-                "MATCH (r:IfcValidation) RETURN r.id AS id, r.state AS state", database_=settings.database_name
+                "MATCH (r:Validation) RETURN r.id AS id, r.state AS state", database_=settings.database_name
             )
             return {record["id"]: record["state"] for record in records}
 

@@ -172,7 +172,7 @@ class DocumentRepository:
         row = await self.graph.one(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(p:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
-                  -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_VALIDATION]->(r:IfcValidation)
+                  -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_VALIDATION]->(r:Validation)
             WITH p, r ORDER BY r.created_at DESC LIMIT 1
             OPTIONAL MATCH (p)-[:HAS_MODEL]->(m:Model {document_id: $document_id, version_index: $version_index})
             WHERE m.graph_checked_at IS NOT NULL

@@ -340,11 +340,11 @@ def test_deleting_a_project_leaves_nothing_of_its_models(
             await apply_schema(graph)
             loaded = await seeding.seed(graph, storage=storage)
             await seeding.build_sample_graph(graph, storage, settings, loaded)
-            checks = await graph.run("MATCH (r:IfcValidation) RETURN r.state AS state")
+            checks = await graph.run("MATCH (r:Validation) RETURN r.state AS state")
             await ProjectRepository(graph).delete(loaded.projects["Building permit"])
             rows = await graph.run(
                 """
-                MATCH (n) WHERE n:Entity OR n:Model OR n:StepBlock OR n:IfcValidation
+                MATCH (n) WHERE n:Entity OR n:Model OR n:StepBlock OR n:Validation
                 RETURN DISTINCT labels(n)[0] AS label
                 """
             )

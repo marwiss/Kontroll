@@ -23,6 +23,10 @@ stages of the plan added them.
   The diagrams below draw only real nodes and relationships; a reference kept
   as a property (`AuditEvent.actor_user_id`, `UploadSession.user_id`) is listed
   in the box instead of drawn as a line.
+- A label that begins with `Ifc` is always one of IFC's classes, as IFC-LPG
+  writes them; the server's own records (`Validation`, `Precheck`, `Proposal`,
+  `Clash`, `Merge`) never begin with it, so that a query can tell IFC data
+  from the server's own.
 
 ## Accounts and access (stage 1)
 
@@ -80,7 +84,7 @@ erDiagram
 | Label | Key | Properties | Notes |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Field names follow `topic_GET.json`; the BIM snippet object is flattened into four properties. `server_assigned_id` is `<prefix><counter>` from `Project.topic_counter` |
-| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | The trial of a topic's change set on its base version (ADR 0021); `report` holds the findings the base lacks, `storage_key` the applied file, kept for the approval. Deleted with the topic |
+| `Proposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | The trial of a topic's change set on its base version (ADR 0021); `report` holds the findings the base lacks, `storage_key` the applied file, kept for the approval. Deleted with the topic |
 | `Event` | `id` | `kind` (`topic` or `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | One node per request that changed something; the two parallel lists are the `actions` array of BCF 3.9/3.10. Attached to the project so that events outlive their topic |
 
 Every topic query starts at the caller's `User` node and walks `MEMBER_OF`
@@ -97,7 +101,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
-    Topic ||--o| IfcProposal : HAS_PROPOSAL
+    Topic ||--o| Proposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY
@@ -128,9 +132,9 @@ erDiagram
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
-    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Validation : HAS_VALIDATION
     DocumentVersion ||--o| Publication : HAS_PUBLICATION
-    Project ||--o{ IfcPrecheck : HAS_PRECHECK
+    Project ||--o{ Precheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -145,9 +149,9 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` numbers the versions |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Bytes under `documents/<id>`; the API body shows only the spec's fields; `parent_version_index`, `approved_by`, `change_set_id` and `change_set` (the changes, packed) on a version built on another, linked to it by `DERIVED_FROM` (ADR 0021) |
-| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | The check of an uploaded IFC file against the IFC schema (ADR 0011); `report` is up to 10,000 issues as compressed JSON. Deleted with the version's project |
+| `Validation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | The check of an uploaded IFC file against the IFC schema (ADR 0011); `report` is up to 10,000 issues as compressed JSON. Deleted with the version's project |
 | `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | A published version's archive, `.ifczip` or `.zip`, under `published/<id>`; one per version. Deleted with the version's project |
-| `IfcPrecheck` | `id` | those of `IfcValidation`, `project_id`, `author`, `expires_at` | A file checked without becoming a version, or an upload the project refused (ADR 0021); labelled `IfcValidation` too. The cleanup job deletes it and its file after a day |
+| `Precheck` | `id` | those of `Validation`, `project_id`, `author`, `expires_at` | A file checked without becoming a version, or an upload the project refused (ADR 0021); labelled `Validation` too. The cleanup job deletes it and its file after a day |
 | `UploadSession` | `id`, indexed `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` appears in API URLs (bearer required); the UI URL carries the token whose hash is stored |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` until the file is assembled; the cleanup job deletes expired parts and their files |
 | `SelectionSession` | `id`, indexed `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` holds `document_id:version_index` pairs chosen in the browser |
@@ -159,7 +163,8 @@ erDiagram
 ```mermaid
 erDiagram
     Project ||--o{ Model : HAS_MODEL
-    Project ||--o{ IfcMerge : HAS_MERGE
+    Project ||--o{ Merge : HAS_MERGE
+    Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
@@ -171,6 +176,7 @@ erDiagram
 | `Model` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
 | `Entity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (points in project coordinates, metres, on a product with a shape), every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse), written like every relationship type in upper case with underscores: `IsDefinedBy` becomes `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<model id>:<first step id>`) | `first_step`, `instances`, `text` | Instances of a model converted with `OPENCDE_IFC_LPG_LOSSLESS` that are no nodes: written out as STEP in order of id and compressed. Do not return this node whole in a query, for the sake of `text` |
-| `IfcMerge` | `id` | `project_id`, `kind` (`merge` or `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | A building of model B brought into a model of the project (`HAS_MERGE`); `request` names both versions, and `version_index` is the version it became. Its merged model is taken out of the graph once written out. Deleted with the project |
+| `Merge` | `id` | `project_id`, `kind` (`merge` or `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | A building of model B brought into a model of the project (`HAS_MERGE`); `request` names both versions, and `version_index` is the version it became. Its merged model is taken out of the graph once written out. Deleted with the project |
+| `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | A clash check between two document versions of the project (`HAS_CLASH`; ADR 0019); `request` names both versions, the mode and the tolerance, and `report` holds the pairs found as compressed JSON. Deleted with the project |
 
 See [ifc-lpg.md](ifc-lpg.md) for the conversion rules and example queries.

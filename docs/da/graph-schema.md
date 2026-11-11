@@ -26,6 +26,10 @@ planens etaper tilføjede dem.
   nedenfor tegner kun rigtige noder og relationer; en reference, der holdes
   som egenskab (`AuditEvent.actor_user_id`, `UploadSession.user_id`), listes
   i boksen i stedet for at tegnes som en linje.
+- En label, der begynder med `Ifc`, er altid en af IFC's klasser, som IFC-LPG
+  skriver dem; serverens egne poster (`Validation`, `Precheck`, `Proposal`,
+  `Clash`, `Merge`) begynder aldrig sådan, så en forespørgsel kan skelne
+  IFC-data fra serverens egne.
 
 ## Konti og adgang (etape 1)
 
@@ -83,7 +87,7 @@ erDiagram
 | Label | Nøgle | Egenskaber | Noter |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Feltnavnene følger `topic_GET.json`; BIM snippet-objektet flades ud til fire egenskaber. `server_assigned_id` er `<præfiks><tæller>` fra `Project.topic_counter` |
-| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prøven af en sags ændringssæt mod dens basisversion (ADR 0021); `report` rummer de anmærkninger, basen mangler, `storage_key` den anvendte fil, gemt til godkendelsen. Slettes med sagen |
+| `Proposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prøven af en sags ændringssæt mod dens basisversion (ADR 0021); `report` rummer de anmærkninger, basen mangler, `storage_key` den anvendte fil, gemt til godkendelsen. Slettes med sagen |
 | `Event` | `id` | `kind` (`topic` eller `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | Én node per forespørgsel, der ændrede noget; de to parallelle lister er `actions`-arrayet i BCF 3.9/3.10. Knyttet til projektet, så hændelser overlever deres sag |
 
 Hver sagsforespørgsel starter i kalderens `User`-node og går via `MEMBER_OF`
@@ -100,7 +104,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
-    Topic ||--o| IfcProposal : HAS_PROPOSAL
+    Topic ||--o| Proposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY
@@ -131,9 +135,9 @@ erDiagram
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
-    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Validation : HAS_VALIDATION
     DocumentVersion ||--o| Publication : HAS_PUBLICATION
-    Project ||--o{ IfcPrecheck : HAS_PRECHECK
+    Project ||--o{ Precheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -148,9 +152,9 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` nummererer versionerne |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Bytes under `documents/<id>`; API-kroppen viser kun specifikationens felter; `parent_version_index`, `approved_by`, `change_set_id` og `change_set` (ændringerne, pakket) på en version bygget på en anden, linket til den med `DERIVED_FROM` (ADR 0021) |
-| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen af en uploadet IFC-fil mod IFC-skemaet (ADR 0011); `report` er op til 10.000 anmærkninger som komprimeret JSON. Slettes med versionens projekt |
+| `Validation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen af en uploadet IFC-fil mod IFC-skemaet (ADR 0011); `report` er op til 10.000 anmærkninger som komprimeret JSON. Slettes med versionens projekt |
 | `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | En publiceret versions arkiv, `.ifczip` eller `.zip`, under `published/<id>`; ét pr. version. Slettes med versionens projekt |
-| `IfcPrecheck` | `id` | de samme som `IfcValidation`, `project_id`, `author`, `expires_at` | En fil kontrolleret uden at blive en version, eller en upload, projektet afviste (ADR 0021); har også etiketten `IfcValidation`. Oprydningsjobbet sletter den og dens fil efter et døgn |
+| `Precheck` | `id` | de samme som `Validation`, `project_id`, `author`, `expires_at` | En fil kontrolleret uden at blive en version, eller en upload, projektet afviste (ADR 0021); har også etiketten `Validation`. Oprydningsjobbet sletter den og dens fil efter et døgn |
 | `UploadSession` | `id`, indekseret `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` optræder i API-URL'er (bearer kræves); UI-URL'en bærer den token, hvis hash gemmes |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>`, indtil filen samles; oprydningsjobbet sletter udløbne dele og deres filer |
 | `SelectionSession` | `id`, indekseret `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` holder `document_id:version_index`-par valgt i browseren |
@@ -162,7 +166,8 @@ erDiagram
 ```mermaid
 erDiagram
     Project ||--o{ Model : HAS_MODEL
-    Project ||--o{ IfcMerge : HAS_MERGE
+    Project ||--o{ Merge : HAS_MERGE
+    Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
@@ -174,7 +179,8 @@ erDiagram
 | `Model` | `id`, indekseret `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tidsstempler | Én per importeret fil; `state` er `queued`, `running`, `done` eller `failed` |
 | `Entity` + klasselabels | `id` (`<model-id>:<step-id>`), indekseret `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkter i projektkoordinater, meter, på en bygningsdel med form), hver literal IFC-attribut ved navn | Relationer mellem entiteter navngives efter IFC-attributten (fremad og inverst), skrevet som enhver relationstype med store bogstaver og understregninger: `IsDefinedBy` bliver `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<model-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instanser i en model konverteret med `OPENCDE_IFC_LPG_LOSSLESS`, som ikke er noder: skrevet ud som STEP i id-rækkefølge og komprimeret. Returnér ikke noden hel i en forespørgsel, på grund af `text` |
-| `IfcMerge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | En bygning fra model B ført ind i en model i projektet (`HAS_MERGE`); `request` angiver begge versioner, og `version_index` er den version, den blev. Den sammenflettede model tages ud af grafen, når den er skrevet ud. Slettes med projektet |
+| `Merge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | En bygning fra model B ført ind i en model i projektet (`HAS_MERGE`); `request` angiver begge versioner, og `version_index` er den version, den blev. Den sammenflettede model tages ud af grafen, når den er skrevet ud. Slettes med projektet |
+| `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | En kollisionskontrol mellem to dokumentversioner i projektet (`HAS_CLASH`; ADR 0019); `request` angiver begge versioner, tilstanden og tolerancen, og `report` rummer de fundne par som komprimeret JSON. Slettes med projektet |
 
 Se [ifc-lpg.md](ifc-lpg.md) for konverteringsreglerne og
 eksempelforespørgsler.

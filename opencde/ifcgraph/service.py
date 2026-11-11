@@ -6,7 +6,7 @@ then converts in the background: the file is handed to the worker process
 (``.ifczip`` is unpacked first, with a size cap), the worker's records are
 imported, and the node ends in state ``done`` or ``failed`` with counts or an
 error. A file uploaded as a document version is also checked against the IFC
-schema (``validation.py``), with the result on an ``IfcValidation`` node below
+schema (``validation.py``), with the result on an ``Validation`` node below
 the version, which the Documents API shows (ADR 0011), against buildingSMART's
 rules where they are installed (ADR 0012), and against the IDS documents of its
 project (ADR 0015). Two versions are compared for clashes on request, in the
@@ -216,7 +216,7 @@ class IfcGraphService:
             self._start(row["id"], row["storage_key"], row["file_name"])
         rows = await self.graph.run(
             """
-            MATCH (p:IfcProposal)
+            MATCH (p:Proposal)
             WHERE p.state = $queued OR (p.state = $running AND p.running_at < $given_up)
             RETURN p.id AS id, p.state AS state
             """,
@@ -235,7 +235,7 @@ class IfcGraphService:
             return
         rows = await self.graph.run(
             """
-            MATCH (r:IfcValidation)
+            MATCH (r:Validation)
             WHERE r.state = $queued OR (r.state = $running AND r.running_at < $given_up)
             RETURN r.id AS id, r.storage_key AS storage_key, r.file_name AS file_name, r.state AS state
             """,
@@ -544,7 +544,7 @@ class IfcGraphService:
         rows = await self.graph.run(
             """
             MATCH (v:DocumentVersion {id: $version_id})
-            CREATE (v)-[:HAS_VALIDATION]->(r:IfcValidation {
+            CREATE (v)-[:HAS_VALIDATION]->(r:Validation {
                 id: $id, storage_key: $storage_key, file_name: $file_name, state: $state, created_at: $now
             })
             RETURN r.id AS id
@@ -568,7 +568,7 @@ class IfcGraphService:
 
     async def _set_validation(self, validation_id: str, state: str, **fields: Any) -> None:
         await self.graph.run(
-            "MATCH (r:IfcValidation {id: $id}) SET r.state = $state, r += $fields",
+            "MATCH (r:Validation {id: $id}) SET r.state = $state, r += $fields",
             id=validation_id,
             state=state,
             fields={**fields, f"{state}_at": now_iso()},
@@ -579,7 +579,7 @@ class IfcGraphService:
         async with self._lock:
             rows = await self.graph.run(
                 """
-                MATCH (r:IfcValidation {id: $id, state: $queued})
+                MATCH (r:Validation {id: $id, state: $queued})
                 SET r.state = $running, r.running_at = $now
                 RETURN r.id AS id
                 """,
@@ -603,7 +603,7 @@ class IfcGraphService:
         """The project of a check: through the version for an upload, straight from the project for a precheck."""
         row = await self.graph.one(
             """
-            MATCH (r:IfcValidation {id: $id})
+            MATCH (r:Validation {id: $id})
             OPTIONAL MATCH (r)<-[:HAS_VALIDATION]-(:DocumentVersion)<-[:HAS_VERSION]-(:Document)
                            <-[:HAS_DOCUMENT]-(p:Project)
             OPTIONAL MATCH (r)<-[:HAS_PRECHECK]-(q:Project)
@@ -618,7 +618,7 @@ class IfcGraphService:
     async def _run_checks(self, storage_key: str, file_name: str, project_id: str | None) -> dict[str, Any]:
         """The IFC schema, buildingSMART's rules and the project's IDS documents on one file.
 
-        The fields of an ``IfcValidation`` node in state ``done``; an exception when the file could not be checked.
+        The fields of an ``Validation`` node in state ``done``; an exception when the file could not be checked.
         """
         with tempfile.TemporaryDirectory(prefix="ifcvalidation-") as tmp:
             source = await asyncio.to_thread(self._prepare_input, storage_key, file_name, Path(tmp))
@@ -669,7 +669,7 @@ class IfcGraphService:
     async def check_now(self, *, project_id: str, storage_key: str, file_name: str) -> dict[str, Any] | None:
         """Check a file before it becomes a version, for a project that refuses uploads with errors (ADR 0021).
 
-        The fields of an ``IfcValidation`` node with its ``state``, ``done`` or ``failed``; None for a file that is
+        The fields of an ``Validation`` node with its ``state``, ``done`` or ``failed``; None for a file that is
         not IFC, or when checking is off. A check that cannot run refuses nothing: the file is as unknown as any
         other, and ``schedule`` records that with the version.
         """
@@ -685,12 +685,12 @@ class IfcGraphService:
     async def _record_validation(
         self, version_id: str, storage_key: str, file_name: str, checked: dict[str, Any]
     ) -> None:
-        """A check made before the version existed (``check_now``) becomes the version's ``IfcValidation`` node."""
+        """A check made before the version existed (``check_now``) becomes the version's ``Validation`` node."""
         now = now_iso()
         await self.graph.run(
             """
             MATCH (v:DocumentVersion {id: $version_id})
-            CREATE (v)-[:HAS_VALIDATION]->(r:IfcValidation {id: $id, storage_key: $storage_key, file_name: $file_name})
+            CREATE (v)-[:HAS_VALIDATION]->(r:Validation {id: $id, storage_key: $storage_key, file_name: $file_name})
             SET r += $fields
             """,
             version_id=version_id,
@@ -709,7 +709,7 @@ class IfcGraphService:
         rows = await self.graph.run(
             """
             MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_PRECHECK]->(r:IfcValidation:IfcPrecheck {
+            CREATE (p)-[:HAS_PRECHECK]->(r:Validation:Precheck {
                 id: $id, project_id: $project_id, storage_key: $storage_key, file_name: $file_name,
                 author: $author, state: $state, created_at: $now, expires_at: $expires_at
             })
@@ -737,7 +737,7 @@ class IfcGraphService:
         await self.graph.run(
             """
             MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_PRECHECK]->(r:IfcValidation:IfcPrecheck {
+            CREATE (p)-[:HAS_PRECHECK]->(r:Validation:Precheck {
                 id: $id, project_id: $project_id, storage_key: $storage_key, file_name: $file_name,
                 author: $author, created_at: $now, expires_at: $expires_at
             })
@@ -759,7 +759,7 @@ class IfcGraphService:
         row = await self.graph.one(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_PRECHECK]->(r:IfcPrecheck {id: $id})
+                  -[:HAS_PRECHECK]->(r:Precheck {id: $id})
             RETURN properties(r) AS node
             """,
             user_id=user_id,
@@ -779,7 +779,7 @@ class IfcGraphService:
         """Queue the trial of a topic's change set; an earlier trial of the topic goes, with its file."""
         gone = await self.graph.run(
             """
-            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:IfcProposal)
+            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:Proposal)
             WITH p, p.storage_key AS key
             DETACH DELETE p
             RETURN key
@@ -795,7 +795,7 @@ class IfcGraphService:
         rows = await self.graph.run(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
-            CREATE (t)-[:HAS_PROPOSAL]->(p:IfcProposal {
+            CREATE (t)-[:HAS_PROPOSAL]->(p:Proposal {
                 id: $id, project_id: $project_id, topic_guid: $guid, snippet_key: $snippet_key, author: $author,
                 state: $state, created_at: $now
             })
@@ -821,7 +821,7 @@ class IfcGraphService:
 
     async def _set_proposal(self, proposal_id: str, state: str, **fields: Any) -> None:
         await self.graph.run(
-            "MATCH (p:IfcProposal {id: $id}) SET p.state = $state, p += $fields",
+            "MATCH (p:Proposal {id: $id}) SET p.state = $state, p += $fields",
             id=proposal_id,
             state=state,
             fields={**fields, f"{state}_at": now_iso()},
@@ -832,7 +832,7 @@ class IfcGraphService:
         async with self._lock:
             row = await self.graph.one(
                 """
-                MATCH (p:IfcProposal {id: $id, state: $queued})
+                MATCH (p:Proposal {id: $id, state: $queued})
                 SET p.state = $running, p.running_at = $now
                 RETURN p.project_id AS project_id, p.snippet_key AS snippet_key
                 """,
@@ -870,7 +870,7 @@ class IfcGraphService:
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                   -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
-            OPTIONAL MATCH (v)-[:HAS_VALIDATION]->(r:IfcValidation {state: $done})
+            OPTIONAL MATCH (v)-[:HAS_VALIDATION]->(r:Validation {state: $done})
             WITH v, r ORDER BY r.created_at DESC
             RETURN v.storage_key AS storage_key, v.file_name AS file_name, r.report AS base_report
             LIMIT 1
@@ -979,7 +979,7 @@ class IfcGraphService:
         between its base and the latest (ADR 0021). The request waits for the trial.
         """
         row = await self.graph.one(
-            "MATCH (p:IfcProposal {id: $id}) RETURN p.project_id AS project_id, p.snippet_key AS snippet_key",
+            "MATCH (p:Proposal {id: $id}) RETURN p.project_id AS project_id, p.snippet_key AS snippet_key",
             id=proposal_id,
         )
         if row is None:
@@ -1084,7 +1084,7 @@ class IfcGraphService:
         row = await self.graph.one(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})
-                  -[:HAS_PROPOSAL]->(p:IfcProposal)
+                  -[:HAS_PROPOSAL]->(p:Proposal)
             RETURN p.snippet_key AS snippet_key
             """,
             project_id=project_id,
@@ -1128,7 +1128,7 @@ class IfcGraphService:
         row = await self.graph.one(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:IfcProposal)
+                  -[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:Proposal)
             RETURN properties(p) AS node
             """,
             user_id=user_id,
@@ -1471,7 +1471,7 @@ class IfcGraphService:
         await self.graph.run(
             """
             MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_CLASH]->(:IfcClash {
+            CREATE (p)-[:HAS_CLASH]->(:Clash {
                 id: $id, project_id: $project_id, state: $state, request: $request, author: $author, created_at: $now
             })
             """,
@@ -1514,7 +1514,7 @@ class IfcGraphService:
         async with self._lock:
             rows = await self.graph.run(
                 """
-                MATCH (c:IfcClash {id: $id, state: $queued})
+                MATCH (c:Clash {id: $id, state: $queued})
                 SET c.state = $running, c.running_at = $now
                 RETURN c.project_id AS project_id, c.request AS request
                 """,
@@ -1555,7 +1555,7 @@ class IfcGraphService:
             except Exception as exc:
                 log.warning("ifc_clash_failed", clash_id=clash_id, error=type(exc).__name__)
                 await self.graph.run(
-                    "MATCH (c:IfcClash {id: $id}) SET c.state = $state, c.failed_at = $now, c.error = $error",
+                    "MATCH (c:Clash {id: $id}) SET c.state = $state, c.failed_at = $now, c.error = $error",
                     id=clash_id,
                     state=STATE_FAILED,
                     now=now_iso(),
@@ -1571,7 +1571,7 @@ class IfcGraphService:
                     }
             await self.graph.run(
                 """
-                MATCH (c:IfcClash {id: $id})
+                MATCH (c:Clash {id: $id})
                 SET c.state = $state, c.done_at = $now, c.count = $count, c.set_a = $set_a, c.set_b = $set_b,
                     c.missing = $missing, c.seconds = $seconds, c.truncated = $truncated, c.report = $report
                 """,
@@ -1592,7 +1592,7 @@ class IfcGraphService:
         """The checks of a project the user is a member of, newest first, without their clashes."""
         rows = await self.graph.run(
             """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:IfcClash)
+            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:Clash)
             RETURN properties(c) AS clash ORDER BY c.created_at DESC LIMIT 100
             """,
             user_id=user_id,
@@ -1607,7 +1607,7 @@ class IfcGraphService:
         rows = await self.graph.run(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_CLASH]->(c:IfcClash {id: $clash_id})
+                  -[:HAS_CLASH]->(c:Clash {id: $clash_id})
             RETURN properties(c) AS clash
             """,
             user_id=user_id,

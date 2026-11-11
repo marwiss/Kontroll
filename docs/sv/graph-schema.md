@@ -25,6 +25,10 @@ planens etapper lade till dem.
   riktiga noder och relationer; en referens som hålls som egenskap
   (`AuditEvent.actor_user_id`, `UploadSession.user_id`) listas i rutan i
   stället för att ritas som en linje.
+- En etikett som börjar på `Ifc` är alltid en av IFC:s klasser, som IFC-LPG
+  skriver dem; serverns egna poster (`Validation`, `Precheck`, `Proposal`,
+  `Clash`, `Merge`) börjar aldrig så, så att en fråga kan skilja IFC-data från
+  serverns egna.
 
 ## Konton och åtkomst (etapp 1)
 
@@ -82,7 +86,7 @@ erDiagram
 | Etikett | Nyckel | Egenskaper | Anteckningar |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Fältnamnen följer `topic_GET.json`; BIM snippet-objektet plattas ut till fyra egenskaper. `server_assigned_id` är `<prefix><räknare>` från `Project.topic_counter` |
-| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prövningen av ett ärendes ändringsset mot dess basversion (ADR 0021); `report` håller de anmärkningar basen saknar, `storage_key` den tillämpade filen, sparad för godkännandet. Raderas med ärendet |
+| `Proposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prövningen av ett ärendes ändringsset mot dess basversion (ADR 0021); `report` håller de anmärkningar basen saknar, `storage_key` den tillämpade filen, sparad för godkännandet. Raderas med ärendet |
 | `Event` | `id` | `kind` (`topic` eller `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | En nod per begäran som ändrade något; de två parallella listorna är `actions`-arrayen i BCF 3.9/3.10. Kopplad till projektet så att händelser överlever sitt ärende |
 
 Varje ärendefråga startar i anroparens `User`-nod och går via `MEMBER_OF` till
@@ -99,7 +103,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
-    Topic ||--o| IfcProposal : HAS_PROPOSAL
+    Topic ||--o| Proposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY
@@ -130,9 +134,9 @@ erDiagram
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
-    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Validation : HAS_VALIDATION
     DocumentVersion ||--o| Publication : HAS_PUBLICATION
-    Project ||--o{ IfcPrecheck : HAS_PRECHECK
+    Project ||--o{ Precheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -147,9 +151,9 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` numrerar versionerna |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Bytes under `documents/<id>`; API-kroppen visar bara specens fält; `parent_version_index`, `approved_by`, `change_set_id` och `change_set` (ändringarna, packade) på en version som bygger på en annan, länkad till den med `DERIVED_FROM` (ADR 0021) |
-| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen av en uppladdad IFC-fil mot IFC-schemat (ADR 0011); `report` är upp till 10 000 anmärkningar som komprimerad JSON. Raderas med versionens projekt |
+| `Validation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Kontrollen av en uppladdad IFC-fil mot IFC-schemat (ADR 0011); `report` är upp till 10 000 anmärkningar som komprimerad JSON. Raderas med versionens projekt |
 | `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | En publicerad versions arkiv, `.ifczip` eller `.zip`, under `published/<id>`; ett per version. Raderas med versionens projekt |
-| `IfcPrecheck` | `id` | samma som `IfcValidation`, `project_id`, `author`, `expires_at` | En fil som kontrollerats utan att bli en version, eller en uppladdning som projektet avvisade (ADR 0021); har också etiketten `IfcValidation`. Städjobbet raderar den och dess fil efter ett dygn |
+| `Precheck` | `id` | samma som `Validation`, `project_id`, `author`, `expires_at` | En fil som kontrollerats utan att bli en version, eller en uppladdning som projektet avvisade (ADR 0021); har också etiketten `Validation`. Städjobbet raderar den och dess fil efter ett dygn |
 | `UploadSession` | `id`, indexerad `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` förekommer i API-URL:er (bearer krävs); UI-URL:en bär den token vars hash lagras |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bytes under `parts/<id>` tills filen sätts samman; städjobbet tar bort utgångna delar och deras filer |
 | `SelectionSession` | `id`, indexerad `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` håller `document_id:version_index`-par valda i webbläsaren |
@@ -161,7 +165,8 @@ erDiagram
 ```mermaid
 erDiagram
     Project ||--o{ Model : HAS_MODEL
-    Project ||--o{ IfcMerge : HAS_MERGE
+    Project ||--o{ Merge : HAS_MERGE
+    Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
@@ -173,6 +178,7 @@ erDiagram
 | `Model` | `id`, indexerad `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tidsstämplar | En per importerad fil; `state` är `queued`, `running`, `done` eller `failed` |
 | `Entity` + klassetiketter | `id` (`<modell-id>:<step-id>`), indexerad `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkter i projektkoordinater, meter, på en byggdel med form), varje literalt IFC-attribut med namn | Relationer mellan entiteter namnges efter IFC-attributet (framåt och inverst), skrivna som varje relationstyp med versaler och understreck: `IsDefinedBy` blir `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<modell-id>:<första step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konverterad med `OPENCDE_IFC_LPG_LOSSLESS` som inte är noder: utskrivna som STEP i id-ordning och komprimerade. Returnera inte noden hel i en fråga, för `text` skull |
-| `IfcMerge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | En byggnad ur modell B förd in i en modell i projektet (`HAS_MERGE`); `request` anger båda versionerna, och `version_index` är versionen den blev. Den sammanfogade modellen tas bort ur grafen när den är utskriven. Raderas med projektet |
+| `Merge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | En byggnad ur modell B förd in i en modell i projektet (`HAS_MERGE`); `request` anger båda versionerna, och `version_index` är versionen den blev. Den sammanfogade modellen tas bort ur grafen när den är utskriven. Raderas med projektet |
+| `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | Ett krocktest mellan två dokumentversioner i projektet (`HAS_CLASH`; ADR 0019); `request` anger båda versionerna, läget och toleransen, och `report` håller de funna paren som komprimerad JSON. Raderas med projektet |
 
 Se [ifc-lpg.md](ifc-lpg.md) för konverteringsreglerna och exempelfrågor.

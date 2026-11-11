@@ -23,7 +23,7 @@ from opencde.timeutil import now_iso
 log = get_logger(__name__)
 
 BATCH = 500
-LABELS_WITH_FILES = ("UploadPart", "IfcPrecheck")
+LABELS_WITH_FILES = ("UploadPart", "Precheck")
 
 
 async def delete_expired(graph: Graph, at: str | None = None, storage: LocalStorage | None = None) -> int:

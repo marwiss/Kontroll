@@ -26,6 +26,10 @@ skýrir venjurnar og merkimiðana, kafla fyrir kafla í þeirri röð sem áfang
   vensl; tilvísun sem er geymd sem eiginleiki (`AuditEvent.actor_user_id`,
   `UploadSession.user_id`) er talin upp í kassanum í stað þess að vera
   teiknuð sem lína.
+- Merkimiði sem byrjar á `Ifc` er alltaf einn af flokkum IFC, eins og IFC-LPG
+  skrifar þá; eigin færslur þjónsins (`Validation`, `Precheck`, `Proposal`,
+  `Clash`, `Merge`) byrja aldrei þannig, svo að fyrirspurn geti greint IFC-gögn
+  frá gögnum þjónsins sjálfs.
 
 ## Reikningar og aðgangur (áfangi 1)
 
@@ -83,7 +87,7 @@ erDiagram
 | Merkimiði | Lykill | Eiginleikar | Athugasemdir |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Sviðsheiti fylgja `topic_GET.json`; BIM snippet-hluturinn er flattur út í fjóra eiginleika. `server_assigned_id` er `<forskeyti><teljari>` úr `Project.topic_counter` |
-| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prófun breytingasetts máls á grunnútgáfu þess (ADR 0021); `report` geymir athugasemdirnar sem grunninn vantar, `storage_key` skrána sem breytingunum var beitt á, geymda fyrir samþykktina. Eytt með málinu |
+| `Proposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Prófun breytingasetts máls á grunnútgáfu þess (ADR 0021); `report` geymir athugasemdirnar sem grunninn vantar, `storage_key` skrána sem breytingunum var beitt á, geymda fyrir samþykktina. Eytt með málinu |
 | `Event` | `id` | `kind` (`topic` eða `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | Einn hnútur fyrir hverja beiðni sem breytti einhverju; tveir samsíða listar eru `actions`-fylkið í BCF 3.9/3.10. Tengt verkefninu svo atburðir lifi málið sitt |
 
 Hver málafyrirspurn hefst í `User`-hnút þess sem kallar og fer um `MEMBER_OF`
@@ -100,7 +104,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
-    Topic ||--o| IfcProposal : HAS_PROPOSAL
+    Topic ||--o| Proposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY
@@ -131,9 +135,9 @@ erDiagram
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
-    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Validation : HAS_VALIDATION
     DocumentVersion ||--o| Publication : HAS_PUBLICATION
-    Project ||--o{ IfcPrecheck : HAS_PRECHECK
+    Project ||--o{ Precheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -148,9 +152,9 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` númerar útgáfurnar |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Bæti undir `documents/<id>`; meginmál forritaskilanna sýnir aðeins svið forskriftarinnar; `parent_version_index`, `approved_by`, `change_set_id` og `change_set` (breytingarnar, pakkaðar) á útgáfu sem byggir á annarri, tengd henni með `DERIVED_FROM` (ADR 0021) |
-| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Prófun upphalaðrar IFC-skrár gagnvart IFC-skemanu (ADR 0011); `report` er allt að 10.000 athugasemdir sem þjappað JSON. Eytt með verkefni útgáfunnar |
+| `Validation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Prófun upphalaðrar IFC-skrár gagnvart IFC-skemanu (ADR 0011); `report` er allt að 10.000 athugasemdir sem þjappað JSON. Eytt með verkefni útgáfunnar |
 | `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | Þjöppuð skrá útgefinnar útgáfu, `.ifczip` eða `.zip`, undir `published/<id>`; ein fyrir hverja útgáfu. Eytt með verkefni útgáfunnar |
-| `IfcPrecheck` | `id` | þau sömu og `IfcValidation`, `project_id`, `author`, `expires_at` | Skrá sem var prófuð án þess að verða útgáfa, eða upphal sem verkefnið hafnaði (ADR 0021); ber líka merkimiðann `IfcValidation`. Tiltektarverkið eyðir henni og skrá hennar eftir sólarhring |
+| `Precheck` | `id` | þau sömu og `Validation`, `project_id`, `author`, `expires_at` | Skrá sem var prófuð án þess að verða útgáfa, eða upphal sem verkefnið hafnaði (ADR 0021); ber líka merkimiðann `Validation`. Tiltektarverkið eyðir henni og skrá hennar eftir sólarhring |
 | `UploadSession` | `id`, atriðaskráð `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` kemur fyrir í URL forritaskilanna (bearer krafist); UI-URL ber tókann sem tætigildið er geymt fyrir |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Bæti undir `parts/<id>` þar til skráin er sett saman; hreinsunarverkið eyðir útrunnum hlutum og skrám þeirra |
 | `SelectionSession` | `id`, atriðaskráð `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` geymir `document_id:version_index`-pör valin í vafranum |
@@ -162,7 +166,8 @@ erDiagram
 ```mermaid
 erDiagram
     Project ||--o{ Model : HAS_MODEL
-    Project ||--o{ IfcMerge : HAS_MERGE
+    Project ||--o{ Merge : HAS_MERGE
+    Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
@@ -174,6 +179,7 @@ erDiagram
 | `Model` | `id`, atriðaskráð `project_id` | `document_id`, `version_index` eða `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tímastimplar | Eitt fyrir hverja innflutta skrá; `state` er `queued`, `running`, `done` eða `failed` |
 | `Entity` + flokkamerkimiðar | `id` (`<líkansauðkenni>:<step-auðkenni>`), atriðaskráð `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punktar í verkefnishnitum, metrar, á byggingarhluta með lögun), hvert bókstaflegt IFC-eigindi með heiti | Vensl milli eininga eru nefnd eftir IFC-eigindinu (áfram og andhverft), skrifuð eins og hver venslagerð með hástöfum og undirstrikum: `IsDefinedBy` verður `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<líkansauðkenni>:<fyrsta step-auðkenni>`) | `first_step`, `instances`, `text` | Tilvik í líkani sem var umbreytt með `OPENCDE_IFC_LPG_LOSSLESS` og eru ekki hnútar: skrifuð út sem STEP í röð auðkenna og þjöppuð. Skilaðu ekki hnútnum heilum í fyrirspurn, vegna `text` |
-| `IfcMerge` | `id` | `project_id`, `kind` (`merge` eða `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Bygging úr líkani B færð inn í líkan verkefnisins (`HAS_MERGE`); `request` nefnir báðar útgáfurnar, og `version_index` er útgáfan sem hún varð. Sameinaða líkanið er tekið úr netinu þegar það hefur verið skrifað út. Eytt með verkefninu |
+| `Merge` | `id` | `project_id`, `kind` (`merge` eða `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Bygging úr líkani B færð inn í líkan verkefnisins (`HAS_MERGE`); `request` nefnir báðar útgáfurnar, og `version_index` er útgáfan sem hún varð. Sameinaða líkanið er tekið úr netinu þegar það hefur verið skrifað út. Eytt með verkefninu |
+| `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | Árekstrarprófun milli tveggja skjalaútgáfna í verkefninu (`HAS_CLASH`; ADR 0019); `request` nefnir báðar útgáfurnar, haminn og vikmörkin, og `report` geymir pörin sem fundust sem þjappað JSON. Eytt með verkefninu |
 
 Sjá [ifc-lpg.md](ifc-lpg.md) um umbreytingarreglurnar og dæmafyrirspurnir.

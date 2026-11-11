@@ -94,7 +94,7 @@ async def schedule(
     await service.graph.run(
         """
         MATCH (p:Project {project_id: $project_id})
-        CREATE (p)-[:HAS_MERGE]->(:IfcMerge {
+        CREATE (p)-[:HAS_MERGE]->(:Merge {
             id: $id, project_id: $project_id, kind: $kind, state: $state, request: $request, author: $author,
             created_at: $now
         })
@@ -119,7 +119,7 @@ def _start(service: IfcGraphService, merge_id: str) -> None:
 
 async def _set(service: IfcGraphService, merge_id: str, state: str, **fields: Any) -> None:
     await service.graph.run(
-        "MATCH (j:IfcMerge {id: $id}) SET j.state = $state, j += $fields",
+        "MATCH (j:Merge {id: $id}) SET j.state = $state, j += $fields",
         id=merge_id,
         state=state,
         fields={"finished_at": now_iso(), **fields},
@@ -132,7 +132,7 @@ async def run(service: IfcGraphService, merge_id: str) -> None:
         model_id = new_id()  # C, in the graph until it is written out
         rows = await service.graph.run(
             """
-            MATCH (j:IfcMerge {id: $id, state: $queued})
+            MATCH (j:Merge {id: $id, state: $queued})
             SET j.state = $running, j.running_at = $now, j.model_id = $model_id
             RETURN j.project_id AS project_id, j.request AS request, j.author AS author, j.kind AS kind
             """,
@@ -224,7 +224,7 @@ async def prepared(
     row = await service.graph.one(
         """
         MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-              -[:HAS_MERGE]->(j:IfcMerge {id: $id, kind: $kind, state: $done})
+              -[:HAS_MERGE]->(j:Merge {id: $id, kind: $kind, state: $done})
         WHERE j.expires_at > $now
         RETURN j.model_id AS model_id, j.request AS request
         """,
@@ -337,7 +337,7 @@ async def job(service: IfcGraphService, *, user_id: str, project_id: str, merge_
     """One merge, when the user is a member of its project."""
     row = await service.graph.one(
         """
-        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_MERGE]->(j:IfcMerge {id: $id})
+        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_MERGE]->(j:Merge {id: $id})
         RETURN properties(j) AS merge
         """,
         user_id=user_id,
@@ -374,7 +374,7 @@ async def resume(service: IfcGraphService) -> None:
     a prepared model whose day is over is taken out too."""
     given_up = later_iso(-2 * float(service.settings.ifcgraph_timeout_seconds))
     expired = await service.graph.run(
-        "MATCH (j:IfcMerge {kind: $kind, state: $done}) WHERE j.expires_at <= $now RETURN j.id AS id, j.model_id AS model_id",
+        "MATCH (j:Merge {kind: $kind, state: $done}) WHERE j.expires_at <= $now RETURN j.id AS id, j.model_id AS model_id",
         kind=KIND_PREPARE,
         done=STATE_DONE,
         now=now_iso(),
@@ -384,7 +384,7 @@ async def resume(service: IfcGraphService) -> None:
         await _set(service, str(row["id"]), STATE_EXPIRED)
     rows = await service.graph.run(
         """
-        MATCH (j:IfcMerge)
+        MATCH (j:Merge)
         WHERE j.state = $queued OR (j.state = $running AND j.running_at < $given_up)
         RETURN j.id AS id, j.state AS state, j.model_id AS model_id
         """,

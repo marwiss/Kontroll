@@ -28,6 +28,10 @@ suunnitelman vaiheet lisäsivät ne.
   kaaviot piirtävät vain todelliset solmut ja suhteet; ominaisuutena pidetty
   viittaus (`AuditEvent.actor_user_id`, `UploadSession.user_id`) luetellaan
   laatikossa sen sijaan, että se piirrettäisiin viivana.
+- Nimiö, joka alkaa `Ifc`, on aina yksi IFC:n luokista, sellaisina kuin IFC-LPG
+  ne kirjoittaa; palvelimen omat tietueet (`Validation`, `Precheck`, `Proposal`,
+  `Clash`, `Merge`) eivät koskaan ala niin, jotta kysely erottaa IFC-datan
+  palvelimen omasta.
 
 ## Tilit ja pääsy (vaihe 1)
 
@@ -85,7 +89,7 @@ erDiagram
 | Nimiö | Avain | Ominaisuudet | Huomautukset |
 |---|---|---|---|
 | `Topic` | `guid` | `server_assigned_id`, `title`, `topic_type`, `topic_status`, `priority`, `stage`, `labels[]`, `reference_links[]`, `assigned_to`, `description`, `index`, `due_date`, `creation_date`, `creation_author`, `modified_date`, `modified_author`, `snippet_type`, `snippet_is_external`, `snippet_reference`, `snippet_reference_schema` | Kenttien nimet seuraavat `topic_GET.json`-tiedostoa; BIM snippet -objekti litistetään neljäksi ominaisuudeksi. `server_assigned_id` on `<etuliite><laskuri>` kentästä `Project.topic_counter` |
-| `IfcProposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Asian muutosjoukon kokeilu sen perustaversiota vasten (ADR 0021); `report` sisältää huomautukset, joita perustassa ei ole, `storage_key` sovelletun tiedoston, joka säilytetään hyväksyntää varten. Poistetaan asian mukana |
+| `Proposal` | `id` | `state`, `created_at`, `checked_at`, `base_document_id`, `base_version_index`, `change_count`, `applied`, `issue_count`, `error_count`, `truncated`, `ruleset`, `checks`, `report`, `storage_key`, `snippet_key`, `author`, `error` | Asian muutosjoukon kokeilu sen perustaversiota vasten (ADR 0021); `report` sisältää huomautukset, joita perustassa ei ole, `storage_key` sovelletun tiedoston, joka säilytetään hyväksyntää varten. Poistetaan asian mukana |
 | `Event` | `id` | `kind` (`topic` tai `comment`), `topic_guid`, `comment_guid`, `author`, `date`, `action_types[]`, `action_values[]` | Yksi solmu jokaista jotakin muuttanutta pyyntöä kohti; kaksi rinnakkaista listaa ovat BCF 3.9/3.10:n `actions`-taulukko. Liitetty projektiin, jotta tapahtumat säilyvät asiansa jälkeen |
 
 Jokainen asiakysely alkaa kutsujan `User`-solmusta ja kulkee
@@ -103,7 +107,7 @@ erDiagram
     Viewpoint ||--o{ Bitmap : HAS_BITMAP
     Topic ||--o{ FileRef : HAS_FILE
     Topic ||--o{ DocumentReference : HAS_DOCUMENT_REFERENCE
-    Topic ||--o| IfcProposal : HAS_PROPOSAL
+    Topic ||--o| Proposal : HAS_PROPOSAL
     Topic }o--o{ Topic : RELATED_TO
     Project ||--o{ BcfDocument : HAS_DOCUMENT
     Comment }o--|| User : CREATED_BY
@@ -134,9 +138,9 @@ erDiagram
     Document ||--|{ DocumentVersion : HAS_VERSION
     DocumentVersion }o--|| User : UPLOADED_BY
     DocumentVersion }o--o| DocumentVersion : DERIVED_FROM
-    DocumentVersion ||--o| IfcValidation : HAS_VALIDATION
+    DocumentVersion ||--o| Validation : HAS_VALIDATION
     DocumentVersion ||--o| Publication : HAS_PUBLICATION
-    Project ||--o{ IfcPrecheck : HAS_PRECHECK
+    Project ||--o{ Precheck : HAS_PRECHECK
     UploadSession ||--o{ UploadPart : HAS_PART
     WebSession }o--|| User : FOR
     UploadSession {
@@ -151,9 +155,9 @@ erDiagram
 |---|---|---|---|
 | `Document` | `document_id` | `title`, `created_at`, `latest_index` | `latest_index` numeroi versiot |
 | `DocumentVersion` | `id` | `version_index`, `version_number`, `creation_date`, `title`, `file_name`, `size_in_bytes`, `sha256`, `storage_key`, `author`, `metadata` (JSON), `parent_version_index`, `approved_by`, `change_set_id`, `change_set` | Tavut polussa `documents/<id>`; rajapinnan runko näyttää vain spesifikaation kentät; `parent_version_index`, `approved_by`, `change_set_id` ja `change_set` (muutokset pakattuina) toisen päälle rakennetulla versiolla, linkitettynä siihen suhteella `DERIVED_FROM` (ADR 0021) |
-| `IfcValidation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Lähetetyn IFC-tiedoston tarkistus IFC-skeemaa vasten (ADR 0011); `report` on enintään 10 000 huomautusta pakattuna JSONina. Poistetaan version projektin mukana |
+| `Validation` | `id` | `state`, `checked_at`, `issue_count`, `truncated`, `ruleset`, `report`, `storage_key`, `file_name`, `error` | Lähetetyn IFC-tiedoston tarkistus IFC-skeemaa vasten (ADR 0011); `report` on enintään 10 000 huomautusta pakattuna JSONina. Poistetaan version projektin mukana |
 | `Publication` | `id` | `storage_key`, `file_name`, `size_in_bytes`, `sha256`, `published_at`, `published_by` | Julkaistun version arkisto, `.ifczip` tai `.zip`, polussa `published/<id>`; yksi versiota kohden. Poistetaan version projektin mukana |
-| `IfcPrecheck` | `id` | samat kuin `IfcValidation`, `project_id`, `author`, `expires_at` | Tiedosto, joka tarkistettiin tulematta versioksi, tai lähetys, jonka projekti hylkäsi (ADR 0021); myös nimiöllä `IfcValidation`. Siivoustyö poistaa sen ja sen tiedoston vuorokauden kuluttua |
+| `Precheck` | `id` | samat kuin `Validation`, `project_id`, `author`, `expires_at` | Tiedosto, joka tarkistettiin tulematta versioksi, tai lähetys, jonka projekti hylkäsi (ADR 0021); myös nimiöllä `Validation`. Siivoustyö poistaa sen ja sen tiedoston vuorokauden kuluttua |
 | `UploadSession` | `id`, indeksoitu `token_hash` | `user_id`, `username`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `project_id`, `state`, `files_json` | `id` esiintyy rajapinnan URLeissa (bearer vaaditaan); käyttöliittymän URL kantaa tokenia, jonka tiiviste tallennetaan |
 | `UploadPart` | `id` | `file_index`, `part_index`, `range_start`, `range_end`, `received`, `storage_key`, `size`, `expires_at` | Tavut polussa `parts/<id>`, kunnes tiedosto kootaan; siivoustyö poistaa vanhentuneet osat ja niiden tiedostot |
 | `SelectionSession` | `id`, indeksoitu `token_hash` | `user_id`, `callback_url`, `callback_expires_at`, `expires_at`, `server_context`, `extensions[]`, `state`, `selected[]` | `selected` sisältää selaimessa valitut `document_id:version_index`-parit |
@@ -165,7 +169,8 @@ erDiagram
 ```mermaid
 erDiagram
     Project ||--o{ Model : HAS_MODEL
-    Project ||--o{ IfcMerge : HAS_MERGE
+    Project ||--o{ Merge : HAS_MERGE
+    Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
     Model ||--o{ StepBlock : HAS_STEP_BLOCK
     Entity }o--o{ Entity : "IS_DEFINED_BY, HAS_PROPERTIES, ... (one type per IFC attribute)"
@@ -177,6 +182,7 @@ erDiagram
 | `Model` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
 | `Entity` + luokkanimiöt | `id` (`<mallin tunnus>:<step-tunnus>`), indeksoitu `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (pisteet projektikoordinaateissa, metreinä, rakennusosalla, jolla on muoto), jokainen literaali IFC-attribuutti nimellään | Entiteettien väliset suhteet nimetään IFC-attribuutin mukaan (eteen- ja käänteissuuntaan), kirjoitettuina kuten jokainen suhdetyyppi isoin kirjaimin ja alaviivoin: `IsDefinedBy` muuttuu `IS_DEFINED_BY`:ksi |
 | `StepBlock` | `id` (`<mallin tunnus>:<ensimmäinen step-tunnus>`) | `first_step`, `instances`, `text` | Asetuksella `OPENCDE_IFC_LPG_LOSSLESS` muunnetun mallin instanssit, jotka eivät ole solmuja: kirjoitettu STEP-muotoon tunnusjärjestyksessä ja pakattu. Älä palauta solmua kokonaisena kyselyssä `text`-kentän vuoksi |
-| `IfcMerge` | `id` | `project_id`, `kind` (`merge` tai `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Mallin B rakennus tuotuna projektin malliin (`HAS_MERGE`); `request` nimeää molemmat versiot, ja `version_index` on versio, joksi se tuli. Yhdistetty malli poistetaan graafista, kun se on kirjoitettu ulos. Poistetaan projektin mukana |
+| `Merge` | `id` | `project_id`, `kind` (`merge` tai `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Mallin B rakennus tuotuna projektin malliin (`HAS_MERGE`); `request` nimeää molemmat versiot, ja `version_index` on versio, joksi se tuli. Yhdistetty malli poistetaan graafista, kun se on kirjoitettu ulos. Poistetaan projektin mukana |
+| `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | Törmäystarkastus projektin kahden dokumenttiversion välillä (`HAS_CLASH`; ADR 0019); `request` nimeää molemmat versiot, tilan ja toleranssin, ja `report` sisältää löydetyt parit pakattuna JSONina. Poistetaan projektin mukana |
 
 Katso [ifc-lpg.md](ifc-lpg.md) muunnossäännöt ja esimerkkikyselyt.
