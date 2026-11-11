@@ -47,7 +47,7 @@ anpassar sig i stället för att prova sig fram:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
-    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
@@ -424,6 +424,15 @@ revisionshändelse (`manage.*`). Kapabilitetsdokumentet annonserar det som
 | `POST /manage/1.0/projects/{project_id}/members` | lägger till `{"username", "role"}` (`201`), eller sätter en medlems roll (`200`); `404` när användaren inte finns |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | sätter `{"role"}`: `viewer`, `contributor`, `editor` eller `manager` |
 | `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | tar bort medlemmen |
+| `GET /manage/1.0/projects/{project_id}/teams` | teamen med `team_id`, `name`, `responsible`, `members` och `ids_document_id` |
+| `POST /manage/1.0/projects/{project_id}/teams` | gör ett team av `{"name", "responsible", "members", "ids_document_id"}` (`201`); `400` när den ansvarige inte är `editor` eller `manager` i projektet, en medlem inte finns i det, eller dokumentet inte är en IDS i projektet |
+| `PUT /manage/1.0/projects/{project_id}/teams/{team_id}` | ersätter teamet |
+| `DELETE /manage/1.0/projects/{project_id}/teams/{team_id}` | tar bort teamet |
+
+Ett teams del av modellen är det som specifikationerna i dess IDS-dokument
+gäller för. Ett ändringsset som rör ett enda teams del godkänns av teamets
+ansvarige ensam; ett som rör flera teams delar, eller ingens, av en `manager`.
+Prövningen listar teamen i `teams`; se [ifc-lpg.md](ifc-lpg.md#ändringsset).
 
 ## 8. Testa mot den här servern
 

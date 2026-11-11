@@ -47,7 +47,7 @@ klient tilpasser sig i stedet for at prøve sig frem:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
-    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
@@ -420,6 +420,15 @@ revisionshændelse (`manage.*`). Kapabilitetsdokumentet annoncerer det som
 | `POST /manage/1.0/projects/{project_id}/members` | tilføjer `{"username", "role"}` (`201`) eller sætter et medlems rolle (`200`); `404`, når brugeren ikke findes |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | sætter `{"role"}`: `viewer`, `contributor`, `editor` eller `manager` |
 | `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | fjerner medlemmet |
+| `GET /manage/1.0/projects/{project_id}/teams` | holdene med `team_id`, `name`, `responsible`, `members` og `ids_document_id` |
+| `POST /manage/1.0/projects/{project_id}/teams` | laver et hold af `{"name", "responsible", "members", "ids_document_id"}` (`201`); `400` når den ansvarlige ikke er `editor` eller `manager` i projektet, et medlem ikke er i det, eller dokumentet ikke er en IDS i projektet |
+| `PUT /manage/1.0/projects/{project_id}/teams/{team_id}` | erstatter holdet |
+| `DELETE /manage/1.0/projects/{project_id}/teams/{team_id}` | fjerner holdet |
+
+Et holds del af modellen er det, specifikationerne i dets IDS-dokument gælder
+for. Et ændringssæt, der rører ét holds del, godkendes af holdets ansvarlige
+alene; et, der rører flere holds dele eller ingens, af en `manager`. Prøven
+lister holdene i `teams`; se [ifc-lpg.md](ifc-lpg.md#ændringssæt).
 
 ## 8. Test mod denne server
 

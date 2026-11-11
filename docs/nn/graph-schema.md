@@ -32,6 +32,8 @@ rekkjefølgja etappane i planen la dei til.
 ```mermaid
 erDiagram
     User }o--o{ Project : MEMBER_OF
+    Project ||--o{ Team : HAS_TEAM
+    Team }o--o{ User : "RESPONSIBLE, HAS_MEMBER"
     Project ||--|| Extensions : HAS_EXTENSIONS
     Reviewer ||--o{ Project : ISSUES
     Project ||--o{ Building : CONCERNS
@@ -47,6 +49,7 @@ erDiagram
 | `MEMBER_OF` (relasjon User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Rollene blir avbilda på `*_actions` i BCF, sjå `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` nummererer `server_assigned_id`; `block_on_validation_errors` avviser opplastingar med valideringsfeil (ADR 0021) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` blir rekna ut frå medlemene |
+| `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | Eit team i eit prosjekt (`HAS_TEAM`), med `RESPONSIBLE` og `HAS_MEMBER` til brukarar; delen av modellen er det spesifikasjonane i IDS-dokumentet gjeld for. Blir sletta med prosjektet |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (berre sjølvregistrerte) | OAuth2-klient; ein sjølvregistrert blir sletta når `expires_at` er passert utan at eit token er utferda |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-streng) | Tryggingsrelevante hendingar |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Kontekst frå kontrollplan-bruksområdet (seed-data): den granskande organisasjonen (ein kommune i den opphavlege historia) og bygningen |

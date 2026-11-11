@@ -29,6 +29,8 @@ stages of the plan added them.
 ```mermaid
 erDiagram
     User }o--o{ Project : MEMBER_OF
+    Project ||--o{ Team : HAS_TEAM
+    Team }o--o{ User : "RESPONSIBLE, HAS_MEMBER"
     Project ||--|| Extensions : HAS_EXTENSIONS
     Reviewer ||--o{ Project : ISSUES
     Project ||--o{ Building : CONCERNS
@@ -44,6 +46,7 @@ erDiagram
 | `MEMBER_OF` (relationship User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Roles map to BCF `*_actions`, see `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` numbers `server_assigned_id`; `block_on_validation_errors` refuses uploads with validation errors (ADR 0021) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` is computed from members |
+| `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | A team of a project (`HAS_TEAM`), with `RESPONSIBLE` and `HAS_MEMBER` to users; its part of the model is what the specifications of its IDS document apply to. Deleted with the project |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (self-registered only) | OAuth2 client; a self-registered one is deleted once `expires_at` passes without a token issuance |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON string) | Security-relevant events |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Context from the inspection-plan use case (seed data): the reviewing organisation (a municipality in the original story) and the building |

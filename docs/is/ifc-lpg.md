@@ -492,6 +492,12 @@ athugasemd með heimilisfangi útgáfunnar, sjónarhorn (viewpoint) sem velur
 breyttu einingarnar, og stöðuna `Closed` þar sem verkefnið hefur það gildi. `412 version_conflict` segir að skjalið hafi haldið áfram
 síðan grunnurinn var; `409` að prófunin sé ekki hrein, eða þegar samþykkt.
 Gervigreind leggur aðeins til: samþykktin er manneskju.
+Þar sem verkefnið hefur teymi telur prófunin upp í `teams` þau teymi sem
+breytingasafnið snertir hluta líkansins hjá: það sem forskriftir IDS-skjals teymis
+eiga við, í skrá grunnsins eða þeirri breyttu. Breytingasafn sem snertir hluta eins
+teymis samþykkir ábyrgðarmaður teymisins einn, ekki `manager`; það sem snertir hluta
+fleiri teyma, eða engra, samþykkir `manager`, og eins það þar sem hlutarnir fundust
+ekki (`teams_error`).
 
 Þegar skjalið hefur haldið áfram síðan grunnurinn var sameinar þjónninn:
 breytingar útgáfnanna þar á milli, hver samþykkt úr breytingasetti, eru bornar

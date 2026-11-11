@@ -32,6 +32,8 @@ skýrir venjurnar og merkimiðana, kafla fyrir kafla í þeirri röð sem áfang
 ```mermaid
 erDiagram
     User }o--o{ Project : MEMBER_OF
+    Project ||--o{ Team : HAS_TEAM
+    Team }o--o{ User : "RESPONSIBLE, HAS_MEMBER"
     Project ||--|| Extensions : HAS_EXTENSIONS
     Reviewer ||--o{ Project : ISSUES
     Project ||--o{ Building : CONCERNS
@@ -47,6 +49,7 @@ erDiagram
 | `MEMBER_OF` (vensl User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Hlutverk varpast á `*_actions` BCF, sjá `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` númerar `server_assigned_id`; `block_on_validation_errors` hafnar upphölum með sannprófunarvillum (ADR 0021) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` er reiknað úr meðlimum |
+| `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | Teymi verkefnis (`HAS_TEAM`), með `RESPONSIBLE` og `HAS_MEMBER` til notenda; hluti þess í líkaninu er það sem forskriftir IDS-skjals þess eiga við. Eytt með verkefninu |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (aðeins sjálfskráðir) | OAuth2-biðlari; sjálfskráðum er eytt þegar `expires_at` er liðið án þess að tóki hafi verið gefinn út |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-strengur) | Atburðir sem skipta máli fyrir öryggi |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Samhengi úr notkunartilviki eftirlitsáætlunarinnar (sýnigögn): yfirfarandi stofnunin (sveitarfélag í upprunalegu sögunni) og byggingin |

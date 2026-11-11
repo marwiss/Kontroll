@@ -47,7 +47,7 @@ tilpassar seg i staden for å prøve seg fram:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
-    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
@@ -425,6 +425,16 @@ det som `project_administration`.
 | `POST /manage/1.0/projects/{project_id}/members` | legg til `{"username", "role"}` (`201`), eller set rolla til eit medlem (`200`); `404` når brukaren ikkje finst |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | set `{"role"}`: `viewer`, `contributor`, `editor` eller `manager` |
 | `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | fjernar medlemmen |
+| `GET /manage/1.0/projects/{project_id}/teams` | teama med `team_id`, `name`, `responsible`, `members` og `ids_document_id` |
+| `POST /manage/1.0/projects/{project_id}/teams` | lagar eit team av `{"name", "responsible", "members", "ids_document_id"}` (`201`); `400` når den ansvarlege ikkje er `editor` eller `manager` i prosjektet, eit medlem ikkje er i det, eller dokumentet ikkje er ein IDS i prosjektet |
+| `PUT /manage/1.0/projects/{project_id}/teams/{team_id}` | erstattar teamet |
+| `DELETE /manage/1.0/projects/{project_id}/teams/{team_id}` | fjernar teamet |
+
+Delen av modellen til eit team er det spesifikasjonane i IDS-dokumentet gjeld
+for. Eit endringssett som rører delen til eitt team, blir godkjent av den
+ansvarlege for teamet åleine; eitt som rører delane til fleire team, eller
+ingen, av ein `manager`. Prøva listar teama i `teams`; sjå
+[ifc-lpg.md](ifc-lpg.md#endringssett).
 
 ## 8. Teste mot denne serveren
 

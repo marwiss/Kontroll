@@ -48,7 +48,7 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
-    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
@@ -421,6 +421,15 @@ Getuskjalið tilkynnir það sem `project_administration`.
 | `POST /manage/1.0/projects/{project_id}/members` | bætir við `{"username", "role"}` (`201`) eða setur hlutverk meðlims (`200`); `404` ef notandinn er ekki til |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | setur `{"role"}`: `viewer`, `contributor`, `editor` eða `manager` |
 | `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | fjarlægir meðliminn |
+| `GET /manage/1.0/projects/{project_id}/teams` | teymin með `team_id`, `name`, `responsible`, `members` og `ids_document_id` |
+| `POST /manage/1.0/projects/{project_id}/teams` | býr til teymi úr `{"name", "responsible", "members", "ids_document_id"}` (`201`); `400` þegar ábyrgðarmaðurinn er ekki `editor` eða `manager` í verkefninu, meðlimur er ekki í því, eða skjalið er ekki IDS verkefnisins |
+| `PUT /manage/1.0/projects/{project_id}/teams/{team_id}` | kemur í stað teymisins |
+| `DELETE /manage/1.0/projects/{project_id}/teams/{team_id}` | fjarlægir teymið |
+
+Hluti teymis í líkaninu er það sem forskriftir IDS-skjals þess eiga við. Breytingasafn
+sem snertir hluta eins teymis samþykkir ábyrgðarmaður teymisins einn; það sem
+snertir hluta fleiri teyma, eða engra, samþykkir `manager`. Prófunin telur teymin
+upp í `teams`; sjá [ifc-lpg.md](ifc-lpg.md#breytingasett).
 
 ## 8. Prófanir gegn þessum þjóni
 

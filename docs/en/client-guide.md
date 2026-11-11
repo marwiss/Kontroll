@@ -47,7 +47,7 @@ of probing:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
-    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
@@ -414,6 +414,16 @@ project stays with the administrators. Every write leaves an audit event
 | `POST /manage/1.0/projects/{project_id}/members` | adds `{"username", "role"}` (`201`), or sets the role of a member (`200`); `404` for no such user |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | sets `{"role"}`: `viewer`, `contributor`, `editor` or `manager` |
 | `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | removes the member |
+| `GET /manage/1.0/projects/{project_id}/teams` | the teams with `team_id`, `name`, `responsible`, `members` and `ids_document_id` |
+| `POST /manage/1.0/projects/{project_id}/teams` | makes a team of `{"name", "responsible", "members", "ids_document_id"}` (`201`); `400` when the responsible is not an `editor` or `manager` of the project, a member is not in it, or the document is no IDS of the project |
+| `PUT /manage/1.0/projects/{project_id}/teams/{team_id}` | replaces the team |
+| `DELETE /manage/1.0/projects/{project_id}/teams/{team_id}` | removes the team |
+
+A team's part of the model is what the specifications of its IDS document
+apply to. A change set that touches the part of one team is approved by that
+team's responsible alone; one that touches the parts of several teams, or of
+none, by a `manager`. The trial lists the teams in `teams`; see
+[ifc-lpg.md](ifc-lpg.md#change-sets).
 
 ## 8. Testing against this server
 

@@ -517,8 +517,10 @@ den, menneske eller AI-agent, som fører en del av det videre. Arbeidsmåtene st
   sti nådde 98 til 100 prosent av instansene i 28 prøvefiler.
 - **Hvem som får endre hva.** `editor` foreslår, `manager` godkjenner, og en AI
   foreslår bare; hver endring bærer hvem som foreslo den, og hvilken AI-modell og
-  hvilket verktøykall, der en AI gjorde det. Ansvarsregler som peker ut en del av
-  modellen med et IDS-utvalg, slik ISO 19650s ansvarlige team gjør, kommer senere.
+  hvilket verktøykall, der en AI gjorde det. Et team i prosjektet, der IDS-dokumentet
+  peker ut teamets del av modellen slik ISO 19650s ansvarlige team gjør, lar sin
+  ansvarlige godkjenne endringene av den delen; en endring på tvers av flere teams
+  deler går til en `manager`.
 - **Kollisjonskontroll begge steder**: på serveren med IfcOpenShells IfcClash og i
   Dataspatium med dens egen kjerne i JavaScript.
 - **Det neste**: et endepunkt for AI-verktøy (MCP) på din egen datamaskin, der AI

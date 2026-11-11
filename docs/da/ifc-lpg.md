@@ -499,6 +499,11 @@ en upload. Sagen får en kommentar med versionens adresse, et viewpoint, der mar
 status `Closed`, hvor projektet har den værdi. `412 version_conflict` siger, at dokumentet er
 gået videre siden basen; `409`, at prøven ikke er ren eller allerede er
 godkendt. En AI foreslår kun: godkendelsen er et menneskes.
+Hvor projektet har hold, lister prøven i `teams` de hold, hvis del af modellen
+ændringssættet rører: det, specifikationerne i et holds IDS-dokument gælder for, i
+basens fil eller den ændrede. Et ændringssæt, der rører ét holds del, godkendes af
+holdets ansvarlige alene, ikke af en `manager`; et, der rører flere holds dele eller
+ingens, af en `manager`, og ligeså et, hvis dele ikke kunne findes (`teams_error`).
 
 Når dokumentet er gået videre siden basen, fletter serveren: ændringerne i
 versionerne derimellem, hver godkendt fra et ændringssæt, sammenlignes attribut

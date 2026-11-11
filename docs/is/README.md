@@ -514,9 +514,10 @@ hluta þess áfram. Vinnulagið er í [CONTRIBUTING.md](../../CONTRIBUTING.md) o
   tilvikanna í 28 prófunarskrám.
 - **Hver má breyta hverju.** `editor` leggur til, `manager` samþykkir, og gervigreind
   leggur aðeins til; hver breyting ber með sér hver lagði hana til, og hvaða
-  gervigreindarlíkan og hvaða verkfærakall, þar sem gervigreind gerði það.
-  Ábyrgðarreglur sem afmarka hluta líkansins með IDS-vali, eins og ábyrgðarteymi ISO
-  19650 gera, koma síðar.
+  gervigreindarlíkan og hvaða verkfærakall, þar sem gervigreind gerði það. Teymi
+  verkefnisins, þar sem IDS-skjal afmarkar hluta þess í líkaninu eins og ábyrgðarteymi
+  ISO 19650 gera, lætur ábyrgðarmann sinn samþykkja breytingar á þeim hluta; breyting
+  sem nær yfir hluta fleiri teyma fer til `manager`.
 - **Árekstrarprófun á báðum stöðum**: á þjóninum með IfcClash frá IfcOpenShell og í
   Dataspatium með eigin kjarna í JavaScript.
 - **Næst**: endapunktur fyrir gervigreindarverkfæri (MCP) á þinni eigin tölvu, þar

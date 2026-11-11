@@ -505,6 +505,12 @@ statusen `Closed` der prosjektet har den verdien.
 `412 version_conflict` seier at dokumentet har gått vidare sidan basen; `409`
 at prøven ikkje er rein, eller alt er godkjend. Ein AI føreslår berre:
 godkjenninga er eit menneske si.
+Der prosjektet har team, listar prøva i `teams` dei teama som endringssettet rører
+delen av modellen til: det spesifikasjonane i IDS-dokumentet til eit team gjeld for,
+i fila til basen eller den endra. Eit endringssett som rører delen til eitt team, blir
+godkjent av den ansvarlege for teamet åleine, ikkje av ein `manager`; eitt som rører
+delane til fleire team, eller ingen, av ein `manager`, og likeins eitt der delane ikkje
+kunne finnast (`teams_error`).
 
 Når dokumentet har gått vidare sidan basen, slår serveren saman: endringane i
 versjonane imellom, kvar godkjend frå eit endringssett, blir samanlikna

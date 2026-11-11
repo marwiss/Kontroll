@@ -49,7 +49,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
     "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
-    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
+    "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},
     "headless_uploads": {"enabled": true, "url": "/documents/1.0/upload-documents", "for": "confidential clients an administrator approved"},
     "ifc_diff": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-diff/{other_index}", "max_entries": 10000},
@@ -434,6 +434,16 @@ Kyvykkyysasiakirja ilmoittaa sen nimellä `project_administration`.
 | `POST /manage/1.0/projects/{project_id}/members` | lisää `{"username", "role"}` (`201`) tai asettaa jäsenen roolin (`200`); `404`, jos käyttäjää ei ole |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | asettaa `{"role"}`: `viewer`, `contributor`, `editor` tai `manager` |
 | `DELETE /manage/1.0/projects/{project_id}/members/{user_id}` | poistaa jäsenen |
+| `GET /manage/1.0/projects/{project_id}/teams` | tiimit kentillä `team_id`, `name`, `responsible`, `members` ja `ids_document_id` |
+| `POST /manage/1.0/projects/{project_id}/teams` | tekee tiimin rungosta `{"name", "responsible", "members", "ids_document_id"}` (`201`); `400`, kun vastuuhenkilö ei ole projektin `editor` tai `manager`, jäsen ei kuulu projektiin tai asiakirja ei ole projektin IDS |
+| `PUT /manage/1.0/projects/{project_id}/teams/{team_id}` | korvaa tiimin |
+| `DELETE /manage/1.0/projects/{project_id}/teams/{team_id}` | poistaa tiimin |
+
+Tiimin osa mallista on se, mihin sen IDS-asiakirjan määrittelyt kohdistuvat.
+Muutosjoukon, joka koskee yhden tiimin osaa, hyväksyy tiimin vastuuhenkilö
+yksin; useamman tiimin osia tai ei kenenkään osaa koskevan hyväksyy `manager`.
+Kokeilu luettelee tiimit kentässä `teams`; katso
+[ifc-lpg.md](ifc-lpg.md#muutosjoukot).
 
 ## 8. Testaaminen tätä palvelinta vasten
 

@@ -501,6 +501,11 @@ statusen `Closed` där projektet har det värdet.
 `412 version_conflict` säger att dokumentet har gått vidare sedan basen; `409`
 att prövningen inte är ren, eller redan är godkänd. En AI föreslår bara:
 godkännandet är en människas.
+Där projektet har team listar prövningen i `teams` de team vars del av modellen
+ändringssetet rör: det som specifikationerna i ett teams IDS-dokument gäller för, i
+basens fil eller den ändrade. Ett ändringsset som rör ett enda teams del godkänns av
+teamets ansvarige ensam, inte av en `manager`; ett som rör flera teams delar, eller
+ingens, av en `manager`, och likaså ett vars delar inte kunde hittas (`teams_error`).
 
 När dokumentet har gått vidare sedan basen sammanfogar servern: ändringarna i
 versionerna däremellan, var och en godkänd från ett ändringsset, jämförs

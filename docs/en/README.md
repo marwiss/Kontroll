@@ -521,8 +521,9 @@ whoever, human or AI agent, carries a part of it further. The ways of working ar
   in 28 sample files.
 - **Who may change what.** `editor` proposes, `manager` approves, and an AI only
   proposes; every change carries who proposed it, and which AI model and which tool
-  call, where an AI did it. Responsibility rules that point out a part of the model
-  with an IDS selection, as ISO 19650's responsible teams do, come later.
+  call, where an AI did it. A team of the project, whose IDS document points out its
+  part of the model as ISO 19650's task teams do, has its responsible approve the
+  changes to that part; a change across several teams' parts goes to a `manager`.
 - **A clash check in both places**: on the server with IfcOpenShell's IfcClash and in
   Dataspatium with its own core in JavaScript.
 - **Next**: an endpoint for AI tools (MCP) on your own computer, where AI proposes

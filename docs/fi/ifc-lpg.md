@@ -507,6 +507,12 @@ kommentin, jossa on version osoite, näkymän (viewpoint), joka valitsee
 muuttuneet elementit, ja tilan `Closed`, kun projektilla on se arvo. `412 version_conflict` kertoo, että dokumentti on edennyt perustan
 jälkeen; `409`, ettei kokeilu ole puhdas tai se on jo hyväksytty. Tekoäly
 vain ehdottaa: hyväksyntä on ihmisen.
+Kun projektilla on tiimejä, kokeilu luettelee kentässä `teams` ne tiimit, joiden
+osaa mallista muutosjoukko koskee: sen, mihin tiimin IDS-asiakirjan määrittelyt
+kohdistuvat, perusversion tiedostossa tai muutetussa. Yhden tiimin osaa koskevan
+muutosjoukon hyväksyy tiimin vastuuhenkilö yksin, ei `manager`; useamman tiimin osia
+tai ei kenenkään osaa koskevan hyväksyy `manager`, samoin sellaisen, jonka osia ei
+löydetty (`teams_error`).
 
 Kun dokumentti on edennyt perustan jälkeen, palvelin yhdistää: välissä
 olevien versioiden muutokset, kukin hyväksytty muutosjoukosta, verrataan

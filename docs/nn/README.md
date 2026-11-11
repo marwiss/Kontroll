@@ -518,9 +518,11 @@ Arbeidsmåtane står i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
   og ein sti av attributtnamna i IFC derifrå, med STEP-id berre der ingen GlobalId når
   fram; GlobalId og sti nådde 98 til 100 prosent av instansane i 28 prøvefiler.
 - **Kven som får endre kva.** `editor` gjer framlegg, `manager` godkjenner, og ein AI
-  gjer berre framlegg; kvar endring ber kven som gjorde framlegget, og kva AI-modell og
-  kva verktøykall, der ein AI gjorde det. Ansvarsreglar som peikar ut ein del av
-  modellen med eit IDS-utval, slik dei ansvarlege teama i ISO 19650 gjer, kjem seinare.
+  gjer berre framlegg; kvar endring ber kven som gjorde framlegget, og kva AI-modell
+  og kva verktøykall, der ein AI gjorde det. Eit team i prosjektet, der IDS-dokumentet
+  peikar ut delen av modellen til teamet slik dei ansvarlege teama i ISO 19650 gjer,
+  lèt den ansvarlege godkjenne endringane av den delen; ei endring på tvers av fleire
+  team går til ein `manager`.
 - **Kollisjonskontroll begge stader**: på serveren med IfcClash frå IfcOpenShell og i
   Dataspatium med den eigne kjernen i JavaScript.
 - **Det neste**: eit endepunkt for AI-verktøy (MCP) på di eiga datamaskin, der AI gjer

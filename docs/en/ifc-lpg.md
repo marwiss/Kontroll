@@ -495,6 +495,12 @@ status `Closed` where the project has that value.
 `412 version_conflict` says the document has moved on since the base; `409`
 that the trial is not clean, or was approved already. An AI only proposes:
 approval is a person's.
+Where the project has teams, the trial lists in `teams` those whose part of the
+model the change set touches: what the specifications of a team's IDS document
+apply to, in the base file or the changed one. A change set that touches the part
+of one team is approved by that team's responsible alone, not by a `manager`; one
+that touches the parts of several teams, or of none, by a `manager`, and so is one
+whose parts could not be found (`teams_error`).
 
 When the document has moved on since the base, the server merges: the
 changes of the versions in between, each approved from a change set, are

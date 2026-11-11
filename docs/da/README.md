@@ -521,8 +521,10 @@ menneske eller AI-agent, der fører en del af det videre. Arbejdsgangene står i
   GlobalId og sti nåede 98 til 100 procent af instanserne i 28 prøvefiler.
 - **Hvem der må ændre hvad.** `editor` foreslår, `manager` godkender, og en AI
   foreslår kun; hver ændring bærer, hvem der foreslog den, og hvilken AI-model og
-  hvilket værktøjskald, hvor en AI gjorde det. Ansvarsregler, der udpeger en del af
-  modellen med et IDS-udvalg, som ISO 19650's ansvarlige teams gør, kommer senere.
+  hvilket værktøjskald, hvor en AI gjorde det. Et hold i projektet, hvis IDS-dokument
+  udpeger dets del af modellen, som ISO 19650's ansvarlige teams gør, lader sin
+  ansvarlige godkende ændringerne af den del; en ændring på tværs af flere holds dele
+  går til en `manager`.
 - **Kollisionskontrol begge steder**: på serveren med IfcOpenShells IfcClash og i
   Dataspatium med dens egen kerne i JavaScript.
 - **Det næste**: et endepunkt til AI-værktøjer (MCP) på din egen computer, hvor AI

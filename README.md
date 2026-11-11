@@ -527,8 +527,10 @@ Arbetssätten står i [CONTRIBUTING.md](CONTRIBUTING.md) och IFC-grafen i
   instanserna i 28 provfiler.
 - **Vem som får ändra vad.** `editor` föreslår, `manager` godkänner, och en AI
   föreslår bara; varje ändring bär vem som föreslog den, och vilken AI-modell och
-  vilket verktygsanrop, där en AI gjorde det. Ansvarsregler som pekar ut en del av
-  modellen med IDS-urval, som ISO 19650:s ansvariga team gör, kommer senare.
+  vilket verktygsanrop, där en AI gjorde det. Ett team i projektet, vars IDS-dokument
+  pekar ut dess del av modellen som ISO 19650:s ansvariga team gör, låter sin
+  ansvarige godkänna ändringarna av den delen; en ändring över flera teams delar går
+  till en `manager`.
 - **Krocktest på båda ställena**: på servern med IfcOpenShells IfcClash och i
   Dataspatium med dess egen kärna i JavaScript.
 - **Härnäst**: en ändpunkt för AI-verktyg (MCP) på den egna datorn, där AI

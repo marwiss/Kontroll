@@ -497,6 +497,11 @@ en opplasting. Saken får en kommentar med versjonens adresse, et viewpoint som 
 statusen `Closed` der prosjektet har den verdien. `412 version_conflict` sier at
 dokumentet har gått videre siden basen; `409` at prøven ikke er ren, eller
 allerede er godkjent. En AI foreslår bare: godkjenningen er et menneskes.
+Der prosjektet har team, lister prøven i `teams` de teamene hvis del av modellen
+endringssettet rører: det spesifikasjonene i et teams IDS-dokument gjelder for, i
+basens fil eller den endrede. Et endringssett som rører ett teams del, godkjennes av
+teamets ansvarlige alene, ikke av en `manager`; et som rører flere teams deler, eller
+ingens, av en `manager`, og likeså et der delene ikke kunne finnes (`teams_error`).
 
 Når dokumentet har gått videre siden basen, slår serveren sammen: endringene i
 versjonene imellom, hver godkjent fra et endringssett, sammenlignes attributt

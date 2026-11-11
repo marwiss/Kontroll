@@ -34,6 +34,8 @@ suunnitelman vaiheet lisäsivät ne.
 ```mermaid
 erDiagram
     User }o--o{ Project : MEMBER_OF
+    Project ||--o{ Team : HAS_TEAM
+    Team }o--o{ User : "RESPONSIBLE, HAS_MEMBER"
     Project ||--|| Extensions : HAS_EXTENSIONS
     Reviewer ||--o{ Project : ISSUES
     Project ||--o{ Building : CONCERNS
@@ -49,6 +51,7 @@ erDiagram
 | `MEMBER_OF` (suhde User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Roolit kuvautuvat BCF:n `*_actions`-arvoihin, katso `accounts/roles.py` |
 | `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` numeroi `server_assigned_id`-arvot; `block_on_validation_errors` hylkää lähetykset, joissa on validointivirheitä (ADR 0021) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` lasketaan jäsenistä |
+| `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | Projektin tiimi (`HAS_TEAM`), suhteilla `RESPONSIBLE` ja `HAS_MEMBER` käyttäjiin; sen osa mallista on se, mihin sen IDS-asiakirjan määrittelyt kohdistuvat. Poistetaan projektin mukana |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (vain itse rekisteröityneet) | OAuth2-asiakas; itse rekisteröitynyt poistetaan, kun `expires_at` on ohitettu ilman tokenin myöntämistä |
 | `AuditEvent` | `id` | `type`, `at`, `actor_user_id`, `client_id`, `ip`, `details` (JSON-merkkijono) | Turvallisuuden kannalta merkitykselliset tapahtumat |
 | `Reviewer`, `Building` | `id` | `name`, `status` | Konteksti tarkastussuunnitelman käyttötapauksesta (seed-data): tarkastava organisaatio (alkuperäisessä tarinassa kunta) ja rakennus |

@@ -542,8 +542,10 @@ IFC-graafi sivulla [ifc-lpg.md](ifc-lpg.md).
   instansseista 28 testitiedostossa.
 - **Kuka saa muuttaa mitä.** `editor` ehdottaa, `manager` hyväksyy, ja tekoäly vain
   ehdottaa; jokainen muutos kertoo, kuka sen ehdotti, ja jos tekoäly teki sen, mikä
-  tekoälymalli ja mikä työkalukutsu. Vastuusäännöt, jotka rajaavat osan mallista
-  IDS-valinnalla, kuten ISO 19650:n vastuuryhmät tekevät, tulevat myöhemmin.
+  tekoälymalli ja mikä työkalukutsu. Projektin tiimi, jonka IDS-asiakirja rajaa sen
+  osan mallista kuten ISO 19650:n vastuuryhmät tekevät, antaa vastuuhenkilönsä
+  hyväksyä tuon osan muutokset; usean tiimin osiin ulottuva muutos menee
+  `manager`ille.
 - **Törmäystarkastus molemmissa paikoissa**: palvelimella IfcOpenShellin IfcClashilla
   ja Dataspatiumissa sen omalla JavaScript-ytimellä.
 - **Seuraavaksi**: päätepiste tekoälytyökaluille (MCP) omalla tietokoneella, jossa
