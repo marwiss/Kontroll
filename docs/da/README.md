@@ -410,7 +410,7 @@ seneste i hver serie rettes. Dataregium og Dataspatium med det samme nummer hør
 |---|---|---|---|
 | 1.0.0 | En dokumentserver: Foundation API og Documents API, webadministrationen på syv sprog, projektadministrationen for den projektansvarlige og forespørgselsloggen. Den er 2.0.0-koden med kun Documents API slået til (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
 | 2.0.0 | Også BCF API 3.0 og 2.1 på de samme data og IFC-LPG-modulet, der laver en graf af hver uploadet IFC-fil | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Også den tabsfri graf fra biblioteket IFC-LPG, kontrollen af hver upload, forespørgslerne, sammenligningerne og kollisionskontrollen, versioner med ændringsforslag, der prøves, godkendes og flettes, geometrien som glTF, den lokale motor og opskrifterne til skyen og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 3.0.0 | Også den tabsfri graf fra biblioteket IFC-LPG, kontrollen af hver upload, forespørgslerne, sammenligningerne og kollisionskontrollen, versioner med ændringsforslag, der prøves, godkendes og flettes, publiceringen af en version, en bygning fra én model ind i en anden, geometrien som glTF, den lokale motor og opskrifterne til skyen og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lær mere
 

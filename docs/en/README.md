@@ -413,7 +413,7 @@ number go together:
 |---|---|---|---|
 | 1.0.0 | A document server: the Foundation API and the Documents API, the web administration in seven languages, the project administration for the project manager and the request log. It is the 2.0.0 code with only the Documents API on (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
 | 2.0.0 | Also BCF API 3.0 and 2.1 on the same data and the IFC-LPG module that makes a graph of every uploaded IFC file | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Also the lossless graph from the IFC-LPG library, the check of every upload, the queries, the comparisons and the clash check, versions with change proposals that are tested, approved and merged, the geometry as glTF, the local engine and the recipes for the cloud and nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 3.0.0 | Also the lossless graph from the IFC-LPG library, the check of every upload, the queries, the comparisons and the clash check, versions with change proposals that are tested, approved and merged, the publication of a version, a building of one model brought into another, the geometry as glTF, the local engine and the recipes for the cloud and nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Learn more
 

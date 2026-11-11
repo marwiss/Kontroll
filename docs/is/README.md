@@ -405,7 +405,7 @@ eiga saman:
 |---|---|---|---|
 | 1.0.0 | Skjalaþjónn: Foundation API og Documents API, vefstjórnunin á sjö tungumálum, verkefnastjórnunin fyrir verkefnastjórann og beiðnaannállinn. Hún er kóði 2.0.0 með aðeins Documents API virkt (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
 | 2.0.0 | Einnig BCF API 3.0 og 2.1 á sömu gögnum og IFC-LPG-eininguna sem gerir net úr hverri upphlaðinni IFC-skrá | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Einnig taplausa netið úr safninu IFC-LPG, prófun hverrar upphleðslu, fyrirspurnirnar, samanburðinn og árekstrarprófunina, útgáfur með breytingatillögum sem eru prófaðar, samþykktar og sameinaðar, rúmfræðina sem glTF, staðbundnu vélina og uppskriftirnar fyrir skýið og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 3.0.0 | Einnig taplausa netið úr safninu IFC-LPG, prófun hverrar upphleðslu, fyrirspurnirnar, samanburðinn og árekstrarprófunina, útgáfur með breytingatillögum sem eru prófaðar, samþykktar og sameinaðar, birtingu útgáfu, byggingu úr einu líkani inn í annað, rúmfræðina sem glTF, staðbundnu vélina og uppskriftirnar fyrir skýið og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lærðu meira
 

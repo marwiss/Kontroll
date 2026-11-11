@@ -427,7 +427,7 @@ kuuluvat yhteen:
 |---|---|---|---|
 | 1.0.0 | Asiakirjapalvelin: Foundation API ja Documents API, verkkoylläpito seitsemällä kielellä, projektin ylläpito projektin vastuuhenkilölle ja pyyntöloki. Se on 2.0.0:n koodi, jossa vain Documents API on käytössä (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
 | 2.0.0 | Lisäksi BCF API 3.0 ja 2.1 samoilla tiedoilla ja IFC-LPG-moduuli, joka tekee graafin jokaisesta ladatusta IFC-tiedostosta | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Lisäksi häviötön graafi IFC-LPG-kirjastosta, jokaisen latauksen tarkistus, kyselyt, vertailut ja törmäystarkastus, versiot muutosehdotuksineen, jotka kokeillaan, hyväksytään ja yhdistetään, geometria glTF:nä, paikallinen moottori ja ohjeet pilveen ja nginxille | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 3.0.0 | Lisäksi häviötön graafi IFC-LPG-kirjastosta, jokaisen latauksen tarkistus, kyselyt, vertailut ja törmäystarkastus, versiot muutosehdotuksineen, jotka kokeillaan, hyväksytään ja yhdistetään, version julkaisu, yhden mallin rakennus toiseen malliin, geometria glTF:nä, paikallinen moottori ja ohjeet pilveen ja nginxille | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lue lisää
 
