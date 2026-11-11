@@ -51,7 +51,7 @@ erDiagram
 |---|---|---|---|
 | `User` | `id`, einkvæmt `username` | `email`, `full_name`, `password_hash` (Argon2id), `is_admin`, `disabled`, `created_at`, `must_change_password` | Notandanafnið er notandaauðkennið sem forritaskilin sýna |
 | `MEMBER_OF` (vensl User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Hlutverk varpast á `*_actions` BCF, sjá `accounts/roles.py` |
-| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` númerar `server_assigned_id`; `block_on_validation_errors` hafnar upphölum með sannprófunarvillum (ADR 0021) |
+| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors`, `ai_policy` | `topic_counter` númerar `server_assigned_id`; `block_on_validation_errors` hafnar upphölum með sannprófunarvillum (ADR 0021); `ai_policy` er `local` eða `cloud`, og `local` þar sem það vantar (ADR 0028) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` er reiknað úr meðlimum |
 | `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | Teymi verkefnis (`HAS_TEAM`), með `RESPONSIBLE` og `HAS_MEMBER` til notenda; hluti þess í líkaninu er það sem forskriftir IDS-skjals þess eiga við. Eytt með verkefninu |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (aðeins sjálfskráðir) | OAuth2-biðlari; sjálfskráðum er eytt þegar `expires_at` er liðið án þess að tóki hafi verið gefinn út |

@@ -27,6 +27,7 @@ from opencde.admin.access import install_page_handlers
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, make_store, make_workcopy, wait_for_graph
+from opencde.documents import routes_ai_policy as documents_ai_policy
 from opencde.documents import routes_api as documents_api
 from opencde.documents import routes_changes as documents_changes
 from opencde.documents import routes_clash as documents_clash
@@ -249,6 +250,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.include_router(documents_unreachable.router)
         app.include_router(documents_publication.router)
         app.include_router(documents_merge.router)
+        app.include_router(documents_ai_policy.router)
         app.include_router(documents_ui.router)
     app.include_router(web_routes.router)
     app.include_router(account_routes.router)

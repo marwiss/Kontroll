@@ -20,6 +20,12 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- A project has an AI policy, `ai_policy` (ADR 0028): `local`, the policy of every project until someone changes
+  it, lets AI tools have the project's data only on the user's own computer, and `cloud` lets AI services in the
+  cloud have it too. A project's manager sets it with `PUT /manage/1.0/projects/{id}`, whose `GET` gives the
+  project, and an administrator on the project's page or with `ai_policy` in the administration API; every change
+  is audited. Every member reads it with `GET /documents/1.0/projects/{id}/ai-policy` (an extension); the answers
+  the OpenCDE specifications define do not carry it.
 - A change set carries Dataspatium's write tools as `ops` in the form `ops_form` `dataspatium-tools/1`:
   `create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`,
   `set_classification`, `assign`, `transform_elements`, `delete_elements` and `set_site`, lengths in metres, an

@@ -93,6 +93,17 @@
   </form>
 </section>
 
+<section class="card">
+  <h2>{{ t("admin.project.ai") }}</h2>
+  <p class="muted">{{ t("admin.project.ai_lead") }}</p>
+  <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="ai_policy">
+    {{ select_field("ai_policy", t("admin.project.ai_policy"), [("local", t("admin.project.ai_policy.local")), ("cloud", t("admin.project.ai_policy.cloud"))], selected=project.ai_policy, hint=t("admin.project.ai_policy_hint")) }}
+    <div class="cluster">{{ button(t("admin.project.save_ai_policy")) }}</div>
+  </form>
+</section>
+
 <section class="card card--danger">
   <h2>{{ t("common.danger_zone") }}</h2>
   <form method="post" action="/admin/projects/{{ project.project_id }}" class="stack" data-confirm="{{ t('admin.project.delete_confirm', name=project.name) }}">

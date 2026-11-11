@@ -339,7 +339,7 @@ virheet käyttävät §6:n runkoa.
 | `GET /admin/api/overview` | `version`, `uptime_s`, `dialect`, `graph_ok`, lukumäärät `users`, `projects`, `clients`, `sessions`, `topics`, `documents`, `models`, ja `request_log` (`enabled`, `rows`) |
 | `GET /admin/api/users?q=&limit=` | käyttäjät (`id`, `username`, `name`, `email`, `is_admin`, `disabled`, `must_change_password`, `created_at`, `last_sign_in_at`, `projects` muodossa `[{project_id, role}]`); `q` hakee käyttäjätunnuksesta, nimestä ja sähköpostista |
 | `GET /admin/api/users/{id}` | yksi käyttäjä; `projects` sisältää myös projektin `name`-kentän |
-| `GET /admin/api/projects?q=` | projektit `members`-listoineen (`user_id`, `username`, `role`) ja lukumäärät `topics`, `documents`, `models` |
+| `GET /admin/api/projects?q=` | projektit `members`-listoineen (`user_id`, `username`, `role`), lukumäärät `topics`, `documents`, `models` ja `ai_policy` |
 | `GET /admin/api/projects/{id}` | yksi projekti, myös sen `extensions` |
 | `GET /admin/api/clients` | asiakkaat (`client_id`, `name`, `description`, `url`, `public`, `dynamic`, `redirect_uris`, `disabled`, `created_at`, `expires_at`, `last_used_at`, `software_id`, `software_version`), ei koskaan salaisuutta |
 | `GET /admin/api/clients/{id}` | yksi asiakas |
@@ -358,7 +358,7 @@ hyväksytään samoin; `name` on koko nimi, `full_name` toimii myös):
 | `PUT /admin/api/users/{id}` `{name?, email?, disabled?, is_admin?}` | muuttaa käyttäjää; käytöstä poisto peruu tokenit; ei omalle tilillesi |
 | `DELETE /admin/api/users/{id}` | poistaa käyttäjän istuntoineen ja tokeneineen (vaarallinen) |
 | `POST /admin/api/users/{id}/reset-password` | asettaa uuden salasanan, joka palautetaan kerran ja jonka käyttäjän on vaihdettava (vaarallinen) |
-| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?}` | luo tai muuttaa projektin |
+| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?, block_on_validation_errors?, ai_policy?}` | luo tai muuttaa projektin |
 | `DELETE /admin/api/projects/{id}` | poistaa projektin ja kaiken sen sisällön (vaarallinen) |
 | `PUT /admin/api/projects/{id}/members/{user_id}` `{role}` · `DELETE …/members/{user_id}` | asettaa tai poistaa jäsenen roolin (viewer, contributor, editor, manager) |
 | `POST /admin/api/clients` `{name, redirect_uris, public?, description?, url?}` | rekisteröi asiakkaan; luottamuksellinen saa `client_secret`-arvon kerran |
@@ -431,6 +431,8 @@ Kyvykkyysasiakirja ilmoittaa sen nimellä `project_administration`.
 | Call | What it does |
 |---|---|
 | `GET /manage/1.0/projects` | projektit, joista kutsuja vastaa |
+| `GET /manage/1.0/projects/{project_id}` | projekti kentin `project_id`, `name` ja `ai_policy` |
+| `PUT /manage/1.0/projects/{project_id}` | asettaa `{"ai_policy"}`: `local` tai `cloud` |
 | `GET /manage/1.0/projects/{project_id}/members` | jäsenet kentin `user_id`, `username`, `name` ja `role` |
 | `POST /manage/1.0/projects/{project_id}/members` | lisää `{"username", "role"}` (`201`) tai asettaa jäsenen roolin (`200`); `404`, jos käyttäjää ei ole |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | asettaa `{"role"}`: `viewer`, `contributor`, `editor` tai `manager` |
@@ -445,6 +447,21 @@ Muutosjoukon, joka koskee yhden tiimin osaa, hyväksyy tiimin vastuuhenkilö
 yksin; useamman tiimin osia tai ei kenenkään osaa koskevan hyväksyy `manager`.
 Kokeilu luettelee tiimit kentässä `teams`; katso
 [ifc-lpg.md](ifc-lpg.md#muutosjoukot).
+
+Projektin `ai_policy` kertoo, minne tekoälytyökalut saavat viedä sen tiedot
+(ADR 0028): `local`, uuden projektin käytäntö ja sellaisen, jolle kukaan ei
+ole asettanut käytäntöä, antaa tekoälytyökalujen saada tiedot vain käyttäjän
+omalla tietokoneella, paikallisen moottorin tai paikallisen mallin kautta;
+`cloud` antaa myös pilven tekoälypalvelujen saada ne. `manager` asettaa sen
+täällä, ylläpitäjä projektin sivulla tai hallintarajapinnan kentällä
+`ai_policy`, ja jokainen muutos jättää tarkastustapahtuman
+(`manage.project.ai_policy`, `admin.project.ai_policy` tai
+`admin.project.update`). Jokainen jäsen lukee sen kutsulla
+`GET /documents/1.0/projects/{project_id}/ai-policy`, joka vastaa
+`{"project_id", "ai_policy"}` tunnisteelle, jossa on scope `documents`, ja
+`404` projektille, jonka jäsen kutsuja ei ole. Asiakas ei käytä pilven
+tekoälypalveluja `local`-projektille. OpenCDE-spesifikaatioiden määrittelemät
+vastaukset eivät sisällä käytäntöä.
 
 ## 8. Testaaminen tätä palvelinta vasten
 

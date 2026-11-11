@@ -50,7 +50,7 @@ erDiagram
 |---|---|---|---|
 | `User` | `id`, unikt `username` | `email`, `full_name`, `password_hash` (Argon2id), `is_admin`, `disabled`, `created_at`, `must_change_password` | Användarnamnet är det användar-id API:erna exponerar |
 | `MEMBER_OF` (relation User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Rollerna avbildas på BCF:s `*_actions`, se `accounts/roles.py` |
-| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` numrerar `server_assigned_id`; `block_on_validation_errors` avvisar uppladdningar med valideringsfel (ADR 0021) |
+| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors`, `ai_policy` | `topic_counter` numrerar `server_assigned_id`; `block_on_validation_errors` avvisar uppladdningar med valideringsfel (ADR 0021); `ai_policy` är `local` eller `cloud`, och `local` där den saknas (ADR 0028) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` beräknas ur medlemmarna |
 | `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | Ett team i ett projekt (`HAS_TEAM`), med `RESPONSIBLE` och `HAS_MEMBER` till användare; dess del av modellen är det som specifikationerna i dess IDS-dokument gäller för. Raderas med projektet |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (bara självregistrerade) | OAuth2-klient; en självregistrerad tas bort när `expires_at` passerat utan att någon token utfärdats |

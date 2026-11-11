@@ -51,7 +51,7 @@ erDiagram
 |---|---|---|---|
 | `User` | `id`, unikt `username` | `email`, `full_name`, `password_hash` (Argon2id), `is_admin`, `disabled`, `created_at`, `must_change_password` | Brugernavnet er det bruger-id, API'erne eksponerer |
 | `MEMBER_OF` (relation User → Project) | | `role` (viewer, contributor, editor, manager), `since` | Rollerne afbildes på BCF's `*_actions`, se `accounts/roles.py` |
-| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors` | `topic_counter` nummererer `server_assigned_id`; `block_on_validation_errors` afviser uploads med valideringsfejl (ADR 0021) |
+| `Project` | `project_id` | `name`, `created_at`, `topic_counter`, `block_on_validation_errors`, `ai_policy` | `topic_counter` nummererer `server_assigned_id`; `block_on_validation_errors` afviser uploads med valideringsfejl (ADR 0021); `ai_policy` er `local` eller `cloud`, og `local` hvor den mangler (ADR 0028) |
 | `Extensions` | `id` | `topic_type[]`, `topic_status[]`, `topic_label[]`, `snippet_type[]`, `priority[]`, `stage[]`, `custom_information[]` | `users[]` beregnes ud fra medlemmerne |
 | `Team` | `id` | `name`, `ids_document_id`, `created_at`, `updated_at` | Et hold i et projekt (`HAS_TEAM`), med `RESPONSIBLE` og `HAS_MEMBER` til brugere; dets del af modellen er det, specifikationerne i dets IDS-dokument gælder for. Slettes med projektet |
 | `Client` | `client_id` | `name`, `description`, `url`, `redirect_uris[]`, `is_public`, `secret_hash`, `disabled`, `pending_approval`, `created_at`, `created_by`, `dynamic`, `expires_at` (kun selvregistrerede) | OAuth2-klient; en selvregistreret slettes, når `expires_at` er passeret, uden at en token er udstedt |

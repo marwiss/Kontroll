@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import contextlib
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal, get_args
 
 from ifc_lpg.importer import delete_model
 
@@ -26,6 +26,13 @@ from opencde.timeutil import now_iso
 MAX_NAME = 200
 MAX_LIST_ITEMS = 200
 MAX_ITEM_LENGTH = 100
+
+# Where AI tools may take a project's data (F29 a, F30 a, ADR 0028): `local` only to the user's own computer, through
+# the local engine or a local model, `cloud` to AI services in the cloud as well. Anything but `cloud` reads as
+# `local`, so a project nobody has set, new or from an earlier release, stays local.
+AiPolicy = Literal["local", "cloud"]
+AI_POLICIES: tuple[str, ...] = get_args(AiPolicy)
+DEFAULT_AI_POLICY: AiPolicy = "local"
 
 # What a project owns: the relationships that deleting it follows, and no others. CREATED_BY and UPLOADED_BY lead to
 # users, and from a user MEMBER_OF leads to every project the user is in. RELATED_TO and CONCERNS point at what need
@@ -80,6 +87,7 @@ class Project:
     created_at: str
     # Uploads with errors against the IFC schema or the project's rules are refused (ADR 0021).
     block_on_validation_errors: bool = False
+    ai_policy: AiPolicy = DEFAULT_AI_POLICY
 
 
 def _project(row: dict[str, Any]) -> Project:
@@ -88,6 +96,7 @@ def _project(row: dict[str, Any]) -> Project:
         name=row["name"],
         created_at=row["created_at"],
         block_on_validation_errors=bool(row.get("block_on_validation_errors")),
+        ai_policy="cloud" if row.get("ai_policy") == "cloud" else DEFAULT_AI_POLICY,
     )
 
 
@@ -191,6 +200,18 @@ class ProjectRepository:
             "MATCH (p:Project {project_id: $id}) SET p.block_on_validation_errors = $value RETURN properties(p) AS project",
             id=project_id,
             value=bool(value),
+        )
+        if row is None:
+            raise AccountError("no such project", key="error.project.not_found")
+        return _project(row["project"])
+
+    async def set_ai_policy(self, project_id: str, value: str) -> Project:
+        if value not in AI_POLICIES:
+            raise AccountError("ai_policy: local or cloud", key="error.project.ai_policy")
+        row = await self.graph.one(
+            "MATCH (p:Project {project_id: $id}) SET p.ai_policy = $value RETURN properties(p) AS project",
+            id=project_id,
+            value=value,
         )
         if row is None:
             raise AccountError("no such project", key="error.project.not_found")

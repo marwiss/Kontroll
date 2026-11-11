@@ -332,6 +332,13 @@
   "admin.project.block_on_validation_errors": "Refuse uploads with validation errors",
   "admin.project.block_hint": "The checks then run before the file is stored, and a file with one or more errors is refused; warnings pass. A file that could not be checked goes through.",
   "admin.project.save_checks": "Save checks",
+  "admin.project.ai": "AI tools",
+  "admin.project.ai_lead": "Whether AI services in the cloud may receive the project's data. Clients such as Dataspatium read the policy, and an AI only proposes changes, which a person approves.",
+  "admin.project.ai_policy": "AI policy",
+  "admin.project.ai_policy.local": "Local only",
+  "admin.project.ai_policy.cloud": "Cloud",
+  "admin.project.ai_policy_hint": "Local only: AI tools get the data only on the user's own computer, through the local engine or a local model. Cloud: AI services in the cloud may get it too. A new project starts as Local only.",
+  "admin.project.save_ai_policy": "Save AI policy",
   "admin.project_new.name_hint": "Shown to every member and to BCF clients.",
   "admin.project_new.defaults": "The project starts with the default BCF extension values (types, statuses, labels, priorities, stages); edit them afterwards.",
   "admin.project_new.create": "Create project",
@@ -482,5 +489,6 @@
   "error.project.not_created": "The project was not created.",
   "error.project.not_found": "No such project.",
   "error.project.member_not_found": "No such user or project.",
-  "error.project.unknown_extensions": "Unknown extension lists: {names}."
+  "error.project.unknown_extensions": "Unknown extension lists: {names}.",
+  "error.project.ai_policy": "The AI policy must be local or cloud."
 }

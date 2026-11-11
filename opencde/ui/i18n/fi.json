@@ -332,6 +332,13 @@
   "admin.project.block_on_validation_errors": "Hylkää lähetykset, joissa on validointivirheitä",
   "admin.project.block_hint": "Tarkistukset ajetaan silloin ennen tiedoston tallennusta, ja tiedosto, jossa on yksi tai useampi virhe, hylätään; varoitukset päästetään läpi. Tiedosto, jota ei voitu tarkistaa, päästetään läpi.",
   "admin.project.save_checks": "Tallenna tarkistukset",
+  "admin.project.ai": "Tekoälytyökalut",
+  "admin.project.ai_lead": "Määrittää, saavatko pilven tekoälypalvelut projektin tietoja. Dataspatiumin kaltaiset asiakkaat lukevat käytännön, ja tekoäly vain ehdottaa muutoksia, jotka ihminen hyväksyy.",
+  "admin.project.ai_policy": "Tekoälykäytäntö",
+  "admin.project.ai_policy.local": "Vain paikallinen",
+  "admin.project.ai_policy.cloud": "Pilvi",
+  "admin.project.ai_policy_hint": "Vain paikallinen: tekoälytyökalut saavat tiedot vain käyttäjän omalla tietokoneella, paikallisen moottorin tai paikallisen mallin kautta. Pilvi: myös pilven tekoälypalvelut voivat saada ne. Uusi projekti alkaa asetuksella Vain paikallinen.",
+  "admin.project.save_ai_policy": "Tallenna tekoälykäytäntö",
   "admin.project_new.name_hint": "Näytetään kaikille jäsenille ja BCF-asiakkaille.",
   "admin.project_new.defaults": "Projekti alkaa BCF-extensions-oletusarvoilla (tyypit, tilat, nimikkeet, prioriteetit, vaiheet); muokkaa niitä jälkeenpäin.",
   "admin.project_new.create": "Luo projekti",
@@ -482,5 +489,6 @@
   "error.project.not_created": "Projektia ei luotu.",
   "error.project.not_found": "Projektia ei ole.",
   "error.project.member_not_found": "Käyttäjää tai projektia ei ole.",
-  "error.project.unknown_extensions": "Tuntemattomia laajennuslistoja: {names}."
+  "error.project.unknown_extensions": "Tuntemattomia laajennuslistoja: {names}.",
+  "error.project.ai_policy": "Tekoälykäytännön on oltava local tai cloud."
 }

@@ -332,6 +332,13 @@
   "admin.project.block_on_validation_errors": "Hafna upphölum með sannprófunarvillum",
   "admin.project.block_hint": "Prófanirnar keyra þá áður en skráin er vistuð, og skrá með einni eða fleiri villum er hafnað; viðvaranir sleppa í gegn. Skrá sem ekki var hægt að prófa sleppur í gegn.",
   "admin.project.save_checks": "Vista prófanir",
+  "admin.project.ai": "Gervigreindartól",
+  "admin.project.ai_lead": "Hvort gervigreindarþjónustur í skýinu mega taka við gögnum verkefnisins. Biðlarar eins og Dataspatium lesa stefnuna, og gervigreind leggur aðeins til breytingar sem manneskja samþykkir.",
+  "admin.project.ai_policy": "Gervigreindarstefna",
+  "admin.project.ai_policy.local": "Aðeins staðbundið",
+  "admin.project.ai_policy.cloud": "Ský",
+  "admin.project.ai_policy_hint": "Aðeins staðbundið: gervigreindartól fá gögnin aðeins á tölvu notandans sjálfs, gegnum staðbundnu vélina eða staðbundið líkan. Ský: gervigreindarþjónustur í skýinu mega einnig fá þau. Nýtt verkefni byrjar sem Aðeins staðbundið.",
+  "admin.project.save_ai_policy": "Vista gervigreindarstefnu",
   "admin.project_new.name_hint": "Sýnt öllum þátttakendum og BCF-biðlurum.",
   "admin.project_new.defaults": "Verkefnið byrjar með sjálfgefnum BCF-extensions-gildum (tegundir, stöður, merki, forgangur, áfangar); breyttu þeim eftir á.",
   "admin.project_new.create": "Búa til verkefni",
@@ -482,5 +489,6 @@
   "error.project.not_created": "Verkefnið var ekki búið til.",
   "error.project.not_found": "Ekkert slíkt verkefni.",
   "error.project.member_not_found": "Enginn slíkur notandi eða verkefni.",
-  "error.project.unknown_extensions": "Óþekktir viðbótalistar: {names}."
+  "error.project.unknown_extensions": "Óþekktir viðbótalistar: {names}.",
+  "error.project.ai_policy": "Gervigreindarstefnan verður að vera local eða cloud."
 }

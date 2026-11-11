@@ -328,7 +328,7 @@ meginmálið í §6.
 | `GET /admin/api/overview` | `version`, `uptime_s`, `dialect`, `graph_ok`, talningarnar `users`, `projects`, `clients`, `sessions`, `topics`, `documents`, `models`, og `request_log` (`enabled`, `rows`) |
 | `GET /admin/api/users?q=&limit=` | notendur (`id`, `username`, `name`, `email`, `is_admin`, `disabled`, `must_change_password`, `created_at`, `last_sign_in_at`, `projects` sem `[{project_id, role}]`); `q` leitar í notandanafni, nafni og netfangi |
 | `GET /admin/api/users/{id}` | einn notandi; `projects` ber líka `name` verkefnisins |
-| `GET /admin/api/projects?q=` | verkefni með `members` (`user_id`, `username`, `role`) og talningarnar `topics`, `documents`, `models` |
+| `GET /admin/api/projects?q=` | verkefni með `members` (`user_id`, `username`, `role`), talningarnar `topics`, `documents`, `models` og `ai_policy` |
 | `GET /admin/api/projects/{id}` | eitt verkefni, einnig með `extensions` þess |
 | `GET /admin/api/clients` | biðlarar (`client_id`, `name`, `description`, `url`, `public`, `dynamic`, `redirect_uris`, `disabled`, `created_at`, `expires_at`, `last_used_at`, `software_id`, `software_version`), aldrei leyndarmál |
 | `GET /admin/api/clients/{id}` | einn biðlari |
@@ -347,7 +347,7 @@ jafnt; `name` er fullt nafn, `full_name` virkar líka):
 | `PUT /admin/api/users/{id}` `{name?, email?, disabled?, is_admin?}` | breytir notanda; að gera óvirkan afturkallar tóka; ekki fyrir þinn eigin reikning |
 | `DELETE /admin/api/users/{id}` | eyðir notanda með setum og tókum (hættulegt) |
 | `POST /admin/api/users/{id}/reset-password` | setur nýtt lykilorð sem er skilað einu sinni og notandinn þarf að breyta (hættulegt) |
-| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?}` | býr til eða breytir verkefni |
+| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?, block_on_validation_errors?, ai_policy?}` | býr til eða breytir verkefni |
 | `DELETE /admin/api/projects/{id}` | eyðir verkefni með öllu sem í því er (hættulegt) |
 | `PUT /admin/api/projects/{id}/members/{user_id}` `{role}` · `DELETE …/members/{user_id}` | setur eða fjarlægir hlutverk meðlims (viewer, contributor, editor, manager) |
 | `POST /admin/api/clients` `{name, redirect_uris, public?, description?, url?}` | skráir biðlara; trúnaðarbiðlari fær `client_secret` einu sinni |
@@ -418,6 +418,8 @@ Getuskjalið tilkynnir það sem `project_administration`.
 | Call | What it does |
 |---|---|
 | `GET /manage/1.0/projects` | verkefnin sem sá sem kallar ber ábyrgð á |
+| `GET /manage/1.0/projects/{project_id}` | verkefnið með `project_id`, `name` og `ai_policy` |
+| `PUT /manage/1.0/projects/{project_id}` | setur `{"ai_policy"}`: `local` eða `cloud` |
 | `GET /manage/1.0/projects/{project_id}/members` | meðlimirnir með `user_id`, `username`, `name` og `role` |
 | `POST /manage/1.0/projects/{project_id}/members` | bætir við `{"username", "role"}` (`201`) eða setur hlutverk meðlims (`200`); `404` ef notandinn er ekki til |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | setur `{"role"}`: `viewer`, `contributor`, `editor` eða `manager` |
@@ -431,6 +433,21 @@ Hluti teymis í líkaninu er það sem forskriftir IDS-skjals þess eiga við. B
 sem snertir hluta eins teymis samþykkir ábyrgðarmaður teymisins einn; það sem
 snertir hluta fleiri teyma, eða engra, samþykkir `manager`. Prófunin telur teymin
 upp í `teams`; sjá [ifc-lpg.md](ifc-lpg.md#breytingasett).
+
+`ai_policy` verkefnis segir hvert gervigreindartól mega fara með gögn þess
+(ADR 0028): `local`, stefna nýs verkefnis og verkefnis sem enginn hefur
+stillt, leyfir gervigreindartólum að fá gögnin aðeins á tölvu notandans
+sjálfs, gegnum staðbundnu vélina eða staðbundið líkan; `cloud` leyfir einnig
+gervigreindarþjónustum í skýinu að fá þau. `manager` stillir hana hér,
+stjórnandi á síðu verkefnisins eða með `ai_policy` í
+stjórnunarforritaskilunum, og hver breyting skilur eftir endurskoðunaratburð
+(`manage.project.ai_policy`, `admin.project.ai_policy` eða
+`admin.project.update`). Hver meðlimur les hana með
+`GET /documents/1.0/projects/{project_id}/ai-policy`, sem svarar
+`{"project_id", "ai_policy"}` fyrir tóka með scope-inu `documents` og `404`
+fyrir verkefni sem sá sem kallar er ekki meðlimur í. Biðlari notar enga
+gervigreindarþjónustu í skýinu fyrir `local`-verkefni. Svörin sem
+OpenCDE-forskriftirnar skilgreina bera ekki stefnuna.
 
 ## 8. Prófanir gegn þessum þjóni
 

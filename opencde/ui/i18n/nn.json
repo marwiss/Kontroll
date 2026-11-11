@@ -332,6 +332,13 @@
   "admin.project.block_on_validation_errors": "Avvis opplastingar med valideringsfeil",
   "admin.project.block_hint": "Kontrollane køyrer då før fila blir lagra, og ei fil med éin eller fleire feil blir avvist; åtvaringar slepp gjennom. Ei fil som ikkje kunne kontrollerast, slepp gjennom.",
   "admin.project.save_checks": "Lagre kontrollar",
+  "admin.project.ai": "AI-verktøy",
+  "admin.project.ai_lead": "Om skytenester med AI får ta imot dataa i prosjektet. Klientar som Dataspatium les policyen, og ein AI føreslår berre endringar, som ein person godkjenner.",
+  "admin.project.ai_policy": "AI-policy",
+  "admin.project.ai_policy.local": "Berre lokal",
+  "admin.project.ai_policy.cloud": "Sky",
+  "admin.project.ai_policy_hint": "Berre lokal: AI-verktøy får data berre på datamaskina til brukaren, gjennom den lokale motoren eller ein lokal modell. Sky: òg skytenester med AI kan få dei. Eit nytt prosjekt startar som Berre lokal.",
+  "admin.project.save_ai_policy": "Lagre AI-policy",
   "admin.project_new.name_hint": "Vist for alle medlemmer og for BCF-klientar.",
   "admin.project_new.defaults": "Prosjektet startar med standardverdiane for BCF-extensions (typar, statusar, etikettar, prioritetar, fasar); rediger dei etterpå.",
   "admin.project_new.create": "Opprett prosjekt",
@@ -482,5 +489,6 @@
   "error.project.not_created": "Prosjektet vart ikkje oppretta.",
   "error.project.not_found": "Det finst ikkje noko slikt prosjekt.",
   "error.project.member_not_found": "Det finst ingen slik brukar eller noko slikt prosjekt.",
-  "error.project.unknown_extensions": "Ukjende utvidingslister: {names}."
+  "error.project.unknown_extensions": "Ukjende utvidingslister: {names}.",
+  "error.project.ai_policy": "AI-policyen må vere local eller cloud."
 }

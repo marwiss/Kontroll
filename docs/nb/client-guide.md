@@ -326,7 +326,7 @@ angitt; feil bruker kroppen i §6.
 | `GET /admin/api/overview` | `version`, `uptime_s`, `dialect`, `graph_ok`, tallene `users`, `projects`, `clients`, `sessions`, `topics`, `documents`, `models`, og `request_log` (`enabled`, `rows`) |
 | `GET /admin/api/users?q=&limit=` | brukere (`id`, `username`, `name`, `email`, `is_admin`, `disabled`, `must_change_password`, `created_at`, `last_sign_in_at`, `projects` som `[{project_id, role}]`); `q` søker i brukernavn, navn og e-post |
 | `GET /admin/api/users/{id}` | én bruker; `projects` bærer også prosjektets `name` |
-| `GET /admin/api/projects?q=` | prosjekter med `members` (`user_id`, `username`, `role`) og tallene `topics`, `documents`, `models` |
+| `GET /admin/api/projects?q=` | prosjekter med `members` (`user_id`, `username`, `role`), tallene `topics`, `documents`, `models` og `ai_policy` |
 | `GET /admin/api/projects/{id}` | ett prosjekt, også med dets `extensions` |
 | `GET /admin/api/clients` | klienter (`client_id`, `name`, `description`, `url`, `public`, `dynamic`, `redirect_uris`, `disabled`, `created_at`, `expires_at`, `last_used_at`, `software_id`, `software_version`), aldri en hemmelighet |
 | `GET /admin/api/clients/{id}` | én klient |
@@ -345,7 +345,7 @@ likt; `name` er det fulle navnet, `full_name` virker også):
 | `PUT /admin/api/users/{id}` `{name?, email?, disabled?, is_admin?}` | endrer en bruker; deaktivering trekker tilbake tokens; ikke for din egen konto |
 | `DELETE /admin/api/users/{id}` | sletter en bruker med sesjoner og tokens (farlig) |
 | `POST /admin/api/users/{id}/reset-password` | setter et nytt passord som returneres én gang, og som brukeren må bytte (farlig) |
-| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?}` | oppretter eller endrer et prosjekt |
+| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?, block_on_validation_errors?, ai_policy?}` | oppretter eller endrer et prosjekt |
 | `DELETE /admin/api/projects/{id}` | sletter et prosjekt med alt i det (farlig) |
 | `PUT /admin/api/projects/{id}/members/{user_id}` `{role}` · `DELETE …/members/{user_id}` | setter eller fjerner et medlems rolle (viewer, contributor, editor, manager) |
 | `POST /admin/api/clients` `{name, redirect_uris, public?, description?, url?}` | registrerer en klient; en konfidensiell får `client_secret` én gang |
@@ -416,6 +416,8 @@ revisjonshendelse (`manage.*`). Kapabilitetsdokumentet annonserer det som
 | Call | What it does |
 |---|---|
 | `GET /manage/1.0/projects` | prosjektene kalleren er prosjektansvarlig for |
+| `GET /manage/1.0/projects/{project_id}` | prosjektet med `project_id`, `name` og `ai_policy` |
+| `PUT /manage/1.0/projects/{project_id}` | setter `{"ai_policy"}`: `local` eller `cloud` |
 | `GET /manage/1.0/projects/{project_id}/members` | medlemmene med `user_id`, `username`, `name` og `role` |
 | `POST /manage/1.0/projects/{project_id}/members` | legger til `{"username", "role"}` (`201`), eller setter rollen til et medlem (`200`); `404` når brukeren ikke finnes |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | setter `{"role"}`: `viewer`, `contributor`, `editor` eller `manager` |
@@ -429,6 +431,20 @@ Et teams del av modellen er det spesifikasjonene i IDS-dokumentet gjelder for.
 Et endringssett som rører ett teams del, godkjennes av teamets ansvarlige
 alene; et som rører flere teams deler, eller ingens, av en `manager`. Prøven
 lister teamene i `teams`; se [ifc-lpg.md](ifc-lpg.md#endringssett).
+
+Et prosjekts `ai_policy` sier hvor AI-verktøy får ta med seg dataene
+(ADR 0028): `local`, policyen for et nytt prosjekt og for et som ingen har
+stilt inn, lar AI-verktøy få dataene bare på brukerens egen datamaskin,
+gjennom den lokale motoren eller en lokal modell; `cloud` lar også
+skytjenester med AI få dem. En `manager` stiller den inn her, en administrator
+på prosjektets side eller med `ai_policy` i administrasjons-API-et, og hver
+endring etterlater en revisjonshendelse (`manage.project.ai_policy`,
+`admin.project.ai_policy` eller `admin.project.update`). Hvert medlem leser den
+med `GET /documents/1.0/projects/{project_id}/ai-policy`, som svarer
+`{"project_id", "ai_policy"}` på et token med scopet `documents` og `404` for
+et prosjekt kalleren ikke er medlem av. En klient bruker ingen skytjeneste med
+AI for et `local`-prosjekt. Svarene OpenCDE-spesifikasjonene definerer, bærer
+ikke policyen.
 
 ## 8. Teste mot denne serveren
 

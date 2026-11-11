@@ -1,12 +1,13 @@
 # This file was generated with the assistance of an AI coding tool.
 """Project administration by its managers: an extension outside the OpenCDE specifications (OB-41).
 
-A ``manager`` of a project manages its members and their roles; its name changes through the BCF API's PUT Project,
-which a manager may already do. Nothing here deletes a project or touches the server's own roles: that stays with the
-administrators. The routes need a bearer token with the ``project`` scope, which a client asks for explicitly, and
-every request first finds the caller's role in the project from the caller's own user node. A member is added by exact
-user name, so that a manager never lists the server's users, and a member is shown with user name, name and role, not
-e-mail. A project keeps at least one manager. Every write leaves an audit event.
+A ``manager`` of a project manages its members and their roles, and sets its AI policy (F30 a): ``local``, the
+default, or ``cloud``; its name changes through the BCF API's PUT Project, which a manager may already do. Nothing here
+deletes a project or touches the server's own roles: that stays with the administrators. The routes need a bearer
+token with the ``project`` scope, which a client asks for explicitly, and every request first finds the caller's role
+in the project from the caller's own user node. A member is added by exact user name, so that a manager never lists
+the server's users, and a member is shown with user name, name and role, not e-mail. A project keeps at least one
+manager. Every write leaves an audit event.
 """
 
 from __future__ import annotations
@@ -22,6 +23,8 @@ from opencde.auth.dependencies import require_scope
 from opencde.deps import GraphDep, ProjectsDep, UsersDep, client_ip
 from opencde.errors import CODE_CONFLICT, ApiError
 from opencde.graph.graph import Graph
+from opencde.store.accounts.projects import AiPolicy, Project
+from opencde.store.accounts.users import AccountError
 from opencde.store.oauth2.tokens import Principal
 
 router = APIRouter(prefix="/manage/1.0", tags=["Project administration (extension)"])
@@ -43,6 +46,15 @@ class MemberRole(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     role: RoleName
+
+
+class ProjectSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ai_policy: AiPolicy = Field(
+        description="Where AI tools may take the project's data: `local` only to the user's own computer, `cloud` to "
+        "AI services in the cloud as well (ADR 0028)."
+    )
 
 
 async def _managed(graph: Graph, principal: Principal, project_id: str) -> None:
@@ -77,14 +89,45 @@ async def _record(request: Request, graph: Graph, principal: Principal, action: 
     )
 
 
+def _project(project: Project) -> dict[str, Any]:
+    return {"project_id": project.project_id, "name": project.name, "ai_policy": project.ai_policy}
+
+
 @router.get("/projects", summary="Project administration (extension): the projects you manage")
 async def managed_projects(principal: ProjectPrincipal, projects: ProjectsDep) -> dict[str, Any]:
     managed = [
-        {"project_id": project.project_id, "name": project.name}
-        for project, role in await projects.list_for_user(principal.user_id)
-        if role is Role.MANAGER
+        _project(project) for project, role in await projects.list_for_user(principal.user_id) if role is Role.MANAGER
     ]
     return {"items": managed, "total": len(managed)}
+
+
+@router.get("/projects/{project_id}", summary="Project administration (extension): a project you manage")
+async def managed_project(
+    principal: ProjectPrincipal, project_id: IdPath, projects: ProjectsDep, graph: GraphDep
+) -> dict[str, Any]:
+    await _managed(graph, principal, project_id)
+    project = await projects.get(project_id)
+    if project is None:
+        raise HTTPException(404, "No such project")
+    return _project(project)
+
+
+@router.put("/projects/{project_id}", summary="Project administration (extension): set the project's AI policy")
+async def set_project(
+    request: Request,
+    principal: ProjectPrincipal,
+    project_id: IdPath,
+    body: ProjectSettings,
+    projects: ProjectsDep,
+    graph: GraphDep,
+) -> dict[str, Any]:
+    await _managed(graph, principal, project_id)
+    try:
+        project = await projects.set_ai_policy(project_id, body.ai_policy)
+    except AccountError:
+        raise HTTPException(404, "No such project") from None
+    await _record(request, graph, principal, "project.ai_policy", project_id=project_id, ai_policy=body.ai_policy)
+    return _project(project)
 
 
 @router.get("/projects/{project_id}/members", summary="Project administration (extension): the members and roles")

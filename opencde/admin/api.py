@@ -37,7 +37,7 @@ from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, Storage
 from opencde.graph.driver import ping_within
 from opencde.graph.graph import Graph
 from opencde.settings import Settings, env_name
-from opencde.store.accounts.projects import Project
+from opencde.store.accounts.projects import AiPolicy, Project
 from opencde.store.accounts.sessions import WebSessionsDep
 from opencde.store.accounts.users import AccountError, User
 from opencde.store.oauth2.clients import MAX_DESCRIPTION, Client, ClientError
@@ -89,6 +89,7 @@ def _project(project: Project, stats: dict[str, int], members: list[dict[str, st
         "documents": stats.get("documents", 0),
         "models": models,
         "block_on_validation_errors": project.block_on_validation_errors,
+        "ai_policy": project.ai_policy,
     }
 
 
@@ -531,6 +532,9 @@ class ProjectUpdate(BaseModel):
     block_on_validation_errors: bool | None = Field(
         None, description="Refuse uploads with errors against the IFC schema or the project's rules (ADR 0021)."
     )
+    ai_policy: AiPolicy | None = Field(
+        None, description="Where AI tools may take the project's data: `local` or `cloud` (ADR 0028)."
+    )
 
 
 @router.post("/projects", status_code=201, summary="Administration (extension): create a project")
@@ -565,6 +569,8 @@ async def update_project(
             await projects.set_extensions(project.project_id, body.extensions)
         if body.block_on_validation_errors is not None:
             project = await projects.set_block_on_validation_errors(project.project_id, body.block_on_validation_errors)
+        if body.ai_policy is not None:
+            project = await projects.set_ai_policy(project.project_id, body.ai_policy)
     except AccountError as exc:
         raise _bad_request(exc) from None
     await _record(
@@ -576,6 +582,7 @@ async def update_project(
         name=body.name,
         extensions=sorted(body.extensions) if body.extensions else None,
         block_on_validation_errors=body.block_on_validation_errors,
+        ai_policy=body.ai_policy,
     )
     return await _project_detail(project, projects, graph)
 

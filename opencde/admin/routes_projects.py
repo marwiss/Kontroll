@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Admin pages for projects: list, create, rename, members and roles, BCF extensions, deletion."""
+"""Admin pages for projects: list, create, rename, members and roles, BCF extensions, checks, AI policy, deletion."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from opencde.admin.access import (
 )
 from opencde.deps import GraphDep, ProjectsDep, StorageDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
-from opencde.store.accounts.projects import EXTENSION_LISTS, AccountError, Project
+from opencde.store.accounts.projects import AI_POLICIES, EXTENSION_LISTS, AccountError, Project
 from opencde.store.protocols import ProjectStore
 from opencde.ui.i18n import tr_error
 from opencde.ui.links import dataspatium_link
@@ -169,6 +169,14 @@ async def project_action(
             block = data.get("block_on_validation_errors") == "on"
             await projects.set_block_on_validation_errors(project.project_id, block)
             await form.record(graph, "project.checks", project_id=project.project_id, block_on_validation_errors=block)
+            return redirect_with_notice(page, "saved")
+
+        if action == "ai_policy":
+            policy = text(data, "ai_policy", max_length=16)
+            if policy not in AI_POLICIES:
+                return redirect_with_notice(page, "invalid")
+            await projects.set_ai_policy(project.project_id, policy)
+            await form.record(graph, "project.ai_policy", project_id=project.project_id, ai_policy=policy)
             return redirect_with_notice(page, "saved")
 
         if action == "delete":

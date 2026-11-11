@@ -320,7 +320,7 @@ The capabilities document says whether the API is on
 | `GET /admin/api/overview` | `version`, `uptime_s`, `dialect`, `graph_ok`, the counts `users`, `projects`, `clients`, `sessions`, `topics`, `documents`, `models`, and `request_log` (`enabled`, `rows`) |
 | `GET /admin/api/users?q=&limit=` | users (`id`, `username`, `name`, `email`, `is_admin`, `disabled`, `must_change_password`, `created_at`, `last_sign_in_at`, `projects` as `[{project_id, role}]`); `q` searches user name, name and e-mail |
 | `GET /admin/api/users/{id}` | one user; `projects` also carries the project `name` |
-| `GET /admin/api/projects?q=` | projects with `members` (`user_id`, `username`, `role`) and the counts `topics`, `documents`, `models` |
+| `GET /admin/api/projects?q=` | projects with `members` (`user_id`, `username`, `role`), the counts `topics`, `documents`, `models`, and `ai_policy` |
 | `GET /admin/api/projects/{id}` | one project with its `extensions` as well |
 | `GET /admin/api/clients` | clients (`client_id`, `name`, `description`, `url`, `public`, `dynamic`, `redirect_uris`, `disabled`, `created_at`, `expires_at`, `last_used_at`, `software_id`, `software_version`), never a secret |
 | `GET /admin/api/clients/{id}` | one client |
@@ -339,7 +339,7 @@ alike; `name` is the full name, `full_name` works as well):
 | `PUT /admin/api/users/{id}` `{name?, email?, disabled?, is_admin?}` | changes a user; disabling revokes the tokens; not for your own account |
 | `DELETE /admin/api/users/{id}` | deletes a user with sessions and tokens (dangerous) |
 | `POST /admin/api/users/{id}/reset-password` | sets a new password returned once, which the user must change (dangerous) |
-| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?}` | creates or changes a project |
+| `POST /admin/api/projects` `{name, extensions?}` · `PUT /admin/api/projects/{id}` `{name?, extensions?, block_on_validation_errors?, ai_policy?}` | creates or changes a project |
 | `DELETE /admin/api/projects/{id}` | deletes a project with everything in it (dangerous) |
 | `PUT /admin/api/projects/{id}/members/{user_id}` `{role}` · `DELETE …/members/{user_id}` | sets or removes a member's role (viewer, contributor, editor, manager) |
 | `POST /admin/api/clients` `{name, redirect_uris, public?, description?, url?}` | registers a client; a confidential one gets `client_secret` once |
@@ -411,6 +411,8 @@ project stays with the administrators. Every write leaves an audit event
 | Call | What it does |
 |---|---|
 | `GET /manage/1.0/projects` | the projects the caller manages |
+| `GET /manage/1.0/projects/{project_id}` | the project with `project_id`, `name` and `ai_policy` |
+| `PUT /manage/1.0/projects/{project_id}` | sets `{"ai_policy"}`: `local` or `cloud` |
 | `GET /manage/1.0/projects/{project_id}/members` | the members with `user_id`, `username`, `name` and `role` |
 | `POST /manage/1.0/projects/{project_id}/members` | adds `{"username", "role"}` (`201`), or sets the role of a member (`200`); `404` for no such user |
 | `PUT /manage/1.0/projects/{project_id}/members/{user_id}` | sets `{"role"}`: `viewer`, `contributor`, `editor` or `manager` |
@@ -425,6 +427,20 @@ apply to. A change set that touches the part of one team is approved by that
 team's responsible alone; one that touches the parts of several teams, or of
 none, by a `manager`. The trial lists the teams in `teams`; see
 [ifc-lpg.md](ifc-lpg.md#change-sets).
+
+A project's `ai_policy` says where AI tools may take its data (ADR 0028):
+`local`, the policy of a new project and of one nobody has set, lets AI tools
+have the data only on the user's own computer, through the local engine or a
+local model; `cloud` lets AI services in the cloud have it too. A manager sets
+it here, an administrator on the project's page or with `ai_policy` in the
+administration API, and every change leaves an audit event
+(`manage.project.ai_policy`, `admin.project.ai_policy` or
+`admin.project.update`). Every member reads it with
+`GET /documents/1.0/projects/{project_id}/ai-policy`, which answers
+`{"project_id", "ai_policy"}` to a token with the `documents` scope and `404`
+for a project the caller is not a member of. A client uses no AI service in
+the cloud for a `local` project. The answers the OpenCDE specifications define
+do not carry the policy.
 
 ## 8. Testing against this server
 

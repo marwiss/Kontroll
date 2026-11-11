@@ -332,6 +332,13 @@
   "admin.project.block_on_validation_errors": "Avvisa uppladdningar med valideringsfel",
   "admin.project.block_hint": "Kontrollerna körs då innan filen sparas, och en fil med ett eller flera fel avvisas; varningar släpps igenom. En fil som inte kunde kontrolleras släpps igenom.",
   "admin.project.save_checks": "Spara kontroller",
+  "admin.project.ai": "AI-verktyg",
+  "admin.project.ai_lead": "Om AI-tjänster i molnet får ta emot projektets data. Klienter som Dataspatium läser policyn, och en AI föreslår bara ändringar, som en person godkänner.",
+  "admin.project.ai_policy": "AI-policy",
+  "admin.project.ai_policy.local": "Endast lokal",
+  "admin.project.ai_policy.cloud": "Moln",
+  "admin.project.ai_policy_hint": "Endast lokal: AI-verktyg får data bara på användarens egen dator, genom den lokala motorn eller en lokal modell. Moln: även AI-tjänster i molnet får dem. Ett nytt projekt börjar som Endast lokal.",
+  "admin.project.save_ai_policy": "Spara AI-policy",
   "admin.project_new.name_hint": "Visas för alla medlemmar och för BCF-klienter.",
   "admin.project_new.defaults": "Projektet börjar med standardvärdena för BCF-extensions (typer, statusar, etiketter, prioriteter, skeden); redigera dem efteråt.",
   "admin.project_new.create": "Skapa projekt",
@@ -482,5 +489,6 @@
   "error.project.not_created": "Projektet skapades inte.",
   "error.project.not_found": "Det finns inget sådant projekt.",
   "error.project.member_not_found": "Det finns ingen sådan användare eller inget sådant projekt.",
-  "error.project.unknown_extensions": "Okända utökningslistor: {names}."
+  "error.project.unknown_extensions": "Okända utökningslistor: {names}.",
+  "error.project.ai_policy": "AI-policyn måste vara local eller cloud."
 }
