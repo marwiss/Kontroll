@@ -501,6 +501,19 @@ syyn lainaamatta tiedostoa. Uusi snippet korvaa kokeilun, ja kokeilu poistuu
 asian mukana. Kyvykkyysdokumentin `ifc_changes` kertoo, kokeillaanko
 muutosjoukkoja (`tried`) ja missä kokeilu on (`proposal_url`).
 
+`GET /documents/1.0/documents/{id}/ifc-proposals` luettelee dokumenttia
+vasten kokeillut muutosjoukot projektin jäsenelle, uusin ensin: rivillä ovat
+asian guid, otsikko ja kuvauksen 200 ensimmäistä merkkiä, kokeilun tila,
+perustaversio, montako muutosta joukossa on, kuka sen ehdotti, milloin
+kokeilu päättyi, versio joksi se tuli, jos se hyväksyttiin, sekä kokeilun
+(`proposal_url`) ja sen hyväksynnän (`approve_url`) osoitteet. Ehdotus nimeää
+perustansa siitä hetkestä, kun se asetetaan jonoon, joten luettelossa se on
+ennen kokeilua ja kun kokeilu epäonnistui. `$top` ja `$skip` selaavat
+luetteloa kuten BCF-luetteloissa; palvelimen katkaisemassa luettelossa on
+`X-Total-Count` ja `Link: <…>; rel="next"`. `404`, kun jäsen ei saa nähdä
+dokumenttia, ja kun IFC-LPG-moduuli ei ole käytössä. Kyvykkyysdokumentti
+antaa osoitteen nimellä `ifc_changes.ifc_proposals_url`.
+
 `manager` hyväksyy puhtaan kokeilun kutsulla `POST …/ifc-proposal/approve`:
 sovellettu tiedosto tulee perustadokumentin seuraavaksi versioksi, jonka
 metatiedoissa ovat `base_version_index`, `change_set_id` (asian guid),

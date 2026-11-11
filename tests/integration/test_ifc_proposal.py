@@ -346,3 +346,92 @@ def test_two_paths_to_one_shared_instance_collide(ifc_client: tuple[TestClient, 
         1700000001,
         2,
     )
+
+
+def test_the_proposals_against_a_document_are_listed_for_its_members(ifc_client: tuple[TestClient, World]) -> None:
+    """The Documents API lists the change sets tried against a document, newest first, with the addresses of the
+    trial and its approval; a member sees them, an outsider sees no document."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    viewer = login_as(client, world, "viewer")
+    outsider = login_as(client, world, "outsider")
+    version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
+    document_id = version["document_id"]
+    listing = f"/documents/1.0/documents/{document_id}/ifc-proposals"
+    assert client.get(listing, headers=viewer.headers).json() == [], "nothing proposed yet"
+    assert client.get(listing).status_code == 401
+    assert client.get(listing, headers=outsider.headers).status_code == 404, "not a member: no such document"
+    elsewhere = "/documents/1.0/documents/11111111-2222-4333-8444-555555555555/ifc-proposals"
+    assert client.get(elsewhere, headers=viewer.headers).status_code == 404
+    not_an_id = "/documents/1.0/documents/not-a-document/ifc-proposals"
+    assert client.get(not_an_id, headers=viewer.headers).status_code == 404
+
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    snippet_fields = {
+        "snippet_type": SNIPPET_TYPE,
+        "is_external": False,
+        "reference": "changes.json",
+        "reference_schema": f"http://testserver{SCHEMA_PATH}",
+    }
+    rename = {"guid": WALLS[0], "attribute": "Name", "op": "set", "old": "YVT-A", "new": "YVT-A2"}
+    duplicate = {"guid": WALLS[0], "attribute": "GlobalId", "op": "set", "new": WALLS[1]}
+    first = make_topic(client, world, editor, title="Rename the wall", bim_snippet=snippet_fields)
+    second = make_topic(
+        client, world, editor, title="Duplicate a GlobalId", description="d" * 300, bim_snippet=snippet_fields
+    )
+    for topic, change in ((first, rename), (second, duplicate)):
+        put = client.put(
+            f"{topics}/{topic['guid']}/snippet", content=change_set(document_id, change), headers=editor.headers
+        )
+        assert put.status_code == 200, put.text
+        tried(client, editor, f"{topics}/{topic['guid']}/ifc-proposal")
+
+    response = client.get(listing, headers=viewer.headers)
+    assert response.status_code == 200, response.text
+    assert "x-total-count" not in response.headers and "link" not in response.headers, "a whole list says nothing"
+    newest, oldest = response.json()
+    assert [entry["topic_guid"] for entry in (newest, oldest)] == [second["guid"], first["guid"]], "newest first"
+    assert oldest == {
+        "topic_guid": first["guid"],
+        "title": "Rename the wall",
+        "description": None,
+        "state": "clean",
+        "base_version_index": 1,
+        "change_count": 1,
+        "author": "editor",
+        "checked_at": oldest["checked_at"],
+        "version_index": None,
+        "proposal_url": f"http://testserver{topics}/{first['guid']}/ifc-proposal",
+        "approve_url": f"http://testserver{topics}/{first['guid']}/ifc-proposal/approve",
+    }
+    assert oldest["checked_at"].endswith("Z")
+    assert newest["state"] == "issues" and newest["change_count"] == 1 and newest["description"] == "d" * 200
+    assert client.get(listing + "?$skip=1", headers=viewer.headers).json() == [oldest]
+    assert client.get(listing + "?$top=1", headers=viewer.headers).json() == [newest]
+    refused = client.get(listing + "?$filter=title eq 'x'", headers=viewer.headers)
+    assert refused.status_code == 400, "nothing to filter on"
+
+    # Approved through the row's own address, the row names the version it became.
+    approved = client.post(oldest["approve_url"], headers=manager.headers)
+    assert approved.status_code == 201, approved.text
+    rows = {entry["topic_guid"]: entry for entry in client.get(listing, headers=viewer.headers).json()}
+    assert rows[first["guid"]]["state"] == "approved" and rows[first["guid"]]["version_index"] == 2
+    assert rows[first["guid"]]["base_version_index"] == 1 and rows[second["guid"]]["version_index"] is None
+    assert client.get(rows[first["guid"]]["proposal_url"], headers=viewer.headers).json()["state"] == "approved"
+
+    # A trial that failed is listed too: a proposal names its base from the moment it is queued.
+    notes = upload(client, world, editor, "notes.txt", b"not a model")
+    third = make_topic(client, world, editor, title="Not a model", bim_snippet=snippet_fields)
+    put = client.put(
+        f"{topics}/{third['guid']}/snippet", content=change_set(notes["document_id"], rename), headers=editor.headers
+    )
+    assert put.status_code == 200, put.text
+    assert tried(client, editor, f"{topics}/{third['guid']}/ifc-proposal")["state"] == "failed"
+    against_notes = f"/documents/1.0/documents/{notes['document_id']}/ifc-proposals"
+    (failed,) = client.get(against_notes, headers=viewer.headers).json()
+    assert failed["topic_guid"] == third["guid"] and failed["state"] == "failed" and failed["checked_at"]
+    assert failed["base_version_index"] == 1 and failed["change_count"] is None and failed["version_index"] is None
+    assert len(client.get(listing, headers=viewer.headers).json()) == 2, "the other document's is not here"

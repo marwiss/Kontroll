@@ -489,6 +489,19 @@ that says why, without quoting the file. A new snippet replaces the trial, and
 the trial goes with the topic. `ifc_changes` in the capabilities document says
 whether change sets are tried (`tried`) and where the trial is (`proposal_url`).
 
+`GET /documents/1.0/documents/{id}/ifc-proposals` lists the change sets tried
+against a document, for a member of its project, newest first: per row the
+topic's guid, title and the first 200 characters of its description, the
+trial's state, the base version, how many changes the set holds, who proposed
+it, when the trial ended, the version it became where it was approved, and
+the addresses of the trial (`proposal_url`) and of its approval
+(`approve_url`). A proposal names its base from the moment it is queued, so
+the list holds it before the trial and when the trial failed. `$top` and
+`$skip` page through the list as in the BCF lists; a list the server cut
+carries `X-Total-Count` and `Link: <…>; rel="next"`. `404` for a document the
+member may not see, and when the IFC-LPG module is off. The capabilities
+document gives the address as `ifc_changes.ifc_proposals_url`.
+
 A `manager` approves a clean trial with `POST …/ifc-proposal/approve`: the
 applied file becomes the next version of the base document, with
 `base_version_index`, `change_set_id` (the topic's guid), `proposed_by` and

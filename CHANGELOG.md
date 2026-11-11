@@ -20,6 +20,12 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- `GET /documents/1.0/documents/{id}/ifc-proposals` lists the change sets tried against a document for a member
+  of its project, newest first: the topic, the trial's state, the base version, who proposed it, the version an
+  approved one became, and the addresses of the trial (`proposal_url`) and of its approval (`approve_url`); cut
+  at 1000 rows with `X-Total-Count` and `Link` as the BCF lists are. The capabilities document announces it as
+  `ifc_changes.ifc_proposals_url` beside `proposal_url` and `approve_url`. A proposal names its base from the
+  moment it is queued, so the list holds it before the trial and when the trial failed.
 - The server's record of a conversion is its own node, `Conversion`, under the project (`HAS_CONVERSION`): the
   file, the lifecycle, the geometry key, the graph check and a copy of the import's facts; `Model` is IFC-LPG's
   alone, written by the library and marked whole with `imported_at`. The models of earlier releases get their

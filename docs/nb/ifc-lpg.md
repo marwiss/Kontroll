@@ -493,6 +493,19 @@ erstatter prøven, og prøven følger med saken når den slettes. `ifc_changes` 
 kapabilitetsdokumentet sier om endringssett prøves (`tried`) og hvor prøven er
 (`proposal_url`).
 
+`GET /documents/1.0/documents/{id}/ifc-proposals` lister endringssettene som
+er prøvd mot et dokument, for et medlem av prosjektet dets, nyeste først: per
+rad sakens guid, tittel og de første 200 tegnene av beskrivelsen, prøvens
+tilstand, basisversjonen, hvor mange endringer settet holder, hvem som
+foreslo det, når prøven sluttet, versjonen det ble der det ble godkjent, og
+adressene til prøven (`proposal_url`) og godkjenningen av den
+(`approve_url`). Et forslag navngir basisen sin fra det øyeblikket det
+settes i kø, så listen holder det før prøven og når prøven mislyktes. `$top`
+og `$skip` blar i listen som i BCF-listene; en liste serveren har kuttet,
+bærer `X-Total-Count` og `Link: <…>; rel="next"`. `404` for et dokument
+medlemmet ikke får se, og når IFC-LPG-modulen er av.
+Kapabilitetsdokumentet gir adressen som `ifc_changes.ifc_proposals_url`.
+
 En `manager` godkjenner en ren prøve med `POST …/ifc-proposal/approve`: den
 brukte filen blir basisdokumentets neste versjon, med `base_version_index`,
 `change_set_id` (sakens guid), `proposed_by` og `approved_by` i metadataene

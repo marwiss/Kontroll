@@ -55,6 +55,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_diff"] == {"enabled": False}, "the diff needs the IFC-LPG module"
     assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-LPG module"
     assert extensions["ifc_changes"]["snippet_type"] == "DataregiumIfcChangeSet", "the form of a proposed change"
+    assert extensions["ifc_changes"]["ifc_proposals_url"] == "/documents/1.0/documents/{document_id}/ifc-proposals"
     assert extensions["project_administration"] == {
         "enabled": True,
         "url": "/manage/1.0/projects",
@@ -122,6 +123,15 @@ def test_the_graph_query_is_announced_with_its_limits_when_on(tmp_path: Path) ->
         }
         refused = client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"})
         assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
+
+
+def test_the_proposals_against_a_document_are_announced_beside_the_trial(client: TestClient) -> None:
+    changes = client.get("/.well-known/dataregium").json()["extensions"]["ifc_changes"]
+    assert changes["proposal_url"] == "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal"
+    assert changes["approve_url"] == changes["proposal_url"] + "/approve"
+    assert changes["ifc_proposals_url"] == "/documents/1.0/documents/{document_id}/ifc-proposals"
+    refused = client.get(f"/documents/1.0/documents/{'0' * 32}/ifc-proposals")
+    assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
 
 
 def test_the_named_queries_are_announced_with_the_module(tmp_path: Path) -> None:

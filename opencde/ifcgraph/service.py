@@ -717,12 +717,14 @@ class IfcGraphService:
                 with contextlib.suppress(ValueError, OSError):
                     self.storage.delete(row["key"])
         proposal_id = new_id()
+        base = await asyncio.to_thread(self._base_of, snippet_key)
         rows = await self.graph.run(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
             CREATE (t)-[:HAS_PROPOSAL]->(p:Proposal {
                 id: $id, project_id: $project_id, topic_guid: $guid, snippet_key: $snippet_key, author: $author,
-                state: $state, created_at: $now
+                state: $state, created_at: $now,
+                base_document_id: $base_document_id, base_version_index: $base_version_index
             })
             RETURN p.id AS id
             """,
@@ -733,11 +735,24 @@ class IfcGraphService:
             author=author,
             state=STATE_QUEUED,
             now=now_iso(),
+            base_document_id=base.get("document_id"),
+            base_version_index=base.get("version_index"),
         )
         if not rows:
             raise ValueError("no such topic")
         self._start_proposal(proposal_id)
         return proposal_id
+
+    def _base_of(self, snippet_key: str) -> dict[str, Any]:
+        """The base version a stored change set names, put on the proposal when it is queued, so that the Documents
+        API lists the proposal against its document before the trial and when the trial failed; empty when the
+        snippet cannot be read, which the trial then says."""
+        try:
+            with self.storage.open_read(snippet_key) as handle:
+                base = json.loads(handle.read().decode("utf-8"))["base"]
+            return {"document_id": str(base["document_id"]), "version_index": int(base["version_index"])}
+        except (OSError, ValueError, KeyError, TypeError):
+            return {}
 
     def _start_proposal(self, proposal_id: str) -> None:
         task = asyncio.create_task(self._run_proposal(proposal_id), name=f"ifcproposal-{proposal_id}")

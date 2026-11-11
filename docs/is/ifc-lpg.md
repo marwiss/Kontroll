@@ -487,6 +487,19 @@ prófunarinnar, og prófunin fer með málinu þegar því er eytt. `ifc_changes
 getuskjalinu segir hvort breytingasett eru reynd (`tried`) og hvar prófunin er
 (`proposal_url`).
 
+`GET /documents/1.0/documents/{id}/ifc-proposals` telur upp breytingasettin
+sem reynd hafa verið gegn skjali, fyrir meðlim í verkefni þess, nýjast fyrst:
+í hverri línu eru guid málsins, titill þess og fyrstu 200 stafir lýsingarinnar,
+staða prófunarinnar, grunnútgáfan, hve margar breytingar settið geymir, hver
+lagði það til, hvenær prófuninni lauk, útgáfan sem það varð þar sem það var
+samþykkt, og vistföng prófunarinnar (`proposal_url`) og samþykktar hennar
+(`approve_url`). Tillaga nefnir grunn sinn frá því augnabliki sem hún er sett
+í röð, svo listinn geymir hana fyrir prófunina og þegar prófunin mistókst.
+`$top` og `$skip` fletta listanum eins og í BCF-listunum; listi sem þjónninn
+skar ber `X-Total-Count` og `Link: <…>; rel="next"`. `404` fyrir skjal sem
+meðlimurinn má ekki sjá, og þegar slökkt er á IFC-LPG-einingunni. Getuskjalið
+gefur vistfangið sem `ifc_changes.ifc_proposals_url`.
+
 `manager` samþykkir hreina prófun með `POST …/ifc-proposal/approve`: skráin
 sem breytingunum var beitt á verður næsta útgáfa grunnskjalsins, með
 `base_version_index`, `change_set_id` (guid málsins), `proposed_by` og

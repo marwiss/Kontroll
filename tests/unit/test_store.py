@@ -24,6 +24,7 @@ from opencde.store.bcf.viewpoints import ViewpointRepository
 from opencde.store.documents.sessions import SelectionSessionRepository, UploadSessionRepository
 from opencde.store.documents.versions import DocumentRepository
 from opencde.store.jobs.conversions import ConversionRepository
+from opencde.store.jobs.proposals import ProposalRepository
 from opencde.store.oauth2.clients import ClientRepository
 from opencde.store.oauth2.tokens import TokenRepository
 from tests.conftest import test_settings as make_settings
@@ -44,6 +45,7 @@ REPOSITORIES = (
     UploadSessionRepository,
     SelectionSessionRepository,
     ConversionRepository,
+    ProposalRepository,
 )
 
 

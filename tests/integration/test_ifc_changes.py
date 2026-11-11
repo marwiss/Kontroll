@@ -35,12 +35,15 @@ def test_the_schema_is_public_and_the_snippet_is_held_to_it(client: TestClient, 
         "tried": False,
         "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal",
         "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve",
+        "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals",
         "ops": ["set", "add", "remove", "delete"],
         "unreachable_url": None,
     }, "the server proposes no removal without the IFC-LPG module"
 
     editor = login_as(client, world, "editor")
     viewer = login_as(client, world, "viewer")
+    elsewhere = "/documents/1.0/documents/11111111-2222-4333-8444-555555555555/ifc-proposals"
+    assert client.get(elsewhere, headers=viewer.headers).status_code == 404, "no trials without the module"
     topics = f"/bcf/3.0/projects/{world.project_id}/topics"
     extensions = client.get(f"/bcf/3.0/projects/{world.project_id}/extensions", headers=viewer.headers).json()
     assert SNIPPET_TYPE in extensions["snippet_type"], "a new project allows the snippet type"

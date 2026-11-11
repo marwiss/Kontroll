@@ -495,6 +495,19 @@ snippet ersätter prövningen, och prövningen följer med ärendet när det tas
 bort. `ifc_changes` i kapabilitetsdokumentet säger om ändringsset prövas
 (`tried`) och var prövningen finns (`proposal_url`).
 
+`GET /documents/1.0/documents/{id}/ifc-proposals` listar de ändringsset som
+prövats mot ett dokument, för en medlem i dess projekt, nyast först: per rad
+ärendets guid, titel och de första 200 tecknen av dess beskrivning,
+prövningens tillstånd, basversionen, hur många ändringar setet håller, vem
+som föreslog det, när prövningen slutade, versionen det blev där det
+godkändes, och adresserna till prövningen (`proposal_url`) och dess
+godkännande (`approve_url`). Ett förslag namnger sin bas från det ögonblick
+det köas, så listan håller det före prövningen och när prövningen
+misslyckades. `$top` och `$skip` bläddrar i listan som i BCF-listorna; en
+lista servern kapat bär `X-Total-Count` och `Link: <…>; rel="next"`. `404`
+för ett dokument medlemmen inte får se, och när IFC-LPG-modulen är av.
+Kapabilitetsdokumentet ger adressen som `ifc_changes.ifc_proposals_url`.
+
 En `manager` godkänner en ren prövning med `POST …/ifc-proposal/approve`:
 den tillämpade filen blir basdokumentets nästa version, med
 `base_version_index`, `change_set_id` (ärendets guid), `proposed_by` och
