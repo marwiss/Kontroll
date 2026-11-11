@@ -620,8 +620,13 @@ längder i A:s enhet. När det är `done` gör dess `merge_id`, givet som
 `other.prepared`, att kopian står för B i rapporten och sammanfogningen till
 `expires_at`, ett dygn senare; sedan tar servern bort den. En annan enhet som skiljer
 sig konverteras inte, och jobbet misslyckas med den.
-En klass utan motsvarighet i A:s schema, som IFC2X3:s IfcWindowStyle i IFC4X3,
-kan inte migreras, och jobbet misslyckas med vad den är.
+Det som A:s schema saknar motsvarighet till, som IFC2X3:s IfcWindowStyle i IFC4X3
+eller de ägarhistoriker IFC2X3 kräver, ger jobbet läget `conflict`:
+`report.problems` listar varje problem med sin `key`, vad det rör och sina
+`options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
+`assignment`), och ett nytt `POST …/ifc-merge/prepare` med `resolutions`, det valda
+alternativet per nyckel, gör kopian. Kopian kontrolleras sedan mot B: en med en
+anmärkning som B inte hade görs inte, och jobbet blir `failed` med dem i `report.new`.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

@@ -611,8 +611,14 @@ einingu A. Þegar það er `done` lætur `merge_id` þess, gefið sem `other.pre
 afritið koma í stað B í skýrslunni og sameiningunni þar til `expires_at`, sólarhring
 síðar; þá fjarlægir þjónninn það. Önnur eining sem er ólík er ekki umreiknuð, og
 verkið mistekst á henni.
-Flokk sem á sér enga hliðstæðu í skema A, eins og IfcWindowStyle úr IFC2X3 í
-IFC4X3, er ekki hægt að flytja, og verkið mistekst með því hver hann er.
+Það sem skema A á sér enga hliðstæðu við, eins og IfcWindowStyle úr IFC2X3 í
+IFC4X3 eða eigendasögurnar sem IFC2X3 krefst, setur verkið í stöðuna `conflict`:
+`report.problems` telur upp hvert vandamál með `key`, hvað það snertir og `options`
+(`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
+`assignment`), og nýtt `POST …/ifc-merge/prepare` með `resolutions`, valda kostinum
+fyrir hvern lykil, býr til afritið. Afritið er síðan prófað gagnvart B: afrit með
+athugasemd sem B hafði ekki er ekki búið til, og verkið er `failed` með þeim í
+`report.new`.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

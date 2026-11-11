@@ -626,8 +626,13 @@ lengdene i eininga til A. Når han er `done`, gjer `merge_id`-en hans, gjeven so
 `other.prepared`, at kopien står for B i rapporten og samanslåinga til `expires_at`,
 eit døgn seinare; deretter fjernar serveren han. Ei anna eining som er ulik, blir
 ikkje konvertert, og jobben feilar med henne.
-Ein klasse utan motstykke i skjemaet til A, som IfcWindowStyle frå IFC2X3 i
-IFC4X3, kan ikkje migrerast, og jobben feilar med kva ho er.
+Det skjemaet til A ikkje har noko motstykke til, som IfcWindowStyle frå IFC2X3 i
+IFC4X3 eller eigarhistorikkane IFC2X3 krev, gjev jobben tilstanden `conflict`:
+`report.problems` listar kvart problem med `key`, kva det rører og `options`
+(`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
+`assignment`), og ein ny `POST …/ifc-merge/prepare` med `resolutions`, det valde
+alternativet per nøkkel, lagar kopien. Kopien blir så kontrollert mot B: ein med ein
+merknad B ikkje hadde, blir ikkje laga, og jobben blir `failed` med dei i `report.new`.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

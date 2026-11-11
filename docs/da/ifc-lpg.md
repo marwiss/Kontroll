@@ -617,8 +617,13 @@ i A's enhed. Når det er `done`, får dets `merge_id`, givet som `other.prepared
 kopien til at stå for B i rapporten og sammenfletningen indtil `expires_at`, et døgn
 senere; derefter fjerner serveren den. En anden enhed, der er forskellig, konverteres
 ikke, og jobbet fejler med den.
-En klasse uden modstykke i A's skema, som IFC2X3's IfcWindowStyle i IFC4X3, kan
-ikke migreres, og jobbet fejler med, hvad den er.
+Det, A's skema ikke har et modstykke til, som IFC2X3's IfcWindowStyle i IFC4X3
+eller de ejerhistorikker, IFC2X3 kræver, giver jobbet tilstanden `conflict`:
+`report.problems` lister hvert problem med sin `key`, hvad det rører, og sine
+`options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
+`assignment`), og et nyt `POST …/ifc-merge/prepare` med `resolutions`, det valgte
+alternativ pr. nøgle, laver kopien. Kopien kontrolleres derefter mod B: en med en
+anmærkning, B ikke havde, laves ikke, og jobbet bliver `failed` med dem i `report.new`.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

@@ -616,8 +616,13 @@ in A's unit. When it is `done`, its `merge_id` given as `other.prepared` makes t
 copy stand in for B in the report and the merge until `expires_at`, a day later;
 then the server takes it out. Another unit that differs is not converted, and the
 job fails with it.
-A class with no counterpart in A's schema, such as IFC2X3's IfcWindowStyle in
-IFC4X3, cannot be migrated, and the job fails with what it is.
+What A's schema has no equivalent of, such as IFC2X3's IfcWindowStyle in
+IFC4X3 or the owner histories IFC2X3 requires, ends the job in `conflict`:
+`report.problems` lists each problem with its `key`, what it affects and its
+`options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
+`assignment`), and a new `POST …/ifc-merge/prepare` with `resolutions`, the chosen
+option per key, makes the copy. The copy is then checked against B: one with an
+issue B did not have is not made, and the job is `failed` with them in `report.new`.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge

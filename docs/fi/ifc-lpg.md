@@ -631,8 +631,14 @@ jonka pituudet ovat A:n yksikössä. Kun työ on `done`, sen `merge_id` kentäss
 `other.prepared` panee kopion B:n paikalle raportissa ja yhdistämisessä hetkeen
 `expires_at` asti, vuorokauden ajan; sen jälkeen palvelin poistaa sen. Muuta eroavaa
 yksikköä ei muunneta, ja työ epäonnistuu sen vuoksi.
-Luokkaa, jolla ei ole vastinetta A:n skeemassa, kuten IFC2X3:n IfcWindowStyle
-IFC4X3:ssa, ei voi siirtää, ja työ epäonnistuu kertoen, mikä se on.
+Se, mille A:n skeemassa ei ole vastinetta, kuten IFC2X3:n IfcWindowStyle
+IFC4X3:ssa tai IFC2X3:n vaatimat omistajahistoriat, vie työn tilaan `conflict`:
+`report.problems` luettelee jokaisen ongelman avaimella `key`, sen, mitä se koskee,
+ja sen vaihtoehdot `options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`,
+`virtual`, `dated`, `assignment`), ja uusi `POST …/ifc-merge/prepare` kentällä
+`resolutions`, valittu vaihtoehto avainta kohden, tekee kopion. Kopio tarkistetaan
+sitten B:tä vasten: kopiota, jossa on huomautus, jota B:llä ei ollut, ei tehdä, ja
+työ on `failed` niine huomautuksineen kentässä `report.new`.
 
 ```http
 POST /documents/1.0/projects/{project_id}/ifc-merge
