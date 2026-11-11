@@ -330,7 +330,8 @@ class Versions:
             return {"latest": max(self.keys)}
         self.asked.append(int(params["version_index"]))
         key = self.keys.get(int(params["version_index"]))
-        return {"storage_key": key, "file_name": "walls.ifc", "base_report": pack_report([])} if key else None
+        row = {"storage_key": key, "file_name": "walls.ifc", "base_report": pack_report([]), "base_checks": None}
+        return row if key else None
 
 
 @pytest.fixture
