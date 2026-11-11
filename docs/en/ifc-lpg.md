@@ -620,7 +620,7 @@ What A's schema has no equivalent of, such as IFC2X3's IfcWindowStyle in
 IFC4X3 or the owner histories IFC2X3 requires, ends the job in `conflict`:
 `report.problems` lists each problem with its `key`, what it affects and its
 `options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
-`assignment`), and a new `POST …/ifc-merge/prepare` with `resolutions`, the chosen
+`assignment`, `context`), and a new `POST …/ifc-merge/prepare` with `resolutions`, the chosen
 option per key, makes the copy. The copy is then checked against B: one with an
 issue B did not have is not made, and the job is `failed` with them in `report.new`.
 

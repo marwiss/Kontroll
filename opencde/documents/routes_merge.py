@@ -74,7 +74,7 @@ class IfcMergePrepareRequest(BaseModel):
         None,
         max_length=MAX_RESOLUTIONS,
         description="For each problem of an earlier `conflict`, by its `key`, one of its `options`: `type`, `proxy`, "
-        "`leave_out`, `polyline`, `owner`, `virtual`, `dated` or `assignment`.",
+        "`leave_out`, `polyline`, `owner`, `virtual`, `dated`, `assignment` or `context`.",
     )
 
     @field_validator("resolutions")

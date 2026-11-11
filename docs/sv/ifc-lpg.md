@@ -624,7 +624,7 @@ Det som A:s schema saknar motsvarighet till, som IFC2X3:s IfcWindowStyle i IFC4X
 eller de ägarhistoriker IFC2X3 kräver, ger jobbet läget `conflict`:
 `report.problems` listar varje problem med sin `key`, vad det rör och sina
 `options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
-`assignment`), och ett nytt `POST …/ifc-merge/prepare` med `resolutions`, det valda
+`assignment`, `context`), och ett nytt `POST …/ifc-merge/prepare` med `resolutions`, det valda
 alternativet per nyckel, gör kopian. Kopian kontrolleras sedan mot B: en med en
 anmärkning som B inte hade görs inte, och jobbet blir `failed` med dem i `report.new`.
 

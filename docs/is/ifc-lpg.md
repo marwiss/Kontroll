@@ -615,7 +615,7 @@ verkið mistekst á henni.
 IFC4X3 eða eigendasögurnar sem IFC2X3 krefst, setur verkið í stöðuna `conflict`:
 `report.problems` telur upp hvert vandamál með `key`, hvað það snertir og `options`
 (`type`, `proxy`, `leave_out`, `polyline`, `owner`, `virtual`, `dated`,
-`assignment`), og nýtt `POST …/ifc-merge/prepare` með `resolutions`, valda kostinum
+`assignment`, `context`), og nýtt `POST …/ifc-merge/prepare` með `resolutions`, valda kostinum
 fyrir hvern lykil, býr til afritið. Afritið er síðan prófað gagnvart B: afrit með
 athugasemd sem B hafði ekki er ekki búið til, og verkið er `failed` með þeim í
 `report.new`.

@@ -35,19 +35,6 @@ def ifc_client(graph_target: GraphTarget, clean_database: None, tmp_path: Any) -
         yield client, world
 
 
-def spaces_with_a_context() -> bytes:
-    """two_spaces.ifc (IFC4) with a representation context, which IFC2X3 requires of a project and IFC4 does not."""
-    data = (FIXTURES_DIR / "two_spaces.ifc").read_bytes()
-    project = b"#1=IFCPROJECT('0000000000000000000RW8',$,'Two spaces',$,$,$,$,"
-    assert data.count(project + b"$,#2);") == 1
-    head, tail = data.replace(project + b"$,#2);", project + b"(#20),#2);").rsplit(b"ENDSEC;", 1)
-    context = (
-        b"#20=IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,#21,$);\n"
-        b"#21=IFCAXIS2PLACEMENT3D(#22,$,$);\n#22=IFCCARTESIANPOINT((0.,0.,0.));\n"
-    )
-    return head + context + b"ENDSEC;" + tail
-
-
 def finished(client: TestClient, session: Session, url: str) -> dict[str, Any]:
     deadline = time.monotonic() + 300
     while True:
@@ -215,14 +202,14 @@ def test_the_prepared_copy_stands_in_for_b(ifc_client: tuple[TestClient, World])
 
 
 def test_a_model_in_another_schema_is_prepared_with_a_choice(ifc_client: tuple[TestClient, World]) -> None:
-    """IFC-LPG F32 and F33 a: B in IFC4 cannot become IFC2X3 without owner histories, so the preparation asks; the
-    caller chooses, the copy is checked, and it stands in for B."""
+    """IFC-LPG F32 and F33 a: B in IFC4 cannot become IFC2X3 without owner histories and a representation context, so
+    the preparation asks; the caller chooses, the copy is checked, and it stands in for B."""
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
     manager = login_as(client, world, "manager")
     a = upload(client, world, editor, "a.ifc", MODEL.read_bytes())
-    b = upload(client, world, editor, "two_spaces.ifc", spaces_with_a_context())
+    b = upload(client, world, editor, "two_spaces.ifc", (FIXTURES_DIR / "two_spaces.ifc").read_bytes())
     graph_check(client, editor, a["document_id"], 1)
     graph_check(client, editor, b["document_id"], 1)
     url = f"/documents/1.0/projects/{world.project_id}/ifc-merge"
@@ -243,6 +230,7 @@ def test_a_model_in_another_schema_is_prepared_with_a_choice(ifc_client: tuple[T
     assert conflict["state"] == "conflict", conflict.get("error")
     problems = {problem["key"]: problem for problem in conflict["report"]["problems"]}
     assert "owner_history" in problems and "owner" in problems["owner_history"]["options"]
+    assert "context" in problems["representation_contexts"]["options"], "IFC2X3 needs a context of the project"
     assert all(problem["count"] >= 1 for problem in problems.values())
 
     chosen = {key: problem["options"][0] for key, problem in problems.items()}

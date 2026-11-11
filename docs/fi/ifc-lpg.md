@@ -635,7 +635,7 @@ Se, mille A:n skeemassa ei ole vastinetta, kuten IFC2X3:n IfcWindowStyle
 IFC4X3:ssa tai IFC2X3:n vaatimat omistajahistoriat, vie työn tilaan `conflict`:
 `report.problems` luettelee jokaisen ongelman avaimella `key`, sen, mitä se koskee,
 ja sen vaihtoehdot `options` (`type`, `proxy`, `leave_out`, `polyline`, `owner`,
-`virtual`, `dated`, `assignment`), ja uusi `POST …/ifc-merge/prepare` kentällä
+`virtual`, `dated`, `assignment`, `context`), ja uusi `POST …/ifc-merge/prepare` kentällä
 `resolutions`, valittu vaihtoehto avainta kohden, tekee kopion. Kopio tarkistetaan
 sitten B:tä vasten: kopiota, jossa on huomautus, jota B:llä ei ollut, ei tehdä, ja
 työ on `failed` niine huomautuksineen kentässä `report.new`.
