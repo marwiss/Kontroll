@@ -88,6 +88,8 @@
   "scope.documents": "Dokumentutbyte genom Documents API.",
   "scope.project": "Administration av de projekt du är projektansvarig för (medlemmar och roller).",
   "scope.admin": "Serveradministration (användare, projekt, klienter, loggar) för administratörer.",
+  "scope.mcp": "AI-verktyg (MCP): läsa modellerna, frågorna och förslagen i dina projekt och köra krocktest. Inget godkänns eller publiceras den vägen.",
+  "scope.mcp:propose": "AI-verktyg (MCP): föreslå ändringsset, som en person sedan godkänner eller avvisar. Inget godkänns eller publiceras den vägen.",
   "auth.error.title": "Kan inte fortsätta",
   "auth.error.hint": "Applikationen som skickade dig hit gjorde en begäran som den här servern inte kan godta, så du skickades inte vidare någonstans. Stäng fönstret och kontakta applikationens utvecklare om problemet kvarstår.",
   "auth.error.form_expired": "Inloggningsformuläret har gått ut eller manipulerats. Börja om.",

@@ -302,8 +302,9 @@ class Settings(BaseSettings):
     mcp_enabled: bool = Field(
         False,
         description="Offer the MCP endpoint at /mcp, where AI programs read the projects' models and propose change "
-        "sets that a person approves (ADR 0028), and announce it in the capabilities document. Off unless an AI "
-        "program needs it.",
+        "sets that a person approves and never approve (ADR 0028): tokens can then be bound to <public_url>/mcp "
+        "(RFC 8707), its protected resource metadata is served, and the capabilities document announces it. Off "
+        "unless an AI program needs it.",
     )
     allow_localhost_redirects: bool = Field(
         False,

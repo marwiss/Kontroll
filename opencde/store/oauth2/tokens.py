@@ -11,6 +11,11 @@ someone else got hold of it, and the whole family is revoked (RFC 9700
 §4.14). Authorization codes are single-use and short-lived; a code
 presented twice revokes what the first presentation produced.
 
+A code and its token family may be bound to a resource (RFC 8707), the MCP
+endpoint (``opencde.auth.resources``): the binding is recorded on each of them,
+a refresh keeps it, and a token request that names another resource is
+``invalid_target``.
+
 Revocations triggered by a refused request are committed in their own
 transaction *before* the refusal is raised: a transaction function that raises
 is rolled back, which would undo the very revocation that protects the user.
@@ -56,6 +61,7 @@ class Principal:
     scopes: tuple[str, ...]
     token_hash: str
     auth_time: str | None = None  # when the user authenticated for this token family (ISO 8601 UTC)
+    resource: str | None = None  # the resource the token is bound to (RFC 8707); None is the REST APIs
 
     def has_scope(self, scope: str) -> bool:
         return scope in self.scopes
@@ -90,9 +96,11 @@ class TokenRepository:
         scope: str,
         code_challenge: str | None,
         redirect_required: bool = False,
+        resource: str | None = None,
     ) -> str:
         """``code_challenge`` is None for a client that may do without PKCE. ``redirect_required`` then says that
-        the request named its redirect URI, and the token request has to name it too (RFC 6749 §4.1.3)."""
+        the request named its redirect URI, and the token request has to name it too (RFC 6749 §4.1.3).
+        ``resource`` is what the tokens will be bound to (RFC 8707), None for the REST APIs."""
         code = new_secret()
         await self.graph.run(
             """
@@ -101,7 +109,7 @@ class TokenRepository:
                 code_hash: $code_hash, redirect_uri: $redirect_uri, scope: $scope,
                 code_challenge: $code_challenge, redirect_required: $redirect_required,
                 created_at: $now, expires_at: $expires_at, spent: false,
-                auth_time: $now
+                auth_time: $now, resource: $resource
             })
             CREATE (ac)-[:FOR]->(u)
             CREATE (ac)-[:ISSUED_TO]->(c)
@@ -115,18 +123,27 @@ class TokenRepository:
             redirect_required=redirect_required,
             now=now_iso(),
             expires_at=later_iso(self.code_ttl),
+            resource=resource,
         )
         return code
 
     async def redeem_code(
-        self, *, code: str, client_id: str, redirect_uri: str | None, code_verifier: str | None
+        self,
+        *,
+        code: str,
+        client_id: str,
+        redirect_uri: str | None,
+        code_verifier: str | None,
+        resource: str | None = None,
     ) -> TokenPair:
         """Exchange a code for tokens, atomically; any mismatch is ``invalid_grant``.
 
         ``redirect_uri`` may be omitted by the client when PKCE is used (OAuth 2.1 drops
         it then); when present it must match the request. A code with no challenge belongs
         to a client marked ``pkce_optional``, and a verifier for it is refused, so that
-        nobody can talk a request with PKCE out of it (RFC 9700 §2.1.1).
+        nobody can talk a request with PKCE out of it (RFC 9700 §2.1.1). ``resource`` is
+        what the token request names (RFC 8707), None when it names none: it must be the
+        code's own, or the request is ``invalid_target``; the tokens are bound as the code is.
         """
         code_hash = hash_secret(code or "")
 
@@ -166,6 +183,8 @@ class TokenRepository:
                     return _Refusal(GrantError("invalid_grant", "PKCE code_verifier does not match"))
             elif code_verifier or not row["pkce_optional"]:
                 return _Refusal(GrantError("invalid_grant", "this code was issued without PKCE"))
+            if resource is not None and resource != stored.get("resource"):  # told only to the code's own client
+                return _Refusal(GrantError("invalid_target", "resource does not match the authorization request"))
             if row["user_disabled"] or row["client_disabled"]:
                 return _Refusal(GrantError("invalid_grant", "account or client is disabled"))
             await tx.run(
@@ -179,6 +198,7 @@ class TokenRepository:
                 family_id=new_id(),
                 code_hash=code_hash,
                 auth_time=stored.get("auth_time") or stored.get("created_at"),
+                resource=stored.get("resource"),
             )
 
         return await self._apply(await self.graph.write(work))
@@ -195,6 +215,7 @@ class TokenRepository:
         family_id: str,
         code_hash: str | None,
         auth_time: str | None,
+        resource: str | None,
     ) -> TokenPair:
         access = new_secret()
         refresh = new_secret()
@@ -204,11 +225,12 @@ class TokenRepository:
             MATCH (u:User {id: $user_id}), (c:Client {client_id: $client_id})
             CREATE (at:AccessToken {
                 token_hash: $access_hash, scope: $scope, family_id: $family_id, code_hash: $code_hash,
-                created_at: $now, expires_at: $access_expires, auth_time: $auth_time
+                created_at: $now, expires_at: $access_expires, auth_time: $auth_time, resource: $resource
             })
             CREATE (rt:RefreshToken {
                 token_hash: $refresh_hash, scope: $scope, family_id: $family_id, code_hash: $code_hash,
-                created_at: $now, expires_at: $refresh_expires, spent: false, auth_time: $auth_time
+                created_at: $now, expires_at: $refresh_expires, spent: false, auth_time: $auth_time,
+                resource: $resource
             })
             CREATE (at)-[:FOR]->(u) CREATE (at)-[:ISSUED_TO]->(c)
             CREATE (rt)-[:FOR]->(u) CREATE (rt)-[:ISSUED_TO]->(c)
@@ -224,11 +246,13 @@ class TokenRepository:
             access_expires=later_iso(self.access_ttl),
             refresh_expires=later_iso(self.refresh_ttl),
             auth_time=auth_time,
+            resource=resource,
         )
         return TokenPair(access_token=access, refresh_token=refresh, expires_in=self.access_ttl, scope=scope)
 
-    async def refresh(self, *, refresh_token: str, client_id: str) -> TokenPair:
-        """Rotate a refresh token. Reuse of a spent token revokes its whole family."""
+    async def refresh(self, *, refresh_token: str, client_id: str, resource: str | None = None) -> TokenPair:
+        """Rotate a refresh token. Reuse of a spent token revokes its whole family. ``resource`` is what the
+        request names (RFC 8707), None when it names none: it must be the family's, which the new pair keeps."""
         token_hash = hash_secret(refresh_token or "")
 
         async def work(tx: Tx) -> TokenPair | _Refusal:
@@ -251,6 +275,8 @@ class TokenRepository:
                 )
             if row["client_id"] != client_id:
                 return _Refusal(GrantError("invalid_grant", "refresh token was issued to another client"))
+            if resource is not None and resource != stored.get("resource"):
+                return _Refusal(GrantError("invalid_target", "resource does not match the refresh token"))
             # Every use rotates the token, so its age is the time since the session was last used.
             idle = stored["created_at"] <= later_iso(-self.refresh_idle)
             if idle or stored["expires_at"] <= now_iso() or row["user_disabled"] or row["client_disabled"]:
@@ -271,6 +297,7 @@ class TokenRepository:
                 family_id=stored["family_id"],
                 code_hash=stored.get("code_hash"),
                 auth_time=stored.get("auth_time"),  # a refresh never counts as a new authentication
+                resource=stored.get("resource"),  # the family stays bound where its code was
             )
             # Keep the absolute lifetime of the family: a rotated refresh token never outlives the first one.
             await tx.run(
@@ -314,7 +341,8 @@ class TokenRepository:
             MATCH (at:AccessToken {token_hash: $token_hash})-[:FOR]->(u:User), (at)-[:ISSUED_TO]->(c:Client)
             WHERE at.expires_at > $now AND coalesce(u.disabled, false) = false AND coalesce(c.disabled, false) = false
             RETURN at.scope AS scope, u.id AS user_id, u.username AS username, u.full_name AS full_name,
-                   u.is_admin AS is_admin, c.client_id AS client_id, at.auth_time AS auth_time
+                   u.is_admin AS is_admin, c.client_id AS client_id, at.auth_time AS auth_time,
+                   at.resource AS resource
             """,
             token_hash=hash_secret(access_token),
             now=now_iso(),
@@ -330,6 +358,7 @@ class TokenRepository:
             scopes=tuple((row["scope"] or "").split()),
             token_hash=hash_secret(access_token),
             auth_time=row.get("auth_time"),
+            resource=row.get("resource"),
         )
 
     async def revoke(self, token: str, *, client_id: str) -> bool:

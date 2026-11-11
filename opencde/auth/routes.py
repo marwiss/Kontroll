@@ -18,6 +18,10 @@ administrator has marked ``pkce_optional``, ``state`` required, the
 ``iss`` parameter in responses (RFC 9207), no open redirects (errors about
 the client or its redirect URI are shown here, never redirected), and token
 responses that are never cached.
+
+Both the authorization and the token request take ``resource`` (RFC 8707),
+whose one accepted value is the MCP endpoint (``opencde.auth.resources``);
+anything else is ``invalid_target``, and the code and its tokens keep it.
 """
 
 from __future__ import annotations
@@ -27,12 +31,12 @@ from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import unquote, urlencode, urlsplit
 
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, Form, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from opencde import audit
-from opencde.auth import pkce, throttle
+from opencde.auth import pkce, resources, throttle
 from opencde.auth.dependencies import BEARER_CHALLENGE, TokensDep, bearer_token
 from opencde.auth.forms import FormTokenError, FormTokens
 from opencde.auth.scopes import SCOPES, ScopeError, parse_scope, scope_string
@@ -136,9 +140,11 @@ async def authorize_page(
     scope: str | None = None,
     code_challenge: str | None = None,
     code_challenge_method: str | None = None,
+    resource: Annotated[list[str] | None, Query(description="RFC 8707: the MCP endpoint, <public_url>/mcp")] = None,
 ) -> Response:
     """Start of the authorization code flow (RFC 6749 §4.1.1). ``redirect_url`` is accepted as the
-    spelling used in the Foundation API examples."""
+    spelling used in the Foundation API examples. ``resource`` binds the token to the MCP endpoint, with the scope
+    ``mcp`` and, if asked for, ``mcp:propose`` alone (RFC 8707, ADR 0028)."""
     try:
         client, redirect_to = await _resolve_client_and_redirect(clients, client_id, redirect_uri or redirect_url)
     except HTTPException as exc:
@@ -162,8 +168,11 @@ async def authorize_page(
         )
     try:
         scopes = parse_scope(scope)
+        bound_to = resources.binding(scopes, resource, settings)
     except ScopeError as exc:
         return _error_redirect(redirect_to, "invalid_scope", str(exc), state, issuer)
+    except resources.TargetError as exc:
+        return _error_redirect(redirect_to, "invalid_target", str(exc), state, issuer)
 
     token = form_tokens(request).sign(
         FORM_PURPOSE,
@@ -174,6 +183,7 @@ async def authorize_page(
             "state": state,
             "scope": scope_string(scopes),
             "code_challenge": code_challenge,
+            "resource": bound_to,
         },
     )
     return render(
@@ -260,6 +270,8 @@ async def authorize_submit(
             again["redirect_uri"] = redirect_to
         if data["code_challenge"]:
             again |= {"code_challenge": data["code_challenge"], "code_challenge_method": pkce.METHOD}
+        if data.get("resource"):
+            again["resource"] = data["resource"]
         target = safe_next(f"{request.url.path}?{urlencode(again)}")
         response = RedirectResponse(change_password_url(target), status_code=303, headers=NO_STORE)
         set_session_cookie(response, session, settings)
@@ -273,16 +285,13 @@ async def authorize_submit(
         scope=data["scope"],
         code_challenge=data["code_challenge"],
         redirect_required=bool(data.get("redirect_given")) and not data["code_challenge"],
+        resource=data.get("resource"),
     )
     await users.touch_sign_in(user.id)
-    await audit.record(
-        graph,
-        "auth.code.issued",
-        actor=user.id,
-        client_id=client.client_id,
-        ip=ip,
-        details={"scope": data["scope"], "pkce": bool(data["code_challenge"])},
-    )
+    details = {"scope": data["scope"], "pkce": bool(data["code_challenge"])}
+    if data.get("resource"):
+        details["resource"] = data["resource"]
+    await audit.record(graph, "auth.code.issued", actor=user.id, client_id=client.client_id, ip=ip, details=details)
     return _redirect_with(redirect_to, {"code": code, "state": state, "iss": issuer})
 
 
@@ -311,6 +320,14 @@ async def _token_params(request: Request) -> dict[str, str]:
     return params
 
 
+async def _token_resources(request: Request) -> list[str]:
+    """Every ``resource`` of a token request (RFC 8707 lets a client name several), wherever it stands."""
+    values = request.query_params.getlist("resource")
+    if request.headers.get("content-type", "").startswith("application/x-www-form-urlencoded"):
+        values += [str(value) for value in (await request.form()).getlist("resource")]
+    return values
+
+
 async def _authenticate_client(request: Request, clients: Any, params: dict[str, str]) -> Client:
     basic = _basic_credentials(request)
     if basic is not None:
@@ -330,7 +347,9 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
 
     Confidential clients authenticate with HTTP Basic (client_id:client_secret) or form
     fields; public clients send only ``client_id``. Responds ``201 Created`` as the
-    Foundation API examples do. Refresh tokens are single-use and rotate.
+    Foundation API examples do. Refresh tokens are single-use and rotate. A ``resource``
+    (RFC 8707) must be the one the code or the refresh token is bound to, and a token
+    request without one gets tokens bound as they are; anything else is ``invalid_target``.
     """
     params = await _token_params(request)
     try:
@@ -344,7 +363,12 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
     request.state.log_client_id = client.client_id  # for the request log, which otherwise sees no bearer here
     grant_type = params.get("grant_type", "")
     ip = client_ip(request)
+    settings = request.app.state.settings
     try:
+        try:
+            resource = resources.requested(await _token_resources(request), settings)
+        except resources.TargetError as exc:
+            raise GrantError("invalid_target", str(exc)) from None
         if grant_type == "authorization_code":
             code = params.get("code", "")
             if not code:
@@ -355,6 +379,7 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
                 client_id=client.client_id,
                 redirect_uri=redirect_uri,
                 code_verifier=params.get("code_verifier") or None,
+                resource=resource,
             )
             await audit.record(
                 graph, "auth.token.issued", client_id=client.client_id, ip=ip, details={"grant": grant_type}
@@ -363,7 +388,7 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
             refresh_token = params.get("refresh_token", "")
             if not refresh_token:
                 raise GrantError("invalid_request", "refresh_token is required")
-            pair = await tokens.refresh(refresh_token=refresh_token, client_id=client.client_id)
+            pair = await tokens.refresh(refresh_token=refresh_token, client_id=client.client_id, resource=resource)
             await audit.record(graph, "auth.token.refreshed", client_id=client.client_id, ip=ip)
         elif not grant_type:
             raise GrantError("invalid_request", "grant_type is required")
@@ -377,7 +402,6 @@ async def token(request: Request, clients: ClientsDep, tokens: TokensDep, graph:
         return _oauth_error(exc.status, exc.error, exc.description)
 
     # Every client notes its last use; a self-registered client in use also keeps its registration alive.
-    settings = request.app.state.settings
     await clients.touch(client.client_id, expires_at=later_iso(settings.dynamic_client_unused_days * 86400))
     return JSONResponse(
         {

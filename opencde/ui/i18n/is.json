@@ -88,6 +88,8 @@
   "scope.documents": "Skjalaskipti um Documents API.",
   "scope.project": "Stjórnun verkefnanna sem þú berð ábyrgð á (meðlimir og hlutverk).",
   "scope.admin": "Stjórnun þjónsins (notendur, verkefni, biðlarar, skrár) fyrir stjórnendur.",
+  "scope.mcp": "Gervigreindarverkfæri (MCP): lesa líkön, fyrirspurnir og tillögur verkefna þinna og keyra árekstrarprófanir. Ekkert er samþykkt eða birt þessa leið.",
+  "scope.mcp:propose": "Gervigreindarverkfæri (MCP): leggja til breytingasett sem manneskja samþykkir síðan eða hafnar. Ekkert er samþykkt eða birt þessa leið.",
   "auth.error.title": "Ekki er hægt að halda áfram",
   "auth.error.hint": "Forritið sem sendi þig hingað gerði beiðni sem þessi þjónn getur ekki samþykkt, svo þér var ekki beint neitt. Lokaðu glugganum og hafðu samband við þá sem halda forritinu við ef vandinn er viðvarandi.",
   "auth.error.form_expired": "Innskráningareyðublaðið er útrunnið eða hefur verið átt við það. Byrjaðu aftur.",

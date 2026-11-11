@@ -88,6 +88,8 @@
   "scope.documents": "Document exchange through the Documents API.",
   "scope.project": "Administration of the projects you manage (members and roles).",
   "scope.admin": "Server administration (users, projects, clients, logs) for administrators.",
+  "scope.mcp": "AI tools (MCP): reading the models, queries and proposals of your projects, and running clash checks. Nothing is approved or published this way.",
+  "scope.mcp:propose": "AI tools (MCP): proposing change sets, which a person then approves or rejects. Nothing is approved or published this way.",
   "auth.error.title": "Cannot continue",
   "auth.error.hint": "The application that sent you here made a request this server cannot accept, so you were not redirected anywhere. Close this window and contact the application's maintainers if the problem persists.",
   "auth.error.form_expired": "The sign-in form has expired or was tampered with. Start again.",

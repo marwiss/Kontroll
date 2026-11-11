@@ -20,7 +20,7 @@ from fastapi.responses import JSONResponse
 
 from opencde import __version__
 from opencde.accounts.routes_manage import ROLES as MANAGE_ROLES
-from opencde.auth.scopes import SCOPES
+from opencde.auth.scopes import offered_scopes
 from opencde.deps import SettingsDep
 from opencde.documents.changes import MAX_CHANGES, OPS_FORM, OPS_TOOLS, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
@@ -52,7 +52,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
         "server": {"name": "Dataregium OpenCDE server", "version": __version__, "public_url": settings.public_url},
         "apis": offered_apis(settings),
         "bcf_versions": [version for version in (BCF_VERSION, BCF_OLDER_VERSION) if settings.offers(f"bcf-{version}")],
-        "scopes": list(SCOPES),
+        "scopes": offered_scopes(settings),
         "extensions": {
             "dynamic_client_registration": {
                 "enabled": settings.dynamic_client_registration,

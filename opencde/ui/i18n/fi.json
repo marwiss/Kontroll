@@ -88,6 +88,8 @@
   "scope.documents": "Asiakirjojen vaihto Documents API:n kautta.",
   "scope.project": "Niiden projektien hallinta, joista vastaat (jäsenet ja roolit).",
   "scope.admin": "Palvelimen hallinta (käyttäjät, projektit, asiakkaat, lokit) järjestelmänvalvojille.",
+  "scope.mcp": "Tekoälytyökalut (MCP): projektiesi mallien, kyselyjen ja ehdotusten lukeminen sekä törmäystarkastusten ajaminen. Mitään ei hyväksytä eikä julkaista tätä kautta.",
+  "scope.mcp:propose": "Tekoälytyökalut (MCP): muutosjoukkojen ehdottaminen; ihminen hyväksyy tai hylkää ne. Mitään ei hyväksytä eikä julkaista tätä kautta.",
   "auth.error.title": "Ei voi jatkaa",
   "auth.error.hint": "Sinut tänne lähettänyt sovellus teki pyynnön, jota tämä palvelin ei voi hyväksyä, joten sinua ei ohjattu mihinkään. Sulje ikkuna ja ota yhteyttä sovelluksen ylläpitäjiin, jos ongelma jatkuu.",
   "auth.error.form_expired": "Kirjautumislomake on vanhentunut tai sitä on muokattu. Aloita alusta.",

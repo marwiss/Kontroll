@@ -24,6 +24,7 @@ from opencde.admin import api as admin_api
 from opencde.admin import graph_query, routes_requests
 from opencde.admin import router as admin_router
 from opencde.admin.access import install_page_handlers
+from opencde.auth import metadata as oauth2_metadata
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
 from opencde.bootstrap import make_graph, make_storage, make_store, make_workcopy, wait_for_graph
@@ -48,6 +49,7 @@ from opencde.graph.cleanup import ExpiryCleaner
 from opencde.graph.schema import apply_schema
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.logging import configure_logging, get_logger
+from opencde.mcp import auth as mcp_auth
 from opencde.middleware import (
     ApiCORSMiddleware,
     BodySizeLimitMiddleware,
@@ -88,6 +90,11 @@ OPENAPI_TAGS = [
     {
         "name": "Capabilities (extension)",
         "description": "Outside the OpenCDE specifications: which extensions and limits this server has.",
+    },
+    {
+        "name": "OAuth2 metadata (extension)",
+        "description": "Outside the OpenCDE specifications: the authorization server metadata (RFC 8414) and, while "
+        "the MCP endpoint is on, its protected resource metadata (RFC 9728).",
     },
     {
         "name": "IFC validation (extension)",
@@ -231,6 +238,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     if settings.offers("bcf-3.0"):
         app.include_router(foundation_routes.alias_router)
     app.include_router(oauth2_routes.router)
+    app.include_router(oauth2_metadata.router)
+    if settings.mcp_enabled:
+        app.include_router(mcp_auth.router)
     if settings.offers("bcf-3.0"):
         app.include_router(bcf_router.v30)
     if settings.offers("bcf-2.1"):

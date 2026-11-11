@@ -4,7 +4,11 @@
 ``Authorization: Bearer <token>`` is the only way to call the BCF and
 Documents APIs (Foundation API 2.2; cookies are never accepted there). A
 missing or bad token yields ``401`` with a ``WWW-Authenticate`` header;
-a token without the scope a route needs yields ``403``.
+a token without the scope a route needs yields ``403``. A token bound to a
+resource (RFC 8707), the MCP endpoint's, is no token here either: every REST
+route reaches its principal through ``current_principal``, which answers it
+``401 invalid_token`` (ADR 0028), so that an AI's token never reaches the
+approval or the publication.
 """
 
 from __future__ import annotations
@@ -72,6 +76,12 @@ async def current_principal(
         raise HTTPException(  # code "invalid_token" follows from the status
             401,
             "Invalid or expired access token",
+            headers={"WWW-Authenticate": 'Bearer realm="opencde", error="invalid_token"'},
+        )
+    if principal.resource is not None:
+        raise HTTPException(
+            401,
+            "This access token is for the MCP endpoint, not for this API",
             headers={"WWW-Authenticate": 'Bearer realm="opencde", error="invalid_token"'},
         )
     request.state.principal = principal

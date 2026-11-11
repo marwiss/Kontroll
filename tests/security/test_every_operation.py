@@ -31,6 +31,7 @@ PUBLIC = {
     ("GET", "/.well-known/dataregium"),
     ("GET", "/documents/1.0/ifc-changes/schema"),  # the schema a topic's reference_schema points at
     ("GET", "/.well-known/kontroll"),
+    ("GET", "/.well-known/oauth-authorization-server"),  # RFC 8414: where and how to sign in
 }
 
 # A method the document leaves out on an address where another route takes it.

@@ -88,6 +88,8 @@
   "scope.documents": "Dokumentutveksling gjennom Documents API.",
   "scope.project": "Administrasjon av prosjektene du er prosjektansvarlig for (medlemmer og roller).",
   "scope.admin": "Serveradministrasjon (brukere, prosjekter, klienter, logger) for administratorer.",
+  "scope.mcp": "AI-verktøy (MCP): lese modellene, spørringene og forslagene i prosjektene dine og kjøre kollisjonskontroller. Ingenting godkjennes eller publiseres den veien.",
+  "scope.mcp:propose": "AI-verktøy (MCP): foreslå endringssett, som en person deretter godkjenner eller avviser. Ingenting godkjennes eller publiseres den veien.",
   "auth.error.title": "Kan ikke fortsette",
   "auth.error.hint": "Applikasjonen som sendte deg hit, gjorde en forespørsel denne serveren ikke kan godta, så du ble ikke sendt videre. Lukk vinduet og kontakt applikasjonens utviklere hvis problemet vedvarer.",
   "auth.error.form_expired": "Innloggingsskjemaet er utløpt eller er endret. Start på nytt.",

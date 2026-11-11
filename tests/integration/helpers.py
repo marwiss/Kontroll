@@ -42,6 +42,7 @@ def authorize(
     scope: str | None = None,
     state: str = "state-123",
     decision: str = "allow",
+    resource: str | None = None,
 ) -> tuple[str | None, dict[str, list[str]], str]:
     """Run GET + POST on the authorization endpoint. Returns (code, redirect query, verifier)."""
     verifier = secrets.token_urlsafe(48)
@@ -55,6 +56,8 @@ def authorize(
     }
     if scope is not None:
         params["scope"] = scope
+    if resource is not None:
+        params["resource"] = resource
     page = client.get("/foundation/oauth2/auth", params=params)
     assert page.status_code == 200, page.text[:500]
     match = FORM_TOKEN.search(page.text)
@@ -78,10 +81,13 @@ def exchange(
     client_id: str,
     client_secret: str | None = None,
     redirect_uri: str | None = None,
+    resource: str | None = None,
 ) -> Session:
     data = {"grant_type": "authorization_code", "code": code, "code_verifier": verifier}
     if redirect_uri:
         data["redirect_uri"] = redirect_uri
+    if resource:
+        data["resource"] = resource
     headers = basic_auth(client_id, client_secret) if client_secret else {}
     if not client_secret:
         data["client_id"] = client_id
