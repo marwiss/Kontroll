@@ -113,7 +113,8 @@ def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tupl
     assert any(issue["global_id"] == WALLS[0] and "IfcRoot.UR1" in issue["message"] for issue in body["issues"])
 
     viewer = login_as(client, world, "viewer")
-    assert client.get(report_url, headers=viewer.headers).json() == body, "every member may read it"
+    seen = client.get(report_url, headers=viewer.headers).json()  # the graph check may have joined the report since
+    assert (seen["status"], seen["issues"]) == (body["status"], body["issues"]), "every member may read it"
     outsider = login_as(client, world, "outsider")
     assert client.get(report_url, headers=outsider.headers).status_code == 404
     assert client.get(report_url).status_code == 401
