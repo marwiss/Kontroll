@@ -20,10 +20,10 @@ from fastapi.responses import FileResponse
 
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import GraphDep, SettingsDep
-from opencde.documents.repository import DocumentsDep
 from opencde.ids import is_uuid
 from opencde.ifcgraph.gltf import LODS
 from opencde.ifcgraph.service import STATE_DONE, STATE_FAILED, IfcGraphDep
+from opencde.store.documents.versions import DocumentsDep
 
 TAG = "IFC geometry (extension)"
 MEDIA_TYPE = "model/gltf-binary"

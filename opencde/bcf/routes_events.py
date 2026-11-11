@@ -13,12 +13,13 @@ from fastapi import APIRouter, HTTPException, Path
 
 from opencde.bcf import events
 from opencde.bcf.access import ProjectContext, ProjectCtx, parse_guid
-from opencde.bcf.comments import CommentRepository, CommentsDep
 from opencde.bcf.odata_params import ODataDep, ODataParams
 from opencde.bcf.topic_access import TopicContext, TopicCtx
 from opencde.deps import GraphDep
 from opencde.graph.graph import Graph
 from opencde.odata import Compiled
+from opencde.store.bcf.comments import CommentsDep
+from opencde.store.protocols import CommentStore
 
 router = APIRouter(prefix="/projects/{project_id}", tags=["BCF API"])
 
@@ -61,7 +62,7 @@ async def of_comment(
     topic: TopicContext,
     comment_id: str,
     graph: Graph,
-    comments: CommentRepository,
+    comments: CommentStore,
     odata: ODataParams,
     left_out: frozenset[str],
 ) -> list[dict[str, Any]]:

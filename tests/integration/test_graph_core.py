@@ -8,12 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 from neo4j.exceptions import ClientError as GraphClientError
 
-from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
-from opencde.accounts.users import AccountError, UserRepository
 from opencde.admin.doctor import schema_check
-from opencde.auth.clients import ClientError, ClientRepository
-from opencde.documents.repository import DocumentRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.dialect import NEO4J
 from opencde.graph.graph import Graph
@@ -29,7 +25,11 @@ from opencde.seed import (
     seed,
 )
 from opencde.storage import LocalStorage
-from opencde.store.conversions import ConversionRepository, migrate_models
+from opencde.store.accounts.projects import ProjectRepository
+from opencde.store.accounts.users import AccountError, UserRepository
+from opencde.store.documents.versions import DocumentRepository
+from opencde.store.jobs.conversions import ConversionRepository, migrate_models
+from opencde.store.oauth2.clients import ClientError, ClientRepository
 from opencde.timeutil import later_iso
 from tests.integration.conftest import GraphTarget
 

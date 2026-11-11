@@ -17,9 +17,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import SettingsDep
-from opencde.documents.repository import DocumentsDep, VersionRecord
 from opencde.ids import is_uuid, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
+from opencde.store.documents.versions import DocumentsDep, VersionRecord
 
 TAG = "IFC diff (extension)"
 

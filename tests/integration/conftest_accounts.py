@@ -12,13 +12,13 @@ from dataclasses import dataclass
 
 from fastapi.testclient import TestClient
 
-from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
-from opencde.accounts.users import UserRepository
-from opencde.auth.clients import ClientRepository
 from opencde.bootstrap import make_graph
 from opencde.graph.schema import apply_schema
 from opencde.settings import Settings
+from opencde.store.accounts.projects import ProjectRepository
+from opencde.store.accounts.users import UserRepository
+from opencde.store.oauth2.clients import ClientRepository
 from tests.integration.helpers import Session, authorize, exchange, sign_in
 
 PASSWORD = "a-long-and-strong-passphrase"

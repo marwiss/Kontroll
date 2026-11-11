@@ -9,7 +9,6 @@ from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from opencde.bcf.access import ProjectCtx, parse_guid
-from opencde.bcf.bcf_documents import BcfDocumentsDep
 from opencde.bcf.binary import file_response, filename_from_content_disposition, receive_upload
 from opencde.bcf.schemas import dump
 from opencde.deps import SettingsDep, StorageDep
@@ -17,6 +16,7 @@ from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import make_key
+from opencde.store.bcf.documents import BcfDocumentsDep
 
 router = APIRouter(prefix="/projects/{project_id}", tags=["BCF API"])
 

@@ -9,13 +9,13 @@ import pytest
 from neo4j.exceptions import TransientError
 
 from opencde.accounts.roles import Role, comment_actions, project_actions, topic_actions, viewpoint_actions
-from opencde.auth.clients import ClientError, redirect_uri_matches, validate_redirect_uri
 from opencde.auth.passwords import hash_password, password_problems, verify_password
 from opencde.graph import graph as graph_module
 from opencde.graph.dialect import FORBIDDEN_CYPHER, MEMGRAPH, NEO4J
 from opencde.graph.graph import Graph
 from opencde.ids import hash_secret, is_uuid, new_id, new_secret, normalize_guid, secrets_equal
 from opencde.storage import LocalStorage, TooLargeError, make_key
+from opencde.store.oauth2.clients import ClientError, redirect_uri_matches, validate_redirect_uri
 from opencde.timeutil import canonical_iso, is_expired, later_iso, now_iso, parse_iso, to_iso
 from tests.conftest import REPO_ROOT
 

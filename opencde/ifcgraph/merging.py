@@ -40,11 +40,11 @@ from ifc_lpg.merge import (
 )
 from ifc_lpg.validation import pack_report, unpack_report
 
-from opencde.documents.repository import DocumentRepository, default_metadata
 from opencde.documents.schemas import DocumentMetadataEntry
 from opencde.ids import new_id
 from opencde.logging import get_logger
 from opencde.storage import make_key
+from opencde.store.documents.versions import DocumentRepository, default_metadata
 from opencde.timeutil import later_iso, now_iso
 
 if TYPE_CHECKING:

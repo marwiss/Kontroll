@@ -18,13 +18,13 @@ from pydantic import BaseModel, Field
 from opencde.bcf.access import ProjectCtx
 from opencde.bcf.schemas import BimSnippet, TopicPOST
 from opencde.bcf.topic_access import TopicsDep
-from opencde.bcf.topic_links import LinksDep
-from opencde.bcf.topics import validate_against_extensions
 from opencde.deps import ProjectsDep, SettingsDep, StorageDep
 from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE, problems
 from opencde.ids import is_uuid
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.storage import make_key
+from opencde.store.bcf.topic_links import LinksDep
+from opencde.store.bcf.topics import validate_against_extensions
 from opencde.timeutil import now_iso
 
 TAG = "IFC change sets (extension)"

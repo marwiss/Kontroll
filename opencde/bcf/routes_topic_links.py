@@ -22,12 +22,12 @@ from opencde.bcf.schemas import (
     dump,
 )
 from opencde.bcf.topic_access import TopicCtx
-from opencde.bcf.topic_links import LinksDep
 from opencde.deps import SettingsDep, StorageDep
 from opencde.documents.changes import MAX_CHANGE_SET_BYTES, SNIPPET_TYPE, problems
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import LocalStorage, make_key
+from opencde.store.bcf.topic_links import LinksDep
 
 router = APIRouter(prefix="/projects/{project_id}/topics/{topic_id}", tags=["BCF API"])
 

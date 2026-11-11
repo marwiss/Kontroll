@@ -12,10 +12,11 @@ what keeps that a nuisance rather than a lockout, and nothing here ever disables
 
 from __future__ import annotations
 
-from opencde.accounts.users import User, UserRepository
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import hash_secret
 from opencde.settings import Settings
+from opencde.store.accounts.users import User
+from opencde.store.protocols import UserStore
 from opencde.timeutil import later_iso, now_iso, parse_iso
 
 FORGET_AFTER_SECONDS = 24 * 3600
@@ -78,9 +79,7 @@ async def forget(graph: Graph, username: str) -> None:
     await graph.run("MATCH (t:SignInThrottle {key: $key}) DETACH DELETE t", key=_key(username))
 
 
-async def authenticate(
-    users: UserRepository, graph: Graph, settings: Settings, username: str, password: str
-) -> User | None:
+async def authenticate(users: UserStore, graph: Graph, settings: Settings, username: str, password: str) -> User | None:
     """``users.authenticate`` behind the wait. Raises :class:`SignInThrottled` without looking at the password."""
     if not settings.sign_in_throttle_enabled:
         return await users.authenticate(username, password)

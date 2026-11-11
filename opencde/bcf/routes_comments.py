@@ -8,16 +8,16 @@ from typing import Annotated, Any
 from fastapi import APIRouter, HTTPException, Path, Query, Response
 
 from opencde.bcf.access import ProjectContext, parse_guid
-from opencde.bcf.comments import (
-    COMMENT_DEFAULT_ORDER,
-    COMMENT_FIELDS,
-    COMMENT_ORDERABLE,
-    CommentRepository,
-    CommentsDep,
-)
 from opencde.bcf.odata_params import ODataDep, ODataParams
 from opencde.bcf.schemas import CommentAuthorization, CommentGET, CommentPOST, CommentPUT, dump
 from opencde.bcf.topic_access import TopicContext, TopicCtx
+from opencde.store.bcf.comments import (
+    COMMENT_DEFAULT_ORDER,
+    COMMENT_FIELDS,
+    COMMENT_ORDERABLE,
+    CommentsDep,
+)
+from opencde.store.protocols import CommentStore
 
 router = APIRouter(prefix="/projects/{project_id}/topics/{topic_id}/comments", tags=["BCF API"])
 
@@ -38,7 +38,7 @@ def with_authorization(comment: CommentGET, ctx: ProjectContext, include: bool) 
     return body
 
 
-async def found_comments(topic: TopicContext, comments: CommentRepository, odata: ODataParams) -> list[CommentGET]:
+async def found_comments(topic: TopicContext, comments: CommentStore, odata: ODataParams) -> list[CommentGET]:
     compiled = odata.compile(COMMENT_FIELDS, COMMENT_ORDERABLE, COMMENT_DEFAULT_ORDER)
     where = {"user_id": topic.user_id, "project_id": topic.project_id, "topic_guid": topic.guid}
     found = await comments.search(**where, compiled=compiled)
@@ -46,7 +46,7 @@ async def found_comments(topic: TopicContext, comments: CommentRepository, odata
     return found
 
 
-async def found_comment(topic: TopicContext, comment_id: str, comments: CommentRepository) -> CommentGET:
+async def found_comment(topic: TopicContext, comment_id: str, comments: CommentStore) -> CommentGET:
     guid = parse_guid(comment_id, "Comment")
     comment = await comments.get(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid, guid=guid)
     if comment is None:
@@ -55,7 +55,7 @@ async def found_comment(topic: TopicContext, comment_id: str, comments: CommentR
 
 
 async def create_comment(
-    topic: TopicContext, body: CommentPOST, comments: CommentRepository, *, reply_to: str | None = None
+    topic: TopicContext, body: CommentPOST, comments: CommentStore, *, reply_to: str | None = None
 ) -> CommentGET:
     """Add a comment. Needs the ``createComment`` topic action."""
     topic.require_topic_action("createComment")
@@ -68,7 +68,7 @@ async def update_comment(
     topic: TopicContext,
     comment_id: str,
     body: CommentPUT,
-    comments: CommentRepository,
+    comments: CommentStore,
     *,
     change_reply: bool = False,
     reply_to: str | None = None,

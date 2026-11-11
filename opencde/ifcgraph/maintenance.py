@@ -17,7 +17,7 @@ from ifc_lpg.importer import delete_model
 
 from opencde.graph.graph import Graph
 from opencde.storage import LocalStorage
-from opencde.store.conversions import ConversionRepository
+from opencde.store.jobs.conversions import ConversionRepository
 
 
 def delete_geometry(storage: LocalStorage, model_id: str) -> int:

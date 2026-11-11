@@ -28,20 +28,20 @@ from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from opencde import __version__, audit
-from opencde.accounts.projects import Project
 from opencde.accounts.roles import Role
-from opencde.accounts.users import AccountError, User
 from opencde.admin import queries
 from opencde.admin.doctor import run_checks
 from opencde.admin.routes_overview import SAFE_SETTINGS
-from opencde.auth.clients import MAX_DESCRIPTION, Client, ClientError
 from opencde.auth.dependencies import AdminPrincipal, FreshAdminPrincipal, TokensDep, fresh_admin_principal
-from opencde.auth.tokens import Principal
 from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, StorageDep, UsersDep, client_ip
 from opencde.graph.driver import ping_within
 from opencde.graph.graph import Graph
 from opencde.settings import Settings, env_name
-from opencde.web.sessions import WebSessionsDep
+from opencde.store.accounts.projects import Project
+from opencde.store.accounts.sessions import WebSessionsDep
+from opencde.store.accounts.users import AccountError, User
+from opencde.store.oauth2.clients import MAX_DESCRIPTION, Client, ClientError
+from opencde.store.oauth2.tokens import Principal
 
 router = APIRouter(prefix="/admin/api", tags=["Administration (extension)"])
 

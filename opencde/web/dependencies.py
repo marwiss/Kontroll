@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
 from opencde.auth.forms import FormTokens
-from opencde.web.sessions import COOKIE_NAME, WebSessionsDep, WebUser
+from opencde.store.accounts.sessions import COOKIE_NAME, WebSessionsDep, WebUser
 
 NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}
 SIGNOUT_PURPOSE = "web-signout"

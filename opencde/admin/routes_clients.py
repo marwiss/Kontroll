@@ -19,10 +19,10 @@ from opencde.admin.access import (
     redirect_with_notice,
     text,
 )
-from opencde.auth.clients import MAX_DESCRIPTION, Client, ClientError
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import ClientsDep, GraphDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.store.oauth2.clients import MAX_DESCRIPTION, Client, ClientError
 from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
 

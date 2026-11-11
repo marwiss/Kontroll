@@ -15,12 +15,12 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Path
 
-from opencde.accounts.projects import Project
 from opencde.accounts.roles import Role, at_least, comment_actions, project_actions, topic_actions, viewpoint_actions
 from opencde.auth.dependencies import BcfPrincipal
-from opencde.auth.tokens import Principal
 from opencde.deps import ProjectsDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.store.accounts.projects import Project
+from opencde.store.oauth2.tokens import Principal
 
 NOT_FOUND = "Project not found"
 

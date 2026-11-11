@@ -39,7 +39,6 @@ from ifc_lpg.queries import MAX_GLOBAL_IDS, property_values
 from ifc_lpg.spatial import geometry_issues, import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
-from opencde.accounts.teams import TeamRepository
 from opencde.admin.graph_query import ReadingGraph
 from opencde.graph.graph import Graph
 from opencde.graph.schema import SchemaGraph, library_dialect
@@ -49,7 +48,8 @@ from opencde.ifcgraph.gltf import LODS, build_glb
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
-from opencde.store.conversions import (
+from opencde.store.accounts.teams import TeamRepository
+from opencde.store.jobs.conversions import (
     FACTS,
     SPATIAL_FACTS,
     STATE_DONE,
@@ -58,6 +58,7 @@ from opencde.store.conversions import (
     STATE_RUNNING,
     ConversionRepository,
 )
+from opencde.store.protocols import ConversionStore
 from opencde.timeutil import later_iso, now_iso
 
 log = get_logger(__name__)
@@ -128,7 +129,7 @@ class IfcGraphService:
         self.workcopy = workcopy  # the second graph that holds the head model of every document (ADR 0024)
         self.graph = graph
         self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a)
-        self.conversions = ConversionRepository(self.store)
+        self.conversions: ConversionStore = ConversionRepository(self.store)
         self.storage = storage
         self.settings = settings
         self._tasks: set[asyncio.Task[None]] = set()

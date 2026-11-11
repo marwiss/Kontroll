@@ -28,12 +28,10 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from opencde import audit
 from opencde.accounts.roles import project_actions
 from opencde.auth.dependencies import DocumentsPrincipal
-from opencde.auth.tokens import Principal
 from opencde.bcf.binary import file_response, receive_upload
-from opencde.deps import ClientsDep, GraphDep, SettingsDep, StorageDep, UsersDep, client_ip
+from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, StorageDep, UsersDep, client_ip
 from opencde.documents.assembly import AssemblyError, assemble
 from opencde.documents.links import api_base, part_ranges, precheck_url, publication_url, validation_report_url
-from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata, publication_metadata
 from opencde.documents.schemas import (
     DocumentDiscoverySessionInitialization,
     DocumentMetadata,
@@ -52,19 +50,6 @@ from opencde.documents.schemas import (
     UploadFileDetails,
     UploadFilePartInstruction,
 )
-from opencde.documents.sessions import (
-    FILE_CANCELLED,
-    FILE_DONE,
-    FILE_PARTS,
-    STATE_CANCELLED,
-    STATE_METADATA,
-    STATE_NEW,
-    STATE_SELECTED,
-    STATE_UPLOADING,
-    SelectionSessionsDep,
-    UploadSession,
-    UploadSessionsDep,
-)
 from opencde.documents.validation import metadata_entries as validation_metadata
 from opencde.errors import (
     CODE_IFC_VALIDATION_FAILED,
@@ -78,6 +63,21 @@ from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
 from opencde.ratelimit import RATE_UPLOAD, limiter
 from opencde.storage import make_key
+from opencde.store.documents.sessions import (
+    FILE_CANCELLED,
+    FILE_DONE,
+    FILE_PARTS,
+    STATE_CANCELLED,
+    STATE_METADATA,
+    STATE_NEW,
+    STATE_SELECTED,
+    STATE_UPLOADING,
+    SelectionSessionsDep,
+    UploadSession,
+    UploadSessionsDep,
+)
+from opencde.store.documents.versions import DocumentsDep, VersionRecord, default_metadata, publication_metadata
+from opencde.store.oauth2.tokens import Principal
 
 router = APIRouter(prefix="/documents/1.0", tags=["Documents API"])
 
@@ -315,6 +315,7 @@ async def _complete(
     *,
     sessions: UploadSessionsDep,
     documents: DocumentsDep,
+    projects: ProjectsDep,
     storage: StorageDep,
     base: str,
     ifcgraph: IfcGraphService | None = None,
@@ -350,7 +351,7 @@ async def _complete(
     except AssemblyError as exc:
         raise HTTPException(400, str(exc)) from None
     try:
-        project = await _project(documents, project_id)
+        project = await _project(projects, project_id)
         checked = await _check_first(ifcgraph, project, project_id, target, item["file_name"])
     except BaseException:
         storage.delete(target)
@@ -430,14 +431,11 @@ async def _may_upload_headless(clients: Any, users: Any, principal: Principal, b
     await _may_upload(users, principal.user_id, body.project_id)
 
 
-async def _project(documents: DocumentsDep, project_id: str) -> dict[str, Any]:
-    row = await documents.graph.one(
-        "MATCH (p:Project {project_id: $id}) RETURN p.name AS name, p.block_on_validation_errors AS block",
-        id=project_id,
-    )
-    if row is None:
+async def _project(projects: ProjectsDep, project_id: str) -> dict[str, Any]:
+    project = await projects.get(project_id)
+    if project is None:
         raise HTTPException(404, "Project not found")
-    return {"name": str(row["name"]), "block": bool(row["block"])}
+    return {"name": project.name, "block": project.block_on_validation_errors}
 
 
 async def _check_first(
@@ -461,6 +459,7 @@ async def upload_completion(
     file_index: FileIndex,
     sessions: UploadSessionsDep,
     documents: DocumentsDep,
+    projects: ProjectsDep,
     users: UsersDep,
     storage: StorageDep,
     settings: SettingsDep,
@@ -488,7 +487,14 @@ async def upload_completion(
 
     task = asyncio.ensure_future(
         _complete(
-            session, file_index, sessions=sessions, documents=documents, storage=storage, base=base, ifcgraph=ifcgraph
+            session,
+            file_index,
+            sessions=sessions,
+            documents=documents,
+            projects=projects,
+            storage=storage,
+            base=base,
+            ifcgraph=ifcgraph,
         )
     )
     done, _ = await asyncio.wait({task}, timeout=KEEPALIVE_AFTER_SECONDS)

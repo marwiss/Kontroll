@@ -5,9 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from opencde.auth.dependencies import REAUTHENTICATION_WINDOW_SECONDS, fresh_admin_principal
-from opencde.auth.tokens import Principal
 from opencde.errors import ApiError
 from opencde.settings import Settings
+from opencde.store.oauth2.tokens import Principal
 from opencde.timeutil import later_iso
 from tests.integration.conftest_accounts import World, build_world, login_as, login_with_scope
 

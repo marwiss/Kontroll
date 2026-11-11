@@ -37,14 +37,10 @@ from ifc_lpg.validation import pack_report
 from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.accounts.roles import Role, at_least
-from opencde.accounts.teams import TeamRepository, TeamsDep
-from opencde.bcf.comments import CommentsDep
 from opencde.bcf.schemas import CommentPOST, Component, Components, TopicPUT, ViewpointPOST, Visibility
 from opencde.bcf.topic_access import TopicCtx, TopicsDep
-from opencde.bcf.viewpoints import ViewpointsDep
 from opencde.deps import ProjectsDep, SettingsDep, StorageDep
 from opencde.documents.links import api_base
-from opencde.documents.repository import DocumentsDep, default_metadata
 from opencde.documents.routes_clash import camera_looking_at
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion
 from opencde.documents.validation import IfcValidationCheck, IfcValidationIssue
@@ -53,6 +49,11 @@ from opencde.ids import new_id
 from opencde.ifcgraph.parts import owning_objects
 from opencde.ifcgraph.service import STATE_CLEAN, IfcGraphDep, IfcGraphService
 from opencde.storage import LocalStorage, make_key
+from opencde.store.accounts.teams import TeamsDep
+from opencde.store.bcf.comments import CommentsDep
+from opencde.store.bcf.viewpoints import ViewpointsDep
+from opencde.store.documents.versions import DocumentsDep, default_metadata
+from opencde.store.protocols import TeamStore
 
 TAG = "IFC change sets (extension)"
 
@@ -133,7 +134,7 @@ def _report(node: dict[str, Any]) -> IfcProposalReport:
     )
 
 
-async def _may_approve(topic: TopicCtx, teams: TeamRepository, node: dict[str, Any]) -> None:
+async def _may_approve(topic: TopicCtx, teams: TeamStore, node: dict[str, Any]) -> None:
     """F20 a and F21 b: the responsible of the one team whose part the change set touches approves it, as that team
     has it set up now; a change set that touches the parts of several teams, or of none, or whose parts are unknown,
     a ``manager``."""

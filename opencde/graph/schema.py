@@ -15,7 +15,7 @@ from ifc_lpg.graph import ensure_schema
 
 from opencde.graph.graph import Graph
 from opencde.logging import get_logger
-from opencde.store.conversions import migrate_models
+from opencde.store.jobs.conversions import migrate_models
 
 log = get_logger(__name__)
 

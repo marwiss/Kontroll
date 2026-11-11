@@ -20,6 +20,7 @@ from fastapi import Depends
 from opencde.deps import GraphDep, SettingsDep
 from opencde.graph.graph import Graph
 from opencde.ids import hash_secret, new_id, new_secret
+from opencde.store.protocols import SelectionSessionStore, UploadSessionStore
 from opencde.timeutil import later_iso, now_iso
 
 STATE_NEW = "new"  # waiting for the user to fill in metadata or select
@@ -319,7 +320,7 @@ class SelectionSessionRepository:
         )
 
 
-def upload_sessions(graph: GraphDep, settings: SettingsDep) -> UploadSessionRepository:
+def upload_sessions(graph: GraphDep, settings: SettingsDep) -> UploadSessionStore:
     return UploadSessionRepository(
         graph,
         ui_ttl_seconds=settings.documents_session_ttl_seconds,
@@ -327,9 +328,9 @@ def upload_sessions(graph: GraphDep, settings: SettingsDep) -> UploadSessionRepo
     )
 
 
-def selection_sessions(graph: GraphDep, settings: SettingsDep) -> SelectionSessionRepository:
+def selection_sessions(graph: GraphDep, settings: SettingsDep) -> SelectionSessionStore:
     return SelectionSessionRepository(graph, ui_ttl_seconds=settings.documents_session_ttl_seconds)
 
 
-UploadSessionsDep = Annotated[UploadSessionRepository, Depends(upload_sessions)]
-SelectionSessionsDep = Annotated[SelectionSessionRepository, Depends(selection_sessions)]
+UploadSessionsDep = Annotated[UploadSessionStore, Depends(upload_sessions)]
+SelectionSessionsDep = Annotated[SelectionSessionStore, Depends(selection_sessions)]

@@ -11,17 +11,18 @@ from fastapi import Depends, HTTPException, Path
 from opencde.accounts.roles import Role
 from opencde.bcf.access import ProjectContext, ProjectCtx, parse_guid
 from opencde.bcf.schemas import TopicGET
-from opencde.bcf.topics import TopicRepository
 from opencde.deps import GraphDep, SettingsDep
+from opencde.store.bcf.topics import TopicRepository
+from opencde.store.protocols import TopicStore
 
 TopicId = Annotated[str, Path(alias="topic_id", max_length=64)]
 
 
-def topic_repository(graph: GraphDep, settings: SettingsDep) -> TopicRepository:
+def topic_repository(graph: GraphDep, settings: SettingsDep) -> TopicStore:
     return TopicRepository(graph, id_prefix=settings.server_assigned_id_prefix)
 
 
-TopicsDep = Annotated[TopicRepository, Depends(topic_repository)]
+TopicsDep = Annotated[TopicStore, Depends(topic_repository)]
 
 
 @dataclass(frozen=True)

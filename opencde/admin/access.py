@@ -18,10 +18,11 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse, Response
 
 from opencde import audit
-from opencde.accounts.users import UserRepository
 from opencde.auth.forms import FormTokenError
 from opencde.deps import client_ip
 from opencde.graph.graph import Graph
+from opencde.store.accounts.sessions import WebUser
+from opencde.store.protocols import UserStore
 from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
@@ -33,7 +34,6 @@ from opencde.web.dependencies import (
     require_same_origin,
     signin_redirect,
 )
-from opencde.web.sessions import WebUser
 
 # ``?notice=<name>`` after a redirect; the page translates the catalogue key (opencde/ui/i18n/<lang>.json).
 NOTICES = {
@@ -150,7 +150,7 @@ class AdminForm:
         )
 
 
-async def password_confirmed(users: UserRepository, admin: WebUser, password: Any) -> bool:
+async def password_confirmed(users: UserStore, admin: WebUser, password: Any) -> bool:
     """Re-authentication for dangerous actions: the admin's own password, right now."""
     if not isinstance(password, str) or not password:
         return False

@@ -7,12 +7,13 @@ from typing import Annotated
 
 from fastapi import Depends, Request
 
-from opencde.accounts.projects import ProjectRepository
-from opencde.accounts.users import UserRepository
-from opencde.auth.clients import ClientRepository
 from opencde.graph.graph import Graph
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
+from opencde.store.accounts.projects import ProjectRepository
+from opencde.store.accounts.users import UserRepository
+from opencde.store.oauth2.clients import ClientRepository
+from opencde.store.protocols import ClientStore, ProjectStore, UserStore
 
 
 def get_settings(request: Request) -> Settings:
@@ -28,17 +29,17 @@ def get_storage(request: Request) -> LocalStorage:
     return request.app.state.storage
 
 
-def get_users(graph: Annotated[Graph, Depends(get_graph)]) -> UserRepository:
+def get_users(graph: Annotated[Graph, Depends(get_graph)]) -> UserStore:
     return UserRepository(graph)
 
 
-def get_projects(graph: Annotated[Graph, Depends(get_graph)]) -> ProjectRepository:
+def get_projects(graph: Annotated[Graph, Depends(get_graph)]) -> ProjectStore:
     return ProjectRepository(graph)
 
 
 def get_clients(
     graph: Annotated[Graph, Depends(get_graph)], settings: Annotated[Settings, Depends(get_settings)]
-) -> ClientRepository:
+) -> ClientStore:
     return ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
 
 
@@ -49,6 +50,6 @@ def client_ip(request: Request) -> str | None:
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 GraphDep = Annotated[Graph, Depends(get_graph)]
 StorageDep = Annotated[LocalStorage, Depends(get_storage)]
-UsersDep = Annotated[UserRepository, Depends(get_users)]
-ProjectsDep = Annotated[ProjectRepository, Depends(get_projects)]
-ClientsDep = Annotated[ClientRepository, Depends(get_clients)]
+UsersDep = Annotated[UserStore, Depends(get_users)]
+ProjectsDep = Annotated[ProjectStore, Depends(get_projects)]
+ClientsDep = Annotated[ClientStore, Depends(get_clients)]

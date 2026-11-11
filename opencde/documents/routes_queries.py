@@ -19,7 +19,6 @@ from pydantic import BaseModel, Field
 from opencde.admin.graph_query import ReadingGraph
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import GraphDep, SettingsDep
-from opencde.documents.repository import DocumentsDep
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, normalize_guid
 from opencde.ifcgraph.queries import (
@@ -33,6 +32,7 @@ from opencde.ifcgraph.queries import (
 )
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.settings import Settings
+from opencde.store.documents.versions import DocumentsDep
 
 TAG = "IFC queries (extension)"
 

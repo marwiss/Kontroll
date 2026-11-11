@@ -9,9 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Query, Request
 from fastapi.responses import Response
 
-from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
-from opencde.accounts.users import AccountError, User, UserRepository
 from opencde.admin import queries
 from opencde.admin.access import (
     AdminDep,
@@ -26,6 +24,8 @@ from opencde.admin.access import (
 from opencde.auth.dependencies import TokensDep
 from opencde.deps import GraphDep, ProjectsDep, UsersDep
 from opencde.ids import is_uuid
+from opencde.store.accounts.users import AccountError, User
+from opencde.store.protocols import ProjectStore, UserStore
 from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
 
@@ -43,8 +43,8 @@ async def _user_page(
     request: Request,
     admin: AdminDep,
     user: User,
-    users: UserRepository,
-    projects: ProjectRepository,
+    users: UserStore,
+    projects: ProjectStore,
     graph: GraphDep,
     error: str | None = None,
     status_code: int = 200,

@@ -33,7 +33,6 @@ from opencde.bcf import (
     routes_viewpoints,
 )
 from opencde.bcf.access import ProjectContext, ProjectCtx
-from opencde.bcf.comments import CommentsDep
 from opencde.bcf.odata_params import ODataDep
 from opencde.bcf.routes_comments import CommentId
 from opencde.bcf.routes_topics import TopicId
@@ -48,12 +47,13 @@ from opencde.bcf.schemas_v21 import (
     ViewpointPOST21,
 )
 from opencde.bcf.topic_access import TopicCtx, TopicsDep
-from opencde.bcf.topic_links import LinksDep
-from opencde.bcf.viewpoints import ViewpointsDep
 from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep
 from opencde.foundation.routes import CurrentUser, auth_payload_v21, versions_payload
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import limiter, registration_limit
+from opencde.store.bcf.comments import CommentsDep
+from opencde.store.bcf.topic_links import LinksDep
+from opencde.store.bcf.viewpoints import ViewpointsDep
 
 TAG = "BCF API 2.1"
 PROJECT = "/projects/{project_id}"

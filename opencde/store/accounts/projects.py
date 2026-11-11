@@ -16,11 +16,11 @@ from typing import Any
 from ifc_lpg.importer import delete_model
 
 from opencde.accounts.roles import Role
-from opencde.accounts.users import PUBLIC_FIELDS, AccountError, User, _user
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.ifcgraph.maintenance import delete_geometry
 from opencde.storage import LocalStorage
+from opencde.store.accounts.users import PUBLIC_FIELDS, AccountError, User, _user
 from opencde.timeutil import now_iso
 
 MAX_NAME = 200

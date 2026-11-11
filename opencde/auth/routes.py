@@ -33,7 +33,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opencde import audit
 from opencde.auth import pkce, throttle
-from opencde.auth.clients import (
+from opencde.auth.dependencies import BEARER_CHALLENGE, TokensDep, bearer_token
+from opencde.auth.forms import FormTokenError, FormTokens
+from opencde.auth.scopes import SCOPES, ScopeError, parse_scope, scope_string
+from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
+from opencde.errors import CODE_LOCALHOST_REDIRECT, CODE_UNAUTHENTICATED, CODE_VALIDATION, ApiError
+from opencde.ids import secrets_equal
+from opencde.logging import get_logger
+from opencde.ratelimit import RATE_EXCHANGE, limiter, registration_limit, sign_in_limit
+from opencde.store.accounts.sessions import WebSessionsDep, set_session_cookie
+from opencde.store.oauth2.clients import (
     LOCALHOST_REFUSED,
     MAX_DESCRIPTION,
     Client,
@@ -41,20 +50,11 @@ from opencde.auth.clients import (
     redirect_uri_matches,
     validate_redirect_uri,
 )
-from opencde.auth.dependencies import BEARER_CHALLENGE, TokensDep, bearer_token
-from opencde.auth.forms import FormTokenError, FormTokens
-from opencde.auth.scopes import SCOPES, ScopeError, parse_scope, scope_string
-from opencde.auth.tokens import GrantError
-from opencde.deps import ClientsDep, GraphDep, SettingsDep, UsersDep, client_ip
-from opencde.errors import CODE_LOCALHOST_REDIRECT, CODE_UNAUTHENTICATED, CODE_VALIDATION, ApiError
-from opencde.ids import secrets_equal
-from opencde.logging import get_logger
-from opencde.ratelimit import RATE_EXCHANGE, limiter, registration_limit, sign_in_limit
+from opencde.store.oauth2.tokens import GrantError
 from opencde.timeutil import later_iso
 from opencde.ui.i18n import tr
 from opencde.ui.templating import origin_of, render
 from opencde.web.dependencies import change_password_url, safe_next
-from opencde.web.sessions import WebSessionsDep, set_session_cookie
 
 log = get_logger(__name__)
 

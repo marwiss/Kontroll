@@ -10,10 +10,10 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from fastapi.testclient import TestClient
 
-from opencde.accounts.users import UserRepository
 from opencde.auth import pkce
 from opencde.bootstrap import make_graph
 from opencde.settings import Settings
+from opencde.store.accounts.users import UserRepository
 from tests.integration.conftest_accounts import World, build_world
 from tests.integration.test_web_signin import form_token
 

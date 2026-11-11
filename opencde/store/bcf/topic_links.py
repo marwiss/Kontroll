@@ -19,10 +19,10 @@ from opencde.bcf.schemas import (
     FileRef,
 )
 from opencde.bcf.topic_access import TopicsDep
-from opencde.bcf.topics import TopicRepository
 from opencde.deps import GraphDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.store.protocols import TopicLinkStore, TopicStore
 from opencde.timeutil import now_iso
 
 _TOPIC = "MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $topic_guid})"
@@ -48,7 +48,7 @@ def _file(node: dict[str, Any]) -> FileRef:
 
 
 class TopicLinkRepository:
-    def __init__(self, graph: Graph, topics: TopicRepository) -> None:
+    def __init__(self, graph: Graph, topics: TopicStore) -> None:
         self.graph = graph
         self.topics = topics
 
@@ -275,8 +275,8 @@ class TopicLinkRepository:
         )
 
 
-def link_repository(graph: GraphDep, topics: TopicsDep) -> TopicLinkRepository:
+def link_repository(graph: GraphDep, topics: TopicsDep) -> TopicLinkStore:
     return TopicLinkRepository(graph, topics)
 
 
-LinksDep = Annotated[TopicLinkRepository, Depends(link_repository)]
+LinksDep = Annotated[TopicLinkStore, Depends(link_repository)]

@@ -28,14 +28,14 @@ from pydantic import BaseModel, Field, field_validator
 
 from opencde.accounts.roles import Role, at_least
 from opencde.auth.dependencies import DocumentsPrincipal
-from opencde.auth.tokens import Principal
 from opencde.deps import SettingsDep, UsersDep
 from opencde.documents.changes import GUID
-from opencde.documents.repository import DocumentsDep
 from opencde.errors import CODE_VERSION_CONFLICT, ApiError
 from opencde.ids import is_uuid, normalize_guid
 from opencde.ifcgraph import merging
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
+from opencde.store.documents.versions import DocumentsDep
+from opencde.store.oauth2.tokens import Principal
 
 TAG = "IFC merge (extension)"
 

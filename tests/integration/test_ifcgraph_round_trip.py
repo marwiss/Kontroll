@@ -18,13 +18,13 @@ from typer.testing import CliRunner
 
 from opencde import backup
 from opencde import seed as seeding
-from opencde.accounts.projects import ProjectRepository
 from opencde.bootstrap import make_graph, make_storage
 from opencde.cli import app
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.settings import Settings
+from opencde.store.accounts.projects import ProjectRepository
 from tests import conftest
 from tests.integration.conftest import GraphTarget
 

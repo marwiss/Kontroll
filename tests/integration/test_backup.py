@@ -10,14 +10,14 @@ from pathlib import Path
 import pytest
 
 from opencde import backup
-from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
-from opencde.accounts.users import UserRepository
 from opencde.bcf.schemas import TopicPOST
-from opencde.bcf.topics import TopicRepository
 from opencde.graph.graph import Graph
 from opencde.seed import is_empty, wipe
 from opencde.storage import LocalStorage, make_key
+from opencde.store.accounts.projects import ProjectRepository
+from opencde.store.accounts.users import UserRepository
+from opencde.store.bcf.topics import TopicRepository
 
 pytestmark = pytest.mark.integration
 

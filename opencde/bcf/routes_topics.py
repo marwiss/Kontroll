@@ -11,9 +11,9 @@ from opencde.bcf.access import ProjectContext, ProjectCtx, parse_guid
 from opencde.bcf.odata_params import ODataDep
 from opencde.bcf.schemas import TopicAuthorization, TopicGET, TopicPOST, TopicPUT, dump
 from opencde.bcf.topic_access import TopicId, TopicsDep
-from opencde.bcf.topics import TOPIC_DEFAULT_ORDER, TOPIC_FIELDS, TOPIC_ORDERABLE, validate_against_extensions
 from opencde.deps import ProjectsDep, StorageDep
 from opencde.logging import get_logger
+from opencde.store.bcf.topics import TOPIC_DEFAULT_ORDER, TOPIC_FIELDS, TOPIC_ORDERABLE, validate_against_extensions
 
 log = get_logger(__name__)
 

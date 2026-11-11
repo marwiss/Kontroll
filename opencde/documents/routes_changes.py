@@ -17,8 +17,8 @@ from fastapi.responses import JSONResponse
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import SettingsDep
 from opencde.documents.changes import SCHEMA_PATH, change_set_schema
-from opencde.documents.repository import DocumentsDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.store.documents.versions import DocumentsDep
 
 TAG = "IFC change sets (extension)"
 

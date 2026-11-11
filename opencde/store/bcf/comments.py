@@ -19,11 +19,11 @@ from fastapi import Depends, HTTPException
 from opencde.bcf import events
 from opencde.bcf.schemas import CommentFields, CommentGET, CommentPOST, CommentPUT
 from opencde.bcf.topic_access import TopicsDep
-from opencde.bcf.topics import TopicRepository
 from opencde.deps import GraphDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.odata import Compiled, Field
+from opencde.store.protocols import CommentStore, TopicStore
 from opencde.timeutil import now_iso
 
 COMMENT_FIELDS = {"author": Field("c.author", "string"), "date": Field("c.date", "datetime")}
@@ -67,7 +67,7 @@ def _reply_guid(value: str | None) -> str | None:
 
 
 class CommentRepository:
-    def __init__(self, graph: Graph, topics: TopicRepository) -> None:
+    def __init__(self, graph: Graph, topics: TopicStore) -> None:
         self.graph = graph
         self.topics = topics
 
@@ -313,8 +313,8 @@ class CommentRepository:
         return await self.graph.write(work)
 
 
-def comment_repository(graph: GraphDep, topics: TopicsDep) -> CommentRepository:
+def comment_repository(graph: GraphDep, topics: TopicsDep) -> CommentStore:
     return CommentRepository(graph, topics)
 
 
-CommentsDep = Annotated[CommentRepository, Depends(comment_repository)]
+CommentsDep = Annotated[CommentStore, Depends(comment_repository)]

@@ -207,8 +207,8 @@ def test_disabled_user_cannot_sign_in_and_loses_tokens(
 ) -> None:
     import asyncio
 
-    from opencde.accounts.users import UserRepository
     from opencde.bootstrap import make_graph
+    from opencde.store.accounts.users import UserRepository
 
     code, _, verifier = authorize(
         client,

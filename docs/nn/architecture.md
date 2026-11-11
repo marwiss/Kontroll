@@ -28,6 +28,7 @@ flowchart LR
 | BCF API | Saker, kommentarar, viewpointar, hendingar, relaterte saker og prosjektdokument | `opencde/bcf/` |
 | Documents API | Opplasting og utval via sider i nettlesaren, versjonar og metadata | `opencde/documents/` |
 | Kontoar | Brukarar, prosjekt, medlemskap og roller | `opencde/accounts/` |
+| Lagringa | Dei eigne dataa til tenaren per område: kontoar, OAuth2, BCF, Documents og jobbar, kvar ein repository-klasse med si Cypher bak ein protokoll; skild frå IFC-grafen, som IFC-LPG held | `opencde/store/` |
 | Administrasjon | Sider og eit API for administratorar, helsesjekkar og førespurnadsloggen | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Gjer opplasta modellar til nodar og lenkjer viewpoint-komponentar til dei | `opencde/ifcgraph/` |
 | Graflaget | Drivaren, dei to databasedialektane, skjemaet og det som går ut | `opencde/graph/` |

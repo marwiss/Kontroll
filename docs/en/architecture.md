@@ -28,6 +28,7 @@ flowchart LR
 | BCF API | Topics, comments, viewpoints, events, related topics and project documents | `opencde/bcf/` |
 | Documents API | Upload and selection through pages in the browser, versions and metadata | `opencde/documents/` |
 | Accounts | Users, projects, memberships and roles | `opencde/accounts/` |
+| Storage | The server's own data by area: accounts, OAuth2, BCF, Documents and jobs, each a repository with its Cypher behind a protocol; apart from the IFC graph, which IFC-LPG keeps | `opencde/store/` |
 | Administration | Pages and an API for administrators, health checks and the request log | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Turns uploaded models into nodes and links viewpoint components to them | `opencde/ifcgraph/` |
 | Graph layer | The driver, the two database dialects, the schema and what expires | `opencde/graph/` |

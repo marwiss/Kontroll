@@ -18,9 +18,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.accounts.roles import Role, at_least
 from opencde.accounts.routes_manage import IdPath, ProjectPrincipal, _managed, _record
-from opencde.accounts.teams import MAX_MEMBERS, MAX_TEAMS, TeamsDep
 from opencde.deps import GraphDep, ProjectsDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.store.accounts.teams import MAX_MEMBERS, MAX_TEAMS, TeamsDep
 
 router = APIRouter(prefix="/manage/1.0", tags=["Project administration (extension)"])
 

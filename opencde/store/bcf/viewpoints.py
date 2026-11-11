@@ -35,11 +35,11 @@ from opencde.bcf.schemas import (
     Visibility,
 )
 from opencde.bcf.topic_access import TopicsDep
-from opencde.bcf.topics import TopicRepository
 from opencde.deps import GraphDep, SettingsDep, StorageDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.storage import LocalStorage, make_key
+from opencde.store.protocols import TopicStore, ViewpointStore
 from opencde.timeutil import now_iso
 
 ROLE_SELECTION = "selection"
@@ -144,7 +144,7 @@ MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
 
 
 class ViewpointRepository:
-    def __init__(self, graph: Graph, storage: LocalStorage, topics: TopicRepository, *, max_image_bytes: int) -> None:
+    def __init__(self, graph: Graph, storage: LocalStorage, topics: TopicStore, *, max_image_bytes: int) -> None:
         self.graph = graph
         self.storage = storage
         self.topics = topics
@@ -419,8 +419,8 @@ class ViewpointRepository:
 
 def viewpoint_repository(
     graph: GraphDep, storage: StorageDep, topics: TopicsDep, settings: SettingsDep
-) -> ViewpointRepository:
+) -> ViewpointStore:
     return ViewpointRepository(graph, storage, topics, max_image_bytes=settings.max_image_bytes)
 
 
-ViewpointsDep = Annotated[ViewpointRepository, Depends(viewpoint_repository)]
+ViewpointsDep = Annotated[ViewpointStore, Depends(viewpoint_repository)]

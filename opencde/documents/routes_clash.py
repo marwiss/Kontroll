@@ -31,11 +31,11 @@ from opencde.bcf.schemas import (
     Visibility,
 )
 from opencde.bcf.topic_access import TopicsDep
-from opencde.bcf.topics import validate_against_extensions
-from opencde.bcf.viewpoints import ViewpointsDep
 from opencde.deps import ProjectsDep, SettingsDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
 from opencde.ifcgraph.service import IfcGraphDep, IfcGraphService
+from opencde.store.bcf.topics import validate_against_extensions
+from opencde.store.bcf.viewpoints import ViewpointsDep
 
 TAG = "IFC clash check (extension)"
 

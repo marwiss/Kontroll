@@ -28,6 +28,7 @@ flowchart LR
 | BCF API | Asiat, kommentit, näkymät, tapahtumat, liittyvät asiat ja projektin asiakirjat | `opencde/bcf/` |
 | Documents API | Lataus ja valinta selaimen sivuilla, versiot ja metatiedot | `opencde/documents/` |
 | Tilit | Käyttäjät, projektit, jäsenyydet ja roolit | `opencde/accounts/` |
+| Tallennus | Palvelimen omat tiedot alueittain: tilit, OAuth2, BCF, Documents ja työt, kukin repository-luokka Cypherineen protokollan takana; erillään IFC-graafista, jota IFC-LPG pitää | `opencde/store/` |
 | Hallinta | Sivut ja API ylläpitäjille, terveystarkistukset ja pyyntöloki | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Muuttaa ladatut mallit solmuiksi ja linkittää näkymien komponentit niihin | `opencde/ifcgraph/` |
 | Graafikerros | Ajuri, kaksi tietokantadialektia, skeema ja se, mikä vanhenee | `opencde/graph/` |

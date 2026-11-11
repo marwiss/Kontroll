@@ -15,6 +15,7 @@ from fastapi import Depends, HTTPException
 from opencde.bcf.schemas import DocumentGET, FileRef, ProjectFileDisplayInformation, ProjectFileInformation
 from opencde.deps import GraphDep
 from opencde.graph.graph import Graph, Tx
+from opencde.store.protocols import BcfDocumentStore
 from opencde.timeutil import now_iso
 
 _SCOPE = (
@@ -157,8 +158,8 @@ def _entry(
     )
 
 
-def bcf_document_repository(graph: GraphDep) -> BcfDocumentRepository:
+def bcf_document_repository(graph: GraphDep) -> BcfDocumentStore:
     return BcfDocumentRepository(graph)
 
 
-BcfDocumentsDep = Annotated[BcfDocumentRepository, Depends(bcf_document_repository)]
+BcfDocumentsDep = Annotated[BcfDocumentStore, Depends(bcf_document_repository)]

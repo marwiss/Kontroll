@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import pytest
 
-from opencde.auth.clients import ClientRepository
 from opencde.graph.cleanup import delete_expired
 from opencde.graph.graph import Graph
 from opencde.ifcgraph.maintenance import list_models, prune_models
+from opencde.store.oauth2.clients import ClientRepository
 from opencde.timeutil import later_iso
 
 pytestmark = pytest.mark.integration

@@ -19,10 +19,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from opencde import audit
 from opencde.accounts.roles import Role
 from opencde.auth.dependencies import require_scope
-from opencde.auth.tokens import Principal
 from opencde.deps import GraphDep, ProjectsDep, UsersDep, client_ip
 from opencde.errors import CODE_CONFLICT, ApiError
 from opencde.graph.graph import Graph
+from opencde.store.oauth2.tokens import Principal
 
 router = APIRouter(prefix="/manage/1.0", tags=["Project administration (extension)"])
 

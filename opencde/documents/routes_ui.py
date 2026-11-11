@@ -23,9 +23,14 @@ from opencde.bcf.binary import file_response, sanitize_filename
 from opencde.deps import ProjectsDep, SettingsDep, StorageDep, UsersDep
 from opencde.documents.assembly import store_stream
 from opencde.documents.links import api_base, with_query
-from opencde.documents.repository import DocumentsDep, VersionRecord, default_metadata
 from opencde.documents.schemas import MAX_TITLE, MAX_VERSION_NUMBER
-from opencde.documents.sessions import (
+from opencde.documents.validation import report as validation_report
+from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
+from opencde.ids import is_uuid, new_id, normalize_guid
+from opencde.ifcgraph.service import IfcGraphDep
+from opencde.storage import TooLargeError, make_key
+from opencde.store.accounts.sessions import WebUser
+from opencde.store.documents.sessions import (
     STATE_CANCELLED,
     STATE_METADATA,
     STATE_NEW,
@@ -35,11 +40,7 @@ from opencde.documents.sessions import (
     UploadSession,
     UploadSessionsDep,
 )
-from opencde.documents.validation import report as validation_report
-from opencde.errors import CODE_UPLOAD_TOO_LARGE, ApiError
-from opencde.ids import is_uuid, new_id, normalize_guid
-from opencde.ifcgraph.service import IfcGraphDep
-from opencde.storage import TooLargeError, make_key
+from opencde.store.documents.versions import DocumentsDep, VersionRecord, default_metadata
 from opencde.timeutil import now_iso
 from opencde.ui.i18n import tr
 from opencde.ui.links import dataspatium_link
@@ -53,7 +54,6 @@ from opencde.web.dependencies import (
     require_same_origin,
     signin_redirect,
 )
-from opencde.web.sessions import WebUser
 
 router = APIRouter(prefix="/documents/1.0", include_in_schema=False)
 

@@ -14,11 +14,12 @@ from typing import Annotated
 
 from fastapi import Depends, Response
 
-from opencde.accounts.users import PUBLIC_FIELDS, User, _user
 from opencde.deps import GraphDep, SettingsDep
 from opencde.graph.graph import Graph
 from opencde.ids import hash_secret, new_secret
 from opencde.settings import Settings
+from opencde.store.accounts.users import PUBLIC_FIELDS, User, _user
+from opencde.store.protocols import WebSessionStore
 from opencde.timeutil import later_iso, now_iso
 
 COOKIE_NAME = "opencde_session"
@@ -102,10 +103,10 @@ def clear_session_cookie(response: Response) -> None:
     response.delete_cookie(COOKIE_NAME, path="/")
 
 
-def web_sessions(graph: GraphDep, settings: SettingsDep) -> WebSessionRepository:
+def web_sessions(graph: GraphDep, settings: SettingsDep) -> WebSessionStore:
     return WebSessionRepository(
         graph, ttl_seconds=settings.web_session_ttl_seconds, idle_seconds=settings.web_session_idle_seconds
     )
 
 
-WebSessionsDep = Annotated[WebSessionRepository, Depends(web_sessions)]
+WebSessionsDep = Annotated[WebSessionStore, Depends(web_sessions)]

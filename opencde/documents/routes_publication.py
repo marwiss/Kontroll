@@ -28,9 +28,9 @@ from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.bcf.binary import file_response
 from opencde.deps import SettingsDep, StorageDep, UsersDep, client_ip
 from opencde.documents.links import api_base, publication_url
-from opencde.documents.repository import DocumentsDep, VersionRecord
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.storage import LocalStorage, make_key
+from opencde.store.documents.versions import DocumentsDep, VersionRecord
 from opencde.timeutil import now_iso
 
 TAG = "Publication (extension)"

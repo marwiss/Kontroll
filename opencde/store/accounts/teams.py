@@ -17,6 +17,7 @@ from fastapi import Depends
 from opencde.deps import GraphDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import new_id
+from opencde.store.protocols import TeamStore
 from opencde.timeutil import now_iso
 
 MAX_TEAMS = 100  # teams of one project
@@ -148,8 +149,8 @@ class TeamRepository:
         )
 
 
-def team_repository(graph: GraphDep) -> TeamRepository:
+def team_repository(graph: GraphDep) -> TeamStore:
     return TeamRepository(graph)
 
 
-TeamsDep = Annotated[TeamRepository, Depends(team_repository)]
+TeamsDep = Annotated[TeamStore, Depends(team_repository)]

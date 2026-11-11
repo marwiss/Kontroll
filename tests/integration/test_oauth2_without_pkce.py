@@ -17,11 +17,11 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from fastapi.testclient import TestClient
 
-from opencde.accounts.users import UserRepository
 from opencde.auth import pkce
-from opencde.auth.clients import Client, ClientError, ClientRepository
 from opencde.bootstrap import make_graph
 from opencde.settings import Settings
+from opencde.store.accounts.users import UserRepository
+from opencde.store.oauth2.clients import Client, ClientError, ClientRepository
 from tests.integration.conftest_accounts import REDIRECT, World, build_world, login_with_scope
 from tests.integration.helpers import FORM_TOKEN, basic_auth
 from tests.integration.test_admin_ui import notice_of, post

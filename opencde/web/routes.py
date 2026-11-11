@@ -20,6 +20,7 @@ from opencde.auth import throttle
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, SettingsDep, UsersDep, client_ip
 from opencde.ratelimit import limiter, sign_in_limit
+from opencde.store.accounts.sessions import COOKIE_NAME, WebSessionsDep, clear_session_cookie, set_session_cookie
 from opencde.ui.i18n import tr
 from opencde.ui.templating import render
 from opencde.web.dependencies import (
@@ -32,7 +33,6 @@ from opencde.web.dependencies import (
     require_same_origin,
     safe_next,
 )
-from opencde.web.sessions import COOKIE_NAME, WebSessionsDep, clear_session_cookie, set_session_cookie
 
 router = APIRouter(tags=["Web UI"], include_in_schema=False)
 

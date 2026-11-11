@@ -13,10 +13,10 @@ from opencde.bcf.binary import file_response
 from opencde.bcf.images import CONTENT_TYPES
 from opencde.bcf.schemas import ColoringGET, SelectionGET, ViewpointAuthorization, ViewpointPOST, VisibilityGET, dump
 from opencde.bcf.topic_access import TopicCtx
-from opencde.bcf.viewpoints import ViewpointRecord, ViewpointsDep
 from opencde.deps import StorageDep
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.logging import get_logger
+from opencde.store.bcf.viewpoints import ViewpointRecord, ViewpointsDep
 
 log = get_logger(__name__)
 

@@ -24,6 +24,7 @@ from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion, Fi
 from opencde.documents.validation import Validation, with_graph_findings
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import new_id
+from opencde.store.protocols import DocumentStore
 from opencde.timeutil import now_iso
 
 
@@ -449,8 +450,8 @@ def publication_metadata(publication: dict[str, Any], url: str) -> list[Document
     ]
 
 
-def document_repository(graph: GraphDep) -> DocumentRepository:
+def document_repository(graph: GraphDep) -> DocumentStore:
     return DocumentRepository(graph)
 
 
-DocumentsDep = Annotated[DocumentRepository, Depends(document_repository)]
+DocumentsDep = Annotated[DocumentStore, Depends(document_repository)]

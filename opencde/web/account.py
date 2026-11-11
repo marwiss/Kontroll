@@ -13,16 +13,16 @@ from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse, Response
 
 from opencde import audit
-from opencde.accounts.users import AccountError
 from opencde.admin import queries
 from opencde.admin.access import NOTICES, SignedInDep, redirect_with_notice, text
 from opencde.auth.dependencies import TokensDep
 from opencde.auth.forms import FormTokenError
 from opencde.deps import GraphDep, UsersDep, client_ip
+from opencde.store.accounts.sessions import WebSessionsDep
+from opencde.store.accounts.users import AccountError
 from opencde.ui.i18n import tr, tr_error
 from opencde.ui.templating import render
 from opencde.web.dependencies import NO_STORE, form_tokens, page_context, require_same_origin, safe_next
-from opencde.web.sessions import WebSessionsDep
 
 router = APIRouter(include_in_schema=False)
 

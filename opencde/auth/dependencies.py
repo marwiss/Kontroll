@@ -15,11 +15,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from opencde.auth.tokens import Principal, TokenRepository
 from opencde.deps import GraphDep, SettingsDep
 from opencde.errors import CODE_INSUFFICIENT_SCOPE, CODE_REAUTHENTICATION_REQUIRED, CODE_UNAUTHENTICATED, ApiError
 from opencde.graph.graph import Graph
 from opencde.settings import Settings
+from opencde.store.oauth2.tokens import Principal, TokenRepository
+from opencde.store.protocols import TokenStore
 from opencde.timeutil import later_iso
 
 BEARER_CHALLENGE = {"WWW-Authenticate": 'Bearer realm="opencde"'}
@@ -33,7 +34,7 @@ BEARER_SCHEME = HTTPBearer(
 )
 
 
-def token_repository(graph: Graph, settings: Settings) -> TokenRepository:
+def token_repository(graph: Graph, settings: Settings) -> TokenStore:
     return TokenRepository(
         graph,
         code_ttl=settings.authorization_code_ttl_seconds,
@@ -43,11 +44,11 @@ def token_repository(graph: Graph, settings: Settings) -> TokenRepository:
     )
 
 
-def get_tokens(graph: GraphDep, settings: SettingsDep) -> TokenRepository:
+def get_tokens(graph: GraphDep, settings: SettingsDep) -> TokenStore:
     return token_repository(graph, settings)
 
 
-TokensDep = Annotated[TokenRepository, Depends(get_tokens)]
+TokensDep = Annotated[TokenStore, Depends(get_tokens)]
 
 
 def bearer_token(request: Request) -> str | None:

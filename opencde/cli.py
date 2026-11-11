@@ -358,8 +358,8 @@ def revoke(
     everything: Annotated[bool, typer.Option("--all", help="Revoke every token and session on the server.")] = False,
 ) -> None:
     """Revoke access: after a leaked laptop, a compromised client, or as the first step of an incident response."""
-    from opencde.accounts.users import UserRepository
     from opencde.auth.dependencies import token_repository
+    from opencde.store.accounts.users import UserRepository
 
     if sum(bool(x) for x in (username, client_id, everything)) != 1:
         raise _fail("give exactly one of --user, --client or --all")
@@ -453,7 +453,7 @@ def user_create(
     admin: Annotated[bool, typer.Option("--admin", help="Server administrator (admin UI, all management).")] = False,
 ) -> None:
     """Create a user."""
-    from opencde.accounts.users import AccountError, UserRepository
+    from opencde.store.accounts.users import AccountError, UserRepository
 
     generated = password is None
     pw = password or secrets.token_urlsafe(12)
@@ -473,7 +473,7 @@ def user_create(
 @user_app.command("list")
 def user_list() -> None:
     """List users with their project roles."""
-    from opencde.accounts.users import UserRepository
+    from opencde.store.accounts.users import UserRepository
 
     async def work(graph, _settings):
         repo = UserRepository(graph)
@@ -492,7 +492,7 @@ def user_set_password(
     username: str, password: Annotated[str | None, typer.Option(help="Omit to generate one.")] = None
 ) -> None:
     """Set a user's password (shown once when generated)."""
-    from opencde.accounts.users import AccountError, UserRepository
+    from opencde.store.accounts.users import AccountError, UserRepository
 
     pw = password or secrets.token_urlsafe(12)
 
@@ -515,7 +515,7 @@ def user_disable(
     username: str, enable: Annotated[bool, typer.Option("--enable", help="Re-enable instead.")] = False
 ) -> None:
     """Disable (or re-enable) a user. Disabled users cannot sign in and their tokens stop working."""
-    from opencde.accounts.users import AccountError, UserRepository
+    from opencde.store.accounts.users import AccountError, UserRepository
 
     async def work(graph, _settings):
         repo = UserRepository(graph)
@@ -534,9 +534,9 @@ def user_disable(
 @user_app.command("grant")
 def user_grant(username: str, project_id: str, role: str) -> None:
     """Give a user a role (viewer, contributor, editor, manager) in a project."""
-    from opencde.accounts.projects import ProjectRepository
     from opencde.accounts.roles import Role
-    from opencde.accounts.users import AccountError, UserRepository
+    from opencde.store.accounts.projects import ProjectRepository
+    from opencde.store.accounts.users import AccountError, UserRepository
 
     try:
         wanted = Role(role)
@@ -562,7 +562,7 @@ def user_grant(username: str, project_id: str, role: str) -> None:
 @project_app.command("create")
 def project_create(name: str) -> None:
     """Create a project with default BCF extensions."""
-    from opencde.accounts.projects import AccountError, ProjectRepository
+    from opencde.store.accounts.projects import AccountError, ProjectRepository
 
     async def work(graph, _settings):
         try:
@@ -577,7 +577,7 @@ def project_create(name: str) -> None:
 @project_app.command("list")
 def project_list() -> None:
     """List projects and their members."""
-    from opencde.accounts.projects import ProjectRepository
+    from opencde.store.accounts.projects import ProjectRepository
 
     async def work(graph, _settings):
         repo = ProjectRepository(graph)
@@ -606,7 +606,7 @@ def client_create(
     ] = False,
 ) -> None:
     """Register an OAuth2 client. A confidential client's secret is shown once."""
-    from opencde.auth.clients import ClientError, ClientRepository
+    from opencde.store.oauth2.clients import ClientError, ClientRepository
 
     async def work(graph, settings):
         repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
@@ -628,7 +628,7 @@ def client_create(
 @client_app.command("list")
 def client_list() -> None:
     """List OAuth2 clients."""
-    from opencde.auth.clients import ClientRepository
+    from opencde.store.oauth2.clients import ClientRepository
 
     async def work(graph, settings):
         return await ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects).all()
@@ -643,7 +643,7 @@ def client_list() -> None:
 @client_app.command("rotate-secret")
 def client_rotate_secret(client_id: str) -> None:
     """Replace a confidential client's secret. The old secret stops working at once."""
-    from opencde.auth.clients import ClientError, ClientRepository
+    from opencde.store.oauth2.clients import ClientError, ClientRepository
 
     async def work(graph, settings):
         try:
@@ -659,7 +659,7 @@ def client_rotate_secret(client_id: str) -> None:
 @client_app.command("approve")
 def client_approve(client_id: str) -> None:
     """Approve a self-registered client that waits for an administrator."""
-    from opencde.auth.clients import ClientError, ClientRepository
+    from opencde.store.oauth2.clients import ClientError, ClientRepository
 
     async def work(graph, settings):
         repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
@@ -680,7 +680,7 @@ def client_prune(
 ) -> None:
     """Delete self-registered clients unused for OPENCDE_DYNAMIC_CLIENT_UNUSED_DAYS, with their tokens.
     The server does this on its own timer as well; this command does it now."""
-    from opencde.auth.clients import ClientRepository
+    from opencde.store.oauth2.clients import ClientRepository
 
     async def work(graph, settings):
         repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)

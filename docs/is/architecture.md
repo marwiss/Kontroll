@@ -28,6 +28,7 @@ flowchart LR
 | BCF API | Mál, athugasemdir, sjónarhorn, atburðir, tengd mál og skjöl verkefnis | `opencde/bcf/` |
 | Documents API | Upphleðsla og val á síðum í vafranum, útgáfur og lýsigögn | `opencde/documents/` |
 | Reikningar | Notendur, verkefni, aðild og hlutverk | `opencde/accounts/` |
+| Geymslan | Eigin gögn þjónsins eftir sviðum: reikningar, OAuth2, BCF, Documents og verk, hvert þeirra geymsluklasi með sinni Cypher bak við samskiptareglu; aðskilið frá IFC-netinu, sem IFC-LPG heldur | `opencde/store/` |
 | Stjórnun | Síður og API fyrir stjórnendur, heilsufarsathuganir og beiðnaskráin | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Gerir upphlaðin líkön að hnútum og tengir sjónarhornseiningar við þá | `opencde/ifcgraph/` |
 | Graflagið | Rekillinn, gagnagrunnsmállýskurnar tvær, skemað og það sem rennur út | `opencde/graph/` |

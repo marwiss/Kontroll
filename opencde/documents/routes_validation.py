@@ -13,9 +13,9 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Path
 
 from opencde.auth.dependencies import DocumentsPrincipal
-from opencde.documents.repository import DocumentsDep
 from opencde.documents.validation import IfcValidationReport, report
 from opencde.ids import is_uuid, normalize_guid
+from opencde.store.documents.versions import DocumentsDep
 
 TAG = "IFC validation (extension)"
 

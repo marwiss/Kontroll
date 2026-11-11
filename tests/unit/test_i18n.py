@@ -53,8 +53,8 @@ def test_translate_falls_back_and_fills_parameters() -> None:
 def test_user_facing_errors_speak_the_request_language() -> None:
     from starlette.requests import Request
 
-    from opencde.accounts.users import AccountError
     from opencde.auth.passwords import PasswordProblem
+    from opencde.store.accounts.users import AccountError
 
     def request(lang: str) -> Request:
         return Request(

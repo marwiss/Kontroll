@@ -20,11 +20,7 @@ import secrets
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from opencde.accounts.projects import ProjectRepository
 from opencde.accounts.roles import Role
-from opencde.accounts.users import UserRepository
-from opencde.auth.clients import ClientRepository
-from opencde.bcf.comments import CommentRepository
 from opencde.bcf.schemas import (
     CommentPOST,
     Component,
@@ -36,15 +32,19 @@ from opencde.bcf.schemas import (
     ViewpointPOST,
     Visibility,
 )
-from opencde.bcf.topics import TopicRepository
-from opencde.bcf.viewpoints import ViewpointRepository
 from opencde.documents.assembly import store_stream
-from opencde.documents.repository import DocumentRepository, default_metadata
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
+from opencde.store.accounts.projects import ProjectRepository
+from opencde.store.accounts.users import UserRepository
+from opencde.store.bcf.comments import CommentRepository
+from opencde.store.bcf.topics import TopicRepository
+from opencde.store.bcf.viewpoints import ViewpointRepository
+from opencde.store.documents.versions import DocumentRepository, default_metadata
+from opencde.store.oauth2.clients import ClientRepository
 from opencde.timeutil import now_iso
 
 DEMO_USERS: tuple[tuple[str, str, str, bool], ...] = (
