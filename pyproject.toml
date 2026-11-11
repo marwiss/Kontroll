@@ -108,7 +108,7 @@ members = ["client"]
 [tool.uv.sources]
 opencde-client = { workspace = true }
 # From its repository, at a fixed commit, until it is on PyPI (ADR 0014).
-ifc-lpg = { git = "https://github.com/marwiss/IFC-LPG", rev = "e38a71d" }
+ifc-lpg = { git = "https://github.com/marwiss/IFC-LPG", rev = "318d466" }
 
 # ---------------------------------------------------------------------------
 # Tooling. Line length 120 and ruff format follow IfcOpenShell's conventions so
