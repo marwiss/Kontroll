@@ -487,10 +487,10 @@ def test_the_logs_keep_the_text_as_one_string_each(injected: tuple[TestClient, W
     rows = client.get("/admin/api/requests", params={"path": "/bcf/3.0/projects/"}, headers=admin_api.headers)
     assert rows.status_code == 200, rows.text
     logged = {row["path"]: row for row in rows.json()["requests"]}
-    for path in paths.values():
+    for text, path in paths.items():
         assert path in logged, path[:80]
         assert logged[path]["status"] == statuses[path] and re.fullmatch(r"[0-9a-f]{32}", logged[path]["request_id"])
-        if statuses[path] == 404:
+        if statuses[path] == 404 and "/" not in text:  # a slash in the id leaves the route: no principal is made
             assert logged[path]["username"] == "editor"
     assert MARKER not in rows.text, "never a body"
 
