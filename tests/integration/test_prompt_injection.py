@@ -22,7 +22,6 @@ import pytest
 from fastapi.testclient import TestClient
 from ifc_lpg.ids import MAX_RULE
 
-from opencde.accounts.projects import MAX_NAME
 from opencde.bcf.binary import sanitize_filename
 from opencde.bcf.events import TEXT_VALUE_LIMIT, TITLE_VALUE_LIMIT
 from opencde.bcf.schemas import TITLE_MAX, URL_MAX, VALUE_MAX
@@ -30,6 +29,7 @@ from opencde.documents.changes import SCHEMA_PATH, SNIPPET_TYPE
 from opencde.documents.schemas import MAX_VERSION_NUMBER
 from opencde.ids import is_uuid
 from opencde.main import create_app
+from opencde.store.accounts.projects import MAX_NAME
 from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as, login_with_scope
 from tests.integration.test_bcf_comments_viewpoints import PERSPECTIVE

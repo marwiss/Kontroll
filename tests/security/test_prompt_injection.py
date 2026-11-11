@@ -29,16 +29,11 @@ from markupsafe import escape as html_escape
 from starlette.requests import Request
 
 from opencde import audit
-from opencde.accounts.projects import Project
 from opencde.accounts.roles import Role
-from opencde.accounts.users import User
 from opencde.admin.graph_query import check_statement
-from opencde.auth.clients import Client
 from opencde.bcf import schemas as bcf
 from opencde.bcf.binary import attachment_header, filename_from_content_disposition, sanitize_filename
-from opencde.bcf.topics import TOPIC_FIELDS
 from opencde.documents.changes import problems
-from opencde.documents.repository import VersionRecord
 from opencde.documents.schemas import FileToUpload
 from opencde.documents.validation import Validation
 from opencde.ifcgraph.queries import QUERIES, InvalidParameters
@@ -47,9 +42,14 @@ from opencde.main import create_app
 from opencde.odata import MAX_FILTER_LENGTH, ODataError, compile_filter
 from opencde.settings import Settings
 from opencde.storage import CATEGORIES, LocalStorage, make_key
+from opencde.store.accounts.projects import Project
+from opencde.store.accounts.sessions import WebUser
+from opencde.store.accounts.users import User
+from opencde.store.bcf.topics import TOPIC_FIELDS
+from opencde.store.documents.versions import VersionRecord
+from opencde.store.oauth2.clients import Client
 from opencde.ui import i18n
 from opencde.ui.templating import render
-from opencde.web.sessions import WebUser
 from tests.conftest import FIXTURES_DIR
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 from tests.unit.test_ifc_changes import change_set
