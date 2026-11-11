@@ -52,15 +52,15 @@ async def test_prune_keeps_the_latest_finished_model_per_document(graph: Graph) 
     await graph.run(
         """
         CREATE (p:Project {project_id: 'p', name: 'P', created_at: '2026-01-01T00:00:00.000Z'})
-        CREATE (p)-[:HAS_MODEL]->(:Model {id: 'a1', project_id: 'p', document_id: 'A', version_index: 1,
+        CREATE (p)-[:HAS_CONVERSION]->(:Conversion {id: 'a1', model_id: 'a1', project_id: 'p', document_id: 'A', version_index: 1,
                  state: 'done', created_at: '2026-01-01T00:00:00.000Z', done_at: '2026-01-01T00:00:01.000Z'})
-        CREATE (p)-[:HAS_MODEL]->(:Model {id: 'a2', project_id: 'p', document_id: 'A', version_index: 2,
+        CREATE (p)-[:HAS_CONVERSION]->(:Conversion {id: 'a2', model_id: 'a2', project_id: 'p', document_id: 'A', version_index: 2,
                  state: 'done', created_at: '2026-01-02T00:00:00.000Z', done_at: '2026-01-02T00:00:01.000Z'})
-        CREATE (p)-[:HAS_MODEL]->(:Model {id: 'a3', project_id: 'p', document_id: 'A', version_index: 3,
+        CREATE (p)-[:HAS_CONVERSION]->(:Conversion {id: 'a3', model_id: 'a3', project_id: 'p', document_id: 'A', version_index: 3,
                  state: 'failed', created_at: '2026-01-03T00:00:00.000Z', failed_at: '2026-01-03T00:00:01.000Z'})
-        CREATE (p)-[:HAS_MODEL]->(:Model {id: 'b1', project_id: 'p', bcf_document_guid: 'B',
+        CREATE (p)-[:HAS_CONVERSION]->(:Conversion {id: 'b1', model_id: 'b1', project_id: 'p', bcf_document_guid: 'B',
                  state: 'done', created_at: '2026-01-04T00:00:00.000Z', done_at: '2026-01-04T00:00:01.000Z'})
-        CREATE (p)-[:HAS_MODEL]->(:Model {id: 'q1', project_id: 'p', document_id: 'Q', version_index: 1,
+        CREATE (p)-[:HAS_CONVERSION]->(:Conversion {id: 'q1', model_id: 'q1', project_id: 'p', document_id: 'Q', version_index: 1,
                  state: 'queued', created_at: '2026-01-05T00:00:00.000Z'})
         CREATE (:Entity:IfcWall {id: 'a1:1', model_id: 'a1', GlobalId: 'g1'})
         CREATE (:Entity:IfcWall {id: 'a2:1', model_id: 'a2', GlobalId: 'g1'})

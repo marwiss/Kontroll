@@ -174,7 +174,7 @@ class DocumentRepository:
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(p:Project)-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                   -[:HAS_VERSION]->(:DocumentVersion {version_index: $version_index})-[:HAS_VALIDATION]->(r:Validation)
             WITH p, r ORDER BY r.created_at DESC LIMIT 1
-            OPTIONAL MATCH (p)-[:HAS_MODEL]->(m:Model {document_id: $document_id, version_index: $version_index})
+            OPTIONAL MATCH (p)-[:HAS_CONVERSION]->(m:Conversion {document_id: $document_id, version_index: $version_index})
             WHERE m.graph_checked_at IS NOT NULL
             WITH r, m ORDER BY m.created_at DESC LIMIT 1
             RETURN r.state AS state, r.issue_count AS issue_count, r.error_count AS error_count,

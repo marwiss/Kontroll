@@ -275,7 +275,6 @@ async def _as_version(
     key = make_key("documents", new_id())
     with tempfile.TemporaryDirectory(prefix="ifcmerge-") as tmp:
         written = Path(tmp) / "merged.ifc"
-        await service.graph.run("MATCH (m:Model {id: $id}) SET m.state = 'done'", id=model_id)  # for the export
         await service.export(model_id, written)
         size, sha256 = await asyncio.to_thread(_copy_hashed, service, written, key)
     project_name = await service.graph.one(

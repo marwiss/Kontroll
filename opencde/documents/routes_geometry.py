@@ -92,7 +92,7 @@ async def ifc_geometry(
         raise HTTPException(404, "Document version not found")
     rows = await graph.run(
         """
-        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:Model)
+        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_CONVERSION]->(m:Conversion)
         WHERE m.document_id = $document_id AND m.version_index = $version_index
         RETURN m.state AS state, m.id AS id, m.geometry_key AS geometry_key, m.spatial_pending AS pending
         ORDER BY m.created_at DESC LIMIT 1

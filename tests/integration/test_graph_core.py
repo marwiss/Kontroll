@@ -29,6 +29,7 @@ from opencde.seed import (
     seed,
 )
 from opencde.storage import LocalStorage
+from opencde.store.conversions import ConversionRepository, migrate_models
 from opencde.timeutil import later_iso
 from tests.integration.conftest import GraphTarget
 
@@ -78,6 +79,30 @@ async def test_the_same_as_relationships_of_earlier_releases_are_removed_at_star
     assert await drop_same_as(graph) == 0, "nothing is left to remove"
     rows = await graph.run("MATCH (c:Component), (e:Entity {GlobalId: c.ifc_guid}) RETURN count(*) AS n")
     assert rows[0]["n"] == 1, "the nodes stay and still meet by GlobalId"
+
+
+async def test_the_models_of_earlier_releases_get_their_conversion_at_startup(graph: Graph) -> None:
+    """Step two of IFC-LPG's F38 a: the server's properties move from Model to Conversion; state stays for the
+    library's 1.x rule, and a model without a project, the working copy's, only loses the server's properties."""
+    await graph.run(
+        """
+        CREATE (p:Project {project_id: 'pm', name: 'P', created_at: 'x'})
+        CREATE (p)-[:HAS_MODEL]->(:Model {id: 'old', project_id: 'pm', document_id: 'D', version_index: 1,
+                 file_name: 'old.ifc', storage_key: 'k', state: 'done', created_at: 'a', done_at: 'b', schema: 'IFC4',
+                 entities: 3, lossless: true})
+        CREATE (:Model {id: 'copy', project_id: 'pm', document_id: 'D', version_index: 1, state: 'done', schema: 'IFC4'})
+        """
+    )
+    assert await migrate_models(graph) == 2
+    conversion = await ConversionRepository(graph).get("old")
+    assert conversion is not None and conversion["model_id"] == "old" and conversion["state"] == "done"
+    assert conversion["document_id"] == "D" and conversion["schema"] == "IFC4" and conversion["entities"] == 3
+    rows = await graph.run("MATCH (m:Model) RETURN m.id AS id, properties(m) AS m ORDER BY id")
+    left = {row["id"]: row["m"] for row in rows}
+    assert "project_id" not in left["old"] and "document_id" not in left["copy"], "the server's properties went"
+    assert left["old"]["state"] == "done" and left["old"]["schema"] == "IFC4", "the library's own and state stay"
+    assert (await graph.run("MATCH (:Project)-[r:HAS_MODEL]->() RETURN count(r) AS n"))[0]["n"] == 0
+    assert await migrate_models(graph) == 0, "nothing is left to move"
 
 
 async def test_the_doctor_counts_the_constraints_on_both_products(graph: Graph) -> None:

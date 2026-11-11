@@ -165,7 +165,7 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Project ||--o{ Model : HAS_MODEL
+    Project ||--o{ Conversion : HAS_CONVERSION
     Project ||--o{ Merge : HAS_MERGE
     Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
@@ -175,7 +175,8 @@ erDiagram
 
 | Etikett | Nøkkel | Eigenskapar | Merknader |
 |---|---|---|---|
-| `Model` | `id`, indeksert `project_id` | `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, tidsstempel | Éin per importert fil; `state` er `queued`, `running`, `done` eller `failed` |
+| `Conversion` | `id`, indeksert `project_id`, `document_id` | `model_id`, `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `created_at`, `running_at`, `done_at`, `failed_at`, `error`, `geometry_key`, `spatial_pending`, `spatial_error`, `graph_report`, `graph_issue_count`, `graph_error_count`, `graph_ruleset`, `graph_checked_at`, `merge_of`, og ein kopi av importen sine `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `form_version`, `format`, `spatial_at`, `spatial_products` og `spatial_failed` | Posten til tenaren om ei konvertering (`HAS_CONVERSION`): fila ho kom frå, livssyklusen (`state` er `queued`, `running`, `done` eller `failed`), geometripostane og grafkontrollen; `model_id` namngjev modellen, som ber same id, og ingenting anna knyter dei to saman. Blir sletta med prosjektet |
+| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | Posten til IFC-LPG om ein importert modell, skriven av biblioteket åleine; `imported_at` seier at han er heil i grafen (ein modell frå før 2026-11-11 held på `state` `done` for det). Tenaren skriv aldri på han |
 | `Entity` + klasseetikettar | `id` (`<modell-id>:<step-id>`), indeksert `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkt i prosjektkoordinatar, meter, på ein bygningsdel med form), kvart literalt IFC-attributt ved namn | Relasjonar mellom entitetar blir namngjevne etter IFC-attributtet (framover og inverst), skrivne som kvar relasjonstype med store bokstavar og understrekar: `IsDefinedBy` blir `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<modell-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instansar i ein modell konvertert med `OPENCDE_IFC_LPG_LOSSLESS` som ikkje er nodar: skrivne ut som STEP i id-rekkjefølgje og komprimerte. Ikkje returner noden heil i ei spørjing, på grunn av `text` |
 | `Merge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Ein bygning frå modell B ført inn i ein modell i prosjektet (`HAS_MERGE`); `request` oppgjev begge versjonane, og `version_index` er versjonen han vart. Den samanslåtte modellen blir teken ut av grafen når han er skriven ut. Blir sletta med prosjektet |

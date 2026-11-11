@@ -25,7 +25,7 @@ the `ifc-lpg` extra adds the worker processes that do.
 
 1. A Documents API upload completes (or a file is uploaded from the selection
    page, or a BCF project document is posted) with a `.ifc` or `.ifczip` name.
-2. The server creates an `Model` node (state `queued`) attached to the
+2. The server creates a `Conversion` record (state `queued`) under the
    project and starts a conversion in the background, one at a time.
 3. A separate worker process (`python -m ifc_lpg.worker`) reads the
    file. It runs with a time limit
@@ -34,7 +34,7 @@ the `ifc-lpg` extra adds the worker processes that do.
    (`OPENCDE_IFC_LPG_MAX_ENTITIES`). A crash or a hang kills the worker, not
    the server. `.ifczip` is unpacked with the upload size cap.
 4. The records are imported in batches of `UNWIND … CREATE` (portable Cypher,
-   no APOC). The `Model` ends in state `done` with counts and the
+   no APOC). The `Conversion` ends in state `done` with counts and the
    `IfcProject` guid, or `failed` with an error.
 5. A conversion a stopped server left behind starts over: a queued one as soon as the server is back, a
    running one once twice the time limit has passed, since it could be running in another server process.
@@ -327,7 +327,7 @@ converted by an earlier version, cannot be written back.
 
 ## Housekeeping
 
-Every upload of an IFC file adds an `Model` with its entities, so a project
+Every upload of an IFC file adds a `Conversion` and a model with its entities, so a project
 that receives new versions accumulates graphs nobody queries. The command line
 lists and prunes them; the documents and their files always stay:
 
@@ -343,7 +343,7 @@ document should pick the latest finished model themselves, since older
 versions stay until pruned:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_CONVERSION]->(m:Conversion {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -715,10 +715,10 @@ its card IFC-LPG, through that query or over Bolt.
 - One conversion at a time; large models queue. The example model (248
   entities) imports in about a second; a 200 MB architectural model takes
   minutes.
-- The `Model` node carries `state`, `entities`, `relationships`, `skipped`,
+- The `Conversion` carries `state`, `entities`, `relationships`,
   `lossless`, `geometry`, `schema`, `ifc_project_guid`, timestamps and `error`. Administrators can
   inspect it in Neo4j Browser or Memgraph Lab:
-  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (c:Conversion) RETURN c.file_name, c.state, c.entities, c.error`.
 - Deleting a project deletes its models' entities with it.
 - A model comes back identical from both databases at up to 224,496 instances and 19 MB, in
   every form measured. Nothing larger has been tried.

@@ -85,7 +85,7 @@ async def _model_state(
         raise HTTPException(404, "Document version not found")
     rows = await graph.run(
         """
-        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_MODEL]->(m:Model)
+        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_CONVERSION]->(m:Conversion)
         WHERE m.document_id = $document_id AND m.version_index = $version_index
         RETURN m.state AS state, m.id AS id ORDER BY m.created_at DESC LIMIT 1
         """,
@@ -228,7 +228,7 @@ async def ifc_query(
         raise HTTPException(400, str(exc)) from None
     if state != "done":
         raise HTTPException(409, f"The IFC graph of this version is {state}, not done")
-    target = graph
+    target = ifcgraph.graph if ifcgraph is not None else graph  # the IFC graph, apart from the server's own (F24 a)
     if ifcgraph is not None and ifcgraph.workcopy is not None and await ifcgraph.in_workcopy(model_id):
         target = ifcgraph.workcopy
     try:

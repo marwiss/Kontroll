@@ -40,7 +40,7 @@ def wait_for_geometry(client: TestClient, graph_target: GraphTarget, timeout: fl
     deadline = time.monotonic() + timeout
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
         while time.monotonic() < deadline:
-            records, _, _ = driver.execute_query("MATCH (m:Model) RETURN properties(m) AS m", database_=database)
+            records, _, _ = driver.execute_query("MATCH (c:Conversion) RETURN properties(c) AS m", database_=database)
             model = records[0]["m"] if records else {}
             if model.get("state") == "failed" or (model.get("state") == "done" and not model.get("spatial_pending")):
                 return model
@@ -110,10 +110,12 @@ def test_the_products_get_boxes_and_the_version_comes_as_gltf(
 
     # A model converted before the geometry pass existed has no records: 404, not a wait that never ends.
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
-        driver.execute_query("MATCH (m:Model) REMOVE m.geometry_key", database_=database)
+        driver.execute_query("MATCH (c:Conversion) REMOVE c.geometry_key", database_=database)
     assert client.get(url, headers=editor.headers).status_code == 404
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
-        driver.execute_query("MATCH (m:Model) SET m.geometry_key = $key", key=model["geometry_key"], database_=database)
+        driver.execute_query(
+            "MATCH (c:Conversion) SET c.geometry_key = $key", key=model["geometry_key"], database_=database
+        )
 
     storage = client.app.state.storage  # type: ignore[attr-defined]
     kept = [key for key in storage.iter_keys("geometry") if key.startswith(f"geometry/{model['id']}.")]

@@ -168,7 +168,7 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Project ||--o{ Model : HAS_MODEL
+    Project ||--o{ Conversion : HAS_CONVERSION
     Project ||--o{ Merge : HAS_MERGE
     Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
@@ -178,7 +178,8 @@ erDiagram
 
 | Nimiö | Avain | Ominaisuudet | Huomautukset |
 |---|---|---|---|
-| `Model` | `id`, indeksoitu `project_id` | `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, aikaleimat | Yksi tuotua tiedostoa kohti; `state` on `queued`, `running`, `done` tai `failed` |
+| `Conversion` | `id`, indeksoitu `project_id`, `document_id` | `model_id`, `document_id`, `version_index` tai `bcf_document_guid`, `file_name`, `storage_key`, `state`, `created_at`, `running_at`, `done_at`, `failed_at`, `error`, `geometry_key`, `spatial_pending`, `spatial_error`, `graph_report`, `graph_issue_count`, `graph_error_count`, `graph_ruleset`, `graph_checked_at`, `merge_of`, sekä kopio tuonnin kentistä `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `form_version`, `format`, `spatial_at`, `spatial_products` ja `spatial_failed` | Palvelimen tietue muunnoksesta (`HAS_CONVERSION`): tiedosto, josta se tuli, sen elinkaari (`state` on `queued`, `running`, `done` tai `failed`), geometriatietueet ja graafitarkistus; `model_id` nimeää mallin, jolla on sama tunniste, eikä mikään muu yhdistä niitä. Poistetaan projektin mukana |
+| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | IFC-LPG:n tietue tuodusta mallista, jonka vain kirjasto kirjoittaa; `imported_at` kertoo, että se on kokonaan graafissa (ennen 2026-11-11 tuotu malli säilyttää sitä varten `state`-arvon `done`). Palvelin ei koskaan kirjoita siihen |
 | `Entity` + luokkanimiöt | `id` (`<mallin tunnus>:<step-tunnus>`), indeksoitu `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (pisteet projektikoordinaateissa, metreinä, rakennusosalla, jolla on muoto), jokainen literaali IFC-attribuutti nimellään | Entiteettien väliset suhteet nimetään IFC-attribuutin mukaan (eteen- ja käänteissuuntaan), kirjoitettuina kuten jokainen suhdetyyppi isoin kirjaimin ja alaviivoin: `IsDefinedBy` muuttuu `IS_DEFINED_BY`:ksi |
 | `StepBlock` | `id` (`<mallin tunnus>:<ensimmäinen step-tunnus>`) | `first_step`, `instances`, `text` | Asetuksella `OPENCDE_IFC_LPG_LOSSLESS` muunnetun mallin instanssit, jotka eivät ole solmuja: kirjoitettu STEP-muotoon tunnusjärjestyksessä ja pakattu. Älä palauta solmua kokonaisena kyselyssä `text`-kentän vuoksi |
 | `Merge` | `id` | `project_id`, `kind` (`merge` tai `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Mallin B rakennus tuotuna projektin malliin (`HAS_MERGE`); `request` nimeää molemmat versiot, ja `version_index` on versio, joksi se tuli. Yhdistetty malli poistetaan graafista, kun se on kirjoitettu ulos. Poistetaan projektin mukana |

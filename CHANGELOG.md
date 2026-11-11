@@ -10,7 +10,7 @@ the commit history.
 
 ## 3.0.0 — 2026-11-11
 
-Released again on 2026-11-11 (the eleventh time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
+Released again on 2026-11-11 (the twelfth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
 2026-11-10 and earlier on 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
@@ -19,6 +19,14 @@ the merge, the version nodes and the diff between two versions, the local engine
 uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per element in the graph, the merge by
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
+
+- The server's record of a conversion is its own node, `Conversion`, under the project (`HAS_CONVERSION`): the
+  file, the lifecycle, the geometry key, the graph check and a copy of the import's facts; `Model` is IFC-LPG's
+  alone, written by the library and marked whole with `imported_at`. The models of earlier releases get their
+  `Conversion` when the server starts. The server's own data can live in a graph of its own
+  (`OPENCDE_STORE_GRAPH_URI` with its dialect, user, password and database); by default it shares the IFC graph's
+  connection. Cypher of one's own that read `Model.state` or walked `HAS_MODEL` reads `Conversion` and
+  `HAS_CONVERSION` instead, joined to the model by `model_id`.
 
 - The named queries, the GTIN of a viewpoint's components and the constraints of the IFC graph come from IFC-LPG
   1.0.0 at 6f6d05b: a query added to the library's catalogue appears in `GET …/ifc-queries` as it is, and the

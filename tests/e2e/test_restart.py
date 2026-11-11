@@ -109,7 +109,7 @@ def test_what_people_stored_outlives_the_containers(compose: Compose) -> None:
         tokens = before.tokens
 
         deadline = time.monotonic() + 180
-        done = "MATCH (m:Model {file_name: 'restart.ifc', state: 'done'}) RETURN count(m) AS models"
+        done = "MATCH (c:Conversion {file_name: 'restart.ifc', state: 'done'}) RETURN count(c) AS models"
         while _count(compose, done) != 1:
             assert time.monotonic() < deadline, "the IFC import did not finish in time"
             time.sleep(2)

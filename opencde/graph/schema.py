@@ -15,6 +15,7 @@ from ifc_lpg.graph import ensure_schema
 
 from opencde.graph.graph import Graph
 from opencde.logging import get_logger
+from opencde.store.conversions import migrate_models
 
 log = get_logger(__name__)
 
@@ -39,6 +40,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("BcfDocument", "guid"),
     ("Document", "document_id"),
     ("DocumentVersion", "id"),
+    ("Conversion", "id"),
     ("Validation", "id"),
     ("UploadSession", "id"),
     ("UploadPart", "id"),
@@ -72,7 +74,8 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("SelectionSession", "token_hash"),
     ("DocumentVersion", "version_index"),
     ("Component", "ifc_guid"),
-    ("Model", "project_id"),
+    ("Conversion", "project_id"),
+    ("Conversion", "document_id"),
     ("RequestLog", "at"),
     ("RequestLog", "expires_at"),
 )
@@ -178,4 +181,5 @@ async def apply_schema(graph: Graph) -> int:
     (log.info if changed else log.debug)("schema_applied", dialect=dialect.name.value, changed=changed)
     await relabel_after_the_rename(graph)
     await drop_same_as(graph)
+    await migrate_models(graph)
     return changed

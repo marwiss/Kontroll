@@ -27,7 +27,7 @@ IfcOpenShelliä; `ifc-lpg`-lisäosa lisää työprosessit, jotka tarvitsevat sit
 1. Documents API -lähetys valmistuu (tai tiedosto lähetetään valintasivulta,
    tai BCF-projektiasiakirja postataan) nimellä, jonka pääte on `.ifc` tai
    `.ifczip`.
-2. Palvelin luo projektiin liitetyn `Model`-solmun (tila `queued`) ja
+2. Palvelin luo projektiin liitetyn `Conversion`-tietueen (tila `queued`) ja
    käynnistää muunnoksen taustalla, yhden kerrallaan.
 3. Erillinen työprosessi (`python -m ifc_lpg.worker`) lukee
    tiedoston. Se toimii aikarajalla
@@ -37,7 +37,7 @@ IfcOpenShelliä; `ifc-lpg`-lisäosa lisää työprosessit, jotka tarvitsevat sit
    tappaa työprosessin, ei palvelinta. `.ifczip` puretaan lähetyksen
    kokorajan puitteissa.
 4. Tietueet tuodaan erissä `UNWIND … CREATE` -lauseilla (siirrettävä Cypher,
-   ei APOC:ia). `Model` päätyy tilaan `done` lukumäärineen ja
+   ei APOC:ia). `Conversion` päätyy tilaan `done` lukumäärineen ja
    `IfcProject`-guidin kanssa, tai tilaan `failed` virheen kanssa.
 5. Muunnos, jonka pysäytetty palvelin jätti kesken, alkaa alusta: jonossa oleva heti, kun palvelin on taas
    käynnissä, ja käynnissä ollut, kun kaksinkertainen aikaraja on kulunut, koska se voi olla käynnissä toisessa palvelinprosessissa.
@@ -337,7 +337,7 @@ Tällaista mallia, kuten aiemman version muuntamaakaan, ei voi kirjoittaa takais
 
 ## Ylläpito
 
-Jokainen IFC-tiedoston lähetys lisää `Model`-solmun entiteetteineen, joten
+Jokainen IFC-tiedoston lähetys lisää `Conversion`-tietueen ja mallin entiteetteineen, joten
 uusia versioita vastaanottava projekti kerää graafeja, joita kukaan ei
 kysele. Komentorivi luettelee ja karsii ne; asiakirjat ja niiden tiedostot
 säilyvät aina:
@@ -354,7 +354,7 @@ jotka haluavat yhden graafin asiakirjaa kohti, tulee itse valita uusin valmis
 malli, koska vanhemmat versiot säilyvät karsintaan asti:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_CONVERSION]->(m:Conversion {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -732,11 +732,11 @@ myös piirtää graafin korttiinsa IFC-LPG tuon kyselyn kautta tai Boltilla.
 - Yksi muunnos kerrallaan; suuret mallit jonottavat. Esimerkkimalli (248
   entiteettiä) tuodaan noin sekunnissa; 200 MB:n arkkitehtimalli vie
   minuutteja.
-- `Model`-solmu kantaa kentät `state`, `entities`, `relationships`,
+- `Conversion` kantaa kentät `state`, `entities`, `relationships`,
   `skipped`, `lossless`, `geometry`, `schema`, `ifc_project_guid`, aikaleimat ja `error`.
   Järjestelmänvalvojat voivat tarkastella sitä Neo4j Browserissa tai
   Memgraph Labissa:
-  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (c:Conversion) RETURN c.file_name, c.state, c.entities, c.error`.
 - Projektin poisto poistaa sen mallien entiteetit samalla.
 - Malli palautuu identtisenä molemmista tietokannoista 224 496 instanssiin ja 19 megatavuun
   asti kaikissa mitatuissa muodoissa. Suurempia ei ole kokeiltu.

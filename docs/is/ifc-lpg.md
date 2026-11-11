@@ -24,7 +24,7 @@ IfcOpenShell; aukapakkinn `ifc-lpg` bætir við vinnsluferlunum sem þurfa það
 
 1. Documents API-upphali lýkur (eða skrá er hlaðið upp frá valsíðunni, eða
    BCF-verkefnisskjal er póstað) með `.ifc`- eða `.ifczip`-heiti.
-2. Þjónninn býr til `Model`-hnút (staða `queued`) tengdan verkefninu og
+2. Þjónninn býr til `Conversion`-færslu (staða `queued`) tengda verkefninu og
    hefur umbreytingu í bakgrunni, eina í einu.
 3. Sérstakt vinnuferli (`python -m ifc_lpg.worker`) les skrána. Það keyrir með tímamörkum
    (`OPENCDE_IFC_LPG_TIMEOUT_SECONDS`, 15 mínútur), vistfangarýmismörkum á
@@ -32,7 +32,7 @@ IfcOpenShell; aukapakkinn `ifc-lpg` bætir við vinnsluferlunum sem þurfa það
    (`OPENCDE_IFC_LPG_MAX_ENTITIES`). Hrun eða frysting drepur vinnuferlið,
    ekki þjóninn. `.ifczip` er pakkað upp innan stærðarmarka upphalsins.
 4. Færslurnar eru fluttar inn í lotum með `UNWIND … CREATE` (flytjanlegt
-   Cypher, ekkert APOC). `Model` endar í stöðunni `done` með talningum og
+   Cypher, ekkert APOC). `Conversion` endar í stöðunni `done` með talningum og
    `IfcProject`-guid, eða `failed` með villu.
 5. Umbreyting sem stöðvaður þjónn skildi eftir byrjar upp á nýtt: sú sem bíður í röð um leið og þjónninn er
    kominn aftur, sú sem var í gangi þegar tvöföld tímamörk eru liðin, því að hún gæti verið í gangi í öðru þjónsferli.
@@ -323,7 +323,7 @@ IfcOpenShell og því sem ekki eru hnútar er sleppt alveg. Slíkt líkan, eins 
 
 ## Umhirða
 
-Hvert upphal IFC-skrár bætir við `Model` með einingum sínum, svo verkefni
+Hvert upphal IFC-skrár bætir við `Conversion` og líkani með einingum sínum, svo verkefni
 sem fær nýjar útgáfur safnar gröfum sem enginn spyr um. Skipanalínan telur
 þau upp og grisjar; skjölin og skrár þeirra haldast alltaf:
 
@@ -339,7 +339,7 @@ graf á hvert skjal ættu sjálfar að velja nýjasta lokna líkanið, þar sem 
 útgáfur haldast þar til þær eru grisjaðar:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_CONVERSION]->(m:Conversion {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -709,10 +709,10 @@ spjaldinu IFC-LPG, í gegnum þá fyrirspurn eða yfir Bolt.
 
 - Ein umbreyting í einu; stór líkön fara í biðröð. Sýnilíkanið (248 einingar)
   er flutt inn á um einni sekúndu; 200 MB arkitektalíkan tekur mínútur.
-- `Model`-hnúturinn ber `state`, `entities`, `relationships`, `skipped`,
+- `Conversion` ber `state`, `entities`, `relationships`,
   `lossless`, `geometry`, `schema`, `ifc_project_guid`, tímastimpla og `error`. Stjórnendur geta
   skoðað hann í Neo4j Browser eða Memgraph Lab:
-  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (c:Conversion) RETURN c.file_name, c.state, c.entities, c.error`.
 - Að eyða verkefni eyðir einingum líkana þess með því.
 - Líkan kemur eins til baka úr báðum gagnagrunnum upp að 224.496 tilvikum og 19 MB, í hverju
   formi sem var mælt. Ekkert stærra hefur verið prófað.

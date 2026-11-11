@@ -20,7 +20,8 @@ def get_settings(request: Request) -> Settings:
 
 
 def get_graph(request: Request) -> Graph:
-    return request.app.state.graph
+    """The graph of the server's own data; the IFC graph is the IFC-LPG service's (F24 a)."""
+    return request.app.state.store
 
 
 def get_storage(request: Request) -> LocalStorage:

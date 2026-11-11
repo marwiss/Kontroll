@@ -28,7 +28,7 @@ extrapaketet `ifc-lpg` lägger till de arbetsprocesser som gör det.
 1. En Documents API-uppladdning slutförs (eller en fil laddas upp från
    urvalssidan, eller ett BCF-projektdokument postas) med ett `.ifc`- eller
    `.ifczip`-namn.
-2. Servern skapar en `Model`-nod (tillstånd `queued`) kopplad till
+2. Servern skapar en `Conversion`-post (tillstånd `queued`) kopplad till
    projektet och startar en konvertering i bakgrunden, en i taget.
 3. En separat arbetsprocess (`python -m ifc_lpg.worker`) läser
    filen. Den körs med en tidsgräns
@@ -38,7 +38,7 @@ extrapaketet `ifc-lpg` lägger till de arbetsprocesser som gör det.
    dödar arbetsprocessen, inte servern. `.ifczip` packas upp med
    uppladdningens storleksgräns.
 4. Posterna importeras i batchar av `UNWIND … CREATE` (portabel Cypher,
-   ingen APOC). `Model` hamnar i tillståndet `done` med antal och
+   ingen APOC). `Conversion` hamnar i tillståndet `done` med antal och
    `IfcProject`-guid, eller `failed` med ett fel.
 5. En konvertering som en stoppad server lämnat efter sig börjar om: en köad så snart servern är tillbaka, en
    pågående när dubbla tidsgränsen har passerat, eftersom den kan pågå i en annan serverprocess.
@@ -331,7 +331,7 @@ en som konverterats av en tidigare version, kan inte skrivas tillbaka.
 
 ## Underhåll
 
-Varje uppladdning av en IFC-fil lägger till en `Model` med sina entiteter,
+Varje uppladdning av en IFC-fil lägger till en `Conversion` och en modell med sina entiteter,
 så ett projekt som får nya versioner samlar på sig grafer som ingen frågar.
 Kommandoraden listar och rensar dem; dokumenten och deras filer finns alltid
 kvar:
@@ -348,7 +348,7 @@ dokument bör själva välja den senaste färdiga modellen, eftersom äldre
 versioner finns kvar tills de rensas:
 
 ```cypher
-MATCH (:Project {project_id: $project})-[:HAS_MODEL]->(m:Model {state: 'done'})
+MATCH (:Project {project_id: $project})-[:HAS_CONVERSION]->(m:Conversion {state: 'done'})
 WITH coalesce(m.document_id, m.bcf_document_guid) AS doc, m
 ORDER BY m.version_index DESC, m.done_at DESC
 WITH doc, collect(m)[0] AS latest
@@ -718,10 +718,10 @@ grafen, i sitt kort IFC-LPG, genom den frågan eller över Bolt.
 - En konvertering i taget; stora modeller köas. Exempelmodellen (248
   entiteter) importeras på ungefär en sekund; en arkitektmodell på 200 MB tar
   minuter.
-- `Model`-noden bär `state`, `entities`, `relationships`, `skipped`,
+- `Conversion` bär `state`, `entities`, `relationships`,
   `lossless`, `geometry`, `schema`, `ifc_project_guid`, tidsstämplar och `error`. Administratörer kan
   granska den i Neo4j Browser eller Memgraph Lab:
-  `MATCH (m:Model) RETURN m.file_name, m.state, m.entities, m.error`.
+  `MATCH (c:Conversion) RETURN c.file_name, c.state, c.entities, c.error`.
 - När ett projekt tas bort tas dess modellers entiteter bort med det.
 - En modell kommer tillbaka identisk från båda databaserna upp till 224 496 instanser och
   19 MB, i varje form som mätts. Inget större har provats.

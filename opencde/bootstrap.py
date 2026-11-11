@@ -12,7 +12,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from opencde.graph.dialect import get_dialect
-from opencde.graph.driver import create_driver, create_workcopy_driver, ping_within
+from opencde.graph.driver import create_driver, create_store_driver, create_workcopy_driver, ping_within
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
 from opencde.logging import get_logger
@@ -50,6 +50,13 @@ def make_workcopy(settings: Settings) -> Graph | None:
     return Graph(
         create_workcopy_driver(settings), settings.workcopy_database_name, get_dialect(settings.workcopy_graph_dialect)
     )
+
+
+def make_store(settings: Settings) -> Graph | None:
+    """The graph of the server's own data apart from the IFC graph (F24 a), when one is configured."""
+    if not settings.has_store:
+        return None
+    return Graph(create_store_driver(settings), settings.store_database_name, get_dialect(settings.store_graph_dialect))
 
 
 def make_storage(settings: Settings) -> LocalStorage:

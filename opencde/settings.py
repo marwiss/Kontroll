@@ -207,6 +207,16 @@ class Settings(BaseSettings):
     workcopy_graph_user: str = ""
     workcopy_graph_password: SecretStr = SecretStr("")
     workcopy_graph_database: str | None = Field(None, description="The working copy's database name; by dialect.")
+    # --- the server's own storage (F24 a) ---------------------------------
+    store_graph_uri: str | None = Field(
+        None,
+        description="Bolt URI of a graph for the server's own data (accounts, documents, topics, jobs), apart from the "
+        "IFC graph; the two meet by values only. Empty: the IFC graph's connection holds both.",
+    )
+    store_graph_dialect: GraphDialect = Field(GraphDialect.NEO4J, description="The server's own graph's dialect.")
+    store_graph_user: str = ""
+    store_graph_password: SecretStr = SecretStr("")
+    store_graph_database: str | None = Field(None, description="The server's own graph's database name; by dialect.")
     cleanup_interval_seconds: int = Field(
         60, ge=5, description="How often expired codes, tokens and sessions are deleted."
     )
@@ -531,6 +541,16 @@ class Settings(BaseSettings):
     @property
     def has_workcopy(self) -> bool:
         return self.workcopy_graph_uri is not None
+
+    @property
+    def has_store(self) -> bool:
+        return self.store_graph_uri is not None
+
+    @property
+    def store_database_name(self) -> str:
+        if self.store_graph_database:
+            return self.store_graph_database
+        return {GraphDialect.NEO4J: "neo4j", GraphDialect.MEMGRAPH: "memgraph"}[self.store_graph_dialect]
 
     @property
     def workcopy_database_name(self) -> str:

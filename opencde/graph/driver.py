@@ -33,6 +33,16 @@ def create_workcopy_driver(settings: Settings) -> AsyncDriver:
     )
 
 
+def create_store_driver(settings: Settings) -> AsyncDriver:
+    """The driver of the server's own graph (F24 a); the caller checks that one is configured."""
+    return make_driver(
+        settings.store_graph_uri or "",
+        settings.store_graph_user,
+        settings.store_graph_password.get_secret_value(),
+        settings.graph_connect_timeout_seconds,
+    )
+
+
 def make_driver(uri: str, user: str, password: str, connect_timeout_seconds: float) -> AsyncDriver:
     return AsyncGraphDatabase.driver(
         uri,

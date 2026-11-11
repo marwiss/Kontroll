@@ -162,7 +162,7 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Project ||--o{ Model : HAS_MODEL
+    Project ||--o{ Conversion : HAS_CONVERSION
     Project ||--o{ Merge : HAS_MERGE
     Project ||--o{ Clash : HAS_CLASH
     Model ||--o| Entity : HAS_PROJECT
@@ -172,7 +172,8 @@ erDiagram
 
 | Label | Key | Properties | Notes |
 |---|---|---|---|
-| `Model` | `id`, indexed `project_id` | `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `geometry_key`, `spatial_at`, `spatial_products`, `spatial_failed`, `spatial_error`, `error`, timestamps | One per imported file; `state` is `queued`, `running`, `done` or `failed` |
+| `Conversion` | `id`, indexed `project_id`, `document_id` | `model_id`, `document_id`, `version_index` or `bcf_document_guid`, `file_name`, `storage_key`, `state`, `created_at`, `running_at`, `done_at`, `failed_at`, `error`, `geometry_key`, `spatial_pending`, `spatial_error`, `graph_report`, `graph_issue_count`, `graph_error_count`, `graph_ruleset`, `graph_checked_at`, `merge_of`, and a copy of the import's `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `form_version`, `format`, `spatial_at`, `spatial_products` and `spatial_failed` | The server's record of a conversion (`HAS_CONVERSION`): the file it came from, its lifecycle (`state` is `queued`, `running`, `done` or `failed`), the geometry records and the graph check; `model_id` names the model, which bears the same id, and nothing else joins the two. Deleted with the project |
+| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | IFC-LPG's record of an imported model, written by the library alone; `imported_at` says that it is all in the graph (a model from before 2026-11-11 keeps `state` `done` for that). The server never writes it |
 | `Entity` + class labels | `id` (`<model id>:<step id>`), indexed `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (points in project coordinates, metres, on a product with a shape), every literal IFC attribute by name | Relationships between entities are named after the IFC attribute (forward and inverse), written like every relationship type in upper case with underscores: `IsDefinedBy` becomes `IS_DEFINED_BY` |
 | `StepBlock` | `id` (`<model id>:<first step id>`) | `first_step`, `instances`, `text` | Instances of a model converted with `OPENCDE_IFC_LPG_LOSSLESS` that are no nodes: written out as STEP in order of id and compressed. Do not return this node whole in a query, for the sake of `text` |
 | `Merge` | `id` | `project_id`, `kind` (`merge` or `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | A building of model B brought into a model of the project (`HAS_MERGE`); `request` names both versions, and `version_index` is the version it became. Its merged model is taken out of the graph once written out. Deleted with the project |

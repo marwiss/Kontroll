@@ -32,8 +32,8 @@ from typing import Annotated, Any
 from fastapi import Depends, Request
 from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
-from ifc_lpg.graph import FORM_VERSION, rebuild_point_indexes
-from ifc_lpg.importer import delete_model, import_records
+from ifc_lpg.graph import rebuild_point_indexes
+from ifc_lpg.importer import delete_model, import_records, model_facts
 from ifc_lpg.paths import PathError, canonical_path, resolve, unreachable
 from ifc_lpg.queries import MAX_GLOBAL_IDS, property_values
 from ifc_lpg.spatial import geometry_issues, import_spatial
@@ -49,14 +49,19 @@ from opencde.ifcgraph.gltf import LODS, build_glb
 from opencde.logging import get_logger
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
+from opencde.store.conversions import (
+    FACTS,
+    SPATIAL_FACTS,
+    STATE_DONE,
+    STATE_FAILED,
+    STATE_QUEUED,
+    STATE_RUNNING,
+    ConversionRepository,
+)
 from opencde.timeutil import later_iso, now_iso
 
 log = get_logger(__name__)
 
-STATE_QUEUED = "queued"
-STATE_RUNNING = "running"
-STATE_DONE = "done"
-STATE_FAILED = "failed"
 STATE_CLEAN = "clean"  # a proposal whose every change applied, with no finding the base lacks
 STATE_ISSUES = "issues"
 STATE_APPROVED = "approved"  # a clean proposal that became a version
@@ -112,10 +117,18 @@ def _unreached_issue(node: dict[str, Any]) -> dict[str, Any]:
 
 class IfcGraphService:
     def __init__(
-        self, graph: Graph, storage: LocalStorage, settings: Settings, *, workcopy: Graph | None = None
+        self,
+        graph: Graph,
+        storage: LocalStorage,
+        settings: Settings,
+        *,
+        workcopy: Graph | None = None,
+        store: Graph | None = None,
     ) -> None:
         self.workcopy = workcopy  # the second graph that holds the head model of every document (ADR 0024)
         self.graph = graph
+        self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a)
+        self.conversions = ConversionRepository(self.store)
         self.storage = storage
         self.settings = settings
         self._tasks: set[asyncio.Task[None]] = set()
@@ -154,25 +167,14 @@ class IfcGraphService:
             else:
                 await self._record_validation(version_id, storage_key, file_name, checked)
         model_id = new_id()
-        await self.graph.run(
-            """
-            MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_MODEL]->(:Model {
-                id: $id, project_id: $project_id, document_id: $document_id, version_index: $version_index,
-                bcf_document_guid: $bcf_document_guid, file_name: $file_name, storage_key: $storage_key,
-                state: $state, created_at: $now, format: 'step', form_version: $form_version
-            })
-            """,
+        await self.conversions.create(
             project_id=project_id,
-            id=model_id,
+            model_id=model_id,
+            file_name=file_name,
+            storage_key=storage_key,
             document_id=document_id,
             version_index=version_index,
             bcf_document_guid=bcf_document_guid,
-            file_name=file_name,
-            storage_key=storage_key,
-            state=STATE_QUEUED,
-            now=now_iso(),
-            form_version=FORM_VERSION,
         )
         self._start(model_id, storage_key, file_name)
         return model_id
@@ -190,24 +192,9 @@ class IfcGraphService:
         """
         await self.tidy_workcopy()
         await merging.resume(self)
-        await self.graph.run(
-            """
-            MATCH (m:Model {state: $done}) WHERE m.spatial_pending IS NOT NULL AND m.done_at < $given_up
-            REMOVE m.spatial_pending SET m.spatial_error = 'the geometry pass was interrupted'
-            """,
-            done=STATE_DONE,
-            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
-        )
-        rows = await self.graph.run(
-            """
-            MATCH (m:Model)
-            WHERE (m.state = $queued OR (m.state = $running AND m.running_at < $given_up)) AND m.merge_of IS NULL
-            RETURN m.id AS id, m.storage_key AS storage_key, m.file_name AS file_name, m.state AS state
-            """,
-            queued=STATE_QUEUED,
-            running=STATE_RUNNING,
-            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
-        )
+        given_up = later_iso(-2 * self.settings.ifcgraph_timeout_seconds)
+        await self.conversions.spatial_interrupted(given_up=given_up)
+        rows = await self.conversions.interrupted(given_up=given_up)
         waiting_here = {task.get_name() for task in self._tasks}
         for row in rows:
             if f"ifcgraph-{row['id']}" in waiting_here:
@@ -269,26 +256,10 @@ class IfcGraphService:
     # -- the conversion ----------------------------------------------------------------------------
 
     async def _set_state(self, model_id: str, state: str, **fields: Any) -> None:
-        await self.graph.run(
-            "MATCH (m:Model {id: $id}) SET m.state = $state, m += $fields",
-            id=model_id,
-            state=state,
-            fields={**fields, f"{state}_at": now_iso()},
-        )
+        await self.conversions.set_state(model_id, state, **fields)
 
     async def _claim(self, model_id: str) -> bool:
-        rows = await self.graph.run(
-            """
-            MATCH (m:Model {id: $id, state: $queued})
-            SET m.state = $running, m.running_at = $now
-            RETURN m.id AS id
-            """,
-            id=model_id,
-            queued=STATE_QUEUED,
-            running=STATE_RUNNING,
-            now=now_iso(),
-        )
-        return bool(rows)
+        return await self.conversions.claim(model_id)
 
     async def _run(self, model_id: str, storage_key: str, file_name: str) -> None:
         async with self._lock:
@@ -309,17 +280,11 @@ class IfcGraphService:
                         await delete_model(self.graph, model_id, keep_model=True)
                     await self._set_state(model_id, STATE_FAILED, error=f"{type(exc).__name__}: {exc}"[:500])
                     return
+                facts = {name: counts.get(name, header.get(name)) for name in FACTS}
                 await self._set_state(
                     model_id,
                     STATE_DONE,
-                    schema=header.get("schema"),
-                    ifc_project_guid=header.get("ifc_project_guid"),
-                    entities=counts["nodes"],
-                    relationships=counts["relationships"],
-                    skipped=header.get("skipped", 0),
-                    lossless=header.get("lossless", False),
-                    geometry=header.get("geometry"),  # skeleton, blocks or nodes (IFC-LPG 1.0.0 of 2026-11-10)
-                    ifc_header=header.get("ifc_header"),
+                    **facts,
                     **({"spatial_pending": True} if self.settings.ifcgraph_spatial else {}),
                 )
                 geometry = await self._add_spatial(model_id, source, workdir)
@@ -360,10 +325,12 @@ class IfcGraphService:
             await self._in_a_process(command, "the geometry")
             counts = await import_spatial(self.graph, model_id, records)
             failed = await asyncio.to_thread(geometry_issues, records)
+            passed = await model_facts(self.graph, model_id) or {}
+            await self.conversions.set_fields(model_id, **{name: passed.get(name) for name in SPATIAL_FACTS})
             await rebuild_point_indexes(SchemaGraph(self.graph), library_dialect(self.graph))
             key = make_key("geometry", model_id, "jsonl")
             await asyncio.to_thread(self.storage.copy_in, records, key)
-            await self.graph.run("MATCH (m:Model {id: $id}) SET m.geometry_key = $key", id=model_id, key=key)
+            await self.conversions.set_fields(model_id, geometry_key=key)
             if self.workcopy is not None and await self.in_workcopy(model_id):
                 try:
                     await import_spatial(self.workcopy, model_id, records)
@@ -374,14 +341,10 @@ class IfcGraphService:
         except Exception as exc:
             log.warning("ifcgraph_spatial_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:300])
             with contextlib.suppress(Exception):
-                await self.graph.run(
-                    "MATCH (m:Model {id: $id}) SET m.spatial_error = $error",
-                    id=model_id,
-                    error=f"{type(exc).__name__}: {exc}"[:300],
-                )
+                await self.conversions.set_fields(model_id, spatial_error=f"{type(exc).__name__}: {exc}"[:300])
         finally:
             with contextlib.suppress(Exception):
-                await self.graph.run("MATCH (m:Model {id: $id}) REMOVE m.spatial_pending", id=model_id)
+                await self.conversions.remove_field(model_id, "spatial_pending")
         return failed
 
     async def _graph_findings(self, model_id: str, geometry: list[dict[str, Any]]) -> None:
@@ -392,18 +355,13 @@ class IfcGraphService:
         try:
             unreached = await unreachable(self.graph, model_id)
             issues = [_unreached_issue(node) for node in unreached] + list(geometry)
-            await self.graph.run(
-                """
-                MATCH (m:Model {id: $id})
-                SET m.graph_report = $report, m.graph_issue_count = $count, m.graph_error_count = $errors,
-                    m.graph_ruleset = $ruleset, m.graph_checked_at = $now
-                """,
-                id=model_id,
-                report=pack_report(issues[:MAX_REPORTED]),
-                count=len(issues),
-                errors=sum(1 for issue in issues if issue.get("severity") == "error"),
-                ruleset=GRAPH_RULESET,
-                now=now_iso(),
+            await self.conversions.set_fields(
+                model_id,
+                graph_report=pack_report(issues[:MAX_REPORTED]),
+                graph_issue_count=len(issues),
+                graph_error_count=sum(1 for issue in issues if issue.get("severity") == "error"),
+                graph_ruleset=GRAPH_RULESET,
+                graph_checked_at=now_iso(),
             )
             log.info("ifcgraph_findings", model_id=model_id, unreached=len(unreached), geometry=len(geometry))
         except Exception as exc:
@@ -414,19 +372,10 @@ class IfcGraphService:
     ) -> dict[str, Any] | None:
         """The converted model of a document version in a project the user is a member of, the latest when there are
         several; its ``id`` and ``file_name``, or None."""
-        return await self.graph.one(
-            """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_MODEL]->(m:Model {document_id: $document_id, version_index: $version_index, state: $done})
-            RETURN m.id AS id, m.file_name AS file_name
-            ORDER BY m.created_at DESC LIMIT 1
-            """,
-            user_id=user_id,
-            project_id=project_id,
-            document_id=document_id,
-            version_index=version_index,
-            done=STATE_DONE,
+        found = await self.conversions.for_member(
+            user_id=user_id, project_id=project_id, document_id=document_id, version_index=version_index, done_only=True
         )
+        return {"id": found["id"], "file_name": found.get("file_name")} if found else None
 
     async def unreached(self, model_id: str) -> list[dict[str, Any]]:
         """The instances of a converted model that no GlobalId reaches, forward or backward, as ``{"step",
@@ -439,8 +388,9 @@ class IfcGraphService:
         """The ``.glb`` of a model for the filters, built from its geometry records the first time and kept in the
         storage under a key that names the model and a tag of the filters. Returns the file and the tag, or None
         when the model has no geometry records."""
-        row = await self.graph.one("MATCH (m:Model {id: $id}) RETURN m.geometry_key AS key", id=model_id)
-        if row is None or not row["key"] or not self.storage.exists(row["key"]):
+        conversion = await self.conversions.get(model_id)
+        records_key = str(conversion.get("geometry_key") or "") if conversion else ""
+        if not records_key or not self.storage.exists(records_key):
             return None
         if lod not in LODS:
             raise ValueError(f"lod is one of {', '.join(LODS)}")
@@ -449,7 +399,7 @@ class IfcGraphService:
         key = make_key("geometry", model_id, tag)
         if not self.storage.exists(key):
             glb, summary = await asyncio.to_thread(
-                build_glb, self.storage.path(row["key"]), lod=lod, classes=set(classes) or None, storey=storey
+                build_glb, self.storage.path(records_key), lod=lod, classes=set(classes) or None, storey=storey
             )
             await asyncio.to_thread(self.storage.write_bytes, key, glb)
             log.info("ifcgraph_geometry_built", model_id=model_id, lod=lod, bytes=len(glb), **summary)
@@ -464,64 +414,35 @@ class IfcGraphService:
         if workcopy is None:
             return
         try:
-            row = await self.graph.one("MATCH (m:Model {id: $id}) RETURN properties(m) AS model", id=model_id)
-            if row is None or not row["model"].get("document_id"):
+            conversion = await self.conversions.get(model_id)
+            if conversion is None or not conversion.get("document_id"):
                 return  # a BCF project document has no head to keep
-            model = dict(row["model"])
-            older = await workcopy.run(
-                "MATCH (m:Model {document_id: $document_id}) WHERE m.id <> $id RETURN m.id AS id",
-                document_id=model["document_id"],
-                id=model_id,
-            )
-            for old in older:
-                await delete_model(workcopy, old["id"])
+            for old in await self.conversions.model_ids_of_document(str(conversion["document_id"])):
+                if old != model_id:
+                    await delete_model(workcopy, old)
             await delete_model(workcopy, model_id)
-            await workcopy.run(
-                """
-                CREATE (:Model {
-                    id: $id, project_id: $project_id, document_id: $document_id, version_index: $version_index,
-                    file_name: $file_name, state: $state, schema: $schema, geometry: $geometry, created_at: $now,
-                    format: 'step', form_version: $form_version
-                })
-                """,
-                id=model_id,
-                project_id=model.get("project_id"),
-                document_id=model.get("document_id"),
-                version_index=model.get("version_index"),
-                file_name=model.get("file_name"),
-                state=STATE_RUNNING,
-                schema=header.get("schema"),
-                geometry=header.get("geometry"),
-                now=now_iso(),
-                form_version=FORM_VERSION,
-            )
             counts = await import_records(workcopy, model_id, records)
-            await workcopy.run(
-                "MATCH (m:Model {id: $id}) SET m.state = $state, m.done_at = $now, m += $fields",
-                id=model_id,
-                state=STATE_DONE,
-                now=now_iso(),
-                fields={"entities": counts["nodes"], "relationships": counts["relationships"]},
+            log.info(
+                "ifcgraph_workcopy_updated",
+                model_id=model_id,
+                nodes=counts["nodes"],
+                relationships=counts["relationships"],
             )
-            log.info("ifcgraph_workcopy_updated", model_id=model_id, **counts)
         except Exception as exc:
             log.warning("ifcgraph_workcopy_failed", model_id=model_id, error=f"{type(exc).__name__}: {exc}"[:300])
             with contextlib.suppress(Exception):  # the archive is untouched; the copy can be made again
-                await delete_model(workcopy, model_id, keep_model=True)
-                await workcopy.run("MATCH (m:Model {id: $id}) SET m.state = $state", id=model_id, state=STATE_FAILED)
+                await delete_model(workcopy, model_id)
 
     async def in_workcopy(self, model_id: str) -> bool:
         """Whether a version's model is in the working copy, so that a query can run there."""
         if self.workcopy is None:
             return False
         try:
-            row = await self.workcopy.one(
-                "MATCH (m:Model {id: $id, state: $done}) RETURN m.id AS id", id=model_id, done=STATE_DONE
-            )
+            facts = await model_facts(self.workcopy, model_id)
         except Exception as exc:
             log.warning("ifcgraph_workcopy_unavailable", error=type(exc).__name__)
             return False
-        return row is not None
+        return bool(facts and facts.get("whole"))
 
     async def tidy_workcopy(self) -> int:
         """Drop models the archive no longer has (a deleted project, a pruned model). Returns how many went."""
@@ -531,7 +452,7 @@ class IfcGraphService:
             rows = await self.workcopy.run("MATCH (m:Model) RETURN m.id AS id")
             gone = 0
             for row in rows:
-                kept = await self.graph.one("MATCH (m:Model {id: $id}) RETURN m.id AS id", id=row["id"])
+                kept = await self.conversions.get(str(row["id"]))
                 if kept is None:
                     await delete_model(self.workcopy, row["id"])
                     gone += 1
@@ -1044,18 +965,10 @@ class IfcGraphService:
         the change was made on: `<guid>/<path>.<attribute>`, or `#<step>.<attribute>` for an instance no GlobalId
         reaches. A change whose path does not lead to a node there keeps the key its client wrote. None when that
         version has no finished model in the graph (pruned, or never converted)."""
-        row = await self.graph.one(
-            """
-            MATCH (m:Model {document_id: $document_id, version_index: $version_index, state: $done})
-            RETURN m.id AS id ORDER BY m.created_at DESC LIMIT 1
-            """,
-            document_id=document_id,
-            version_index=version_index,
-            done=STATE_DONE,
-        )
-        if row is None:
+        found = await self.conversions.latest_of_version(document_id=document_id, version_index=version_index)
+        if found is None:
             return None
-        model_id = str(row["id"])
+        model_id = str(found["id"])
         named: dict[int, str] = {}  # STEP id: its canonical name, since many changes touch one instance
         keys: list[str] = []
         for change in changes:
@@ -1366,10 +1279,8 @@ class IfcGraphService:
             try:
                 instances = await export_records(self.graph, model_id, records)
             except NotExportable as exc:
-                rows = await self.graph.run(
-                    "MATCH (m:Model {id: $id}) RETURN m.state AS state, m.lossless AS lossless", id=model_id
-                )
-                if rows and rows[0]["state"] == STATE_DONE and not rows[0]["lossless"]:
+                facts = await self.conversions.get(model_id) or await model_facts(self.graph, model_id) or {}
+                if (facts.get("state") == STATE_DONE or facts.get("whole")) and not facts.get("lossless"):
                     raise NotExportable(
                         f"{exc}: it was converted with OPENCDE_IFC_LPG_LOSSLESS=false or before 3.0.0, and can be "
                         "written back once it is uploaded again"
@@ -1408,14 +1319,12 @@ class IfcGraphService:
 
     async def _with_upload(self, model_id: str, what: str, command: Callable[[Path], list[str]]) -> dict[str, Any]:
         """Run a module of this package on the uploaded file, unpacked. Exit codes 0 and 1 are both answers."""
-        rows = await self.graph.run(
-            "MATCH (m:Model {id: $id}) RETURN m.storage_key AS storage_key, m.file_name AS file_name", id=model_id
-        )
-        if not rows:
+        conversion = await self.conversions.get(model_id)
+        if conversion is None:
             raise ValueError("there is no such model")
         with tempfile.TemporaryDirectory(prefix="ifcgraph-") as tmp:
             source = await asyncio.to_thread(
-                self._prepare_input, rows[0]["storage_key"], rows[0]["file_name"], Path(tmp)
+                self._prepare_input, str(conversion["storage_key"]), str(conversion["file_name"]), Path(tmp)
             )
             arguments = [sys.executable, "-m", *command(source), "--memory-mb", str(self.settings.ifcgraph_memory_mb)]
             return json.loads(await self._in_a_process(arguments, what, answers=(0, 1)))
@@ -1424,22 +1333,17 @@ class IfcGraphService:
 
     async def link_viewpoint(self, *, project_id: str, viewpoint_guid: str) -> int:
         """The GTIN onto one viewpoint's components from the project's finished models (at viewpoint POST)."""
-        models = await self.graph.run(
-            "MATCH (m:Model {project_id: $project_id, state: 'done'}) RETURN m.id AS id", project_id=project_id
-        )
         found = 0
-        for model in models:
-            found += await self._copy_gtin(
-                model["id"], _VIEWPOINT_COMPONENTS, project_id=project_id, guid=viewpoint_guid
-            )
+        for model_id in await self.conversions.done_model_ids(project_id):
+            found += await self._copy_gtin(model_id, _VIEWPOINT_COMPONENTS, project_id=project_id, guid=viewpoint_guid)
         return found
 
     async def _link_model(self, model_id: str) -> int:
         """The GTIN onto every component of the project from a model that has just finished importing."""
-        row = await self.graph.one("MATCH (m:Model {id: $id}) RETURN m.project_id AS project_id", id=model_id)
-        if row is None or not row["project_id"]:
+        conversion = await self.conversions.get(model_id)
+        if conversion is None or not conversion.get("project_id"):
             return 0
-        return await self._copy_gtin(model_id, _PROJECT_COMPONENTS, project_id=row["project_id"])
+        return await self._copy_gtin(model_id, _PROJECT_COMPONENTS, project_id=str(conversion["project_id"]))
 
     async def _copy_gtin(self, model_id: str, scope: str, **params: Any) -> int:
         """Look the GlobalIds of the components a scope matches up in the model (IFC-LPG's ``property_values``)
@@ -1468,11 +1372,8 @@ class IfcGraphService:
         return found
 
     async def status(self, project_id: str) -> list[dict[str, Any]]:
-        rows = await self.graph.run(
-            "MATCH (m:Model {project_id: $project_id}) RETURN properties(m) AS model ORDER BY m.created_at DESC",
-            project_id=project_id,
-        )
-        return [row["model"] for row in rows]
+        """The project's conversions, newest first."""
+        return await self.conversions.of_project(project_id)
 
     # -- clash checks (ADR 0019) ---------------------------------------------------------------------
 

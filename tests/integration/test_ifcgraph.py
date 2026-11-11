@@ -55,7 +55,7 @@ def wait_for_model(graph_target: GraphTarget, database: str | None, timeout: flo
     deadline = time.monotonic() + timeout
     with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
         while time.monotonic() < deadline:
-            records, _, _ = driver.execute_query("MATCH (m:Model) RETURN properties(m) AS m", database_=database)
+            records, _, _ = driver.execute_query("MATCH (c:Conversion) RETURN properties(c) AS m", database_=database)
             if records and records[0]["m"].get("state") in ("done", "failed"):
                 return records[0]["m"]
             time.sleep(1.0)
@@ -121,8 +121,9 @@ def test_a_conversion_a_stopped_server_left_behind_starts_over(
             driver.execute_query(
                 """
                 MATCH (p:Project {project_id: $project_id})
-                CREATE (p)-[:HAS_MODEL]->(m:Model {
-                    id: $id, project_id: $project_id, file_name: 'a.ifc', storage_key: $key, created_at: $now
+                CREATE (p)-[:HAS_CONVERSION]->(m:Conversion {
+                    id: $id, model_id: $id, project_id: $project_id, file_name: 'a.ifc', storage_key: $key,
+                    created_at: $now
                 })
                 SET m.state = CASE WHEN $id = 'queued' THEN 'queued' ELSE 'running' END, m += $fields
                 """,
@@ -140,7 +141,7 @@ def test_a_conversion_a_stopped_server_left_behind_starts_over(
 
         def states() -> dict[str, str]:
             records, _, _ = driver.execute_query(
-                "MATCH (m:Model) RETURN m.id AS id, m.state AS state", database_=settings.database_name
+                "MATCH (c:Conversion) RETURN c.id AS id, c.state AS state", database_=settings.database_name
             )
             return {record["id"]: record["state"] for record in records}
 

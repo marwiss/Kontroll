@@ -45,7 +45,7 @@ OWNED_RELATIONSHIPS = (
     "HAS_VERSION",
     "HAS_VALIDATION",
     "HAS_PRECHECK",
-    "HAS_MODEL",
+    "HAS_CONVERSION",
     "HAS_CLASH",
     "HAS_PUBLICATION",
     "HAS_MERGE",
@@ -203,7 +203,8 @@ class ProjectRepository:
         the query below follows, and they are too many for one transaction.
         """
         models = await self.graph.run(
-            "MATCH (:Project {project_id: $id})-[:HAS_MODEL]->(m:Model) RETURN m.id AS id", id=project_id
+            "MATCH (:Project {project_id: $id})-[:HAS_CONVERSION]->(c:Conversion) RETURN c.model_id AS id",
+            id=project_id,
         )
         for model in models:
             await delete_model(self.graph, model["id"])
@@ -229,7 +230,8 @@ class ProjectRepository:
         """``delete``, and the stored files the project owned, so that deleting it frees the disk too."""
         keys = await self.storage_keys(project_id)
         models = await self.graph.run(
-            "MATCH (:Project {project_id: $id})-[:HAS_MODEL]->(m:Model) RETURN m.id AS id", id=project_id
+            "MATCH (:Project {project_id: $id})-[:HAS_CONVERSION]->(c:Conversion) RETURN c.model_id AS id",
+            id=project_id,
         )
         deleted = await self.delete(project_id)
         for model in models:
