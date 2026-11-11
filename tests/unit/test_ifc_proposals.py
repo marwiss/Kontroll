@@ -54,6 +54,29 @@ def test_a_row_names_the_topic_the_trial_and_its_approval() -> None:
     assert all(field.description for field in IfcProposalEntry.model_fields.values()), "every field is described"
 
 
+def test_the_trial_of_operations_names_their_refs_their_notes_and_the_one_that_failed() -> None:
+    """``GET …/ifc-proposal`` for a change set with ``ops``: the client maps its refs to the GlobalIds the server gave,
+    and an operation that failed says its index and tool; a trial without operations has neither key."""
+    from opencde.bcf.routes_proposals import IfcProposalIssue, IfcProposalReport, _report
+
+    failed = {
+        "kind": "op",
+        "severity": "error",
+        "message": "op 1 (create_wall): no storey named 'Level 9'; the storeys are Level 1",
+        "op": 1,
+        "tool": "create_wall",
+    }
+    node = {"state": "issues", "created_at": "2026-11-11T10:00:00Z", "checks": [], "issues": [failed]}
+    node |= {"created": {"new-1": "1Xezbq735AdBO_4DerG66G"}, "notes": ["the map conversion to EPSG:3006 was skipped"]}
+    shown = _report(node).model_dump(exclude_none=True)
+    assert shown["issues"] == [failed] and shown["created"] == {"new-1": "1Xezbq735AdBO_4DerG66G"}
+    assert shown["notes"] == ["the map conversion to EPSG:3006 was skipped"]
+    plain = _report({**node, "created": None, "notes": None, "issues": []}).model_dump(exclude_none=True)
+    assert "created" not in plain and "notes" not in plain
+    assert all(field.description for name, field in IfcProposalIssue.model_fields.items() if name in ("op", "tool"))
+    assert IfcProposalReport.model_fields["created"].description and IfcProposalReport.model_fields["notes"].description
+
+
 def test_the_description_is_cut_and_the_trial_fills_the_row_as_it_goes() -> None:
     assert _entry(BASE, row(description="x" * (MAX_DESCRIPTION + 50))).description == "x" * MAX_DESCRIPTION
     assert _entry(BASE, row(description="short")).description == "short"

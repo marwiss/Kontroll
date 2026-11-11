@@ -15,6 +15,14 @@ indexes, inverse attributes included. ``set`` gives an attribute a value, ``add`
 an aggregate, and ``copy`` changes a copy of the instance, re-pointed from the last forward step of the path, so
 that an instance several share stays as it was for the others. ``delete`` removes an instance named by its STEP id,
 and only when nothing refers to it, so that no reference is left hanging.
+
+A change set with ``ops`` has Dataspatium's write tools applied first, with the app's own code (``ops.py``), and the
+answer says under ``ops`` what they created, touched and noted, and which one failed; the operations stop at one that
+fails, as in the app, and then nothing more is applied. The changes come next and describe what the operations did
+to existing instances, as the app found it: a change the operations already made counts as applied rather than being
+made twice, and one they did not is applied as any. Last, each key of ``keep_theirs`` (``#170.NominalValue`` or
+``<guid>/<path>.Name``, as the server's conflicts name them) gets back what the file held before: the latest
+version's value, which the proposer gave up. ``--proposer`` names who the owner histories the operations make name.
 """
 
 from __future__ import annotations
@@ -30,6 +38,8 @@ from typing import Any
 from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
 
 STEP = re.compile(r"^([A-Z][A-Za-z0-9]*)(?:\[([0-9]+)\])?$")
+GUID = re.compile(r"^[0-9A-Za-z_$]{22}$")
+ATTRIBUTE = re.compile(r"^[A-Z][A-Za-z0-9]*$")
 MAX_PROBLEMS = 1_000
 
 
@@ -192,6 +202,105 @@ def apply_one(model: Any, change: dict[str, Any]) -> int:
     return int(entity.id())
 
 
+def _holds(model: Any, value: Any, current: Any) -> bool:
+    """Whether an attribute's value in the file is ``value`` in the change set's form, an instance by its identity."""
+    if isinstance(value, dict):
+        if "enum" in value:
+            return current == value["enum"]
+        if "type" in value:
+            return (
+                _is_typed(current) and current.is_a() == value["type"] and _same(value["value"], current.wrappedValue)
+            )
+        try:
+            entity, _ = _find(model, value)
+        except CannotApply:
+            return False
+        return _is_instance(current) and current.id() == entity.id()
+    if isinstance(value, list):
+        return (
+            isinstance(current, (tuple, list))
+            and len(current) == len(value)
+            and all(_holds(model, item, member) for item, member in zip(value, current, strict=True))
+        )
+    if value is None or current is None:
+        return value is None and current is None
+    if _is_instance(current) or isinstance(current, (tuple, list)):
+        return False
+    return _same(value, current)
+
+
+def _already(model: Any, change: dict[str, Any]) -> bool:
+    """Whether the operations made the change already: a `set` whose attribute holds the new value, an `add` whose
+    member is there, a `remove` whose member or instance is gone, a `delete` whose instance is."""
+    try:
+        entity, _ = _find(model, change)
+    except CannotApply:
+        return change["op"] in ("remove", "delete")
+    if change["op"] == "delete":
+        return False
+    try:
+        current = getattr(entity, str(change["attribute"]))
+    except AttributeError:
+        return False
+    if change["op"] == "set":
+        return _holds(model, change.get("new"), current)
+    members = list(current) if isinstance(current, (tuple, list)) else []
+    if change["op"] == "add":
+        return any(_holds(model, change.get("new"), member) for member in members)
+    if change.get("index") is not None:  # a member by its place: whether it went cannot be told
+        return False
+    return not any(_holds(model, change.get("old"), member) for member in members)
+
+
+def key_locator(key: str) -> dict[str, Any]:
+    """The instance and the attribute a key of ``keep_theirs`` names, in the form of the server's conflicts:
+    ``#<step>.<attribute>``, or ``<guid>/<path>.<attribute>`` with an empty path for the rooted entity itself."""
+    named, _, attribute = key.rpartition(".")
+    if not ATTRIBUTE.match(attribute) or not named:
+        raise CannotApply("the key does not end in an attribute")
+    if named.startswith("#"):
+        if not named[1:].isdigit():
+            raise CannotApply("the key names no STEP id")
+        return {"step_id": int(named[1:]), "attribute": attribute}
+    guid, _, path = named.partition("/")
+    if not GUID.match(guid):
+        raise CannotApply("the key names no GlobalId")
+    return {"guid": guid, "path": path or None, "attribute": attribute}
+
+
+def _hold(model: Any, keys: list[str], problems: list[dict[str, Any]]) -> list[tuple[int, dict[str, Any], Any]]:
+    """What each key of ``keep_theirs`` holds in the file before anything is applied: the latest version's value."""
+    held: list[tuple[int, dict[str, Any], Any]] = []
+    for index, key in enumerate(keys):
+        try:
+            locator = key_locator(str(key))
+            entity, _ = _find(model, locator)
+            if locator["attribute"] in _inverse_names(model, entity):
+                raise CannotApply(f"{locator['attribute']} is an inverse attribute")
+            try:
+                held.append((index, locator, from_ifc(getattr(entity, locator["attribute"]))))
+            except AttributeError:
+                raise CannotApply(f"{entity.is_a()} has no attribute {locator['attribute']}") from None
+        except CannotApply as exc:
+            problems.append({"keep": index, "error": str(exc)[:300]})
+    return held
+
+
+def _restore(model: Any, held: list[tuple[int, dict[str, Any], Any]], problems: list[dict[str, Any]]) -> None:
+    """Each key of ``keep_theirs`` set back to the latest version's value, on the instance its path leads to now: an
+    operation may have put a new instance there, as a moved element gets a new point."""
+    for index, locator, value in held:
+        try:
+            entity, _ = _find(model, locator)
+            setattr(entity, locator["attribute"], to_ifc(model, value))
+        except CannotApply as exc:
+            problems.append({"keep": index, "error": str(exc)[:300]})
+        except Exception as exc:
+            problems.append(
+                {"keep": index, "error": f"{locator['attribute']} does not take its value back: {type(exc).__name__}"}
+            )
+
+
 def _delete(model: Any, entity: Any) -> int:
     """Remove an instance that nothing refers to; one that is still referred to is skipped, as IFC-LPG's
     ``delete_nodes`` refuses it in the graph."""
@@ -245,20 +354,48 @@ def read_values(base: Path, changes: list[dict[str, Any]]) -> list[dict[str, Any
     return values
 
 
-def apply_all(base: Path, changes: list[dict[str, Any]], out: Path) -> dict[str, Any]:
+def apply_all(
+    base: Path,
+    changes: list[dict[str, Any]],
+    out: Path,
+    *,
+    ops: list[dict[str, Any]] | None = None,
+    keep_theirs: list[str] | None = None,
+    proposer: str = "",
+) -> dict[str, Any]:
     import ifcopenshell
 
     model = ifcopenshell.open(str(base))
     touched: list[int] = []
     problems: list[dict[str, Any]] = []
-    for index, change in enumerate(changes):
-        try:
-            touched.append(apply_one(model, change))
-        except CannotApply as exc:
-            if len(problems) < MAX_PROBLEMS:
-                problems.append({"change": index, "error": str(exc)[:300]})
+    held = _hold(model, keep_theirs or [], problems)
+    made = None
+    if ops:
+        from opencde.ifcgraph.ops import run
+
+        made = run(model, ops, proposer=proposer)
+    already = 0
+    if made is None or made["failed"] is None:
+        for index, change in enumerate(changes):
+            try:
+                if made is not None and _already(model, change):
+                    already += 1
+                    continue
+                touched.append(apply_one(model, change))
+            except CannotApply as exc:
+                if len(problems) < MAX_PROBLEMS:
+                    problems.append({"change": index, "error": str(exc)[:300]})
+        _restore(model, held, problems)
     model.write(str(out))
-    return {"applied": len(touched), "touched": sorted(set(touched)), "problems": problems, "count": len(changes)}
+    summary = {
+        "applied": len(touched) + already,
+        "touched": sorted(set(touched)),
+        "problems": problems[:MAX_PROBLEMS],
+        "count": len(changes),
+    }
+    if made is not None:
+        summary["ops"] = made
+    return summary
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -268,6 +405,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("out", type=Path, nargs="?")
     parser.add_argument("--read", action="store_true")
     parser.add_argument("--memory-mb", type=int, default=0)
+    parser.add_argument("--proposer", default="")
     args = parser.parse_args(argv)
     if args.memory_mb:
         limit_memory(args.memory_mb)
@@ -280,7 +418,14 @@ def main(argv: list[str] | None = None) -> int:
         elif args.out is None:
             raise ValueError("an out file is needed unless --read")
         else:
-            summary = apply_all(args.base, list(change_set["changes"]), args.out)
+            summary = apply_all(
+                args.base,
+                list(change_set["changes"]),
+                args.out,
+                ops=change_set.get("ops"),
+                keep_theirs=change_set.get("keep_theirs"),
+                proposer=args.proposer,
+            )
     except Exception as exc:  # the caller reads the last line of stderr
         sys.stderr.write(json.dumps({"error": f"{type(exc).__name__}: {exc}"[:300]}) + "\n")
         return 2

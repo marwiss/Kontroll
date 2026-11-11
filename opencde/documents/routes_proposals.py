@@ -42,7 +42,9 @@ class IfcProposalEntry(BaseModel):
         "`approved` once a clean trial became a version."
     )
     base_version_index: int = Field(description="The version of the document the change set was tried on.")
-    change_count: int | None = Field(None, description="How many changes the set holds; null until the trial ran.")
+    change_count: int | None = Field(
+        None, description="How many changes and operations the set holds; null until the trial ran."
+    )
     author: str = Field(description="Who proposed the change set.")
     checked_at: str | None = Field(None, description="When the trial ended, ISO 8601 in UTC; null until then.")
     version_index: int | None = Field(None, description="The version it became, when it is `approved`; else null.")

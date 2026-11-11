@@ -523,6 +523,41 @@ säilyttää instanssit. Vastaus nimeää asian, kuinka monta instanssia se pois
 versiolla ei ole muunnettua mallia, ja `409`, kun mikään siinä ei ole ulottumattomissa. Kyvykkyysasiakirja
 luettelee toiminnot kentässä `ifc_changes.ops` ja osoitteen kentässä `ifc_changes.unreachable_url`.
 
+Dataspatiumin kirjoitustyökaluilla tehty muutosjoukko kantaa myös niiden toiminnot kentässä `ops`, ja `ops_form` on
+`dataspatium-tools/1`, jotta uudet elementit, poistot ja suhteet tulevat mukaan ehdotukseen. Jokainen toiminto
+nimeää työkalunsa kentässä `tool` ja pitää työkalun argumentit rinnallaan, pituudet metreinä:
+`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`,
+`set_classification`, `assign`, `transform_elements`, `delete_elements` ja `set_site`. Palvelin ajaa ne kopiolla
+sovelluksen omasta koodista (`opencde/ifcgraph/ops.py`), joten samat toiminnot antavat saman mallin sovelluksessa
+ja palvelimella, tiedoston yksikössä, ja IfcOpenShellin tekemissä omistajahistorioissa ovat ehdottaja ja palvelin.
+Seinä-, laatta-, katto- ja aukkotoimintojen luomat nimetään `new-1`, `new-2` … niiden järjestyksessä. Toiminto
+nimeää elementin sen GlobalId:llä, STEP-tunnisteella vain, kun mikään GlobalId ei sitä tavoita, tai tällaisella
+ref-tunnuksella, ja kerroksen sen nimellä. `changes` saa silloin olla tyhjä: toimintojen rinnalla muutokset
+kuvaavat, mitä toiminnot tekevät olemassa oleville instansseille, sellaisena kuin sovellus sen havaitsi,
+yhdistämistä varten, ja muutos, jonka toiminnot jo tekivät, lasketaan sovelletuksi. Kyvykkyysdokumentti ilmoittaa
+muodon nimellä `ifc_changes.ops_form` ja työkalut nimellä `ifc_changes.ops_tools`.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "create_wall,create_opening"},
+  "ops_form": "dataspatium-tools/1",
+  "ops": [
+    {"tool": "create_wall", "storey": "Level 1", "start": [0, 0], "end": [6, 0], "thickness": 0.2, "height": 3},
+    {"tool": "create_opening", "wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "fill": "door"}
+  ],
+  "changes": []
+}
+```
+
+Kokeilu soveltaa ensin toiminnot ja sitten muutokset ja laskee molemmat kenttään `change_count`. Toiminto, jota ei
+voida soveltaa, on lajin `op` huomautus, jossa on sen indeksi (`op`) ja `tool`, sovelluksen koodin sanoin, jotka
+voivat lainata sen argumentteja ja tiedostoa; sen jälkeisiä toimintoja ja muutoksia ei sovelleta, kuten ei
+sovelluksessakaan. Kokeilu antaa myös kentän `created`, kunkin luodun elementin GlobalId:n sen ref-tunnuksen
+mukaan, jotta asiakasohjelma voi yhdistää omansa, ja kentän `notes`, mitä toiminto ei voinut tehdä tiedoston
+skeemassa, kuten karttamuunnosta IFC2X3:ssa.
+
 Kun IFC-LPG-moduuli on käytössä, palvelin kokeilee jokaista muutosjoukkoa sitä
 lähetettäessä: työprosessi soveltaa muutokset perustaversion tiedostoon, tulos
 käy läpi lähetyksen tarkistukset (IFC-skeema, buildingSMARTin säännöt ja
@@ -587,7 +622,11 @@ versiossa on (`theirs`), mitä ehdotus asettaa (`ours`), kaikki muutosjoukon
 arvomuodossa, sekä välissä olevan version, joka muutti sitä (`version_index`);
 arvo, jota ei voitu lukea, on `null`. Asiakasohjelma antaa ihmisen valita
 törmäyskohtaisesti, lähettää uuden snippetin uusimpaan versioon ja hyväksyy
-uudelleen.
+uudelleen. Asiakasohjelma, joka ei voi leikata yksittäistä muutosta
+toiminnoistaan, lähettää ne uudelleen ja antaa avaimet, joista se luopuu,
+kentässä `keep_theirs` niin kuin `conflicts` ne nimesi: palvelin kokeilee
+silloin muutosjoukkoa dokumentin uusinta versiota vasten ja palauttaa kullekin
+näistä attribuuteista uusimman version arvon toimintojen ja muutosten jälkeen.
 
 Toisen version päälle rakennettu versio on solmu, jolla on vanhempi:
 `parent_version_index` ja linkki vanhempaan versioon, muutosjoukosta

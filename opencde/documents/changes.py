@@ -9,11 +9,16 @@ STEP id only where no GlobalId reaches it (the owner's rule of 2026-11-10); the 
 with indexes, such as ``IsDefinedBy[0].RelatingPropertyDefinition.HasProperties[2]``.
 A change to an instance that several share changes it for all of them, unless ``copy`` asks for a copy. The server
 checks the form here; what the changes do to the model is checked when a proposal is tried (the next step).
+
+A change set may also carry Dataspatium's write tools as ``ops`` in the form ``dataspatium-tools/1`` (``ops_form``):
+each operation names its tool and holds the tool's arguments beside it, and the trial applies them with the app's own
+code (``ifcgraph/ops.py``) before the changes, which then may be none, since they describe what the operations do to
+existing instances. ``keep_theirs`` lists the keys of conflicts the proposer gave up, as the server named them.
 """
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
@@ -22,6 +27,8 @@ SCHEMA_PATH = "/documents/1.0/ifc-changes/schema"
 SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 MAX_CHANGES = 10_000
 MAX_CHANGE_SET_BYTES = 16 * 1024 * 1024
+OPS_FORM = "dataspatium-tools/1"
+MAX_OPS = MAX_CHANGES
 
 GUID = r"^[0-9A-Za-z_$]{22}$"
 # A path from the rooted entity: attribute names, each with an index where the attribute is an aggregate.
@@ -29,6 +36,25 @@ PATH = r"^[A-Z][A-Za-z0-9]*(\[[0-9]+\])?(\.[A-Z][A-Za-z0-9]*(\[[0-9]+\])?)*$"
 ATTRIBUTE = r"^[A-Z][A-Za-z0-9]*$"
 IFC_TYPE = r"^Ifc[A-Za-z0-9]+$"
 ENUMERATION = r"^[A-Z_][A-Z0-9_]*$"
+# An attribute as the server's conflicts name it: `#170.NominalValue`, or `<guid>/<path>.Name` with an empty path for
+# the rooted entity itself.
+KEY = rf"^(#[0-9]+|[0-9A-Za-z_$]{{22}}(/({PATH[1:-1]})?)?)\.[A-Z][A-Za-z0-9]*$"
+
+# The write tools whose operations a change set carries, as Dataspatium names them; ``manage_changeset`` is the app's.
+Tool = Literal[
+    "create_storeys_and_grid",
+    "create_wall",
+    "create_slab",
+    "create_roof",
+    "create_opening",
+    "set_properties",
+    "set_classification",
+    "assign",
+    "transform_elements",
+    "delete_elements",
+    "set_site",
+]
+OPS_TOOLS: tuple[str, ...] = get_args(Tool)
 
 
 Text = Annotated[str, StringConstraints(max_length=10_000)]
@@ -150,15 +176,68 @@ class Provenance(_Strict):
     created_at: str | None = Field(None, max_length=40, description="When it was proposed, ISO 8601 in UTC.")
 
 
+class Op(BaseModel):
+    """One operation of Dataspatium's write tools: the tool by its name, and its arguments beside it as the tool's
+    JSON schema in the app has them, lengths in metres. The server gives what the operations create the refs `new-1`,
+    `new-2` … itself, in the order of the operations that create a wall, a slab, a roof or an opening, so an operation
+    carries no ref. It names an element by its GlobalId, by its STEP id only where no GlobalId reaches it, or a
+    created one by its ref (F34 a), and a storey by its name."""
+
+    model_config = ConfigDict(extra="allow")
+
+    tool: Tool = Field(description="The write tool, as Dataspatium names it.")
+
+
+Key = Annotated[str, StringConstraints(max_length=1_200, pattern=KEY)]
+
+
 class IfcChangeSet(_Strict):
-    """A proposed change to an IFC model: its base, its provenance and its changes (ADR 0021)."""
+    """A proposed change to an IFC model: its base, its provenance and its changes (ADR 0021), and where an app's
+    write tools made it, their operations."""
+
+    model_config = ConfigDict(
+        json_schema_extra={  # what the model's validator checks, for a client that reads only the schema
+            "if": {"properties": {"ops": {"type": "array"}}, "required": ["ops"]},
+            "then": {"required": ["ops_form"]},
+            "else": {"properties": {"changes": {"minItems": 1}}},
+        }
+    )
 
     schema_: str = Field(
         alias="schema", max_length=1000, description="The address of this schema, as the topic's `reference_schema`."
     )
     base: Base
     provenance: Provenance
-    changes: list[Change] = Field(min_length=1, max_length=MAX_CHANGES)
+    changes: list[Change] = Field(
+        max_length=MAX_CHANGES,
+        description="At least one, unless `ops` carries the change: then they describe what the operations do to "
+        "existing instances, for the merge, and may be none.",
+    )
+    ops_form: Literal["dataspatium-tools/1"] | None = Field(
+        None, description=f"The form of `ops`: `{OPS_FORM}`, Dataspatium's write tools; required with `ops`."
+    )
+    ops: list[Op] | None = Field(
+        None,
+        min_length=1,
+        max_length=MAX_OPS,
+        description="The write tools' operations, applied in order to the base with Dataspatium's own code before "
+        "the changes.",
+    )
+    keep_theirs: list[Key] | None = Field(
+        None,
+        max_length=MAX_CHANGES,
+        description="The keys of the conflicts given up, as `conflicts` named them (`#170.NominalValue`, "
+        "`<guid>/<path>.Name`): the change set is tried on the document's latest version, and each of these "
+        "attributes keeps the latest version's value.",
+    )
+
+    @model_validator(mode="after")
+    def _ops_or_changes(self) -> IfcChangeSet:
+        if self.ops is None and not self.changes:
+            raise ValueError("a change set holds at least one change, unless ops carries operations")
+        if self.ops is not None and self.ops_form != OPS_FORM:
+            raise ValueError(f"ops needs ops_form {OPS_FORM}")
+        return self
 
 
 def change_set_schema(public_url: str) -> dict[str, Any]:

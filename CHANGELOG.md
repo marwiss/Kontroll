@@ -20,6 +20,16 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- A change set carries Dataspatium's write tools as `ops` in the form `ops_form` `dataspatium-tools/1`:
+  `create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`,
+  `set_classification`, `assign`, `transform_elements`, `delete_elements` and `set_site`, lengths in metres, an
+  element named by its GlobalId (its STEP id where no GlobalId reaches it) and a created one by its ref `new-1`,
+  `new-2` …. The trial applies them to the base version with a copy of the app's own code before the changes, which
+  may then be empty, and a change the operations made already counts as applied; an operation that fails is an
+  issue of kind `op` with its index and tool, and the trial gives `created` (the GlobalId of each ref) and `notes`.
+  `keep_theirs` lists the conflicts the proposer gave up: the change set is then tried on the latest version and
+  those attributes keep its values. The capabilities document announces `ifc_changes.ops_form` and
+  `ifc_changes.ops_tools`.
 - With `OPENCDE_BSDD_ENABLED=true`, an upload is also checked against buildingSMART's Data Dictionary: the check
   `bsdd` of its report warns of a classification reference whose class bSDD does not know, and, in a file of IFC 4.3,
   of a `Pset_` or `Qto_` set or a property of one that bSDD's IFC dictionary does not list, each with the STEP id of

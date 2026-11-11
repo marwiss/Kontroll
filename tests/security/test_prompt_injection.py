@@ -258,6 +258,34 @@ def test_a_change_set_with_the_text_changes_only_what_it_names(tmp_path: Path) -
     assert sorted(key for key in before if before[key] != after[key]) == [b"#242", b"#287", b"#373", b"#459"]
 
 
+def test_the_write_tools_take_the_text_as_names_and_values_only(tmp_path: Path) -> None:
+    """Text in the arguments of Dataspatium's write tools (``ops``) becomes a name or a value in the file and nothing
+    else: no other operation runs, and the worker's answer carries refs and GlobalIds, never the text."""
+    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    element = pytest.importorskip("ifcopenshell.util.element")
+    from opencde.ifcgraph.apply import apply_all
+
+    ops = [
+        {"tool": "create_wall", "start": [0, 0], "end": [4, 0], "name": INSTRUCTION},
+        {"tool": "set_properties", "ids": ["new-1"], "pset": "Pset_WallCommon", "properties": {"Reference": SCRIPT}},
+        {"tool": "set_classification", "ids": ["new-1"], "system": TEMPLATE, "name": CONTROL, "code": "X1"},
+        {"tool": "assign", "ids": ["new-1"], "material": CYPHER},
+    ]
+    out = tmp_path / "out.ifc"
+    summary = apply_all(MODEL, [], out, ops=ops, proposer=LONG)
+    assert summary["ops"]["failed"] is None and summary["ops"]["applied"] == 4
+    answer = json.dumps(summary)
+    assert not any(text[:40] in answer for text in INJECTIONS), "the answer names what was made, never the text"
+    model = ifcopenshell.open(str(out))
+    wall = model.by_guid(summary["ops"]["created"]["new-1"])
+    assert wall.Name == INSTRUCTION
+    assert element.get_psets(wall)["Pset_WallCommon"]["Reference"] == SCRIPT
+    (reference,) = model.by_type("IfcClassificationReference")
+    assert reference.Name == CONTROL and reference.ReferencedSource.Name == TEMPLATE
+    assert element.get_material(wall).Name == CYPHER
+    assert len(model.by_type("IfcWall")) == len(ifcopenshell.open(str(MODEL)).by_type("IfcWall")) + 1, "one wall"
+
+
 @pytest.mark.parametrize("text", INJECTIONS)
 def test_the_change_set_schema_takes_the_text_as_a_value_and_as_nothing_else(text: str) -> None:
     """A value may say anything; a path, an attribute or a GlobalId that is no name is refused, and the refusal never

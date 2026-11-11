@@ -175,3 +175,119 @@ def test_an_instance_nothing_refers_to_is_deleted_and_one_still_referred_to_is_n
     with pytest.raises(RuntimeError):
         model.by_id(9001)
     assert model.by_id(196).is_a("IfcCartesianPoint")
+
+
+# -- Dataspatium's write tools in a change set (``ops``), before its changes --------------------------------------
+
+OTHER_WALL = "3eT96F_cnDsOufCEsotwtp"  # YVT-B, #373
+STOREY_RELATIONSHIP = "0PUNS2OuLwupG5o8M6iDor"  # the storey's IfcRelContainedInSpatialStructure, #257
+LOCATION = f"{WALL}/ObjectPlacement.RelativePlacement.Location.Coordinates"
+NEW_GTIN = {"tool": "set_properties", "ids": [WALL], "pset": "Reuse", "properties": {"GTIN": "4"}}
+NEW_WALL = {"tool": "create_wall", "start": [0, 0], "end": [4, 0], "name": "New"}
+
+
+def test_the_operations_come_first_and_a_change_they_made_counts_as_applied(tmp_path: Path) -> None:
+    """The app sends the changes its operations make to existing instances beside them, for the merge: a change the
+    operations made already counts as applied and is not made twice, one they did not make is applied as any, and
+    one that says otherwise than the operations did is an issue."""
+    import ifcopenshell
+
+    ops = [
+        NEW_GTIN,
+        NEW_WALL,
+        {"tool": "create_storeys_and_grid", "storeys": [{"name": "2. etasje", "elevation": 3}]},
+        {"tool": "assign", "ids": [OTHER_WALL], "storey": "2. etasje"},
+    ]
+    made = [
+        {
+            "guid": WALL,
+            "path": PATH_TO_GTIN,
+            "attribute": "NominalValue",
+            "op": "set",
+            "old": {"type": "IfcLabel", "value": "3"},
+            "new": {"type": "IfcLabel", "value": "4"},
+        },
+        {"guid": STOREY_RELATIONSHIP, "attribute": "RelatedElements", "op": "remove", "old": {"guid": OTHER_WALL}},
+    ]
+    rename = {"guid": OTHER_WALL, "attribute": "Name", "op": "set", "old": "YVT-B", "new": "YVT-B2"}
+    other = {**made[0], "new": {"type": "IfcLabel", "value": "5"}}
+    out = tmp_path / "out.ifc"
+    summary = apply_all(MODEL, [*made, rename, other], out, ops=ops, proposer="anna")
+    assert summary["applied"] == 3 and summary["count"] == 4
+    assert summary["problems"] == [{"change": 3, "error": "NominalValue no longer holds the old value"}]
+    assert summary["ops"]["applied"] == summary["ops"]["count"] == 4 and summary["ops"]["failed"] is None
+    model = ifcopenshell.open(str(out))
+    assert from_ifc(model.by_id(287).NominalValue) == {"type": "IfcLabel", "value": "4"}
+    assert model.by_guid(OTHER_WALL).Name == "YVT-B2"
+    assert OTHER_WALL not in [element.GlobalId for element in model.by_guid(STOREY_RELATIONSHIP).RelatedElements]
+    assert model.by_guid(summary["ops"]["created"]["new-1"]).Name == "New"
+    assert {WALL, OTHER_WALL, summary["ops"]["created"]["new-1"]} <= set(summary["ops"]["objects"])
+
+
+def test_an_operation_that_fails_leaves_the_changes_unapplied(tmp_path: Path) -> None:
+    import ifcopenshell
+
+    rename = {"guid": OTHER_WALL, "attribute": "Name", "op": "set", "new": "YVT-B2"}
+    nowhere = {**NEW_WALL, "storey": "nowhere"}
+    out = tmp_path / "out.ifc"
+    summary = apply_all(MODEL, [rename], out, ops=[NEW_GTIN, nowhere, NEW_WALL], keep_theirs=[f"{WALL}/.Name"])
+    assert summary["ops"]["failed"] == {
+        "op": 1,
+        "tool": "create_wall",
+        "error": "no storey named 'nowhere'; the storeys are 1. etasje",
+    }
+    assert summary["ops"]["applied"] == 1 and summary["applied"] == 0 and summary["problems"] == []
+    assert ifcopenshell.open(str(out)).by_guid(OTHER_WALL).Name == "YVT-B"
+
+
+def test_keep_theirs_gives_each_key_back_the_value_the_file_held(tmp_path: Path) -> None:
+    """A key given up gets the latest version's value back after the operations and the changes, also where an
+    operation put a new instance on its path, as a move gives the wall a new point; the rest of the operations
+    stand."""
+    import ifcopenshell
+
+    before = ifcopenshell.open(str(MODEL)).by_guid(WALL).ObjectPlacement.RelativePlacement.Location.Coordinates
+    ops = [{"tool": "transform_elements", "ids": [WALL], "dx": 1, "dy": 0, "dz": 0}, NEW_GTIN, NEW_WALL]
+    rename = {"guid": OTHER_WALL, "attribute": "Name", "op": "set", "new": "ours"}
+    out = tmp_path / "out.ifc"
+    summary = apply_all(
+        MODEL, [rename], out, ops=ops, keep_theirs=[LOCATION, "#287.NominalValue", f"{OTHER_WALL}/.Name"]
+    )
+    assert summary["problems"] == [] and summary["ops"]["failed"] is None
+    model = ifcopenshell.open(str(out))
+    moved = model.by_guid(WALL).ObjectPlacement.RelativePlacement.Location
+    assert moved.Coordinates == before, "where the latest version had it, on the point the move made"
+    assert from_ifc(model.by_id(287).NominalValue) == {"type": "IfcLabel", "value": "3"}
+    assert model.by_guid(OTHER_WALL).Name == "YVT-B" and model.by_guid(summary["ops"]["created"]["new-1"])
+
+    gone = apply_all(MODEL, [], out, ops=ops, keep_theirs=["#999999.Name", f"{WALL}/.Nothing", f"{WALL}.IsDefinedBy"])
+    assert gone["problems"] == [
+        {"keep": 0, "error": "no instance #999999"},
+        {"keep": 1, "error": "IfcWallStandardCase has no attribute Nothing"},
+        {"keep": 2, "error": "IsDefinedBy is an inverse attribute"},
+    ]
+    deleted = apply_all(
+        MODEL, [], out, ops=[{"tool": "delete_elements", "ids": [WALL], "confirm": True}], keep_theirs=[LOCATION]
+    )
+    assert deleted["problems"] == [{"keep": 0, "error": f"no instance with GlobalId {WALL}"}], "nothing to give back"
+
+
+def test_the_worker_applies_the_operations_and_names_the_proposer(tmp_path: Path) -> None:
+    import ifcopenshell
+
+    changes = tmp_path / "changes.json"
+    changes.write_text(json.dumps({"changes": [], "ops": [NEW_WALL], "ops_form": "dataspatium-tools/1"}), "utf-8")
+    out = tmp_path / "out.ifc"
+    run = subprocess.run(  # noqa: S603
+        [sys.executable, "-m", "opencde.ifcgraph.apply", str(MODEL), str(changes), str(out), "--proposer=-anna"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert run.returncode == 0, run.stderr
+    answer = json.loads(run.stdout)
+    assert answer["count"] == 0 and answer["ops"]["applied"] == 1 and answer["ops"]["notes"] == []
+    model = ifcopenshell.open(str(out))
+    wall = model.by_guid(answer["ops"]["created"]["new-1"])
+    container = next(iter(wall.ContainedInStructure)).OwnerHistory
+    assert container.LastModifyingUser.ThePerson.Id == "-anna", "the proposer, also with a name like an option"

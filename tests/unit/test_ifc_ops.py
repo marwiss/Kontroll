@@ -30,6 +30,7 @@ import ifcopenshell.util.element
 import ifcopenshell.util.placement
 
 from opencde import __version__
+from opencde.documents.changes import OPS_TOOLS
 from opencde.ifcgraph.ops import SERVER, ServerChangeSet, _ChangeSet, run
 
 FIXTURE = FIXTURES_DIR / "three_walls_gtin.ifc"  # IFC2X3 in millimetres, with an owner history and one storey
@@ -96,6 +97,12 @@ def extrusion(element: Any) -> Any:
     (representation,) = element.Representation.Representations
     (solid,) = representation.Items
     return solid
+
+
+def test_every_tool_of_the_schema_is_an_operation_of_the_copy() -> None:
+    """The schema's names and the copy's ``op_`` methods are one list, so neither has a tool the other lacks."""
+    operations = {name[3:] for name in dir(_ChangeSet) if name.startswith("op_")}
+    assert operations == set(OPS_TOOLS)
 
 
 def test_the_tools_that_create_hand_out_the_refs() -> None:

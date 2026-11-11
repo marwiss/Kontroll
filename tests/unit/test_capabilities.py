@@ -58,6 +58,20 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-LPG module"
     assert extensions["ifc_changes"]["snippet_type"] == "DataregiumIfcChangeSet", "the form of a proposed change"
     assert extensions["ifc_changes"]["ifc_proposals_url"] == "/documents/1.0/documents/{document_id}/ifc-proposals"
+    assert extensions["ifc_changes"]["ops_form"] == "dataspatium-tools/1", "the write tools' operations, too"
+    assert extensions["ifc_changes"]["ops_tools"] == [
+        "create_storeys_and_grid",
+        "create_wall",
+        "create_slab",
+        "create_roof",
+        "create_opening",
+        "set_properties",
+        "set_classification",
+        "assign",
+        "transform_elements",
+        "delete_elements",
+        "set_site",
+    ]
     assert extensions["project_administration"] == {
         "enabled": True,
         "url": "/manage/1.0/projects",

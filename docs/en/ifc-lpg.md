@@ -508,6 +508,39 @@ answer names the topic, how many instances it deletes and where the trial is; `4
 converted model, and `409` when nothing in it is out of reach. The capabilities document lists the operations
 in `ifc_changes.ops` and the address as `ifc_changes.unreachable_url`.
 
+A change set made with Dataspatium's write tools also carries their operations as `ops`, with `ops_form`
+`dataspatium-tools/1`, so that new elements, deletions and relationships reach the proposal. Each operation names
+its tool as `tool` and holds the tool's arguments beside it, lengths in metres: `create_storeys_and_grid`,
+`create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`, `assign`,
+`transform_elements`, `delete_elements` and `set_site`. The server runs them with a copy of the app's own code
+(`opencde/ifcgraph/ops.py`), so that the same operations give the same model in the app and on the server, in the
+file's unit, with the proposer and the server in the owner histories that IfcOpenShell makes. What the wall, slab,
+roof and opening operations create is named `new-1`, `new-2` … in their order. An operation names an element by its
+GlobalId, by its STEP id only where no GlobalId reaches it, or by such a ref, and a storey by its name.
+`changes` may then be empty: beside the operations they describe what the operations do to
+existing instances, as the app found it, for the merge, and a change the operations made already counts as applied.
+The capabilities document announces the form as `ifc_changes.ops_form` and the tools as `ifc_changes.ops_tools`.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "create_wall,create_opening"},
+  "ops_form": "dataspatium-tools/1",
+  "ops": [
+    {"tool": "create_wall", "storey": "Level 1", "start": [0, 0], "end": [6, 0], "thickness": 0.2, "height": 3},
+    {"tool": "create_opening", "wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "fill": "door"}
+  ],
+  "changes": []
+}
+```
+
+The trial applies the operations first, then the changes, and counts both in `change_count`. An operation that
+cannot be applied is a finding of kind `op` with its index (`op`) and `tool`, in the words of the app's code, which
+may quote its arguments and the file; the operations after it and the changes are not applied, as in the app. The
+trial also gives `created`, the GlobalId of each created element by its ref, so that the client can map its own,
+and `notes`, what an operation could not do in the file's schema, such as the map conversion in IFC2X3.
+
 When the IFC-LPG module is on, the server tries every change set as it is
 uploaded: a worker applies the changes to the base version's file, the result
 goes through the checks an upload gets (the IFC schema, buildingSMART's rules
@@ -571,7 +604,11 @@ what the base held (`base`), what the latest version holds (`theirs`), what
 the proposal sets (`ours`), all in the change set's value form, and the
 version in between that changed it (`version_index`); a value that could not
 be read is `null`. The client lets a person choose per conflict, sends a new
-snippet on the latest version and approves again.
+snippet on the latest version and approves again. A client that cannot cut one
+change out of its operations sends them again with the keys it gives up in
+`keep_theirs`, as `conflicts` named them: the server then tries the change set
+on the document's latest version and gives each of those attributes back the
+latest version's value after the operations and the changes.
 
 A version built on another is a node with its parent: `parent_version_index`
 and a link to the parent version, on a version approved from a change set and

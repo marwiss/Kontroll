@@ -504,6 +504,39 @@ Svarið nefnir málið, hve mörg tilvik það fjarlægir og hvar prófunin er; 
 líkan, og `409` þegar ekkert í henni er utan seilingar. Getuskjalið telur upp aðgerðirnar í
 `ifc_changes.ops` og vefslóðina sem `ifc_changes.unreachable_url`.
 
+Breytingasafn sem gert er með skrifverkfærum Dataspatium ber líka aðgerðir þeirra sem `ops`, með `ops_form`
+`dataspatium-tools/1`, svo að nýjar einingar, eyðingar og tengsl fylgi tillögunni. Hver aðgerð nefnir verkfæri sitt
+sem `tool` og hefur rök verkfærisins við hliðina, lengdir í metrum: `create_storeys_and_grid`, `create_wall`,
+`create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`, `assign`,
+`transform_elements`, `delete_elements` og `set_site`. Þjónninn keyrir þær með afriti af eigin kóða appsins
+(`opencde/ifcgraph/ops.py`), svo að sömu aðgerðir gefa sama líkan í appinu og á þjóninum, í einingu skrárinnar,
+með þann sem lagði til og þjóninn í eigendasögunum sem IfcOpenShell býr til. Það sem vegg-, plötu-, þak- og
+opsaðgerðirnar búa til heitir `new-1`, `new-2` … í röð þeirra. Aðgerð nefnir einingu með GlobalId hennar, með
+STEP-auðkenni hennar aðeins þar sem ekkert GlobalId nær henni, eða með slíku ref, og hæð með nafni sínu. `changes`
+má þá vera tómt: við hlið aðgerðanna lýsa breytingarnar því sem aðgerðirnar gera við tilvik sem eru til, eins og
+appið fann það, fyrir sameininguna, og breyting sem aðgerðirnar hafa þegar gert telst beitt. Getuskjalið auglýsir
+sniðið sem `ifc_changes.ops_form` og verkfærin sem `ifc_changes.ops_tools`.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "create_wall,create_opening"},
+  "ops_form": "dataspatium-tools/1",
+  "ops": [
+    {"tool": "create_wall", "storey": "Level 1", "start": [0, 0], "end": [6, 0], "thickness": 0.2, "height": 3},
+    {"tool": "create_opening", "wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "fill": "door"}
+  ],
+  "changes": []
+}
+```
+
+Prófunin beitir fyrst aðgerðunum og síðan breytingunum, og telur hvort tveggja í `change_count`. Aðgerð sem ekki er
+hægt að beita er athugasemd af taginu `op` með vísi sínum (`op`) og `tool`, með orðum kóða appsins, sem geta vitnað í
+rök hennar og skrána; aðgerðunum á eftir henni og breytingunum er ekki beitt, eins og í appinu. Prófunin gefur
+líka `created`, GlobalId hverrar einingar sem búin var til eftir ref hennar, svo að biðlarinn geti parað sínar eigin,
+og `notes`, það sem aðgerð gat ekki gert í skema skrárinnar, eins og kortaumbreytinguna í IFC2X3.
+
 Þegar IFC-LPG-einingin er á reynir þjónninn hvert breytingasett þegar því er
 hlaðið upp: vinnsluferli beitir breytingunum á skrá grunnútgáfunnar,
 niðurstaðan fer í gegnum prófanirnar sem upphal fær (IFC-skemað, reglur
@@ -568,7 +601,11 @@ grunnurinn hafði (`base`), hvað nýjasta útgáfan hefur (`theirs`), hvað
 tillagan setur (`ours`), öll á gildisformi breytingasafnsins, og útgáfuna á
 milli sem breytti því (`version_index`); gildi sem ekki tókst að lesa er
 `null`. Biðlarinn lætur manneskju velja fyrir hvern árekstur, sendir nýjan
-snippet á nýjustu útgáfuna og samþykkir aftur.
+snippet á nýjustu útgáfuna og samþykkir aftur. Biðlari sem getur ekki skorið
+eina breytingu úr aðgerðum sínum sendir þær aftur með lyklunum sem hann gefur
+eftir í `keep_theirs`, eins og `conflicts` nefndi þá: þjónninn reynir þá
+breytingasettið á nýjustu útgáfu skjalsins og gefur hverri þessara eiginda
+aftur gildi nýjustu útgáfunnar eftir aðgerðirnar og breytingarnar.
 
 Útgáfa sem byggir á annarri er hnútur með foreldri sínu:
 `parent_version_index` og tengill á foreldrisútgáfuna, á útgáfu sem samþykkt

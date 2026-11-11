@@ -121,6 +121,31 @@ def _ruleset_of(env: Path) -> str:
 
 
 GRAPH_RULESET = "IFC-LPG: the instances no GlobalId reaches, and the shapes of the geometry pass"
+MAX_OPS_OBJECTS = 1_000  # what the operations created or changed that the approval's viewpoint may select
+
+
+def _problem_issue(problem: dict[str, Any]) -> dict[str, Any]:
+    """A change, or a key of ``keep_theirs``, that the apply worker could not apply, as an issue of the trial."""
+    if "keep" in problem:
+        return {
+            "kind": "proposal",
+            "severity": "error",
+            "message": f"keep_theirs {problem['keep']}: {problem['error']}",
+        }
+    return {"kind": "proposal", "severity": "error", "message": f"change {problem['change']}: {problem['error']}"}
+
+
+def _op_issue(failed: dict[str, Any]) -> dict[str, Any]:
+    """The operation that failed, as an issue of kind ``op``: its index and tool, and why in the app's code's words."""
+    if failed.get("op") is None:
+        return {"kind": "op", "severity": "error", "message": f"ops: {failed['error']}"}
+    return {
+        "kind": "op",
+        "severity": "error",
+        "message": f"op {failed['op']} ({failed['tool']}): {failed['error']}",
+        "op": int(failed["op"]),
+        "tool": failed["tool"],
+    }
 
 
 def _unreached_issue(node: dict[str, Any]) -> dict[str, Any]:
@@ -796,7 +821,7 @@ class IfcGraphService:
                 """
                 MATCH (p:Proposal {id: $id, state: $queued})
                 SET p.state = $running, p.running_at = $now
-                RETURN p.project_id AS project_id, p.snippet_key AS snippet_key
+                RETURN p.project_id AS project_id, p.snippet_key AS snippet_key, p.author AS author
                 """,
                 id=proposal_id,
                 queued=STATE_QUEUED,
@@ -806,7 +831,9 @@ class IfcGraphService:
             if row is None:
                 return
             try:
-                fields = await self._try_proposal(proposal_id, str(row["project_id"]), str(row["snippet_key"]))
+                fields = await self._try_proposal(
+                    proposal_id, str(row["project_id"]), str(row["snippet_key"]), author=str(row["author"] or "")
+                )
             except Exception as exc:
                 log.warning("ifc_proposal_failed", proposal_id=proposal_id, error=type(exc).__name__)
                 await self._set_proposal(proposal_id, STATE_FAILED, **_failure(exc))
@@ -816,18 +843,39 @@ class IfcGraphService:
             log.info("ifc_proposal_done", proposal_id=proposal_id, state=state, issues=fields["issue_count"])
 
     async def _try_proposal(
-        self, proposal_id: str, project_id: str, snippet_key: str, base_version_index: int | None = None
+        self,
+        proposal_id: str,
+        project_id: str,
+        snippet_key: str,
+        base_version_index: int | None = None,
+        *,
+        author: str = "",
     ) -> dict[str, Any]:
-        """Apply the changes to the base version's file, check the result, and keep what the base lacks.
+        """Apply the operations and the changes to the base version's file, check the result, and keep what the base
+        lacks.
 
         ``base_version_index`` tries the change set on another version of its document than the one it names:
-        the latest, when the server merges at the approval (ADR 0021).
+        the latest, when the server merges at the approval (ADR 0021). A change set with ``keep_theirs`` is tried on
+        the latest version, where its proposer resolved the conflicts. ``author`` proposed it, and the owner
+        histories the operations make name them.
         """
         with self.storage.open_read(snippet_key) as handle:
             change_set = json.loads(handle.read().decode("utf-8"))
         base = dict(change_set["base"])
         if base_version_index is not None:
             base["version_index"] = base_version_index
+        elif change_set.get("keep_theirs"):
+            latest = await self.graph.one(
+                """
+                MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
+                      -[:HAS_VERSION]->(v:DocumentVersion)
+                RETURN max(v.version_index) AS latest
+                """,
+                project_id=project_id,
+                document_id=str(base["document_id"]),
+            )
+            if latest is not None and latest["latest"] is not None:
+                base["version_index"] = int(latest["latest"])
         version = await self.graph.one(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
@@ -865,11 +913,18 @@ class IfcGraphService:
                 str(out),
                 "--memory-mb",
                 str(self.settings.ifcgraph_memory_mb),
+                f"--proposer={author}",
             ]
             answer = await self._in_a_process(command, "applying the change set")
             summary = json.loads(answer.strip().splitlines()[-1])
             await asyncio.to_thread(self.storage.copy_in, out, key)
-            teams, teams_error = await self._parts_touched(project_id, source, out, changes)
+            made = summary.get("ops")
+            touching = changes
+            if made is not None:  # what the operations touched is in a team's part as a change's instance is
+                touching = workdir / "touching.json"
+                named = [{"guid": guid} for guid in [*made["objects"], *made["removed"]]]
+                touching.write_text(json.dumps({"changes": [*change_set["changes"], *named]}), encoding="utf-8")
+            teams, teams_error = await self._parts_touched(project_id, source, out, touching)
             # A base checked before bSDD was asked, or while it was out of reach, is asked about now, so that the
             # trial keeps only the findings the change set brings (OB-42).
             base_bsdd = None
@@ -884,24 +939,19 @@ class IfcGraphService:
             base_issues = unpack_report(version["base_report"]) + (base_bsdd["issues"] if base_bsdd else [])
         known = {_issue_key(issue) for issue in base_issues}
         new = [issue for issue in unpack_report(checked["report"]) if _issue_key(issue) not in known]
-        problems = [
-            {
-                "kind": "proposal",
-                "severity": "error",
-                "message": f"change {problem['change']}: {problem['error']}",
-            }
-            for problem in summary["problems"]
-        ]
+        problems = [_problem_issue(problem) for problem in summary["problems"]]
+        if made is not None and made["failed"] is not None:
+            problems.insert(0, _op_issue(made["failed"]))
         issues = problems + new
-        return {
+        fields: dict[str, Any] = {
             "state": STATE_CLEAN if not issues else STATE_ISSUES,
             "checked_at": now_iso(),
             "storage_key": key,
             "file_name": "proposal.ifc",
             "base_document_id": str(base["document_id"]),
             "base_version_index": int(base["version_index"]),
-            "change_count": int(summary["count"]),
-            "applied": int(summary["applied"]),
+            "change_count": int(summary["count"]) + (int(made["count"]) if made is not None else 0),
+            "applied": int(summary["applied"]) + (int(made["applied"]) if made is not None else 0),
             "issue_count": len(issues),
             "error_count": sum(1 for issue in issues if issue.get("severity") == "error"),
             "truncated": bool(checked["truncated"]),
@@ -911,6 +961,11 @@ class IfcGraphService:
             "teams": json.dumps(teams, separators=(",", ":")),
             "teams_error": teams_error,
         }
+        if made is not None:  # what the client maps its refs and its preview by, and what the approval shows
+            fields["created"] = json.dumps(made["created"], separators=(",", ":"))
+            fields["notes"] = json.dumps(made["notes"], separators=(",", ":"))
+            fields["ops_objects"] = json.dumps(made["objects"][:MAX_OPS_OBJECTS], separators=(",", ":"))
+        return fields
 
     async def _parts_touched(
         self, project_id: str, base: Path, changed: Path, changes: Path
@@ -947,7 +1002,10 @@ class IfcGraphService:
         between its base and the latest (ADR 0021). The request waits for the trial.
         """
         row = await self.graph.one(
-            "MATCH (p:Proposal {id: $id}) RETURN p.project_id AS project_id, p.snippet_key AS snippet_key",
+            """
+            MATCH (p:Proposal {id: $id})
+            RETURN p.project_id AS project_id, p.snippet_key AS snippet_key, p.author AS author
+            """,
             id=proposal_id,
         )
         if row is None:
@@ -956,7 +1014,11 @@ class IfcGraphService:
             await self._set_proposal(proposal_id, STATE_RUNNING)
             try:
                 fields = await self._try_proposal(
-                    proposal_id, str(row["project_id"]), str(row["snippet_key"]), base_version_index=base_version_index
+                    proposal_id,
+                    str(row["project_id"]),
+                    str(row["snippet_key"]),
+                    base_version_index=base_version_index,
+                    author=str(row["author"] or ""),
                 )
             except Exception as exc:
                 log.warning("ifc_proposal_failed", proposal_id=proposal_id, error=type(exc).__name__)
@@ -1101,6 +1163,8 @@ class IfcGraphService:
         node["issues"] = unpack_report(node.pop("report", None))
         node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
         node["teams"] = json.loads(node["teams"]) if node.get("teams") else []
+        for name in ("created", "notes", "ops_objects"):  # a trial of operations only
+            node[name] = json.loads(node[name]) if node.get(name) else None
         return node
 
     def _gherkin_env(self) -> Path | None:

@@ -3,16 +3,19 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
 import pytest
-from ifc_lpg.validation import unpack_report
+from ifc_lpg.validation import pack_report, unpack_report
 
+from opencde.ids import new_id
 from opencde.ifcgraph import service as service_module
 from opencde.ifcgraph.service import IfcGraphService
-from opencde.storage import LocalStorage
+from opencde.storage import LocalStorage, make_key
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 
 # What an issue may carry: a line of the uploaded file, which the log is not to have.
@@ -304,3 +307,114 @@ async def test_a_check_another_process_has_taken_is_left_alone(
     monkeypatch.setattr(graph, "run", taken)
     await service._validate("check-3", "documents/x", "model.ifc")
     assert log.events == [] and len(graph.writes) == 1
+
+
+# -- the trial of a change set with Dataspatium's write tools (``ops``) ------------------------------------------
+
+FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "three_walls_gtin.ifc"
+NEW_WALL = {"tool": "create_wall", "start": [0, 0], "end": [4, 0], "name": "New"}
+
+
+class Versions:
+    """The versions of one document as the trial asks for them: the base by its index, and the latest."""
+
+    def __init__(self, keys: dict[int, str]) -> None:
+        self.keys = keys
+        self.asked: list[int] = []
+
+    async def run(self, query: str, **params: Any) -> list[dict[str, Any]]:
+        return []  # no teams, no IDS documents
+
+    async def one(self, query: str, **params: Any) -> dict[str, Any] | None:
+        if "max(v.version_index)" in query:
+            return {"latest": max(self.keys)}
+        self.asked.append(int(params["version_index"]))
+        key = self.keys.get(int(params["version_index"]))
+        return {"storage_key": key, "file_name": "walls.ifc", "base_report": pack_report([])} if key else None
+
+
+@pytest.fixture
+def trying(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[IfcGraphService, Versions, LocalStorage]:
+    """A service whose apply worker is the real one, in a process of its own, and whose checks find nothing."""
+    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    storage = LocalStorage(tmp_path / "storage")
+    keys = {index: make_key("documents", new_id(), "ifc") for index in (1, 2)}
+    for key in keys.values():
+        storage.write_bytes(key, FIXTURE.read_bytes())
+    versions = Versions(keys)
+    service = IfcGraphService(versions, storage, make_settings(tmp_path, ifcgraph_enabled=True))
+
+    async def in_a_process(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        if "opencde.ifcgraph.apply" not in command:
+            return json.dumps({"ruleset": "IfcOpenShell x", "issue_count": 0, "truncated": False, "issues": []})
+        done = await asyncio.to_thread(subprocess.run, command, capture_output=True, text=True, check=False)
+        assert done.returncode == 0, done.stderr
+        return done.stdout
+
+    monkeypatch.setattr(service, "_in_a_process", in_a_process)
+    return service, versions, storage
+
+
+def snippet(storage: LocalStorage, **fields: Any) -> str:
+    change_set = {"base": {"document_id": "d" * 36, "version_index": 1}, "provenance": {"user": "anna"}, **fields}
+    key = make_key("snippets", new_id(), "bin")
+    storage.write_bytes(key, json.dumps(change_set).encode("utf-8"))
+    return key
+
+
+async def test_a_trial_applies_the_operations_and_says_what_they_created(
+    trying: tuple[IfcGraphService, Versions, LocalStorage], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, versions, storage = trying
+    touching: list[dict[str, Any]] = []
+
+    async def parts(project_id: str, base: Path, changed: Path, changes: Path) -> tuple[list[Any], None]:
+        touching.extend(json.loads(await asyncio.to_thread(changes.read_text, encoding="utf-8"))["changes"])
+        return [], None
+
+    monkeypatch.setattr(service, "_parts_touched", parts)
+    rename = {"guid": "3eT96F_cnDsOufCEsotwtp", "attribute": "Name", "op": "set", "new": "YVT-B2"}
+    key = snippet(storage, ops_form="dataspatium-tools/1", ops=[NEW_WALL, NEW_WALL], changes=[rename])
+    fields = await service._try_proposal(new_id(), "project-1", key, author="anna")
+    assert fields["state"] == "clean" and unpack_report(fields["report"]) == []
+    assert (fields["change_count"], fields["applied"]) == (3, 3), "two operations and one change"
+    created = json.loads(fields["created"])
+    assert list(created) == ["new-1", "new-2"] and json.loads(fields["notes"]) == []
+    assert set(created.values()) <= set(json.loads(fields["ops_objects"]))
+    assert {"guid": created["new-1"]} in touching and rename in touching, "a team's part is touched by either"
+    assert versions.asked == [1], "tried on the base it names"
+
+
+async def test_an_operation_that_fails_is_an_issue_of_kind_op(
+    trying: tuple[IfcGraphService, Versions, LocalStorage],
+) -> None:
+    service, _versions, storage = trying
+    nowhere = {**NEW_WALL, "storey": "Level 9"}
+    key = snippet(storage, ops_form="dataspatium-tools/1", ops=[NEW_WALL, nowhere], changes=[])
+    fields = await service._try_proposal(new_id(), "project-1", key, author="anna")
+    assert fields["state"] == "issues" and (fields["change_count"], fields["applied"]) == (2, 1)
+    assert unpack_report(fields["report"]) == [
+        {
+            "kind": "op",
+            "severity": "error",
+            "message": "op 1 (create_wall): no storey named 'Level 9'; the storeys are 1. etasje",
+            "op": 1,
+            "tool": "create_wall",
+        }
+    ]
+
+
+async def test_a_change_set_that_keeps_theirs_is_tried_on_the_latest_version(
+    trying: tuple[IfcGraphService, Versions, LocalStorage],
+) -> None:
+    service, versions, storage = trying
+    keep = ["1Xezbq735AdBO_4DerG66G/.Name", "#999999.Name"]
+    key = snippet(storage, ops_form="dataspatium-tools/1", ops=[NEW_WALL], changes=[], keep_theirs=keep)
+    proposal_id = new_id()
+    fields = await service._try_proposal(proposal_id, "project-1", key, author="anna")
+    assert versions.asked == [2] and fields["base_version_index"] == 2, "the latest, not the base it names"
+    assert [issue["message"] for issue in unpack_report(fields["report"])] == ["keep_theirs 1: no instance #999999"], (
+        "a key that names nothing in the latest version"
+    )
+    retried = await service._try_proposal(proposal_id, "project-1", key, base_version_index=1, author="anna")
+    assert versions.asked == [2, 1] and retried["base_version_index"] == 1, "the approval's merge names its own"

@@ -2,10 +2,12 @@
 """The trial of a topic's change set: an extension of the BCF API (ADR 0021).
 
 When a topic's ``bim_snippet`` of the type ``DataregiumIfcChangeSet`` is uploaded and the IFC-LPG module is on, the
-server applies the changes to the base version's file in a worker process, runs the checks an upload gets on the
-result and compares the findings with the base version's: the proposal is ``clean`` when every change applied and no
-finding is new, else ``issues``. ``GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal`` gives the trial to every
-member of the project, with the same bearer token as the topic. ``POST …/ifc-proposal/approve`` lets a ``manager``,
+server applies the changes to the base version's file in a worker process (Dataspatium's write tools first, with the
+app's own code, where the change set carries them as ``ops``: ``ifcgraph/ops.py``), runs the checks an upload gets on
+the result and compares the findings with the base version's: the proposal is ``clean`` when every change and
+operation applied and no finding is new, else ``issues``. ``GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal``
+gives the trial to every member of the project, with the same bearer token as the topic.
+``POST …/ifc-proposal/approve`` lets a ``manager``,
 or a team's responsible (below), make a clean trial the next version of the base document: the applied file becomes
 the version, with the base, the change set and who proposed and approved it in its metadata; the topic gets a comment
 with the version's address and the status ``Closed`` where the project has it. An AI only proposes: approval is a
@@ -76,6 +78,11 @@ class IfcProposalTeam(BaseModel):
     name: str
 
 
+class IfcProposalIssue(IfcValidationIssue):
+    op: int | None = Field(None, description="For `op`: the operation that failed, by its index in `ops` from 0.")
+    tool: str | None = Field(None, description="For `op`: the tool of the operation that failed.")
+
+
 class IfcProposalReport(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -86,17 +93,30 @@ class IfcProposalReport(BaseModel):
     created_at: str = Field(description="When the change set was received, ISO 8601 in UTC.")
     checked_at: str | None = Field(None, description="When the trial ended.")
     base: IfcProposalBase | None = Field(None, description="The document version the changes were applied to.")
-    change_count: int | None = Field(None, description="How many changes the set holds.")
-    applied: int | None = Field(None, description="How many of them applied; the rest are issues of kind `proposal`.")
+    change_count: int | None = Field(None, description="How many changes and operations the set holds.")
+    applied: int | None = Field(
+        None, description="How many of them applied; the rest are issues of kind `proposal` or `op`."
+    )
     issue_count: int | None = Field(None, description="The new findings and the changes that did not apply.")
     error_count: int | None = Field(None, description="How many of the issues are errors.")
     truncated: bool = Field(False, description="True when the checks found more issues than are listed.")
     ruleset: str | None = Field(None, description="What the result was checked with.")
     checks: list[IfcValidationCheck] = Field(default_factory=list)
-    issues: list[IfcValidationIssue] = Field(
+    issues: list[IfcProposalIssue] = Field(
         default_factory=list,
-        description="The findings the base version lacks, as in a version's report, and a `proposal` issue per change "
-        "that could not be applied, which says why without quoting the file.",
+        description="The findings the base version lacks, as in a version's report, a `proposal` issue per change or "
+        "`keep_theirs` key that could not be applied, which says why without quoting the file, and an `op` issue for "
+        "the operation that failed, in the words of Dataspatium's code, which may quote its arguments and the file.",
+    )
+    created: dict[str, str] | None = Field(
+        None,
+        description="For a change set with `ops`: the GlobalId of each element the operations created, by its ref "
+        "(`new-1`, `new-2` …).",
+    )
+    notes: list[str] | None = Field(
+        None,
+        description="For a change set with `ops`: what an operation could not do in the file's schema, such as the "
+        "map conversion in IFC2X3.",
     )
     error: str | None = Field(None, description="Why the trial could not run, when it `failed`.")
     approved_by: str | None = Field(None, description="Who approved it, when it is `approved`.")
@@ -123,7 +143,9 @@ def _report(node: dict[str, Any]) -> IfcProposalReport:
         truncated=bool(node.get("truncated")),
         ruleset=node.get("ruleset"),
         checks=[IfcValidationCheck.model_validate(check) for check in node["checks"]],
-        issues=[IfcValidationIssue.model_validate(issue) for issue in node["issues"]],
+        issues=[IfcProposalIssue.model_validate(issue) for issue in node["issues"]],
+        created=node.get("created"),
+        notes=node.get("notes"),
         error=node.get("error"),
         approved_by=node.get("approved_by"),
         version_index=None if node.get("version_index") is None else int(node["version_index"]),
@@ -295,8 +317,9 @@ async def proposal_approve(
             comment=f"Approved as version {record.version_index} of {latest.title}: {version.links.document_version.url}"
         ),
     )
+    touched = [*(change_set.get("changes") or []), *({"guid": guid} for guid in node.get("ops_objects") or [])]
     guids, centre, extent = await anyio.to_thread.run_sync(
-        _changed_guids, storage.path(str(node["storage_key"])), list(change_set.get("changes") or [])
+        _changed_guids, storage.path(str(node["storage_key"])), touched
     )
     if guids:
         await viewpoints.create(

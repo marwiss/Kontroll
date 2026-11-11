@@ -435,3 +435,157 @@ def test_the_proposals_against_a_document_are_listed_for_its_members(ifc_client:
     assert failed["topic_guid"] == third["guid"] and failed["state"] == "failed" and failed["checked_at"]
     assert failed["base_version_index"] == 1 and failed["change_count"] is None and failed["version_index"] is None
     assert len(client.get(listing, headers=viewer.headers).json()) == 2, "the other document's is not here"
+
+
+# -- Dataspatium's write tools in a change set (``ops``), applied with the app's own code ---------------------------
+
+SNIPPET_FIELDS = {
+    "snippet_type": SNIPPET_TYPE,
+    "is_external": False,
+    "reference": "changes.json",
+    "reference_schema": f"http://testserver{SCHEMA_PATH}",
+}
+NEW_WALL = {"tool": "create_wall", "storey": None, "start": [0, 0], "end": [4, 0], "thickness": 0.2, "height": 3,
+            "name": "New wall"}  # fmt: skip
+LOCATION = "ObjectPlacement.RelativePlacement.Location"  # the first wall's own point, in millimetres
+
+
+def with_ops(document_id: str, version_index: int, ops: list[dict[str, Any]], *changes: Any, **more: Any) -> bytes:
+    """A change set as Dataspatium sends one from its write tools: the operations, and the changes they make to the
+    instances the base has (none, where they only create)."""
+    body = json.loads(change_set(document_id, *changes))
+    body["base"]["version_index"] = version_index
+    return json.dumps({**body, "ops_form": "dataspatium-tools/1", "ops": ops, **more}).encode("utf-8")
+
+
+def opened(client: TestClient, session: Session, version: dict[str, Any], tmp_path: Any) -> Any:
+    import ifcopenshell
+
+    download = client.get(version["links"]["document_version_download"]["url"], headers=session.headers)
+    assert download.status_code == 200, download.text
+    path = tmp_path / f"version-{version['version_index']}.ifc"
+    path.write_bytes(download.content)
+    return ifcopenshell.open(str(path))
+
+
+def test_a_change_set_with_operations_builds_a_wall_that_the_approval_keeps(
+    ifc_client: tuple[TestClient, World], tmp_path: Any
+) -> None:
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    tools = client.get("/.well-known/dataregium").json()["extensions"]["ifc_changes"]
+    assert tools["ops_form"] == "dataspatium-tools/1" and "create_wall" in tools["ops_tools"]
+    version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
+    document_id = version["document_id"]
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    topic = make_topic(client, world, editor, title="A wall with a door", bim_snippet=SNIPPET_FIELDS)
+    snippet = f"{topics}/{topic['guid']}/snippet"
+    proposal = f"{topics}/{topic['guid']}/ifc-proposal"
+
+    unknown = with_ops(document_id, 1, [NEW_WALL, {"tool": "drop_everything"}])
+    refused = client.put(snippet, content=unknown, headers=editor.headers)
+    assert refused.status_code == 400 and "ops.1.tool" in refused.text and "drop_everything" not in refused.text
+    no_form = json.loads(with_ops(document_id, 1, [NEW_WALL]))
+    del no_form["ops_form"]
+    assert client.put(snippet, content=json.dumps(no_form).encode(), headers=editor.headers).status_code == 400
+
+    door = {"tool": "create_opening", "wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "fill": "door"}
+    fire = {"tool": "set_properties", "ids": ["new-1"], "pset": "Pset_WallCommon", "properties": {"FireRating": "EI60"}}
+    put = client.put(snippet, content=with_ops(document_id, 1, [NEW_WALL, door, fire]), headers=editor.headers)
+    assert put.status_code == 200, put.text
+    report = tried(client, editor, proposal)
+    assert report["state"] == "clean", report
+    assert report["change_count"] == 3 and report["applied"] == 3 and report["notes"] == []
+    assert list(report["created"]) == ["new-1", "new-2"], "the wall and the door, by their refs"
+
+    approved = client.post(proposal + "/approve", headers=manager.headers)
+    assert approved.status_code == 201, approved.text
+    new = approved.json()
+    assert new["version_index"] == 2
+    model = opened(client, editor, new, tmp_path)
+    wall = model.by_guid(report["created"]["new-1"])
+    assert wall.is_a("IfcWall") and wall.Name == "New wall", "the version holds the wall the operations built"
+    assert model.by_guid(report["created"]["new-2"]).is_a("IfcDoor")
+    assert len(model.by_type("IfcWall")) == 4
+    after = client.get(proposal, headers=editor.headers).json()
+    assert after["state"] == "approved" and after["created"] == report["created"]
+    (viewpoint,) = client.get(f"{topics}/{topic['guid']}/viewpoints", headers=editor.headers).json()
+    selection = client.get(
+        f"{topics}/{topic['guid']}/viewpoints/{viewpoint['guid']}/selection", headers=editor.headers
+    ).json()["selection"]
+    assert report["created"]["new-1"] in {component["ifc_guid"] for component in selection}, "what was built"
+
+    # An operation that cannot be applied is an issue that names it, and the trial is not approved.
+    failing = make_topic(client, world, editor, bim_snippet=SNIPPET_FIELDS)
+    nowhere = {**NEW_WALL, "storey": "Level 9"}
+    put = client.put(
+        f"{topics}/{failing['guid']}/snippet",
+        content=with_ops(document_id, 2, [NEW_WALL, nowhere]),
+        headers=editor.headers,
+    )
+    assert put.status_code == 200, put.text
+    report = tried(client, editor, f"{topics}/{failing['guid']}/ifc-proposal")
+    assert report["state"] == "issues" and report["applied"] == 1 and report["change_count"] == 2
+    (issue,) = [issue for issue in report["issues"] if issue["kind"] == "op"]
+    assert (issue["op"], issue["tool"]) == (1, "create_wall") and issue["message"].startswith("op 1 (create_wall): ")
+    assert client.post(f"{topics}/{failing['guid']}/ifc-proposal/approve", headers=manager.headers).status_code == 409
+
+
+def test_a_proposal_that_gives_up_a_conflict_keeps_theirs_on_the_latest_version(
+    ifc_client: tuple[TestClient, World], tmp_path: Any
+) -> None:
+    """The client cannot cut one change out of its operations, so it sends them again with the keys it gave up in
+    ``keep_theirs``: the server applies them to the latest version and gives each key the latest version's value."""
+    client, world = ifc_client
+    editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
+    assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
+    document_id = version["document_id"]
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    import ifcopenshell
+
+    x, y, z = ifcopenshell.open(str(MODEL)).by_guid(WALLS[0]).ObjectPlacement.RelativePlacement.Location.Coordinates
+
+    # Theirs: the first wall moved to the origin, approved as version 2.
+    theirs = make_topic(client, world, editor, bim_snippet=SNIPPET_FIELDS)
+    origin = {"guid": WALLS[0], "path": LOCATION, "attribute": "Coordinates", "op": "set", "new": [0.0, 0.0, 0.0]}
+    assert (
+        client.put(
+            f"{topics}/{theirs['guid']}/snippet", content=change_set(document_id, origin), headers=editor.headers
+        ).status_code
+        == 200
+    )
+    assert tried(client, editor, f"{topics}/{theirs['guid']}/ifc-proposal")["state"] == "clean"
+    assert client.post(f"{topics}/{theirs['guid']}/ifc-proposal/approve", headers=manager.headers).status_code == 201
+
+    # Ours, on version 1: the wall moved a metre and a new wall, with the change the move makes as the app lowers it.
+    ours = make_topic(client, world, editor, bim_snippet=SNIPPET_FIELDS)
+    move = {"tool": "transform_elements", "ids": [WALLS[0]], "dx": 1, "dy": 0, "dz": 0}
+    moved = {**origin, "old": [x, y, z], "new": [x + 1000, y, z]}
+    snippet, proposal = f"{topics}/{ours['guid']}/snippet", f"{topics}/{ours['guid']}/ifc-proposal"
+    put = client.put(snippet, content=with_ops(document_id, 1, [move, NEW_WALL], moved), headers=editor.headers)
+    assert put.status_code == 200, put.text
+    assert tried(client, editor, proposal)["state"] == "clean", "a change the operations made counts as applied"
+    refused = client.post(proposal + "/approve", headers=manager.headers)
+    assert refused.status_code == 412, refused.text
+    (key,) = refused.json()["conflicts"]
+    assert key == f"{WALLS[0]}/{LOCATION}.Coordinates"
+
+    # The person keeps theirs: the same operations again, with the key given up and the change left out.
+    again = with_ops(document_id, 2, [move, NEW_WALL], keep_theirs=[key])
+    assert client.put(snippet, content=again, headers=editor.headers).status_code == 200
+    report = tried(client, editor, proposal)
+    assert report["state"] == "clean", report
+    assert report["base"]["version_index"] == 2, "tried on the latest version"
+    approved = client.post(proposal + "/approve", headers=manager.headers)
+    assert approved.status_code == 201, approved.text
+    assert approved.json()["version_index"] == 3
+    model = opened(client, editor, approved.json(), tmp_path)
+    location = model.by_guid(WALLS[0]).ObjectPlacement.RelativePlacement.Location
+    assert tuple(location.Coordinates) == (0.0, 0.0, 0.0), "theirs is kept"
+    assert model.by_guid(report["created"]["new-1"]).Name == "New wall", "the rest of the operations stand"

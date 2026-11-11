@@ -513,6 +513,40 @@ Svaret navngiver sagen, hvor mange instanser det fjerner, og hvor prøvningen fi
 nogen konverteret model, og `409`, når intet i den er uden for rækkevidde. Kapabilitetsdokumentet viser
 handlingerne i `ifc_changes.ops` og adressen som `ifc_changes.unreachable_url`.
 
+Et ændringssæt lavet med Dataspatiums skriveværktøjer bærer også deres operationer som `ops`, med `ops_form`
+`dataspatium-tools/1`, så nye elementer, sletninger og relationer kommer med i forslaget. Hver operation angiver sit
+værktøj som `tool` og har værktøjets argumenter ved siden af sig, længder i meter: `create_storeys_and_grid`,
+`create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`, `assign`,
+`transform_elements`, `delete_elements` og `set_site`. Serveren kører dem med en kopi af appens egen kode
+(`opencde/ifcgraph/ops.py`), så de samme operationer giver den samme model i appen og på serveren, i filens enhed,
+med den, der foreslog, og serveren i de ejerhistorikker, som IfcOpenShell laver. Det, som væg-, dæk-, tag- og
+åbningsoperationerne skaber, hedder `new-1`, `new-2` … i deres rækkefølge. En operation angiver et element med dets
+GlobalId, med dets STEP-id kun, hvor intet GlobalId når det, eller med sådan en ref, og en etage med dens navn.
+`changes` må da være tom: ved siden af operationerne beskriver ændringerne, hvad
+operationerne gør ved eksisterende instanser, som appen fandt det, til fletningen, og en ændring, som operationerne
+allerede har lavet, tæller som anvendt. Kapabilitetsdokumentet annoncerer formen som `ifc_changes.ops_form` og
+værktøjerne som `ifc_changes.ops_tools`.
+
+```json
+{
+  "schema": "https://cde.example/documents/1.0/ifc-changes/schema",
+  "base": {"document_id": "…", "version_index": 3},
+  "provenance": {"user": "anna", "ai_model": "claude-opus-5-5", "tool_call": "create_wall,create_opening"},
+  "ops_form": "dataspatium-tools/1",
+  "ops": [
+    {"tool": "create_wall", "storey": "Level 1", "start": [0, 0], "end": [6, 0], "thickness": 0.2, "height": 3},
+    {"tool": "create_opening", "wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "fill": "door"}
+  ],
+  "changes": []
+}
+```
+
+Prøven anvender først operationerne og derefter ændringerne og tæller begge i `change_count`. En operation, der ikke
+kan anvendes, er en anmærkning af arten `op` med sit indeks (`op`) og `tool`, med ordene i appens kode, som kan
+citere dens argumenter og filen; operationerne efter den og ændringerne anvendes ikke, som i appen. Prøven giver
+også `created`, GlobalId for hvert skabt element efter dets ref, så klienten kan parre sine egne, og `notes`, hvad en
+operation ikke kunne gøre i filens skema, som kortkonverteringen i IFC2X3.
+
 Når IFC-LPG-modulet er slået til, prøver serveren hvert ændringssæt, når det
 uploades: en arbejder anvender ændringerne på basisversionens fil, resultatet
 går gennem de kontroller, en upload får (IFC-skemaet, buildingSMARTs regler og
@@ -573,7 +607,11 @@ basen holdt (`base`), hvad den seneste version holder (`theirs`), hvad
 forslaget sætter (`ours`), alle i ændringssættets værdiform, og den
 mellemliggende version, der ændrede det (`version_index`); en værdi, der ikke
 kunne læses, er `null`. Klienten lader en person vælge pr. kollision, sender
-en ny snippet på den seneste version og godkender igen.
+en ny snippet på den seneste version og godkender igen. En klient, der ikke kan
+skære én ændring ud af sine operationer, sender dem igen med de nøgler, den
+opgiver, i `keep_theirs`, som `conflicts` navngav dem: serveren prøver så
+ændringssættet mod dokumentets seneste version og giver hver af de attributter
+den seneste versions værdi tilbage efter operationerne og ændringerne.
 
 En version bygget på en anden er en knude med sin forælder:
 `parent_version_index` og et link til forælderversionen, på en version

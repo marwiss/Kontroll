@@ -21,7 +21,7 @@ from opencde import __version__
 from opencde.accounts.routes_manage import ROLES as MANAGE_ROLES
 from opencde.auth.scopes import SCOPES
 from opencde.deps import SettingsDep
-from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE
+from opencde.documents.changes import MAX_CHANGES, OPS_FORM, OPS_TOOLS, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.foundation.routes import BCF_OLDER_VERSION, BCF_VERSION, DOCUMENTS_VERSION, FOUNDATION_VERSION
 from opencde.ifcgraph.diff import MAX_ENTRIES as DIFF_MAX_ENTRIES
 from opencde.ifcgraph.gltf import LODS
@@ -160,6 +160,8 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve",
                     "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals",
                     "ops": ["set", "add", "remove", "delete"],
+                    "ops_form": OPS_FORM,
+                    "ops_tools": list(OPS_TOOLS),
                     "unreachable_url": "/documents/1.0/projects/{project_id}/ifc-unreachable"
                     if settings.ifcgraph_enabled
                     else None,
