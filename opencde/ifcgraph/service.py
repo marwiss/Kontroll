@@ -34,7 +34,7 @@ from fastapi import Depends, Request
 from ifc_lpg.exporter import NotExportable, export_records
 from ifc_lpg.gherkin_install import MANIFEST
 from ifc_lpg.graph import rebuild_point_indexes
-from ifc_lpg.importer import delete_model, import_records, model_facts
+from ifc_lpg.importer import delete_model, import_records, model_facts, models
 from ifc_lpg.paths import PathError, canonical_path, resolve, unreachable
 from ifc_lpg.queries import MAX_GLOBAL_IDS, property_values
 from ifc_lpg.spatial import geometry_issues, import_spatial
@@ -472,12 +472,11 @@ class IfcGraphService:
         if self.workcopy is None:
             return 0
         try:
-            rows = await self.workcopy.run("MATCH (m:Model) RETURN m.id AS id")
             gone = 0
-            for row in rows:
-                kept = await self.conversions.get(str(row["id"]))
+            for model in await models(self.workcopy):
+                kept = await self.conversions.get(str(model["id"]))
                 if kept is None:
-                    await delete_model(self.workcopy, row["id"])
+                    await delete_model(self.workcopy, model["id"])
                     gone += 1
             return gone
         except Exception as exc:

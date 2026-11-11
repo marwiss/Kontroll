@@ -47,7 +47,7 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "request_log": {"enabled": true, "retention_hours": 72, "url": "/admin/api/requests"},
     "admin_api": {"enabled": true, "version": 1, "url": "/admin/api", "scope": "admin"},
     "ifcgraph": {"enabled": true, "bolt": null, "workcopy": false},
-    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "changed-since"], "max_rows": 10000},
+    "ifc_queries": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-queries", "names": ["entity", "element-classes", "elements", "storeys", "spaces", "areas", "materials", "property", "site", "changed-since"], "max_rows": 10000},
     "ifc_clash": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-clash", "modes": ["intersection", "clearance"], "max_clashes": 10000},
     "project_administration": {"enabled": true, "url": "/manage/1.0/projects", "teams_url": "/manage/1.0/projects/{project_id}/teams", "scope": "project", "roles": ["viewer", "contributor", "editor", "manager"], "for": "managers of a project"},
     "publication": {"enabled": true, "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/publication", "roles": ["manager"], "formats": ["ifczip", "zip"]},

@@ -468,6 +468,7 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 | `materials` | `class` | Kunkin elementin materiaalit: oma tai sen kerrosten, luettelon tai osien |
 | `property` | `pset`, `property`, `class` | Yhden ominaisuuden arvo jokaisessa kohteessa, jolla se on, IFC-tyyppeineen |
 | `entity` | `global_id` | Yksi juurrutettu entiteetti: sen luokka, jokainen literaaliattribuutti ja mihin se viittaa ja mistä siihen viitataan, kukin IFC-attribuutin, STEP-tunnisteen ja luokan kanssa |
+| `site` | | Missä rakennus on: tontin viitepituus- ja leveysaste ja korkeus sekä karttamuunnos koordinaattijärjestelmineen (itä- ja pohjoiskoordinaatti, korkeus, kierto ja mittakaava), jos mallissa on sellainen |
 | `changed-since` | `since` | Mikä dokumentissa on muuttunut version jälkeen: yksi rivi kunkin version muutosjoukon muutosta kohden tähän versioon asti, tai yksi rivi `whole_file`-merkinnällä kokonaisena tiedostona lähetetylle versiolle; vastataan versioista, joten graafia ei tarvita |
 
 `class` nimeää IFC-luokan, kuten `IfcWall`, ja ottaa mukaan sen aliluokat:

@@ -452,6 +452,7 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 | `materials` | `class` | The materials of each element: its own, or those of its layers, list or constituents |
 | `property` | `pset`, `property`, `class` | The value of one property on every object that has it, with its IFC type |
 | `entity` | `global_id` | One rooted entity: its class, every literal attribute, and what it refers to and is referred to by, each by IFC attribute, STEP id and class |
+| `site` | | Where the building stands: the site's reference latitude, longitude and elevation, and the map conversion with its coordinate reference system (eastings, northings, height, rotation and scale) where the model has one |
 | `changed-since` | `since` | What changed in the document since a version: one row per change of each version's change set up to this one, or one row with `whole_file` for a version uploaded as a whole file; answered from the versions, so it needs no graph |
 
 `class` names an IFC class, such as `IfcWall`, and takes its subclasses with

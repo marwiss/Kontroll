@@ -457,6 +457,7 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 | `materials` | `class` | Hvert elements materialer: et eget eller dets lags, listes eller bestanddeles |
 | `property` | `pset`, `property`, `class` | Værdien af én egenskab på hvert objekt, der har den, med dens IFC-type |
 | `entity` | `global_id` | Én rodfæstet entitet: dens klasse, hver literal attribut, og hvad den henviser til og henvises til af, hver med IFC-attribut, STEP-id og klasse |
+| `site` | | Hvor bygningen står: grundens referencebredde, -længde og -højde, og kortomregningen med sit koordinatsystem (østlig og nordlig koordinat, højde, drejning og skala), hvor modellen har en |
 | `changed-since` | `since` | Hvad der er ændret i dokumentet siden en version: én række pr. ændring i hver versions ændringssæt frem til denne, eller én række med `whole_file` for en version uploadet som hel fil; besvares ud fra versionerne, så den behøver ingen graf |
 
 `class` navngiver en IFC-klasse, for eksempel `IfcWall`, og tager dens

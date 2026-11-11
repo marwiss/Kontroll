@@ -449,6 +449,7 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 | `materials` | `class` | Efni hverrar einingar: eigið, eða laga hennar, lista eða efnisþátta |
 | `property` | `pset`, `property`, `class` | Gildi eins eiginleika á hverjum hlut sem hefur hann, með IFC-gerð hans |
 | `entity` | `global_id` | Ein rótfest eining: flokkur hennar, hver bókstafleg eigind, og það sem hún vísar til og er vísað til hennar af, hvert með IFC-eigind, STEP-auðkenni og flokki |
+| `site` | | Hvar byggingin stendur: viðmiðunarbreidd, -lengd og -hæð lóðarinnar, og kortavörpunin með hnitakerfi sínu (austur- og norðurhnit, hæð, snúningur og kvarði) þar sem líkanið hefur hana |
 | `changed-since` | `since` | Hvað hefur breyst í skjalinu síðan útgáfu: ein lína fyrir hverja breytingu í breytingasetti hverrar útgáfu fram að þessari, eða ein lína með `whole_file` fyrir útgáfu sem hlaðið var upp sem heilli skrá; svarað úr útgáfunum, svo ekkert graf þarf |
 
 `class` nefnir IFC-flokk, svo sem `IfcWall`, og tekur undirflokka hans með:
