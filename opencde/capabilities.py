@@ -196,6 +196,15 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 if settings.admin_api_enabled and settings.graph_query_enabled
                 else {"enabled": False}
             ),
+            "ai_policy": (
+                {
+                    "enabled": True,
+                    "url": "/documents/1.0/projects/{project_id}/ai-policy",
+                    "default": DEFAULT_AI_POLICY,
+                }
+                if settings.offers("documents")
+                else {"enabled": False}
+            ),
             "mcp": (
                 {
                     "enabled": True,

@@ -38,6 +38,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_changes",
         "ifc_merge",
         "graph_query",
+        "ai_policy",
         "mcp",
     }
     assert extensions["dynamic_client_registration"] == {
@@ -201,3 +202,16 @@ def test_the_mcp_endpoint_is_announced_with_its_revisions_scopes_and_policy_when
     with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
         announced = client.get("/.well-known/dataregium").json()["extensions"]["mcp"]
         assert announced["ai_policy_url"] is None, "the policy is read through the Documents API"
+
+
+def test_the_ai_policy_is_announced_whether_or_not_mcp_is_on(tmp_path: Path) -> None:
+    """A client's own AI reads a project's policy too (F29 a), so its address does not wait for the MCP endpoint."""
+    with TestClient(create_app(make_settings(tmp_path), startup_wait_seconds=0)) as client:
+        announced = client.get("/.well-known/dataregium").json()["extensions"]["ai_policy"]
+        assert announced == {
+            "enabled": True,
+            "url": "/documents/1.0/projects/{project_id}/ai-policy",
+            "default": "local",
+        }
+    with TestClient(create_app(make_settings(tmp_path, apis=["bcf-2.1"]), startup_wait_seconds=0)) as client:
+        assert client.get("/.well-known/dataregium").json()["extensions"]["ai_policy"] == {"enabled": False}
