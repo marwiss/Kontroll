@@ -107,14 +107,9 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
     assert client.get(done["url"], headers=outsider.headers).status_code == 404
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="IFC-LPG 749e7cb: b or new for one product of an IFC2X3 model gives placements that place nothing, a wall "
-    "without its material or a second IfcRelDefinesByType, and the check of the merged model refuses it (reported "
-    "2026-11-11, fixed in IFC-LPG, not yet locked)",
-)
 @pytest.mark.parametrize(("choice", "kept"), [("b", (b"'YVT-Z'",)), ("new", (b"'YVT-A'", b"'YVT-Z'"))])
 def test_b_or_new_for_one_wall(ifc_client: tuple[TestClient, World], choice: str, kept: tuple[bytes, ...]) -> None:
+    """IFC-LPG 3ecc7e2: B's wall takes A's place and its relationships, or comes beside it with a GlobalId of its own."""
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
@@ -186,11 +181,6 @@ def test_a_model_in_another_length_unit_is_prepared_first(ifc_client: tuple[Test
     assert answer.status_code == 404
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="IFC-LPG 749e7cb: prepare_other gives B a solid angle unit A does not have, SQUAREDEGREE where A has "
-    "STERADIAN, so the report refuses the copy (reported 2026-11-11)",
-)
 def test_the_prepared_copy_stands_in_for_b(ifc_client: tuple[TestClient, World]) -> None:
     client, world = ifc_client
     sides, prepared = prepared_in_metres(client, world)
