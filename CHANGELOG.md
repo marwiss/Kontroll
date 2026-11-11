@@ -10,9 +10,10 @@ the commit history.
 
 ## 1.0.0 — 2026-11-10
 
-Released again on 2026-11-10 from the 2.0.0 of the same day, in step with Dataspatium 1.0.0; the release earlier
-that day is withdrawn. It now has the administration of a project by its managers, a production stack that starts
-without an e-mail address and the longer waits for Memgraph's storage, as 2.0.0 has.
+Released again on 2026-11-10 from the 2.0.0 of the same day (the third time that day), in step with Dataspatium
+1.0.0; the releases earlier that day are withdrawn. It has the administration of a project by its managers, a
+production stack that starts without an e-mail address, the longer waits for Memgraph's storage, a word on a list
+cut at 1000 and 400 in the API document, as 2.0.0 has.
 
 The 1 series: a document server for Dataspatium 1. It is the 2.0.0 code with `OPENCDE_APIS=["documents"]` set by the
 image, by `opencde init` and in `.env.example`, so a server offers the Foundation API and the Documents API only;
@@ -21,16 +22,22 @@ change to the 2 series is released again here under 1.0.0 as well. Works with Da
 
 ## 2.0.0 — 2026-11-10
 
-Released again on 2026-11-10 under the name Dataregium (the second time that day), in step with Dataspatium
-2.0.0; the release of 2026-11-07 and the one earlier on 2026-11-10 are withdrawn and their notes are folded in
+Released again on 2026-11-10 under the name Dataregium (the fourth time that day), in step with Dataspatium
+2.0.0; the release of 2026-11-07 and the three earlier on 2026-11-10 are withdrawn and their notes are folded in
 here. Since the release earlier that day it has the administration of a project by its managers, the same as
 3.0.0's. The single release of the 2 series: everything up to and including 2.7.0, with the deletion of a
 project put right and the IFC-graph module renamed IFC-LPG, on the branch `release-2`. The 2.0.0
 and 2.0.1 released earlier the same day are withdrawn under the rule above, together with
-Dataspatium's, and this release takes the first number again. No history is rewritten: the
-commits stay, and only the earlier releases and tags went. Works with Dataspatium 2.0.0, which also
+Dataspatium's, and this release takes the first number again. The commits
+stay, and only the earlier releases and tags went; later the same day every commit got the noreply
+address of its author, with the same content and new hashes. Works with Dataspatium 2.0.0, which also
 speaks BCF API 2.1, so that a server with 2.1 alone can be its source, and draws the IFC graph.
 
+- A list of topics, comments or events without `$top`, or with one above 1000, still holds at most 1000 entries, and
+  now says so when more match: `X-Total-Count` with their number and `Link: <…>; rel="next"` with the address of the
+  rest, which a browser may read.
+- The API document (`/openapi.json`) gives `400` with the error body for a request the server cannot read, as the
+  server answers, where it said FastAPI's `422`.
 - On Memgraph, a schema statement waits up to about two minutes for unique access to the storage, which a periodic
   snapshot or a long write holds for seconds; before, it gave up after about seven seconds, and the server did not
   start. An administrator's graph query that runs past its time limit is stopped on the server: Memgraph does not
