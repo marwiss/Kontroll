@@ -18,7 +18,7 @@ env:
   UV_FROZEN: "1"
   # The Dataspatium release that pairs with this Dataregium: the same number (README, "Dataregium and Dataspatium").
   # By commit, because a release's tag goes away when the next release of its major number is out.
-  DATASPATIUM_REF: 1d6bd9d47700aa8cde3798dc47b141ba9ddf32f2 # v2.0.0, released again 2026-11-11 with road data and the bridge as a go-between
+  DATASPATIUM_REF: 7e08b586b1103db1355f5ac9bd8be5c92adf4465 # v2.0.0, released again 2026-11-11 with the central banks through the bridge
   # Demo data only; the database lives for this job.
   SEED_PASSWORD: demo-password-for-ci-only
 
