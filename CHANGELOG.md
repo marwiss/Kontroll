@@ -25,6 +25,9 @@ cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
   cloud have it too. A project's manager sets it with `PUT /manage/1.0/projects/{id}`, whose `GET` gives the
   project, and an administrator on the project's page or with `ai_policy` in the administration API; every change
   is audited. Every member reads it with `GET /documents/1.0/projects/{id}/ai-policy` (an extension); the answers
+  the OpenCDE specifications define do not carry it. `OPENCDE_MCP_ENABLED`, off by default, announces the MCP
+  endpoint for AI programs as `mcp` in the capabilities document: `/mcp`, the revisions of the protocol, newest
+  first, the scopes `mcp` and `mcp:propose`, `default_ai_policy` and the policy's address as `ai_policy_url`.
   the OpenCDE specifications define do not carry it.
 - A change set carries Dataspatium's write tools as `ops` in the form `ops_form` `dataspatium-tools/1`:
   `create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`,

@@ -38,6 +38,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "ifc_changes",
         "ifc_merge",
         "graph_query",
+        "mcp",
     }
     assert extensions["dynamic_client_registration"] == {
         "enabled": False,
@@ -89,6 +90,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_merge"] == {"enabled": False}, "the merge needs the IFC-LPG module"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
+    assert extensions["mcp"] == {"enabled": False}, "the MCP endpoint is off until the operator turns it on"
     assert body["limits"]["access_token_ttl_seconds"] == 3600 and body["limits"]["max_upload_bytes"] > 0
     assert body["links"] == {"dataspatium": None}
     secret_like = ("test-password", "test-secret-key", "bolt://127.0.0.1:9", "secret", "password")
@@ -180,3 +182,22 @@ def test_the_checks_of_an_upload_are_announced_with_whether_bsdd_is_asked(tmp_pa
     off = make_settings(tmp_path, ifcgraph_enabled=True, ifcgraph_validate_uploads=False, bsdd_enabled=True)
     with TestClient(create_app(off, startup_wait_seconds=0)) as client:
         assert client.get("/.well-known/dataregium").json()["extensions"]["ifc_validation"] == {"enabled": False}
+
+
+def test_the_mcp_endpoint_is_announced_with_its_revisions_scopes_and_policy_when_on(tmp_path: Path) -> None:
+    with TestClient(create_app(make_settings(tmp_path, mcp_enabled=True), startup_wait_seconds=0)) as client:
+        announced = client.get("/.well-known/dataregium").json()["extensions"]["mcp"]
+        assert announced == {
+            "enabled": True,
+            "url": "/mcp",
+            "protocol_versions": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"],
+            "scopes": ["mcp", "mcp:propose"],
+            "default_ai_policy": "local",
+            "ai_policy_url": "/documents/1.0/projects/{project_id}/ai-policy",
+        }, "the newest revision first, and a project nobody has set is local (F30 a)"
+        refused = client.get(announced["ai_policy_url"].format(project_id="0" * 32))
+        assert refused.status_code == 401 and refused.json()["code"] == "unauthenticated", "mounted, guarded"
+    settings = make_settings(tmp_path, mcp_enabled=True, apis=["bcf-2.1"])
+    with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+        announced = client.get("/.well-known/dataregium").json()["extensions"]["mcp"]
+        assert announced["ai_policy_url"] is None, "the policy is read through the Documents API"

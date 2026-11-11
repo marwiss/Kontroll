@@ -56,7 +56,8 @@ of probing:
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve", "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals"},
     "ifc_merge": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-merge", "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report", "prepare_url": "/documents/1.0/projects/{project_id}/ifc-merge/prepare", "choices": ["a", "b", "new"], "roles": ["manager"]},
-    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
+    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0},
+    "mcp": {"enabled": true, "url": "/mcp", "protocol_versions": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"], "scopes": ["mcp", "mcp:propose"], "default_ai_policy": "local", "ai_policy_url": "/documents/1.0/projects/{project_id}/ai-policy"}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
   "links": {"dataspatium": null}
@@ -70,6 +71,13 @@ when the operator has deliberately published the graph database
 operator has set `OPENCDE_GRAPH_QUERY_ENABLED` (§7); `links.dataspatium`
 carries the address of a Dataspatium installation when the operator has set
 `OPENCDE_DATASPATIUM_URL`. Nothing in the document is secret.
+
+`mcp` is on only when the operator has set `OPENCDE_MCP_ENABLED`, and then gives
+the MCP endpoint, where AI programs read the projects' models and propose change
+sets that a person approves (ADR 0028), the revisions of the protocol it
+answers, newest first, and the scopes of its tokens; `default_ai_policy` is the
+AI policy of a project nobody has set, and `ai_policy_url` is where a member
+reads a project's own (§7).
 
 ## 2. Sign in (OAuth2 authorization code with PKCE)
 

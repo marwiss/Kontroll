@@ -35,6 +35,7 @@ SAFE_SETTINGS = (
     "graph_query_enabled",
     "graph_query_max_rows",
     "graph_query_timeout_seconds",
+    "mcp_enabled",
     "dataspatium_url",
     "admin_api_enabled",
     "data_dir",

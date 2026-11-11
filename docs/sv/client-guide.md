@@ -56,7 +56,8 @@ anpassar sig i stället för att prova sig fram:
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve", "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals"},
     "ifc_merge": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-merge", "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report", "prepare_url": "/documents/1.0/projects/{project_id}/ifc-merge/prepare", "choices": ["a", "b", "new"], "roles": ["manager"]},
-    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
+    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0},
+    "mcp": {"enabled": true, "url": "/mcp", "protocol_versions": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"], "scopes": ["mcp", "mcp:propose"], "default_ai_policy": "local", "ai_policy_url": "/documents/1.0/projects/{project_id}/ai-policy"}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
   "links": {"dataspatium": null}
@@ -70,6 +71,13 @@ Ett `404` betyder en server utan tillägg (en annan OpenCDE-server, eller en
 har satt `OPENCDE_GRAPH_QUERY_ENABLED` (§7); `links.dataspatium` bär
 adressen till en Dataspatium-installation när operatören har satt
 `OPENCDE_DATASPATIUM_URL`. Ingenting i dokumentet är hemligt.
+
+`mcp` är på bara när operatören har satt `OPENCDE_MCP_ENABLED` och ger då
+MCP-ändpunkten, där AI-program läser projektens modeller och föreslår
+ändringsset som en person godkänner (ADR 0028), de revisioner av protokollet som
+den svarar på, nyast först, och scopen för dess token; `default_ai_policy` är
+AI-policyn för ett projekt som ingen har ställt in, och `ai_policy_url` är där
+en medlem läser ett projekts egen (§7).
 
 ## 2. Logga in (OAuth2 authorization code med PKCE)
 

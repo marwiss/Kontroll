@@ -57,7 +57,8 @@ biðlari aðlagi sig í stað þess að þreifa fyrir sér:
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve", "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals"},
     "ifc_merge": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-merge", "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report", "prepare_url": "/documents/1.0/projects/{project_id}/ifc-merge/prepare", "choices": ["a", "b", "new"], "roles": ["manager"]},
-    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
+    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0},
+    "mcp": {"enabled": true, "url": "/mcp", "protocol_versions": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"], "scopes": ["mcp", "mcp:propose"], "default_ai_policy": "local", "ai_policy_url": "/documents/1.0/projects/{project_id}/ai-policy"}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
   "links": {"dataspatium": null}
@@ -72,6 +73,13 @@ rekstraraðilinn hefur sett `OPENCDE_GRAPH_QUERY_ENABLED` (§7);
 `links.dataspatium` ber vistfang Dataspatium-uppsetningar þegar
 rekstraraðilinn hefur sett `OPENCDE_DATASPATIUM_URL`. Ekkert í skjalinu er
 leynilegt.
+
+`mcp` er aðeins virkt þegar rekstraraðilinn hefur sett `OPENCDE_MCP_ENABLED`, og
+gefur þá MCP-endapunktinn, þar sem gervigreindarforrit lesa líkön verkefnanna og
+leggja til breytingasöfn sem manneskja samþykkir (ADR 0028), útgáfur
+samskiptareglunnar sem hann svarar, nýjustu fyrst, og scope-in fyrir tóka hans;
+`default_ai_policy` er gervigreindarstefna verkefnis sem enginn hefur stillt, og
+`ai_policy_url` er þar sem meðlimur les eigin stefnu verkefnis (§7).
 
 ## 2. Innskráning (OAuth2 authorization code með PKCE)
 

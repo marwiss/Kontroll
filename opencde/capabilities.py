@@ -4,10 +4,11 @@
 ``GET /.well-known/dataregium`` (no authentication, CORS as for the API, cacheable
 for a few minutes) tells a client which extensions are on, so that it can
 adapt instead of probing: dynamic client registration, the request log, the
-administration API, the IFC graph and whether its database is published, and
-the limits a client must respect. Nothing in it is secret. A server without
-the document answers 404, which a client reads as "no extensions". Unknown
-keys are to be treated as absent. Agreed with Dataspatium.
+administration API, the IFC graph and whether its database is published, the
+MCP endpoint for AI programs, and the limits a client must respect. Nothing in
+it is secret. A server without the document answers 404, which a client reads
+as "no extensions". Unknown keys are to be treated as absent. Agreed with
+Dataspatium.
 """
 
 from __future__ import annotations
@@ -28,10 +29,14 @@ from opencde.ifcgraph.gltf import LODS
 from opencde.ifcgraph.queries import CHANGED_SINCE, QUERIES
 from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
 from opencde.settings import Settings
+from opencde.store.accounts.projects import DEFAULT_AI_POLICY
 
 router = APIRouter(tags=["Capabilities (extension)"])
 
 ADMIN_API_VERSION = 1  # counts breaking changes of the administration API
+# The MCP endpoint (ADR 0028): the revisions of the protocol it answers, newest first, and the scopes of its tokens.
+MCP_PROTOCOL_VERSIONS = ("2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26")
+MCP_SCOPES = ("mcp", "mcp:propose")
 
 
 def offered_apis(settings: Settings) -> dict[str, str]:
@@ -189,6 +194,20 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "timeout_seconds": settings.graph_query_timeout_seconds,
                 }
                 if settings.admin_api_enabled and settings.graph_query_enabled
+                else {"enabled": False}
+            ),
+            "mcp": (
+                {
+                    "enabled": True,
+                    "url": "/mcp",
+                    "protocol_versions": list(MCP_PROTOCOL_VERSIONS),
+                    "scopes": list(MCP_SCOPES),
+                    "default_ai_policy": DEFAULT_AI_POLICY,
+                    "ai_policy_url": "/documents/1.0/projects/{project_id}/ai-policy"
+                    if settings.offers("documents")
+                    else None,
+                }
+                if settings.mcp_enabled
                 else {"enabled": False}
             ),
         },

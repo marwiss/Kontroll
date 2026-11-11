@@ -299,6 +299,12 @@ class Settings(BaseSettings):
     graph_query_timeout_seconds: float = Field(
         10.0, gt=0, le=120, description="A graph query running longer than this is stopped."
     )
+    mcp_enabled: bool = Field(
+        False,
+        description="Offer the MCP endpoint at /mcp, where AI programs read the projects' models and propose change "
+        "sets that a person approves (ADR 0028), and announce it in the capabilities document. Off unless an AI "
+        "program needs it.",
+    )
     allow_localhost_redirects: bool = Field(
         False,
         description="Accept http://localhost redirect URIs besides the loopback IPs RFC 8252 allows. Development only.",

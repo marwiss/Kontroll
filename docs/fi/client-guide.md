@@ -58,7 +58,8 @@ jotta asiakas sopeutuu sen sijaan että kokeilisi:
     "ifc_precheck": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-precheck"},
     "ifc_changes": {"enabled": true, "schema": "/documents/1.0/ifc-changes/schema", "snippet_type": "DataregiumIfcChangeSet", "max_changes": 10000, "tried": true, "proposal_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal", "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve", "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals"},
     "ifc_merge": {"enabled": true, "url": "/documents/1.0/projects/{project_id}/ifc-merge", "report_url": "/documents/1.0/projects/{project_id}/ifc-merge/report", "prepare_url": "/documents/1.0/projects/{project_id}/ifc-merge/prepare", "choices": ["a", "b", "new"], "roles": ["manager"]},
-    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0}
+    "graph_query": {"enabled": true, "url": "/admin/api/graph/query", "max_rows": 1000, "timeout_seconds": 10.0},
+    "mcp": {"enabled": true, "url": "/mcp", "protocol_versions": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"], "scopes": ["mcp", "mcp:propose"], "default_ai_policy": "local", "ai_policy_url": "/documents/1.0/projects/{project_id}/ai-policy"}
   },
   "limits": {"max_upload_bytes": 1073741824, "max_image_bytes": 10485760, "access_token_ttl_seconds": 3600},
   "links": {"dataspatium": null}
@@ -73,6 +74,14 @@ on päällä vain, kun ylläpitäjä on asettanut `OPENCDE_GRAPH_QUERY_ENABLED`
 (§7); `links.dataspatium` sisältää Dataspatium-asennuksen osoitteen, kun
 ylläpitäjä on asettanut `OPENCDE_DATASPATIUM_URL`. Mikään asiakirjassa ei
 ole salaista.
+
+`mcp` on päällä vain, kun ylläpitäjä on asettanut `OPENCDE_MCP_ENABLED`, ja
+antaa silloin MCP-päätepisteen, jossa tekoälyohjelmat lukevat projektien malleja
+ja ehdottavat muutosjoukkoja, jotka ihminen hyväksyy (ADR 0028), protokollan
+versiot, joihin se vastaa, uusin ensin, ja sen tunnisteiden scopet;
+`default_ai_policy` on sellaisen projektin tekoälykäytäntö, jolle kukaan ei ole
+asettanut käytäntöä, ja `ai_policy_url` kertoo, mistä jäsen lukee projektin oman
+käytännön (§7).
 
 ## 2. Kirjautuminen (OAuth2 authorization code ja PKCE)
 
