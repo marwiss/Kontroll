@@ -8,6 +8,7 @@ import inspect
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from opencde.bootstrap import make_store
 from opencde.graph.dialect import GraphDialect
@@ -53,10 +54,8 @@ def test_the_store_shares_the_ifc_graphs_connection_unless_configured(tmp_path: 
     settings = make_settings(tmp_path)
     assert not settings.has_store and make_store(settings) is None
 
-    own = make_settings(tmp_path, store_graph_uri="bolt://127.0.0.1:9", store_graph_dialect=GraphDialect.MEMGRAPH)
-    assert own.has_store and own.store_database_name == "memgraph"
-    store = make_store(own)
-    assert store is not None and store.dialect.name is GraphDialect.MEMGRAPH
+    with pytest.raises(ValidationError, match="not supported yet"):  # until the split is whole (ADR 0027)
+        make_settings(tmp_path, store_graph_uri="bolt://127.0.0.1:9", store_graph_dialect=GraphDialect.MEMGRAPH)
 
 
 @pytest.mark.parametrize("repository", REPOSITORIES, ids=lambda cls: cls.__name__)

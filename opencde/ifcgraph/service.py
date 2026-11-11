@@ -1,12 +1,12 @@
 # This file was generated with the assistance of an AI coding tool.
 """Scheduling conversions and checks of uploads, and linking BCF components to model elements.
 
-``IfcGraphService.schedule`` records an ``Model`` node (state ``queued``),
+``IfcGraphService.schedule`` records a ``Conversion`` (state ``queued``),
 then converts in the background: the file is handed to the worker process
 (``.ifczip`` is unpacked first, with a size cap), the worker's records are
-imported, and the node ends in state ``done`` or ``failed`` with counts or an
+imported, and the record ends in state ``done`` or ``failed`` with counts or an
 error. A file uploaded as a document version is also checked against the IFC
-schema (``validation.py``), with the result on an ``Validation`` node below
+schema (``validation.py``), with the result on a ``Validation`` node below
 the version, which the Documents API shows (ADR 0011), against buildingSMART's
 rules where they are installed (ADR 0012), and against the IDS documents of its
 project (ADR 0015). Two versions are compared for clashes on request, in the

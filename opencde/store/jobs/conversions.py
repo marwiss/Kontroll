@@ -61,7 +61,6 @@ MOVED = (
     "graph_error_count",
     "graph_ruleset",
     "graph_checked_at",
-    "merge_of",
 )
 _REMOVABLE = frozenset({"spatial_pending"})
 BATCH = 500
@@ -200,7 +199,7 @@ class ConversionRepository:
         rows = await self.graph.run(
             """
             MATCH (c:Conversion)
-            WHERE (c.state = $queued OR (c.state = $running AND c.running_at < $given_up)) AND c.merge_of IS NULL
+            WHERE c.state = $queued OR (c.state = $running AND c.running_at < $given_up)
             RETURN properties(c) AS c
             """,
             queued=STATE_QUEUED,
@@ -265,7 +264,7 @@ class ConversionRepository:
 
 
 _MOVE = ", ".join(f"{name}: m.{name}" for name in MOVED)
-_FACTS = ", ".join(f"{name}: m.{name}" for name in FACTS)
+_FACTS = ", ".join(f"{name}: m.{name}" for name in (*FACTS, *SPATIAL_FACTS))
 _STRIP = ", ".join(f"m.{name}" for name in MOVED)
 
 
