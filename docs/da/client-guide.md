@@ -152,6 +152,55 @@ origin for din redirect-URI (eller callback-URL), så browseren følger den
 omdirigering, der svarer på formularen: Chromium tjekker `form-action` mod
 den omdirigering, ikke kun mod formularens egen adresse.
 
+### Metadata og tokens til MCP-endepunktet (udvidelse)
+
+`GET /.well-known/oauth-authorization-server` (RFC 8414; ingen autentificering,
+CORS, kan caches i fem minutter) beskriver den samme autorisationsserver for
+OAuth-klienter, der ikke kender Foundation API. `issuer` er den offentlige
+adresse, værdien af `iss` i hvert autorisationssvar (RFC 9207,
+`authorization_response_iss_parameter_supported: true`); ved siden af står
+endepunkterne for autorisation, token og tilbagekaldelse,
+`registration_endpoint`, mens selvregistreringen er slået til,
+`code_challenge_methods_supported: ["S256"]`, granttyperne `authorization_code`
+og `refresh_token` samt `scopes_supported`, der kun nævner `mcp` og
+`mcp:propose`, mens MCP-endepunktet er slået til.
+
+MCP-endepunktet, hvor AI-værktøjer foreslår og et menneske godkender, er slået
+fra, indtil operatøren sætter `OPENCDE_MCP_ENABLED=true`. Dets tokens er
+bundet til det:
+
+- Klienten angiver endepunktet som `resource` (RFC 8707) i både
+  autorisationsanmodningen og tokenanmodningen. Den eneste værdi, der
+  accepteres, er `<public_url>/mcp`, sammenlignet uden afsluttende skråstreg
+  og med skema og vært med små bogstaver; enhver anden værdi, mere end én,
+  eller en ressource, mens endepunktet er slået fra, giver `invalid_target`.
+- Scopet er `mcp` til læseværktøjerne eller `mcp mcp:propose` for også at
+  foreslå ændringssæt. Begge bedes om udtrykkeligt og kun sammen med
+  ressourcen: `mcp` uden den giver `invalid_target`, og ressourcen med et
+  andet scope, eller uden `mcp`, giver `invalid_scope`. Samtykkesiden siger,
+  hvad de giver, og at intet godkendes eller publiceres gennem dem.
+- Koden og tokenfamilien beholder ressourcen, så en fornyelse behøver ikke at
+  angive den, og en, der angiver en anden, giver `invalid_target`. Hvert
+  REST-API afviser en bundet token med `401 invalid_token`, og MCP-endepunktet
+  tager ingen anden: en AI's token når aldrig en godkendelse eller en
+  publicering.
+
+Mens endepunktet er slået til, fortæller
+`GET /.well-known/oauth-protected-resource/mcp` (RFC 9728; også offentligt og
+kan caches), hvilken ressource det er, og hvor dets tokens kommer fra:
+
+```json
+{"resource": "https://cde.example.org/mcp",
+ "authorization_servers": ["https://cde.example.org"],
+ "scopes_supported": ["mcp", "mcp:propose"],
+ "bearer_methods_supported": ["header"]}
+```
+
+Et afslag fra endepunktet peger dertil: `401` med `WWW-Authenticate: Bearer resource_metadata="https://cde.example.org/.well-known/oauth-protected-resource/mcp", scope="mcp"`,
+og `403` med `error="insufficient_scope"` og `scope="mcp mcp:propose"`, når et
+værktøj, der foreslår, kræver et samtykke, som tokenen mangler, og som
+klienten så beder brugeren om.
+
 ## 3. BCF API
 
 - Alt under `/bcf/3.0/projects/{project_id}` er afgrænset til et projekt,
@@ -297,7 +346,7 @@ som serveren ikke kan læse, som serveren svarer, hvor FastAPI selv ville angive
 | `validation_error` | 400 | Kroppen eller forespørgslen bestod ikke valideringen, et OData-udtryk kunne ikke kompileres, en værdi findes ikke i projektets extensions, et `Content-Range` eller en uploadinstruktion er forkert, et snapshot eller en bitmap er ikke PNG eller JPEG; `message` nævner feltet | Ret forespørgslen |
 | `localhost_redirect` | 400 | En registrering angav `http://localhost` som redirect-URI, hvilket denne server ikke tillader | Registrér `http://127.0.0.1` i stedet, eller fortæl operatøren om `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Ingen bearer-token | Log ind |
-| `invalid_token` | 401 | Tokenen er ukendt, udløbet eller tilbagekaldt (`WWW-Authenticate: Bearer error="invalid_token"`) | Forny, og log derefter ind igen |
+| `invalid_token` | 401 | Tokenen er ukendt, udløbet eller tilbagekaldt, eller bundet til MCP-endepunktet (`WWW-Authenticate: Bearer error="invalid_token"`) | Forny, og log derefter ind igen |
 | `insufficient_scope` | 403 | Tokenen mangler det scope, ruten kræver, såsom `admin` | Autorisér igen med det scope |
 | `forbidden` | 403 | Brugerens rolle i projektet tillader ikke handlingen (Foundation API 1.5), eller brugeren er ikke administrator på administrations-API'et | Vis beskeden |
 | `reauthentication_required` | 403 | En farlig administrationshandling, og loginet er ældre end ti minutter | Autorisér igen, og gentag derefter kaldet |
@@ -317,7 +366,7 @@ viser `message`. Statusser, som rammeværket svarer med på egen hånd (405,
 format (`{"error": "invalid_grant", "error_description": "..."}`), som
 specifikationen kræver, så handl på `error` dér (`invalid_request`,
 `invalid_client`, `invalid_grant`, `unauthorized_client`,
-`unsupported_grant_type`, `invalid_scope`). Kapabilitetsdokumentet (§1)
+`unsupported_grant_type`, `invalid_scope`, `invalid_target`). Kapabilitetsdokumentet (§1)
 serveres af enhver server, der udsender koder.
 
 ## 7. Administrations-API'et (udvidelse)

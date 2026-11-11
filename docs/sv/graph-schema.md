@@ -73,6 +73,7 @@ erDiagram
 nycklas på en hash av hemligheten, bär `expires_at` och är länkade
 `-[:FOR]->(:User)` och `-[:ISSUED_TO]->(:Client)`. `WebSession`
 (webbläsarinloggning, etapp 5) är länkad bara `-[:FOR]->(:User)`.
+En kod och dess tokens som är bundna till MCP-ändpunkten (RFC 8707) bär också `resource`.
 
 ## BCF-ärenden och händelser (etapp 3)
 

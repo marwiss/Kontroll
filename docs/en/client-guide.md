@@ -150,6 +150,53 @@ the origin of your redirect URI (or callback URL), so the browser follows
 the redirect that answers the form: Chromium checks `form-action` against
 that redirect, not only against the form's own address.
 
+### Metadata and tokens for the MCP endpoint (extension)
+
+`GET /.well-known/oauth-authorization-server` (RFC 8414; no authentication,
+CORS, cacheable for five minutes) describes the same authorization server to
+OAuth clients that do not know the Foundation API. `issuer` is the public URL,
+the value of `iss` in every authorization response (RFC 9207,
+`authorization_response_iss_parameter_supported: true`); beside it stand the
+authorization, token and revocation endpoints, `registration_endpoint` while
+self-registration is on, `code_challenge_methods_supported: ["S256"]`, the grant
+types `authorization_code` and `refresh_token`, and `scopes_supported`, which
+names `mcp` and `mcp:propose` only while the MCP endpoint is on.
+
+The MCP endpoint, through which AI tools propose and a person approves, is off
+unless the operator sets `OPENCDE_MCP_ENABLED=true`. Its tokens are bound to
+it:
+
+- The client names the endpoint as `resource` (RFC 8707) in both the
+  authorization request and the token request. The one value accepted is
+  `<public_url>/mcp`, compared without a trailing slash and with the scheme
+  and host in lower case; any other value, more than one, or a resource while
+  the endpoint is off is `invalid_target`.
+- The scope is `mcp` for the read tools, or `mcp mcp:propose` to propose
+  change sets as well. Both are asked for explicitly and only with the
+  resource: `mcp` without it is `invalid_target`, and the resource with
+  another scope, or without `mcp`, is `invalid_scope`. The consent page says
+  what they give and that nothing is approved or published through them.
+- The code and the token family keep the resource, so a refresh need not name
+  it, and one that names another is `invalid_target`. Every REST API refuses
+  a bound token with `401 invalid_token`, and the MCP endpoint takes no other:
+  an AI's token never reaches an approval or a publication.
+
+While the endpoint is on, `GET /.well-known/oauth-protected-resource/mcp`
+(RFC 9728; public and cacheable as well) says which resource it is and where
+its tokens come from:
+
+```json
+{"resource": "https://cde.example.org/mcp",
+ "authorization_servers": ["https://cde.example.org"],
+ "scopes_supported": ["mcp", "mcp:propose"],
+ "bearer_methods_supported": ["header"]}
+```
+
+A refusal from the endpoint points there: `401` with `WWW-Authenticate: Bearer resource_metadata="https://cde.example.org/.well-known/oauth-protected-resource/mcp", scope="mcp"`,
+and `403` with `error="insufficient_scope"` and `scope="mcp mcp:propose"` when
+a tool that proposes needs a consent the token lacks, which the client then
+asks the user for.
+
 ## 3. BCF API
 
 - Everything under `/bcf/3.0/projects/{project_id}` is scoped to a project
@@ -290,7 +337,7 @@ server cannot read, as the server answers, where FastAPI itself would say `422`.
 | `validation_error` | 400 | The body or query failed validation, an OData expression could not be compiled, a value is not in the project's extensions, a `Content-Range` or upload instruction is wrong, a snapshot or bitmap is not PNG or JPEG; `message` names the field | Fix the request |
 | `localhost_redirect` | 400 | A registration named `http://localhost` as a redirect URI, which this server does not allow | Register `http://127.0.0.1` instead, or tell the operator about `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | No bearer token | Sign in |
-| `invalid_token` | 401 | The token is unknown, expired or revoked (`WWW-Authenticate: Bearer error="invalid_token"`) | Refresh, then sign in again |
+| `invalid_token` | 401 | The token is unknown, expired or revoked, or bound to the MCP endpoint (`WWW-Authenticate: Bearer error="invalid_token"`) | Refresh, then sign in again |
 | `insufficient_scope` | 403 | The token lacks the scope the route needs, such as `admin` | Authorize again with that scope |
 | `forbidden` | 403 | The user's role in the project does not allow the action (Foundation API 1.5), or the user is not an administrator on the administration API | Show the message |
 | `reauthentication_required` | 403 | A dangerous administration action and the sign-in is older than ten minutes | Authorize again, then repeat the call |
@@ -310,7 +357,7 @@ no code. The OAuth2 token endpoint keeps RFC 6749's own format
 (`{"error": "invalid_grant", "error_description": "..."}`), as the
 specification requires, so act on `error` there (`invalid_request`,
 `invalid_client`, `invalid_grant`, `unauthorized_client`,
-`unsupported_grant_type`, `invalid_scope`). The capabilities document (§1)
+`unsupported_grant_type`, `invalid_scope`, `invalid_target`). The capabilities document (§1)
 is served by every server that emits codes.
 
 ## 7. The administration API (extension)

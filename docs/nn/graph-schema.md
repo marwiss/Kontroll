@@ -74,6 +74,7 @@ erDiagram
 nøkla på ein hash av løyndomen, ber `expires_at` og er knytte
 `-[:FOR]->(:User)` og `-[:ISSUED_TO]->(:Client)`. `WebSession`
 (nettlesarinnlogging, etappe 5) er berre knytt `-[:FOR]->(:User)`.
+Ein kode og tokena hans som er bundne til MCP-endepunktet (RFC 8707), ber òg `resource`.
 
 ## BCF-saker og hendingar (etappe 3)
 

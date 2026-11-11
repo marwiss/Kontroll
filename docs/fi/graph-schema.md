@@ -76,6 +76,7 @@ erDiagram
 avainnetaan salaisuuden tiivisteellä, kantavat `expires_at`-kenttää ja on
 linkitetty `-[:FOR]->(:User)` ja `-[:ISSUED_TO]->(:Client)`. `WebSession`
 (selainkirjautuminen, vaihe 5) on linkitetty vain `-[:FOR]->(:User)`.
+MCP-päätepisteeseen sidotut koodi ja sen tokenit (RFC 8707) kantavat lisäksi `resource`-kentän.
 
 ## BCF-asiat ja tapahtumat (vaihe 3)
 

@@ -160,6 +160,57 @@ seuraa lomakkeeseen vastaavaa uudelleenohjausta: Chromium tarkistaa
 `form-action`-käytännön tätä uudelleenohjausta vasten, ei vain lomakkeen
 omaa osoitetta.
 
+### MCP-päätepisteen metatiedot ja tokenit (laajennus)
+
+`GET /.well-known/oauth-authorization-server` (RFC 8414; ei todennusta, CORS,
+välimuistitettava viideksi minuutiksi) kuvaa saman valtuutuspalvelimen
+OAuth-asiakkaille, jotka eivät tunne Foundation API:a. `issuer` on julkinen
+osoite, sama arvo kuin `iss` jokaisessa valtuutusvastauksessa (RFC 9207,
+`authorization_response_iss_parameter_supported: true`); sen rinnalla ovat
+valtuutuksen, tokenien ja peruutuksen päätepisteet, `registration_endpoint`
+silloin, kun itserekisteröinti on päällä,
+`code_challenge_methods_supported: ["S256"]`, grant-tyypit `authorization_code`
+ja `refresh_token` sekä `scopes_supported`, jossa `mcp` ja `mcp:propose` ovat
+vain silloin, kun MCP-päätepiste on päällä.
+
+MCP-päätepiste, jonka kautta tekoälytyökalut ehdottavat ja ihminen hyväksyy,
+on pois päältä, kunnes ylläpitäjä asettaa `OPENCDE_MCP_ENABLED=true`. Sen
+tokenit on sidottu siihen:
+
+- Asiakas nimeää päätepisteen `resource`-parametrina (RFC 8707) sekä
+  valtuutuspyynnössä että token-pyynnössä. Ainoa hyväksytty arvo on
+  `<public_url>/mcp`, jota verrataan ilman lopun kauttaviivaa ja niin, että
+  skeema ja isäntä ovat pienillä kirjaimilla; mikä tahansa muu arvo, useampi
+  kuin yksi tai resurssi silloin, kun päätepiste on pois päältä, antaa
+  `invalid_target`.
+- Scope on `mcp` lukutyökaluille tai `mcp mcp:propose`, kun myös
+  muutosjoukkoja ehdotetaan. Kumpaakin pyydetään nimenomaisesti ja vain
+  yhdessä resurssin kanssa: `mcp` ilman sitä antaa `invalid_target`, ja
+  resurssi toisella scopella tai ilman `mcp`:tä antaa `invalid_scope`.
+  Suostumussivu kertoo, mitä ne antavat ja ettei niiden kautta hyväksytä eikä
+  julkaista mitään.
+- Koodi ja token-perhe säilyttävät resurssin, joten uusimisessa sitä ei
+  tarvitse nimetä, ja uusiminen, joka nimeää toisen, antaa `invalid_target`.
+  Jokainen REST-rajapinta hylkää sidotun tokenin vastauksella
+  `401 invalid_token`, eikä MCP-päätepiste ota vastaan muita: tekoälyn token ei
+  koskaan ulotu hyväksyntään tai julkaisuun.
+
+Kun päätepiste on päällä, `GET /.well-known/oauth-protected-resource/mcp`
+(RFC 9728; myös julkinen ja välimuistitettava) kertoo, mikä resurssi se on ja
+mistä sen tokenit tulevat:
+
+```json
+{"resource": "https://cde.example.org/mcp",
+ "authorization_servers": ["https://cde.example.org"],
+ "scopes_supported": ["mcp", "mcp:propose"],
+ "bearer_methods_supported": ["header"]}
+```
+
+Päätepisteen hylkäys osoittaa sinne: `401` ja `WWW-Authenticate: Bearer resource_metadata="https://cde.example.org/.well-known/oauth-protected-resource/mcp", scope="mcp"`,
+sekä `403` ja `error="insufficient_scope"` ja `scope="mcp mcp:propose"`, kun
+ehdottava työkalu tarvitsee suostumuksen, joka tokenilta puuttuu; asiakas
+pyytää sitä silloin käyttäjältä.
+
 ## 3. BCF API
 
 - Kaikki polun `/bcf/3.0/projects/{project_id}` alla rajautuu projektiin,
@@ -309,7 +360,7 @@ ilmoittaisi `422`.
 | `validation_error` | 400 | Runko tai kysely ei läpäissyt validointia, OData-lauseketta ei voitu kääntää, arvo ei ole projektin extensions-listoissa, `Content-Range` tai lähetysohje on väärä, tilannekuva tai bittikartta ei ole PNG tai JPEG; `message` nimeää kentän | Korjaa pyyntö |
 | `localhost_redirect` | 400 | Rekisteröinnissä oli redirect-URIna `http://localhost`, jota tämä palvelin ei salli | Rekisteröi sen sijaan `http://127.0.0.1` tai kerro ylläpitäjälle asetuksesta `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Ei bearer-tokenia | Kirjaudu |
-| `invalid_token` | 401 | Token on tuntematon, vanhentunut tai peruttu (`WWW-Authenticate: Bearer error="invalid_token"`) | Uusi, kirjaudu sitten uudelleen |
+| `invalid_token` | 401 | Token on tuntematon, vanhentunut, peruttu tai sidottu MCP-päätepisteeseen (`WWW-Authenticate: Bearer error="invalid_token"`) | Uusi, kirjaudu sitten uudelleen |
 | `insufficient_scope` | 403 | Tokenilta puuttuu reitin vaatima scope, kuten `admin` | Valtuuta uudelleen tuolla scopella |
 | `forbidden` | 403 | Käyttäjän rooli projektissa ei salli toimintoa (Foundation API 1.5), tai käyttäjä ei ole järjestelmänvalvoja hallintarajapinnassa | Näytä viesti |
 | `reauthentication_required` | 403 | Vaarallinen hallintatoiminto ja kirjautuminen on yli kymmenen minuuttia vanha | Valtuuta uudelleen, toista sitten kutsu |
@@ -329,7 +380,7 @@ sisällä koodia. OAuth2:n token-päätepiste säilyttää RFC 6749:n oman muodo
 (`{"error": "invalid_grant", "error_description": "..."}`), kuten
 spesifikaatio vaatii, joten toimi siellä `error`-kentän mukaan
 (`invalid_request`, `invalid_client`, `invalid_grant`, `unauthorized_client`,
-`unsupported_grant_type`, `invalid_scope`). Kyvykkyysasiakirjaa (§1) tarjoaa
+`unsupported_grant_type`, `invalid_scope`, `invalid_target`). Kyvykkyysasiakirjaa (§1) tarjoaa
 jokainen palvelin, joka lähettää koodeja.
 
 ## 7. Hallintarajapinta (laajennus)

@@ -71,6 +71,7 @@ erDiagram
 keyed by a hash of the secret, carry `expires_at`, and are linked
 `-[:FOR]->(:User)` and `-[:ISSUED_TO]->(:Client)`. `WebSession` (browser
 sign-in, stage 5) is linked `-[:FOR]->(:User)` only.
+A code and its tokens bound to the MCP endpoint (RFC 8707) also carry `resource`.
 
 ## BCF topics and events (stage 3)
 

@@ -154,6 +154,54 @@ nefnir líka uppruna redirect-URI þíns (eða callback-URL), svo vafrinn fylgi
 áframsendingunni sem svarar eyðublaðinu: Chromium athugar `form-action` gegn
 þeirri áframsendingu, ekki aðeins gegn vistfangi eyðublaðsins sjálfs.
 
+### Lýsigögn og tókar fyrir MCP-endapunktinn (viðbót)
+
+`GET /.well-known/oauth-authorization-server` (RFC 8414; engin auðkenning, CORS,
+má geyma í skyndiminni í fimm mínútur) lýsir sama heimildaþjóni fyrir
+OAuth-biðlurum sem þekkja ekki Foundation API. `issuer` er opinbera vistfangið,
+sama gildi og `iss` í hverju heimildarsvari (RFC 9207,
+`authorization_response_iss_parameter_supported: true`); við hlið þess standa
+endapunktar heimildar, tóka og afturköllunar, `registration_endpoint` meðan
+sjálfskráning er virk, `code_challenge_methods_supported: ["S256"]`,
+veitingarnar `authorization_code` og `refresh_token`, og `scopes_supported`, sem
+nefnir `mcp` og `mcp:propose` aðeins meðan MCP-endapunkturinn er virkur.
+
+MCP-endapunkturinn, þar sem gervigreindarverkfæri leggja fram tillögur og
+manneskja samþykkir, er óvirkur nema rekstraraðilinn setji `OPENCDE_MCP_ENABLED=true`.
+Tókar hans eru bundnir honum:
+
+- Biðlarinn nefnir endapunktinn sem `resource` (RFC 8707) bæði í
+  heimildarbeiðninni og í tókabeiðninni. Eina gildið sem er samþykkt er
+  `<public_url>/mcp`, borið saman án skástriks í lokin og með skema og hýsli í
+  lágstöfum; hvert annað gildi, fleiri en eitt, eða auðlind meðan
+  endapunkturinn er óvirkur gefur `invalid_target`.
+- Heimildin er `mcp` fyrir lestrarverkfærin, eða `mcp mcp:propose` til að
+  leggja líka til breytingasett. Beðið er um báðar sérstaklega og aðeins ásamt
+  auðlindinni: `mcp` án hennar gefur `invalid_target`, og auðlindin með
+  annarri heimild, eða án `mcp`, gefur `invalid_scope`. Samþykkissíðan segir
+  hvað þær veita og að ekkert sé samþykkt eða birt í gegnum þær.
+- Kóðinn og tókafjölskyldan halda auðlindinni, svo endurnýjun þarf ekki að
+  nefna hana, og endurnýjun sem nefnir aðra gefur `invalid_target`. Öll
+  REST-forritaskil hafna bundnum tóka með `401 invalid_token`, og
+  MCP-endapunkturinn tekur engan annan: tóki gervigreindar nær aldrei til
+  samþykktar eða birtingar.
+
+Meðan endapunkturinn er virkur segir
+`GET /.well-known/oauth-protected-resource/mcp` (RFC 9728; einnig opinbert og
+má geyma í skyndiminni) hvaða auðlind hann er og hvaðan tókar hans koma:
+
+```json
+{"resource": "https://cde.example.org/mcp",
+ "authorization_servers": ["https://cde.example.org"],
+ "scopes_supported": ["mcp", "mcp:propose"],
+ "bearer_methods_supported": ["header"]}
+```
+
+Höfnun frá endapunktinum vísar þangað: `401` með `WWW-Authenticate: Bearer resource_metadata="https://cde.example.org/.well-known/oauth-protected-resource/mcp", scope="mcp"`,
+og `403` með `error="insufficient_scope"` og `scope="mcp mcp:propose"` þegar
+verkfæri sem leggur fram tillögur þarf samþykki sem tókann skortir, og biðlarinn biður
+þá notandann um það.
+
 ## 3. BCF API
 
 - Allt undir `/bcf/3.0/projects/{project_id}` er afmarkað við verkefni sem
@@ -298,7 +346,7 @@ gefa upp `422`.
 | `validation_error` | 400 | Meginmálið eða fyrirspurnin stóðst ekki sannprófun, OData-segð gat ekki verið þýdd, gildi er ekki í extensions verkefnisins, `Content-Range` eða upphalsfyrirmæli eru röng, skyndimynd eða bitamynd er ekki PNG eða JPEG; `message` nefnir sviðið | Lagaðu beiðnina |
 | `localhost_redirect` | 400 | Skráning tilgreindi `http://localhost` sem redirect-URI, sem þessi þjónn leyfir ekki | Skráðu `http://127.0.0.1` í staðinn eða segðu rekstraraðilanum frá `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` |
 | `unauthenticated` | 401 | Enginn bearer-tóki | Skráðu þig inn |
-| `invalid_token` | 401 | Tókinn er óþekktur, útrunninn eða afturkallaður (`WWW-Authenticate: Bearer error="invalid_token"`) | Endurnýjaðu, skráðu þig svo inn aftur |
+| `invalid_token` | 401 | Tókinn er óþekktur, útrunninn, afturkallaður eða bundinn MCP-endapunktinum (`WWW-Authenticate: Bearer error="invalid_token"`) | Endurnýjaðu, skráðu þig svo inn aftur |
 | `insufficient_scope` | 403 | Tókann skortir heimildina sem leiðin þarf, svo sem `admin` | Veittu heimild aftur með þeirri heimild |
 | `forbidden` | 403 | Hlutverk notandans í verkefninu leyfir ekki aðgerðina (Foundation API 1.5), eða notandinn er ekki stjórnandi á stjórnunarforritaskilunum | Sýndu skilaboðin |
 | `reauthentication_required` | 403 | Hættuleg stjórnunaraðgerð og innskráningin er eldri en tíu mínútur | Veittu heimild aftur, endurtaktu svo kallið |
@@ -318,7 +366,7 @@ bera engan kóða. OAuth2-tókaendapunkturinn heldur eigin sniði RFC 6749
 (`{"error": "invalid_grant", "error_description": "..."}`), eins og
 forskriftin krefst, svo bregstu við `error` þar (`invalid_request`,
 `invalid_client`, `invalid_grant`, `unauthorized_client`,
-`unsupported_grant_type`, `invalid_scope`). Getuskjalið (§1) er veitt af
+`unsupported_grant_type`, `invalid_scope`, `invalid_target`). Getuskjalið (§1) er veitt af
 hverjum þjóni sem gefur frá sér kóða.
 
 ## 7. Stjórnunarforritaskilin (viðbót)

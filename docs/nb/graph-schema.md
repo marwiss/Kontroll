@@ -74,6 +74,7 @@ erDiagram
 på en hash av hemmeligheten, bærer `expires_at` og er knyttet
 `-[:FOR]->(:User)` og `-[:ISSUED_TO]->(:Client)`. `WebSession`
 (nettleserinnlogging, etappe 5) er bare knyttet `-[:FOR]->(:User)`.
+En kode og tokenene dens som er bundet til MCP-endepunktet (RFC 8707), bærer også `resource`.
 
 ## BCF-saker og hendelser (etappe 3)
 

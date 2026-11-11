@@ -74,6 +74,7 @@ erDiagram
 lykluð með tætigildi leyndarmálsins, bera `expires_at` og eru tengd
 `-[:FOR]->(:User)` og `-[:ISSUED_TO]->(:Client)`. `WebSession`
 (vafrainnskráning, áfangi 5) er aðeins tengd `-[:FOR]->(:User)`.
+Kóði og tókar hans sem eru bundnir MCP-endapunktinum (RFC 8707) bera einnig `resource`.
 
 ## BCF-mál og atburðir (áfangi 3)
 

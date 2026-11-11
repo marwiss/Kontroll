@@ -20,6 +20,15 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- A token can be bound to the MCP endpoint for AI tools, which is off unless `OPENCDE_MCP_ENABLED` is true:
+  `resource` (RFC 8707) on the authorization and the token request accepts `<public_url>/mcp` alone, anything else
+  is `invalid_target`, and the code and its token family keep it through every refresh. Such a token holds `mcp`
+  (the read tools) and, when asked for, `mcp:propose` (change sets), both asked for explicitly and only with the
+  resource, and every REST API refuses it with `401 invalid_token`, so that an AI's token never reaches an approval
+  or a publication. `GET /.well-known/oauth-authorization-server` (RFC 8414) describes the authorization server,
+  its `issuer` the `iss` of every authorization response, and while the endpoint is on
+  `GET /.well-known/oauth-protected-resource/mcp` (RFC 9728) describes the endpoint as a protected resource; the
+  two scopes are listed in the metadata and the capabilities document only then.
 - A project has an AI policy, `ai_policy` (ADR 0028): `local`, the policy of every project until someone changes
   it, lets AI tools have the project's data only on the user's own computer, and `cloud` lets AI services in the
   cloud have it too. A project's manager sets it with `PUT /manage/1.0/projects/{id}`, whose `GET` gives the
