@@ -380,12 +380,12 @@ def test_the_command_line_writes_a_model_back_and_says_how_it_went(
     target = tmp_path / "written.ifc"
     runner = CliRunner()
 
-    done = runner.invoke(app, ["ifc-lpg", "export", model_id, str(target)])
+    done = runner.invoke(app, ["ifc-db", "export", model_id, str(target)])
     assert done.exit_code == 0, done.output
     assert "248 instances" in done.output
     assert compare((conftest.FIXTURES_DIR / "three_walls_gtin.ifc").read_bytes(), target.read_bytes()).identical
 
-    done = runner.invoke(app, ["ifc-lpg", "export", model_id, str(target), "--verify", "--geometry"])
+    done = runner.invoke(app, ["ifc-db", "export", model_id, str(target), "--verify", "--geometry"])
     assert done.exit_code == 0, done.output
     assert "OK      same_model" in done.output
     assert "OK      exact" in done.output
@@ -393,9 +393,9 @@ def test_the_command_line_writes_a_model_back_and_says_how_it_went(
     assert "OK      geometry" in done.output
 
     other = tmp_path / "other.ifc"
-    done = runner.invoke(app, ["ifc-lpg", "export", "ordinary", str(other)])
+    done = runner.invoke(app, ["ifc-db", "export", "ordinary", str(other)])
     assert done.exit_code == 1
-    assert "OPENCDE_IFC_LPG_LOSSLESS" in done.output
+    assert "OPENCDE_IFC_DB_LOSSLESS" in done.output
     assert not other.exists()
     done = runner.invoke(app, ["ifcgraph", "export", "missing", str(other)])  # the old name still works
     assert done.exit_code == 1
@@ -427,13 +427,13 @@ def test_a_valid_change_is_reported_as_a_change_and_as_valid(
     settings = settings_for(graph_target, tmp_path)
     monkeypatch.setattr("opencde.cli._settings", lambda: settings)
     model = sample_model_with(settings, "MATCH (n:IfcWall {model_id: $id}) SET n.Name = 'changed'")
-    done = CliRunner().invoke(app, ["ifc-lpg", "export", model, str(tmp_path / "w.ifc"), "--verify"])
+    done = CliRunner().invoke(app, ["ifc-db", "export", model, str(tmp_path / "w.ifc"), "--verify"])
     assert done.exit_code == 1
     assert "DIFFERS same_model" in done.output
     assert "does not hold the same model" in done.output
     assert "OK      validation: 0 issues the upload does not have" in done.output
 
-    done = CliRunner().invoke(app, ["ifc-lpg", "export", model, str(tmp_path / "w.ifc")])
+    done = CliRunner().invoke(app, ["ifc-db", "export", model, str(tmp_path / "w.ifc")])
     assert done.exit_code == 0, done.output
 
 
@@ -478,7 +478,7 @@ def test_a_change_that_breaks_the_standard_is_stopped(
     """A graph database has no schema to hold a change to, so this is where it gets held to one."""
     settings = settings_for(graph_target, tmp_path)
     monkeypatch.setattr("opencde.cli._settings", lambda: settings)
-    done = CliRunner().invoke(app, ["ifc-lpg", "export", sample_model_with(settings, change), str(tmp_path / "w.ifc")])
+    done = CliRunner().invoke(app, ["ifc-db", "export", sample_model_with(settings, change), str(tmp_path / "w.ifc")])
     assert done.exit_code == 1, done.output
     assert "INVALID validation" in done.output
     assert "breaks the IFC standard" in done.output
@@ -491,7 +491,7 @@ def test_validation_can_be_left_out(
     settings = settings_for(graph_target, tmp_path)
     monkeypatch.setattr("opencde.cli._settings", lambda: settings)
     model = sample_model_with(settings, "MATCH (n:IfcWall {model_id: $id}) WITH n LIMIT 1 SET n.Name = 5")
-    done = CliRunner().invoke(app, ["ifc-lpg", "export", model, str(tmp_path / "w.ifc"), "--no-validate"])
+    done = CliRunner().invoke(app, ["ifc-db", "export", model, str(tmp_path / "w.ifc"), "--no-validate"])
     assert done.exit_code == 0, done.output
     assert "validation:" not in done.output
 
@@ -518,6 +518,6 @@ def test_a_model_that_does_not_hold_it_all_is_not_written(
         return messages
 
     ordinary, running, missing = asyncio.run(work())
-    assert "OPENCDE_IFC_LPG_LOSSLESS" in ordinary, "Dataregium names its setting"
+    assert "OPENCDE_IFC_DB_LOSSLESS" in ordinary, "Dataregium names its setting"
     assert "running" in running and "OPENCDE_" not in running
     assert "no such model" in missing

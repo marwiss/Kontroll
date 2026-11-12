@@ -27,17 +27,26 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, Settings
 
 SECRETS_DIR = Path("/run/secrets")
 
-# The IFC-LPG module was the IFC-graph module until November 2026. Its settings are read by their new names first and by the
-# old ones still, so that a server keeps its configuration across the upgrade, and the old names in use are reported.
-IFC_PREFIX = "OPENCDE_IFC_LPG_"
-OLD_IFC_PREFIX = "OPENCDE_IFCGRAPH_"
+# The IFC-DB module was the IFC-graph module, and then the IFC-LPG module, until November 2026. Its settings are read by
+# their new names first and by the old ones still, so that a server keeps its configuration across the upgrade, and the
+# old names in use are reported.
+IFC_PREFIX = "OPENCDE_IFC_DB_"
+OLD_IFC_PREFIXES = ("OPENCDE_IFC_LPG_", "OPENCDE_IFCGRAPH_")  # the newer first: it wins over the older
 _IFC_FIELD = "ifcgraph_"
 _OLD_NAMES_SEEN: ContextVar[tuple[str, ...]] = ContextVar("old_setting_names", default=())
 
 
 def _ifc(name: str) -> AliasChoices:
-    """Where an IFC-LPG setting is read from: its own name, then the name it had until November 2026."""
-    return AliasChoices(IFC_PREFIX + name.upper(), OLD_IFC_PREFIX + name.upper())
+    """Where an IFC-DB setting is read from: its own name, then the names it had until November 2026."""
+    return AliasChoices(*(prefix + name.upper() for prefix in (IFC_PREFIX, *OLD_IFC_PREFIXES)))
+
+
+def _new_name(old: str) -> str:
+    """The name of a setting given by one of its old names."""
+    for prefix in OLD_IFC_PREFIXES:
+        if old.startswith(prefix):
+            return IFC_PREFIX + old.removeprefix(prefix)
+    return old
 
 
 def env_name(field: str) -> str:
@@ -129,7 +138,7 @@ class Settings(BaseSettings):
         secrets_dir=str(SECRETS_DIR) if SECRETS_DIR.is_dir() else None,
         extra="ignore",
         hide_input_in_errors=True,  # a refused value can be, or hold, a password
-        validate_by_name=True,  # a setting with other names (the IFC-LPG ones) is still given by its field's name
+        validate_by_name=True,  # a setting with other names (the IFC-DB ones) is still given by its field's name
     )
     _old_names: tuple[str, ...] = PrivateAttr(default=())
 
@@ -146,7 +155,7 @@ class Settings(BaseSettings):
         given = _names_given(
             getattr(dotenv_settings, "env_file", None), getattr(file_secret_settings, "secrets_dir", None)
         )
-        _OLD_NAMES_SEEN.set(tuple(sorted(name for name in given if name.startswith(OLD_IFC_PREFIX))))
+        _OLD_NAMES_SEEN.set(tuple(sorted(name for name in given if name.startswith(OLD_IFC_PREFIXES))))
         return init_settings, env_settings, dotenv_settings, file_secret_settings
 
     @model_validator(mode="after")
@@ -158,7 +167,7 @@ class Settings(BaseSettings):
     @property
     def renamed_settings(self) -> list[tuple[str, str]]:
         """The old names this server is given for renamed settings, each with the name to use instead."""
-        return [(old, IFC_PREFIX + old.removeprefix(OLD_IFC_PREFIX)) for old in self._old_names]
+        return [(old, _new_name(old)) for old in self._old_names]
 
     # --- deployment -------------------------------------------------------
     environment: Literal["development", "test", "production", "local"] = Field(
@@ -344,7 +353,7 @@ class Settings(BaseSettings):
     )
 
     # --- optional modules -------------------------------------------------
-    # The IFC-LPG module: read as OPENCDE_IFC_LPG_*, and still as OPENCDE_IFCGRAPH_* (see `_ifc`).
+    # The IFC-DB module: read as OPENCDE_IFC_DB_*, and still as OPENCDE_IFC_LPG_* and OPENCDE_IFCGRAPH_* (see `_ifc`).
     ifcgraph_enabled: bool = Field(
         False,
         validation_alias=_ifc("enabled"),

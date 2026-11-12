@@ -34,8 +34,10 @@ ifcgraph_app = typer.Typer(no_args_is_help=True, help="Inspect and prune the imp
 app.add_typer(user_app, name="user")
 app.add_typer(project_app, name="project")
 app.add_typer(client_app, name="client")
-app.add_typer(ifcgraph_app, name="ifc-lpg")
-app.add_typer(ifcgraph_app, name="ifcgraph", hidden=True)  # its old name, so that scripts keep working
+app.add_typer(ifcgraph_app, name="ifc-db")
+# Its old names, so that scripts keep working.
+app.add_typer(ifcgraph_app, name="ifc-lpg", hidden=True)
+app.add_typer(ifcgraph_app, name="ifcgraph", hidden=True)
 
 T = TypeVar("T")
 
@@ -143,7 +145,7 @@ def _ask_for_values() -> tuple[str | None, list[str]]:
             return None, [
                 "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true",
                 "OPENCDE_REQUEST_LOG_ENABLED=true",
-                "OPENCDE_IFC_LPG_ENABLED=true",
+                "OPENCDE_IFC_DB_ENABLED=true",
             ]
         return None, []
     while True:
@@ -163,7 +165,7 @@ def _ask_for_values() -> tuple[str | None, list[str]]:
     ):
         extra.append("OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true")
     if typer.confirm("Turn uploaded IFC models into a graph?", default=False):
-        extra.append("OPENCDE_IFC_LPG_ENABLED=true")
+        extra.append("OPENCDE_IFC_DB_ENABLED=true")
     return url, extra
 
 
@@ -276,7 +278,7 @@ def _write_local_env(path: Path) -> None:
         'OPENCDE_TRUSTED_PROXIES=["127.0.0.1"]',
         "OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true",
         "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true",
-        "OPENCDE_IFC_LPG_ENABLED=true",
+        "OPENCDE_IFC_DB_ENABLED=true",
         # AI programs on this computer reach the projects' models through MCP (ADR 0028); every project is served here.
         "OPENCDE_MCP_ENABLED=true",
         "NEO4J_HEAP=1g",
@@ -777,7 +779,7 @@ def ifcgraph_export(
     ] = False,
 ) -> None:
     """Write a model back as an IFC file from what the graph holds, and validate it. Only a model converted with
-    OPENCDE_IFC_LPG_LOSSLESS can be."""
+    OPENCDE_IFC_DB_LOSSLESS can be."""
     from ifc_db.exporter import NotExportable
 
     from opencde.bootstrap import make_storage

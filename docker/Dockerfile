@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /
 WORKDIR /app
 
 # Optional extras to install. The default includes the IFC-DB module (IfcOpenShell),
-# which OPENCDE_IFC_LPG_ENABLED switches on at runtime; build with
+# which OPENCDE_IFC_DB_ENABLED switches on at runtime; build with
 # `--build-arg OPENCDE_EXTRAS=` for a slimmer image without it.
 ARG OPENCDE_EXTRAS="--extra ifc-db"
 
@@ -56,7 +56,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     OPENCDE_DATA_DIR=/data \
-    OPENCDE_IFC_LPG_GHERKIN_ENV=/opt/gherkin
+    OPENCDE_IFC_DB_GHERKIN_ENV=/opt/gherkin
 USER opencde
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \

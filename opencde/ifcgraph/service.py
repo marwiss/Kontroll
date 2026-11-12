@@ -1554,7 +1554,7 @@ class IfcGraphService:
                 facts = await self.conversions.get(model_id) or await model_facts(self.graph, model_id) or {}
                 if (facts.get("state") == STATE_DONE or facts.get("whole")) and not facts.get("lossless"):
                     raise NotExportable(
-                        f"{exc}: it was converted with OPENCDE_IFC_LPG_LOSSLESS=false or before 3.0.0, and can be "
+                        f"{exc}: it was converted with OPENCDE_IFC_DB_LOSSLESS=false or before 3.0.0, and can be "
                         "written back once it is uploaded again"
                     ) from None
                 raise

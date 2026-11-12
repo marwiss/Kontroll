@@ -85,7 +85,7 @@ def two_graphs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Graph, 
         ["client", "list"],
         ["cleanup"],
         ["revoke", "--all"],
-        ["ifc-lpg", "list"],
+        ["ifc-db", "list"],
     ],
     ids=" ".join,
 )
@@ -102,7 +102,7 @@ def test_a_command_over_the_servers_own_data_opens_the_store_alone(
 
 def test_pruning_opens_both_and_deletes_the_model_on_the_ifc_graph(two_graphs: tuple[Graph, Graph, list[str]]) -> None:
     ifc, store, opened = two_graphs
-    done = CliRunner().invoke(app, ["ifc-lpg", "prune", "--project", "p1", "--all"])
+    done = CliRunner().invoke(app, ["ifc-db", "prune", "--project", "p1", "--all"])
     assert done.exit_code == 0, done.output
     assert "deleted 1 model(s)" in done.output
     assert opened == ["ifc", "store"] and ifc.closed and store.closed
@@ -124,7 +124,7 @@ def test_the_export_builds_the_service_with_both(
             return 3
 
     monkeypatch.setattr(service_module, "IfcGraphService", Service)
-    done = CliRunner().invoke(app, ["ifc-lpg", "export", "model-1", str(tmp_path / "w.ifc"), "--no-validate"])
+    done = CliRunner().invoke(app, ["ifc-db", "export", "model-1", str(tmp_path / "w.ifc"), "--no-validate"])
     assert done.exit_code == 0, done.output
     assert built == [(ifc, store)]
 
