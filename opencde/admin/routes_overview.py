@@ -151,7 +151,7 @@ def _audit_rows(graph_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         {
             "at": row.get("at"),
             "type": row.get("type"),
-            "actor": row.get("actor") or "",
+            "actor": row.get("actor_user_id") or "",  # the field the event keeps, as /admin/api/audit reads it
             "client_id": row.get("client_id") or "",
             "ip": row.get("ip") or "",
             "details": _details_text(row.get("details")),

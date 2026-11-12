@@ -441,6 +441,7 @@ def test_sessions_audit_and_settings_pages(client: TestClient, world: World) -> 
 
     audit = client.get("/admin/audit", params={"type": "admin.session"})
     assert "admin.session.revoke_family" in audit.text
+    assert world.users["admin"] in audit.text, "the actor of each event, as the API gives it"
     csv = client.get("/admin/audit.csv", params={"type": "admin."})
     assert (
         csv.headers["content-type"].startswith("text/csv")

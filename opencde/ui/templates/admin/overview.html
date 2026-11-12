@@ -31,7 +31,7 @@
       <thead><tr><th scope="col">{{ t("common.when") }}</th><th scope="col">{{ t("admin.overview.event") }}</th><th scope="col">{{ t("admin.overview.actor") }}</th><th scope="col">{{ t("common.address") }}</th></tr></thead>
       <tbody>
         {% for event in recent %}
-        <tr><td>{{ when(event.at) }}</td><td><code>{{ event.type }}</code></td><td>{{ event.actor or "" }}</td><td>{{ event.ip or "" }}</td></tr>
+        <tr><td>{{ when(event.at) }}</td><td><code>{{ event.type }}</code></td><td>{{ event.actor_user_id or "" }}</td><td>{{ event.ip or "" }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
