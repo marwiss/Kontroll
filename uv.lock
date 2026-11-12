@@ -1035,7 +1035,7 @@ wheels = [
 [[package]]
 name = "ifc-lpg"
 version = "1.0.0"
-source = { git = "https://github.com/marwiss/IFC-LPG?rev=99b0ac8#99b0ac857f8369ca4849877f8537c3ffd3c17107" }
+source = { git = "https://github.com/marwiss/IFC-LPG?rev=d3ccc5f#d3ccc5f2f1d2c12247b6f277a7ce930717d4b6d4" }
 
 [package.optional-dependencies]
 ifcopenshell = [
@@ -1964,8 +1964,8 @@ ui = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.160" },
     { name = "httpx", specifier = ">=0.28" },
-    { name = "ifc-lpg", git = "https://github.com/marwiss/IFC-LPG?rev=99b0ac8" },
-    { name = "ifc-lpg", extras = ["ifcopenshell"], marker = "extra == 'ifc-lpg'", git = "https://github.com/marwiss/IFC-LPG?rev=99b0ac8" },
+    { name = "ifc-lpg", git = "https://github.com/marwiss/IFC-LPG?rev=d3ccc5f" },
+    { name = "ifc-lpg", extras = ["ifcopenshell"], marker = "extra == 'ifc-lpg'", git = "https://github.com/marwiss/IFC-LPG?rev=d3ccc5f" },
     { name = "ifcclash", marker = "extra == 'ifc-lpg'", specifier = ">=0.9.0" },
     { name = "itsdangerous", specifier = ">=2.2" },
     { name = "jinja2", specifier = ">=3.1.6" },

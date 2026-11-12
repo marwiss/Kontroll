@@ -32,6 +32,10 @@ cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
   know, with the document in `document_id` and its specification named in the message, in the report of every file
   checked against that document. Each IDS version is read once, the lookups share the check's cache, and a trial of a
   change set never counts such a URI among its own findings.
+- IFC-LPG at d3ccc5f: the named queries `storeys` and `areas` give each storey's height in metres, `elevation_m`,
+  and where it comes from, `elevation_source` (`attribute`, or `placement` for a storey without `Elevation`, as
+  in IFC4X3), beside `elevation` as the file has it; and an IDS document that restricts a value with
+  `xs:restriction` is read and checked instead of refused.
 - On the MCP endpoint `server_query` and the two clash tools are listed only while the IFC-LPG module is on, as
   the change sets are; a user has at most two clash checks waiting or running in all their projects together, and
   makes at most 120 tool calls a minute whatever the token; an answer holding NaN or an infinity is a tool error.

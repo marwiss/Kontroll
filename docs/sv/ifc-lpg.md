@@ -521,9 +521,9 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 |---|---|---|
 | `element-classes` | | Hur många element modellen har av varje klass |
 | `elements` | `class` | Elementen av en klass, med den rumsliga struktur som innehåller vart och ett |
-| `storeys` | | Våningarna, deras nivå och hur många element och rum var och en rymmer |
+| `storeys` | | Våningarna, deras nivå som filen anger den och i meter (`elevation_m`, ur attributet eller placeringen som `elevation_source` säger), och hur många element och rum var och en rymmer |
 | `spaces` | | Rummen, deras våning och deras netto- och bruttogolvarea |
-| `areas` | | Nettogolvarean för varje vånings rum, summerad |
+| `areas` | | Nettogolvarean för varje vånings rum, summerad, med våningens nivå i meter |
 | `materials` | `class` | Varje elements material: ett eget, eller dess skikts, listas eller beståndsdelars |
 | `property` | `pset`, `property`, `class` | Värdet av en egenskap på varje objekt som har den, med dess IFC-typ |
 | `entity` | `global_id` | En rotad entitet: dess klass, varje literalt attribut och vad den refererar till och refereras av, var och en med IFC-attribut, STEP-id och klass |

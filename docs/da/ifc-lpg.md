@@ -520,9 +520,9 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 |---|---|---|
 | `element-classes` | | Hvor mange elementer modellen har af hver klasse |
 | `elements` | `class` | Elementerne af en klasse med den rumlige struktur, der indeholder hvert |
-| `storeys` | | Etagerne, deres kote, og hvor mange elementer og rum hver rummer |
+| `storeys` | | Etagerne, deres kote som filen angiver den og i meter (`elevation_m`, fra attributten eller placeringen, som `elevation_source` siger), og hvor mange elementer og rum hver rummer |
 | `spaces` | | Rummene, deres etage og deres netto- og bruttoetageareal |
-| `areas` | | Nettoetagearealet af hver etages rum, lagt sammen |
+| `areas` | | Nettoetagearealet af hver etages rum, lagt sammen, med etagens kote i meter |
 | `materials` | `class` | Hvert elements materialer: et eget eller dets lags, listes eller bestanddeles |
 | `property` | `pset`, `property`, `class` | Værdien af én egenskab på hvert objekt, der har den, med dens IFC-type |
 | `entity` | `global_id` | Én rodfæstet entitet: dens klasse, hver literal attribut, og hvad den henviser til og henvises til af, hver med IFC-attribut, STEP-id og klasse |

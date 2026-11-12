@@ -512,9 +512,9 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 |---|---|---|
 | `element-classes` | | Hve margar einingar líkanið hefur af hverjum flokki |
 | `elements` | `class` | Einingar flokks, með rýmisskipaninni sem hver er í |
-| `storeys` | | Hæðirnar, hæðarkóti þeirra og hve margar einingar og rými hver hefur |
+| `storeys` | | Hæðirnar, hæðarkóti þeirra eins og skráin gefur hann og í metrum (`elevation_m`, úr eigindinni eða staðsetningunni eins og `elevation_source` segir), og hve margar einingar og rými hver hefur |
 | `spaces` | | Rýmin, hæð þeirra og nettó- og brúttógólfflötur þeirra |
-| `areas` | | Nettógólfflötur rýma hverrar hæðar, lagður saman |
+| `areas` | | Nettógólfflötur rýma hverrar hæðar, lagður saman, með hæðarkóta hæðarinnar í metrum |
 | `materials` | `class` | Efni hverrar einingar: eigið, eða laga hennar, lista eða efnisþátta |
 | `property` | `pset`, `property`, `class` | Gildi eins eiginleika á hverjum hlut sem hefur hann, með IFC-gerð hans |
 | `entity` | `global_id` | Ein rótfest eining: flokkur hennar, hver bókstafleg eigind, og það sem hún vísar til og er vísað til hennar af, hvert með IFC-eigind, STEP-auðkenni og flokki |

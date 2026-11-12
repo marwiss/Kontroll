@@ -533,9 +533,9 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 |---|---|---|
 | `element-classes` | | Kuinka monta elementtiä mallissa on kustakin luokasta |
 | `elements` | `class` | Luokan elementit ja kunkin sisältävä tilarakenne |
-| `storeys` | | Kerrokset, niiden korkeus ja kuinka monta elementtiä ja tilaa kussakin on |
+| `storeys` | | Kerrokset, niiden korkeus tiedoston ilmoittamana ja metreinä (`elevation_m`, attribuutista tai sijoituksesta, kuten `elevation_source` kertoo), ja kuinka monta elementtiä ja tilaa kussakin on |
 | `spaces` | | Tilat, niiden kerros sekä niiden netto- ja bruttopinta-ala |
-| `areas` | | Kunkin kerroksen tilojen nettopinta-ala yhteenlaskettuna |
+| `areas` | | Kunkin kerroksen tilojen nettopinta-ala yhteenlaskettuna, ja kerroksen korkeus metreinä |
 | `materials` | `class` | Kunkin elementin materiaalit: oma tai sen kerrosten, luettelon tai osien |
 | `property` | `pset`, `property`, `class` | Yhden ominaisuuden arvo jokaisessa kohteessa, jolla se on, IFC-tyyppeineen |
 | `entity` | `global_id` | Yksi juurrutettu entiteetti: sen luokka, jokainen literaaliattribuutti ja mihin se viittaa ja mistä siihen viitataan, kukin IFC-attribuutin, STEP-tunnisteen ja luokan kanssa |

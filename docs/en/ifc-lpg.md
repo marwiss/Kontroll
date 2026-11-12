@@ -515,9 +515,9 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 |---|---|---|
 | `element-classes` | | How many elements the model has of each class |
 | `elements` | `class` | The elements of a class, with the spatial structure that contains each |
-| `storeys` | | The storeys, their elevation, and how many elements and spaces each holds |
+| `storeys` | | The storeys, their elevation as the file gives it and in metres (`elevation_m`, from the attribute or the placement as `elevation_source` says), and how many elements and spaces each holds |
 | `spaces` | | The spaces, their storey, and their net and gross floor areas |
-| `areas` | | The net floor area of each storey's spaces, added up |
+| `areas` | | The net floor area of each storey's spaces, added up, with the storey's elevation in metres |
 | `materials` | `class` | The materials of each element: its own, or those of its layers, list or constituents |
 | `property` | `pset`, `property`, `class` | The value of one property on every object that has it, with its IFC type |
 | `entity` | `global_id` | One rooted entity: its class, every literal attribute, and what it refers to and is referred to by, each by IFC attribute, STEP id and class |

@@ -526,9 +526,9 @@ GET /documents/1.0/documents/{id}/versions/1/ifc-queries/property?pset=Reuse&pro
 |---|---|---|
 | `element-classes` | | Kor mange element modellen har av kvar klasse |
 | `elements` | `class` | Elementa av ein klasse, med den romlege strukturen som inneheld kvart |
-| `storeys` | | Etasjane, nivået deira og kor mange element og rom kvar rommar |
+| `storeys` | | Etasjane, nivået deira slik fila gjev det og i meter (`elevation_m`, frå attributtet eller plasseringa, som `elevation_source` seier), og kor mange element og rom kvar rommar |
 | `spaces` | | Romma, etasjen deira og netto- og bruttogolvarealet deira |
-| `areas` | | Nettogolvarealet til romma i kvar etasje, lagt saman |
+| `areas` | | Nettogolvarealet til romma i kvar etasje, lagt saman, med nivået til etasjen i meter |
 | `materials` | `class` | Materiala til kvart element: eit eige, eller laga, lista eller bestanddelane sine |
 | `property` | `pset`, `property`, `class` | Verdien av éin eigenskap på kvart objekt som har han, med IFC-typen |
 | `entity` | `global_id` | Éin rotfesta entitet: klassen, kvart literale attributt, og kva han refererer til og blir referert av, kvar med IFC-attributt, STEP-id og klasse |
