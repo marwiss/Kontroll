@@ -10,6 +10,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from opencde.accounts.roles import Role
     from opencde.bcf.schemas import (
         Coloring,
@@ -40,6 +42,7 @@ if TYPE_CHECKING:
     from opencde.store.bcf.viewpoints import ViewpointRecord
     from opencde.store.documents.sessions import SelectionSession, UploadSession
     from opencde.store.documents.versions import VersionRecord
+    from opencde.store.jobs.drafts import ChangeSetDraft
     from opencde.store.oauth2.clients import Client
     from opencde.store.oauth2.tokens import Principal, TokenPair
 
@@ -443,3 +446,15 @@ class ProposalStore(Protocol):
 
     async def count(self, *, user_id: str, document_id: str, compiled: Compiled) -> int: ...
     async def of_document(self, *, user_id: str, document_id: str, compiled: Compiled) -> list[dict[str, Any]]: ...
+
+
+class ChangeSetDraftStore(Protocol):
+    """What ``ChangeSetDraftRepository`` answers for; its own docstring says how."""
+
+    async def open(
+        self, *, user_id: str, project_id: str, document_id: str, version_index: int
+    ) -> ChangeSetDraft | None: ...
+    async def get(self, *, user_id: str, changeset_id: str) -> ChangeSetDraft | None: ...
+    async def update(
+        self, *, user_id: str, changeset_id: str, change: Callable[[ChangeSetDraft], ChangeSetDraft]
+    ) -> ChangeSetDraft | None: ...

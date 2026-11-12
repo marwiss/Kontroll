@@ -47,6 +47,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("SelectionSession", "id"),
     ("Event", "id"),
     ("AuditEvent", "id"),
+    ("ChangeSetDraft", "changeset_id"),
 )
 
 #: Every label with a unique key, IFC-LPG's included (``ifc_lpg.graph.UNIQUE``): what the backup keys nodes by and
@@ -78,6 +79,7 @@ INDEXES: tuple[tuple[str, str], ...] = (
     ("Conversion", "document_id"),
     ("RequestLog", "at"),
     ("RequestLog", "expires_at"),
+    ("ChangeSetDraft", "expires_at"),
 )
 
 # Labels whose nodes carry ``expires_at`` and may be deleted once it has passed. Only self-registered
@@ -94,6 +96,7 @@ EXPIRING_LABELS: tuple[str, ...] = (
     "Client",
     "RequestLog",
     "Precheck",
+    "ChangeSetDraft",
 )
 
 
