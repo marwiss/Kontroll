@@ -51,7 +51,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     }
     assert extensions["request_log"] == {"enabled": False, "retention_hours": 72, "url": "/admin/api/requests"}
     assert extensions["admin_api"] == {"enabled": True, "version": 1, "url": "/admin/api", "scope": "admin"}
-    assert extensions["ifcgraph"] == {"enabled": False, "bolt": None, "workcopy": False}
+    assert extensions["ifcgraph"] == {"enabled": False, "bolt": None, "workcopy": False, "graph_store": "neo4j"}
     assert extensions["ifc_queries"] == {"enabled": False}, "the queries need the IFC-LPG module"
     assert extensions["ifc_clash"] == {"enabled": False}, "the clash check is off until configured"
     assert extensions["ifc_validation"] == {"enabled": False}, "the checks of an upload need the IFC-LPG module"

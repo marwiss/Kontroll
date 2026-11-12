@@ -34,6 +34,8 @@ storey, the check against bSDD, and the element of each rules finding. Works wit
   know, with the document in `document_id` and its specification named in the message, in the report of every file
   checked against that document. Each IDS version is read once, the lookups share the check's cache, and a trial of a
   change set never counts such a URI among its own findings.
+- The capabilities' `ifcgraph` names the store the models are in, `graph_store` (`neo4j` or `memgraph`), so that a
+  client offers only the queries that store answers.
 - The administration's project page offers Praxi's six statuses of a Swedish review (Ny kommentar, Ska åtgärdas,
   Ny granskning, Har åtgärdats, Avvisad, Godkänd) as a ready set for the project's `topic_status`.
 - A contributor has the `createDocument` project action and attaches documents through the BCF API's documents

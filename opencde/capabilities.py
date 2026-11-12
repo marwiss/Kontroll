@@ -77,6 +77,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                 "enabled": settings.ifcgraph_enabled,
                 "bolt": settings.graph_public_bolt_url or None,
                 "workcopy": settings.has_workcopy,
+                "graph_store": settings.graph_dialect.value,  # the store of the models, for the queries a client offers
             },
             "ifc_queries": (
                 {
