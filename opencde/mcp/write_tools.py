@@ -1,7 +1,8 @@
 # This file was generated with the assistance of an AI coding tool.
 """Dataspatium's write tools as the MCP endpoint offers them (ADR 0028, the design's §2): a copy, kept in step by hand.
 
-A copy of ``src/ai/write-tools.js`` (Dataspatium, branch f43, commit 437982f of 2026-11-12): the tools' schemas and
+A copy of ``src/ai/write-tools.js`` (Dataspatium, branch f43, commit 334ec55 of 2026-11-12, whose errors
+name a place instead of quoting the call, as this copy's did first): the tools' schemas and
 descriptions (``TOOLS``), ``build()`` with its checks, which turns one call into one operation in the form
 ``dataspatium-tools/1`` (the defaults filled in, the numbers checked, the texts cut at 200 characters, an optional
 field on the operation only when given), ``call()``, which appends the operation to the open change set with the
@@ -33,10 +34,6 @@ Against the original only this differs, so that the next copy is a diff away:
 - a room of ``create_spaces`` that is a list is no object here, where JavaScript finds the lists' own ``at``; the
   schema lets no such room through;
 - ``call()`` answers an error as the app does, ``{"error": …}``, which the endpoint makes a tool error;
-- four errors that quote a text of the call in the app name its place instead, as the endpoint's refusals never quote
-  an argument (ADR 0028): a type's name taken already, a room's number listed twice (``room 2 has the number of room
-  1``), the set, the name and the value of a property whose value has a unit (``property 1``), and a vertical datum
-  beside a compound code.
 """
 
 from __future__ import annotations

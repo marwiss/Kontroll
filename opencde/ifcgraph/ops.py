@@ -2,7 +2,7 @@
 """Dataspatium's write tools on an IFC model and its topology of the walls, with Dataspatium's own code (ADR 0021).
 
 A copy of Dataspatium's class ``_ChangeSet`` and of its topology (``_ifc_topology``), with the module-level helpers
-they call (``python/dataspatium.py``, branch f43, commit 437982f of 2026-11-12), kept in step by hand, so that one
+they call (``python/dataspatium.py``, branch f43, commit 334ec55 of 2026-11-12), kept in step by hand, so that one
 list of operations gives the same model in the app and on the server, and the server finds the rooms the app finds.
 A change set that carries the operations as ``ops`` (``documents/changes.py``) is tried by the apply worker
 (``apply.py``), which runs them with :func:`run` on the base version's file before its changes; the topology worker
@@ -1468,14 +1468,15 @@ class _ChangeSet:
         if not number:
             return room, name, long_name
         if number in {n for _, n, _ in before}:
+            first = next(k for k, (_, n, _) in enumerate(before) if n == number)
             raise DataspatiumError(
-                "room %d: the number %s is listed twice; a room number is unique in the building" % (i + 1, number)
+                "room %d has the number of room %d; a room number is unique in the building" % (i + 1, first + 1)
             )
         taken = next((s for s in self.m.by_type("IfcSpace") if str(s.Name or "") == number), None)
         if taken is not None:
             raise DataspatiumError(
-                "room %d: the number %s is the space %s's already (#%d); a room number is unique in the building"
-                % (i + 1, number, _ifc_text(taken.LongName) or number, taken.id())
+                "room %d: the space #%d has its number already; a room number is unique in the building"
+                % (i + 1, taken.id())
             )
         room["ifc"]["description"] = long_name
         return room, number, name
@@ -1624,7 +1625,9 @@ class _ChangeSet:
             chosen = [c for c, (_, _, space) in zip(chosen, covered) if space is None]
             twice = [n for _, n, _ in chosen if n in {str(p.Name or "") for p, _ in others}]
             if twice:
-                raise DataspatiumError("storey %r has a space named %r already" % (_ifc_text(s.Name), twice[0]))
+                raise DataspatiumError(
+                    "storey #%d has a space with the name or number of a listed room already" % s.id()
+                )
             if not chosen:
                 continue
             made += len(chosen)
@@ -2990,8 +2993,8 @@ class _ChangeSet:
         twin = next((t for t in self.m.by_type(ifc_class) if str(t.Name or "").strip().lower() == name.lower()), None)
         if twin is not None:
             raise DataspatiumError(
-                "the model has an %s named %r already (GlobalId %s, id %d); give its GlobalId as type, or choose another name"
-                % (ifc_class, _ifc_text(twin.Name), twin.GlobalId, twin.id())
+                "the model has an %s of the same name already (GlobalId %s, id %d); give its GlobalId as type, or choose another name"
+                % (ifc_class, twin.GlobalId, twin.id())
             )
         value = str(op.get("predefined_type") or "").strip().upper() or default
         allowed = _cs_type_values(self.m, ifc_class, kind)
@@ -3271,8 +3274,8 @@ class _ChangeSet:
         twin = next((t for t in self.m.by_type(ifc_class) if str(t.Name or "").strip().lower() == name.lower()), None)
         if twin is not None:
             raise DataspatiumError(
-                "the model has an %s named %r already (GlobalId %s, id %d); give its GlobalId as type, or choose another name"
-                % (ifc_class, _ifc_text(twin.Name), twin.GlobalId, twin.id())
+                "the model has an %s of the same name already (GlobalId %s, id %d); give its GlobalId as type, or choose another name"
+                % (ifc_class, twin.GlobalId, twin.id())
             )
         value = str(op.get("predefined_type") or "").strip().upper() or None
         if value == "USERDEFINED":
@@ -3593,7 +3596,8 @@ class _ChangeSet:
         """A building element of ELEMENT_CLASSES with a ref: its class (element_class), PredefinedType and ObjectType checked against
         the schema (element_predefined), a SweptSolid body (element_body) placed at `at` and z in the storey's plane, turned by
         rotation (element_placement), and contained in the storey, or for a part (part_of) aggregated in its whole and on the whole's
-        storey, never both; a covering's host gets IfcRelCoversBldgElements or IfcRelCoversSpaces (cover), and a type its
+        storey, never both; a covering with a host is, in IFC4 and later, a part of that element (IfcRelAggregates) or contained in
+        that space, and only in IFC2X3 gets IfcRelCoversBldgElements or IfcRelCoversSpaces (cover); and a type gets its
         IfcRelDefinesByType (relate_type). IfcStair goes to create_stair."""
         import ifcopenshell.api.aggregate
 
