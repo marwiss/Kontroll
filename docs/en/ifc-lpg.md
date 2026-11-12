@@ -179,29 +179,43 @@ With `OPENCDE_BSDD_ENABLED=true`, an upload is also checked against buildingSMAR
 check. A worker reads the file's references to it: every `IfcClassificationReference` whose `Location` is a bSDD URI,
 such as `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, or whose `Identification`
 (`ItemReference` in IFC2X3) is a code in the dictionary whose URI its `Location` or its classification holds, with the
-objects it is on; and the properties of every set named `Pset_…` or `Qto_…`. The server then asks bSDD's API at
-`OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) about each URI, with a time limit on each question
+objects it is on; every property of a property set whose `Specification` (IFC 4.3), or `Description` in an earlier
+schema, is the URI of a bSDD property, such as
+`https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating`, with the objects its set is on; and
+the properties of every set named `Pset_…` or `Qto_…`. Another worker reads the bSDD URIs that the project's IDS
+documents give in the `uri` of their classification and property facets, once for each version of a document, reading
+it as the IDS check does. The server then asks bSDD's API at `OPENCDE_BSDD_API_URL`
+(`https://api.bsdd.buildingsmart.org`) about each URI, with a time limit on each question
 (`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 seconds) and two retries when bSDD answers 429 or 5xx, and keeps each answer in
-memory for a day (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 asks every time). Nothing the file names is fetched: a URI
-goes to bSDD's API as a parameter, and one on another host than `identifier.buildingsmart.org` is reported instead.
-The check is off by default, since it sends the file's URIs and the names of its sets to bSDD; in production its
+memory for a day (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 asks every time), so that a URI that several files or IDS
+documents name is asked about once. Nothing the file names is fetched: a URI goes to bSDD's API as a parameter, and
+one on another host than `identifier.buildingsmart.org` is reported instead. The check is off by default, since it
+sends the URIs of the file and of the IDS documents, and the names of the file's sets, to bSDD; in production its
 address must be https.
 
-Everything it finds is a warning of the kind `bsdd`, with the classification reference or the set in `step_id`, the
-GlobalId of one of the objects it is on in `global_id`, and that object's class in the message:
+Everything it finds is a warning of the kind `bsdd`, with the classification reference, the property or the set in
+`step_id`, the GlobalId of one of the objects it is on in `global_id`, and that object's class in the message:
 
 - a classification reference whose class or property bSDD does not know, with the dictionary in `rule` and the
   attribute that names it in `attribute`; a model may use a dictionary that bSDD has not published;
+- a property whose `Specification` or `Description` names a property that bSDD does not know, with the dictionary in
+  `rule` and the set and the property in `attribute`, as in `Pset_WallCommon.FireRating`;
 - in a file of IFC 4.3, a set that bSDD's IFC dictionary (`buildingsmart/ifc/4.3`) does not have, or a property that
-  it does not list in that set, with the set and the property in `attribute`, as in `Pset_WallCommon.Colour`.
+  it does not list in that set, with the set and the property in `attribute`, as in `Pset_WallCommon.Colour`;
+- a URI of one of the project's IDS documents that bSDD does not know, with the dictionary in `rule`, the document in
+  `document_id` and its specification and facet in the message, but neither `step_id` nor `global_id`, since it says
+  nothing of the file: it is in the report of every file checked against the document, and the trial of a change set
+  never counts it among its own findings.
 
 bSDD publishes that one IFC dictionary, so the sets of an IFC4 or IFC2X3 file, whose schemas define them otherwise,
 are not checked; and `Reference`, which IFC 4.3 gives nearly every set and bSDD leaves out of all of them, is not
-reported. The check's `ruleset` names bSDD's host and the dictionaries the file was checked against. It reads at most
-1,000 references and 500 sets, and a warning says when a file has more. When bSDD cannot be reached, or does not
-answer as its API does, the check is `failed` with the reason in its `error`, and the other checks stand: bSDD out of
-reach is never an error of the model. The precheck and the trial of a change set make the check too, and the
-capabilities document says whether it is on, as `bsdd` in `ifc_validation`.
+reported. The check's `ruleset` names bSDD's host and the dictionaries that the file and its IDS documents were
+checked against. It reads at most 1,000 references, 1,000 properties that name bSDD and 500 sets of a file, and 1,000
+URIs of an IDS document, and a warning says when a file or a document has more. An IDS document that cannot be read
+is left to the IDS check, which reports it. When bSDD cannot be reached, or does not answer as its API does, the
+check is `failed` with the reason in its `error`, and the other checks stand: bSDD out of reach is never an error of
+the model. The precheck and the trial of a change set make the check too, and the capabilities document says whether
+it is on, as `bsdd` in `ifc_validation`.
 
 ### The rooms of each storey
 

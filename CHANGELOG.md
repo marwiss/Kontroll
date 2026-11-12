@@ -20,6 +20,12 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- The check `bsdd` also warns of a property whose `Specification` (IFC 4.3), or `Description` in an earlier schema,
+  names a bSDD property that bSDD does not know, with the property in `step_id` and its set and name in `attribute`;
+  and of a bSDD URI in a classification or property facet of one of the project's IDS documents that bSDD does not
+  know, with the document in `document_id` and its specification named in the message, in the report of every file
+  checked against that document. Each IDS version is read once, the lookups share the check's cache, and a trial of a
+  change set never counts such a URI among its own findings.
 - On the MCP endpoint `server_query` and the two clash tools are listed only while the IFC-LPG module is on, as
   the change sets are; a user has at most two clash checks waiting or running in all their projects together, and
   makes at most 120 tool calls a minute whatever the token; an answer holding NaN or an infinity is a tool error.

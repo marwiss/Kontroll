@@ -188,32 +188,45 @@ IDS-tarkistuksen jälkeen. Työprosessi lukee tiedoston viittaukset siihen: joka
 `IfcClassificationReference`-viittauksen, jonka `Location` on bSDD-URI, kuten
 `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, tai jonka `Identification`
 (IFC2X3:ssa `ItemReference`) on koodi siinä sanakirjassa, jonka URI on viittauksen `Location`-kentässä tai sen
-luokituksessa, sekä objektit, joihin viittaus liittyy; ja jokaisen `Pset_…`- tai `Qto_…`-nimisen joukon ominaisuudet.
-Palvelin kysyy sitten jokaisesta URI:sta bSDD:n API:lta osoitteessa `OPENCDE_BSDD_API_URL`
-(`https://api.bsdd.buildingsmart.org`), kullekin kysymykselle asetetulla aikarajalla (`OPENCDE_BSDD_TIMEOUT_SECONDS`,
-10 sekuntia) ja kahdella uusintayrityksellä, kun bSDD vastaa 429 tai 5xx, ja pitää jokaisen vastauksen muistissa
-vuorokauden (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 kysyy joka kerta). Mitään, mitä tiedosto nimeää, ei haeta: URI
-menee bSDD:n API:lle parametrina, ja muulla kuin `identifier.buildingsmart.org`-palvelimella oleva URI raportoidaan
-sen sijaan. Tarkistus on oletuksena pois päältä, koska se lähettää tiedoston URI:t ja sen ominaisuusjoukkojen nimet
-bSDD:lle; tuotannossa osoitteen on oltava https.
+luokituksessa, sekä objektit, joihin viittaus liittyy; jokaisen ominaisuusjoukon ominaisuuden, jonka `Specification`
+(IFC 4.3) tai aiemmassa skeemassa `Description` on bSDD:n ominaisuuden URI, kuten
+`https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating`, sekä objektit, joihin sen joukko
+liittyy; ja jokaisen `Pset_…`- tai `Qto_…`-nimisen joukon ominaisuudet. Toinen työprosessi lukee bSDD-URI:t, jotka
+projektin IDS-asiakirjat antavat luokitus- ja ominaisuusfasettiensa (facet) `uri`-attribuutissa, kerran asiakirjan
+kustakin versiosta ja samalla tavalla kuin IDS-tarkistus sen lukee. Palvelin kysyy sitten jokaisesta URI:sta bSDD:n
+API:lta osoitteessa `OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`), kullekin kysymykselle asetetulla
+aikarajalla (`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekuntia) ja kahdella uusintayrityksellä, kun bSDD vastaa 429 tai
+5xx, ja pitää jokaisen vastauksen muistissa vuorokauden (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 kysyy joka kerta),
+joten URI:sta, jonka useampi tiedosto tai IDS-asiakirja nimeää, kysytään vain kerran. Mitään, mitä tiedosto nimeää,
+ei haeta: URI menee bSDD:n API:lle parametrina, ja muulla kuin `identifier.buildingsmart.org`-palvelimella oleva URI
+raportoidaan sen sijaan. Tarkistus on oletuksena pois päältä, koska se lähettää tiedoston ja IDS-asiakirjojen URI:t
+sekä tiedoston ominaisuusjoukkojen nimet bSDD:lle; tuotannossa osoitteen on oltava https.
 
-Kaikki, mitä se löytää, on varoitus lajia `bsdd`: luokitusviittaus tai ominaisuusjoukko on kentässä `step_id`, yhden
-siihen liittyvän objektin GlobalId kentässä `global_id` ja tuon objektin luokka viestissä:
+Kaikki, mitä se löytää, on varoitus lajia `bsdd`: luokitusviittaus, ominaisuus tai ominaisuusjoukko on kentässä
+`step_id`, yhden siihen liittyvän objektin GlobalId kentässä `global_id` ja tuon objektin luokka viestissä:
 
 - luokitusviittaus, jonka luokkaa tai ominaisuutta bSDD ei tunne; sanakirja on kentässä `rule` ja sen nimeävä
   attribuutti kentässä `attribute`, sillä malli voi käyttää sanakirjaa, jota bSDD ei ole julkaissut;
+- ominaisuus, jonka `Specification` tai `Description` nimeää ominaisuuden, jota bSDD ei tunne; sanakirja on kentässä
+  `rule` ja joukko ja ominaisuus kentässä `attribute`, kuten `Pset_WallCommon.FireRating`;
 - IFC 4.3 -tiedostossa ominaisuusjoukko, jota bSDD:n IFC-sanakirjassa (`buildingsmart/ifc/4.3`) ei ole, tai
   ominaisuus, jota se ei luettele siinä joukossa; joukko ja ominaisuus ovat kentässä `attribute`, kuten
-  `Pset_WallCommon.Colour`.
+  `Pset_WallCommon.Colour`;
+- projektin IDS-asiakirjan URI, jota bSDD ei tunne; sanakirja on kentässä `rule`, asiakirja kentässä `document_id` ja
+  sen määrittely ja fasetti viestissä, mutta kenttiä `step_id` ja `global_id` ei ole, koska varoitus ei kerro
+  tiedostosta mitään: se on jokaisen asiakirjaa vasten tarkistetun tiedoston raportissa, eikä muutosjoukon kokeilu
+  koskaan laske sitä omiin löydöksiinsä.
 
 bSDD julkaisee vain tuon yhden IFC-sanakirjan, joten IFC4- tai IFC2X3-tiedoston ominaisuusjoukkoja, jotka niiden
 skeemat määrittelevät toisin, ei tarkisteta; eikä `Reference`-ominaisuutta, jonka IFC 4.3 antaa lähes jokaiselle
 joukolle ja jonka bSDD jättää niistä kaikista pois, raportoida. Tarkistuksen `ruleset` nimeää bSDD:n palvelimen ja
-sanakirjat, joita vasten tiedosto tarkistettiin. Se lukee enintään 1 000 viittausta ja 500 joukkoa, ja varoitus
-kertoo, kun tiedostossa on enemmän. Kun bSDD:hen ei saada yhteyttä tai se ei vastaa niin kuin sen API vastaa,
-tarkistus on `failed` ja syy on sen kentässä `error`, ja muut tarkistukset pysyvät voimassa: bSDD:n tavoittamattomuus
-ei ole koskaan mallin virhe. Ennakkotarkistus ja muutosjoukon kokeilu tekevät myös tämän tarkistuksen, ja
-kyvykkyysdokumentti kertoo, onko se päällä, nimellä `bsdd` kohdassa `ifc_validation`.
+sanakirjat, joita vasten tiedosto ja sen IDS-asiakirjat tarkistettiin. Se lukee tiedostosta enintään 1 000
+viittausta, 1 000 bSDD:n nimeävää ominaisuutta ja 500 joukkoa sekä IDS-asiakirjasta enintään 1 000 URI:a, ja varoitus
+kertoo, kun tiedostossa tai asiakirjassa on enemmän. IDS-asiakirja, jota ei voi lukea, jätetään IDS-tarkistukselle,
+joka raportoi sen. Kun bSDD:hen ei saada yhteyttä tai se ei vastaa niin kuin sen API vastaa, tarkistus on `failed` ja
+syy on sen kentässä `error`, ja muut tarkistukset pysyvät voimassa: bSDD:n tavoittamattomuus ei ole koskaan mallin
+virhe. Ennakkotarkistus ja muutosjoukon kokeilu tekevät myös tämän tarkistuksen, ja kyvykkyysdokumentti kertoo, onko
+se päällä, nimellä `bsdd` kohdassa `ifc_validation`.
 
 ### Kunkin kerroksen huoneet
 

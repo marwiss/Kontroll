@@ -185,29 +185,43 @@ Med `OPENCDE_BSDD_ENABLED=true` blir ei opplasting òg kontrollert mot Data Dict
 IDS-kontrollen. Ein arbeidsprosess les tilvisingane i fila dit: kvar `IfcClassificationReference` der `Location` er
 ein bSDD-URI, som `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, eller der
 `Identification` (`ItemReference` i IFC2X3) er ein kode i den ordboka som URI-en i `Location` eller i klassifikasjonen
-hans peikar på, med objekta han sit på; og eigenskapane i kvart eigenskapssett som heiter `Pset_…` eller `Qto_…`.
-Serveren spør deretter API-et til bSDD på `OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) om kvar URI,
-med ei tidsgrense for kvart spørsmål (`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekund) og to nye forsøk når bSDD svarar 429
-eller 5xx, og held på kvart svar i minnet eit døgn (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spør kvar gong). Ingenting
-fila namngjev, blir henta: ein URI går til API-et til bSDD som ein parameter, og ein på ein annan vert enn
-`identifier.buildingsmart.org` blir rapportert i staden. Kontrollen er slått av som standard, fordi han sender URI-ane
-i fila og namna på eigenskapssetta hennar til bSDD; i produksjon må adressa vere https.
+hans peikar på, med objekta han sit på; kvar eigenskap i eit eigenskapssett der `Specification` (IFC 4.3), eller
+`Description` i eit tidlegare skjema, er URI-en til ein eigenskap i bSDD, som
+`https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating`, med objekta settet sit på; og
+eigenskapane i kvart eigenskapssett som heiter `Pset_…` eller `Qto_…`. Ein annan arbeidsprosess les bSDD-URI-ane som
+IDS-dokumenta i prosjektet oppgjev i `uri` på klassifikasjons- og eigenskapsfasettane sine, éin gong for kvar versjon
+av eit dokument og på same måte som IDS-kontrollen les det. Serveren spør deretter API-et til bSDD på
+`OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) om kvar URI, med ei tidsgrense for kvart spørsmål
+(`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekund) og to nye forsøk når bSDD svarar 429 eller 5xx, og held på kvart svar i
+minnet eit døgn (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spør kvar gong), slik at bSDD berre blir spurd éin gong om ein
+URI som fleire filer eller IDS-dokument namngjev. Ingenting fila namngjev, blir henta: ein URI går til API-et til
+bSDD som ein parameter, og ein på ein annan vert enn `identifier.buildingsmart.org` blir rapportert i staden.
+Kontrollen er slått av som standard, fordi han sender URI-ane i fila og i IDS-dokumenta, og namna på eigenskapssetta i
+fila, til bSDD; i produksjon må adressa vere https.
 
-Alt han finn, er ei åtvaring av typen `bsdd`, med klassifikasjonsreferansen eller eigenskapssettet i `step_id`,
-GlobalId-en til eitt av objekta referansen eller settet sit på, i `global_id`, og klassen til objektet i meldinga:
+Alt han finn, er ei åtvaring av typen `bsdd`, med klassifikasjonsreferansen, eigenskapen eller eigenskapssettet i
+`step_id`, GlobalId-en til eitt av objekta han sit på, i `global_id`, og klassen til objektet i meldinga:
 
 - ein klassifikasjonsreferanse der bSDD ikkje kjenner klassen eller eigenskapen, med ordboka i `rule` og attributtet
   som namngjev han, i `attribute`; ein modell kan bruke ei ordbok som bSDD ikkje har publisert;
+- ein eigenskap der `Specification` eller `Description` namngjev ein eigenskap som bSDD ikkje kjenner, med ordboka i
+  `rule` og settet og eigenskapen i `attribute`, som `Pset_WallCommon.FireRating`;
 - i ei fil i IFC 4.3, eit eigenskapssett som IFC-ordboka til bSDD (`buildingsmart/ifc/4.3`) ikkje har, eller ein
-  eigenskap som ho ikkje viser i det settet, med settet og eigenskapen i `attribute`, som `Pset_WallCommon.Colour`.
+  eigenskap som ho ikkje viser i det settet, med settet og eigenskapen i `attribute`, som `Pset_WallCommon.Colour`;
+- ein URI i eitt av IDS-dokumenta i prosjektet som bSDD ikkje kjenner, med ordboka i `rule`, dokumentet i
+  `document_id` og spesifikasjonen og fasetten i meldinga, men verken `step_id` eller `global_id`, fordi han ikkje
+  seier noko om fila: han står i rapporten for kvar fil som blir kontrollert mot dokumentet, og prøvinga av eit
+  endringssett reknar han aldri blant sine eigne funn.
 
 bSDD publiserer berre den eine IFC-ordboka, så eigenskapssetta i ei fil i IFC4 eller IFC2X3, der skjemaa definerer dei
 annleis, blir ikkje kontrollerte; og `Reference`, som IFC 4.3 gjev nesten kvart eigenskapssett og bSDD held utanfor
-alle, blir ikkje rapportert. `ruleset` i kontrollen namngjev verten til bSDD og ordbøkene fila vart kontrollert mot.
-Han les høgst 1 000 referansar og 500 eigenskapssett, og ei åtvaring seier frå når ei fil har fleire. Når bSDD ikkje
-kan nåast, eller ikkje svarar slik API-et gjer, er kontrollen `failed` med grunnen i `error`, og dei andre kontrollane
-står seg: at bSDD ikkje kan nåast, er aldri ein feil i modellen. Førehandskontrollen og prøvinga av eit endringssett
-gjer òg kontrollen, og kapabilitetsdokumentet seier om han er slått på, som `bsdd` i `ifc_validation`.
+alle, blir ikkje rapportert. `ruleset` i kontrollen namngjev verten til bSDD og ordbøkene fila og IDS-dokumenta hennar
+vart kontrollerte mot. Han les høgst 1 000 referansar, 1 000 eigenskapar som namngjev bSDD, og 500 eigenskapssett i ei
+fil, og 1 000 URI-ar i eit IDS-dokument, og ei åtvaring seier frå når ei fil eller eit dokument har fleire. Eit
+IDS-dokument som ikkje kan lesast, blir overlate til IDS-kontrollen, som rapporterer det. Når bSDD ikkje kan nåast,
+eller ikkje svarar slik API-et gjer, er kontrollen `failed` med grunnen i `error`, og dei andre kontrollane står seg:
+at bSDD ikkje kan nåast, er aldri ein feil i modellen. Førehandskontrollen og prøvinga av eit endringssett gjer òg
+kontrollen, og kapabilitetsdokumentet seier om han er slått på, som `bsdd` i `ifc_validation`.
 
 ### Romma i kvar etasje
 

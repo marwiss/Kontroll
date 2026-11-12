@@ -178,29 +178,42 @@ Með `OPENCDE_BSDD_ENABLED=true` er upphal líka prófað gegn Data Dictionary f
 Vinnsluferli les tilvísanir skrárinnar þangað: hverja `IfcClassificationReference` þar sem `Location` er bSDD-URI,
 eins og `https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0/class/L-BD`, eða þar sem `Identification`
 (`ItemReference` í IFC2X3) er kóði í orðabókinni sem URI í `Location` hennar eða í flokkun hennar vísar á, ásamt
-hlutunum sem hún er á; og eiginleika hvers eiginleikasafns sem heitir `Pset_…` eða `Qto_…`. Þjónninn spyr síðan API
-bSDD á `OPENCDE_BSDD_API_URL` (`https://api.bsdd.buildingsmart.org`) um hvert URI, með tímamörkum á hverri spurningu
-(`OPENCDE_BSDD_TIMEOUT_SECONDS`, 10 sekúndur) og tveimur endurtekningum þegar bSDD svarar 429 eða 5xx, og geymir hvert
-svar í minni í sólarhring (`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spyr í hvert sinn). Ekkert sem skráin nefnir er
-sótt: URI fer til API bSDD sem færibreyta, og URI á öðrum hýsli en `identifier.buildingsmart.org` er tilkynnt í
-staðinn. Prófunin er sjálfgefið af, þar sem hún sendir URI skrárinnar og heiti eiginleikasafna hennar til bSDD; í
-framleiðslu verður vistfangið að vera https.
+hlutunum sem hún er á; hvern eiginleika í eiginleikasafni þar sem `Specification` (IFC 4.3), eða `Description` í eldra
+skema, er URI eiginleika í bSDD, eins og
+`https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating`, ásamt hlutunum sem safnið er á; og
+eiginleika hvers eiginleikasafns sem heitir `Pset_…` eða `Qto_…`. Annað vinnsluferli les bSDD-URI sem IDS-skjöl
+verkefnisins gefa í `uri` á flokkunar- og eiginleikaþáttum sínum (facets), einu sinni fyrir hverja útgáfu skjals og á
+sama hátt og IDS-prófunin les það. Þjónninn spyr síðan API bSDD á `OPENCDE_BSDD_API_URL`
+(`https://api.bsdd.buildingsmart.org`) um hvert URI, með tímamörkum á hverri spurningu (`OPENCDE_BSDD_TIMEOUT_SECONDS`,
+10 sekúndur) og tveimur endurtekningum þegar bSDD svarar 429 eða 5xx, og geymir hvert svar í minni í sólarhring
+(`OPENCDE_BSDD_CACHE_SECONDS`, 86400; 0 spyr í hvert sinn), svo að aðeins er spurt einu sinni um URI sem fleiri skrár
+eða IDS-skjöl nefna. Ekkert sem skráin nefnir er sótt: URI fer til API bSDD sem færibreyta, og URI á öðrum hýsli en
+`identifier.buildingsmart.org` er tilkynnt í staðinn. Prófunin er sjálfgefið af, þar sem hún sendir URI skrárinnar og
+IDS-skjalanna, og heiti eiginleikasafna skrárinnar, til bSDD; í framleiðslu verður vistfangið að vera https.
 
-Allt sem hún finnur er viðvörun af gerðinni `bsdd`, með flokkunartilvísunina eða eiginleikasafnið í `step_id`,
-GlobalId eins af hlutunum sem tilvísunin eða safnið er á í `global_id` og flokk þess hlutar í skilaboðunum:
+Allt sem hún finnur er viðvörun af gerðinni `bsdd`, með flokkunartilvísunina, eiginleikann eða eiginleikasafnið í
+`step_id`, GlobalId eins af hlutunum sem það er á í `global_id` og flokk þess hlutar í skilaboðunum:
 
 - flokkunartilvísun þar sem bSDD þekkir ekki flokkinn eða eiginleikann, með orðabókina í `rule` og eigindið sem nefnir
   hann í `attribute`; líkan getur notað orðabók sem bSDD hefur ekki gefið út;
+- eiginleiki þar sem `Specification` eða `Description` nefnir eiginleika sem bSDD þekkir ekki, með orðabókina í `rule`
+  og safnið og eiginleikann í `attribute`, eins og `Pset_WallCommon.FireRating`;
 - í skrá í IFC 4.3, eiginleikasafn sem IFC-orðabók bSDD (`buildingsmart/ifc/4.3`) hefur ekki, eða eiginleiki sem hún
-  telur ekki upp í því safni, með safnið og eiginleikann í `attribute`, eins og `Pset_WallCommon.Colour`.
+  telur ekki upp í því safni, með safnið og eiginleikann í `attribute`, eins og `Pset_WallCommon.Colour`;
+- URI í einu af IDS-skjölum verkefnisins sem bSDD þekkir ekki, með orðabókina í `rule`, skjalið í `document_id` og
+  forskrift þess og þátt í skilaboðunum, en hvorki `step_id` né `global_id`, þar sem viðvörunin segir ekkert um
+  skrána: hún er í skýrslu hverrar skrár sem er prófuð gegn skjalinu, og prófun breytingasafns telur hana aldrei með
+  sínum eigin niðurstöðum.
 
 bSDD gefur aðeins út þessa einu IFC-orðabók, svo eiginleikasöfn í skrá í IFC4 eða IFC2X3, sem skemu þeirra skilgreina
 á annan hátt, eru ekki prófuð; og `Reference`, sem IFC 4.3 gefur nær hverju eiginleikasafni og bSDD sleppir úr þeim
-öllum, er ekki tilkynnt. `ruleset` prófunarinnar nefnir hýsil bSDD og orðabækurnar sem skráin var prófuð gegn. Hún les
-í mesta lagi 1.000 tilvísanir og 500 eiginleikasöfn, og viðvörun segir til þegar skrá hefur fleiri. Þegar ekki næst í
-bSDD, eða það svarar ekki eins og API þess gerir, er prófunin `failed` með ástæðunni í `error`, og hinar prófanirnar
-standa: að ekki náist í bSDD er aldrei villa í líkaninu. Forprófunin og prófun breytingasafns gera líka prófunina, og
-getuskjalið segir hvort hún er á, sem `bsdd` í `ifc_validation`.
+öllum, er ekki tilkynnt. `ruleset` prófunarinnar nefnir hýsil bSDD og orðabækurnar sem skráin og IDS-skjöl hennar
+voru prófuð gegn. Hún les í mesta lagi 1.000 tilvísanir, 1.000 eiginleika sem nefna bSDD og 500 eiginleikasöfn í
+skrá, og 1.000 URI í IDS-skjali, og viðvörun segir til þegar skrá eða skjal hefur fleiri. IDS-skjal sem ekki er hægt
+að lesa er látið IDS-prófuninni eftir, sem tilkynnir það. Þegar ekki næst í bSDD, eða það svarar ekki eins og API
+þess gerir, er prófunin `failed` með ástæðunni í `error`, og hinar prófanirnar standa: að ekki náist í bSDD er aldrei
+villa í líkaninu. Forprófunin og prófun breytingasafns gera líka prófunina, og getuskjalið segir hvort hún er á, sem
+`bsdd` í `ifc_validation`.
 
 ### Herbergin á hverri hæð
 
