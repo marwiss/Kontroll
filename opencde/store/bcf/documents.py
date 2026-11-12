@@ -13,7 +13,7 @@ from typing import Annotated, Any
 from fastapi import Depends, HTTPException
 
 from opencde.bcf.schemas import DocumentGET, FileRef, ProjectFileDisplayInformation, ProjectFileInformation
-from opencde.deps import GraphDep
+from opencde.deps import GraphDep, PostgresDep
 from opencde.graph.graph import Graph, Tx
 from opencde.store.protocols import BcfDocumentStore
 from opencde.timeutil import now_iso
@@ -158,8 +158,10 @@ def _entry(
     )
 
 
-def bcf_document_repository(graph: GraphDep) -> BcfDocumentStore:
-    return BcfDocumentRepository(graph)
+def bcf_document_repository(graph: GraphDep, postgres: PostgresDep) -> BcfDocumentStore:
+    from opencde.store.bcf.postgres import bcf_document_store  # it imports this module
+
+    return bcf_document_store(graph, postgres)
 
 
 BcfDocumentsDep = Annotated[BcfDocumentStore, Depends(bcf_document_repository)]

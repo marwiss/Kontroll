@@ -39,10 +39,12 @@ from opencde.ifcgraph.service import IfcGraphService
 from opencde.mcp import write_tools
 from opencde.mcp.registry import Arguments, Tool, ToolContext, ToolRefusal, member_project
 from opencde.store.accounts.postgres import project_store
+from opencde.store.bcf.postgres import PostgresTopicLinkRepository, PostgresTopicRepository
 from opencde.store.bcf.topic_links import TopicLinkRepository
 from opencde.store.bcf.topics import TopicRepository
 from opencde.store.documents.postgres import document_store
 from opencde.store.jobs.drafts import MAX_OPEN, MAX_STEPS, ChangeSetDraft, ChangeSetDraftRepository, DraftRefused
+from opencde.store.protocols import TopicLinkStore, TopicStore
 from opencde.timeutil import now_iso
 
 UNKNOWN = (
@@ -414,11 +416,27 @@ class ProposeChangesArguments(ChangesetArguments):
     )
 
 
+def _topics(context: ToolContext) -> TopicStore:
+    """The topics where the server keeps them: PostgreSQL when it is named (ADR 0029), the graph otherwise."""
+    prefix = context.settings.server_assigned_id_prefix
+    if context.postgres is not None:
+        return PostgresTopicRepository(context.postgres, id_prefix=prefix)
+    return TopicRepository(context.graph, id_prefix=prefix)
+
+
+def _links(context: ToolContext, topics: TopicStore) -> TopicLinkStore:
+    return (
+        PostgresTopicLinkRepository(context.postgres)
+        if context.postgres is not None
+        else TopicLinkRepository(context.graph, topics)
+    )
+
+
 async def _topic_of(context: ToolContext, draft: ChangeSetDraft) -> str | None:
     """The topic the draft was proposed on, while it is there and still carries a change set."""
     if not draft.topic_guid:
         return None
-    topics = TopicRepository(context.graph, id_prefix=context.settings.server_assigned_id_prefix)
+    topics = _topics(context)
     topic = await topics.get(user_id=context.principal.user_id, project_id=draft.project_id, guid=draft.topic_guid)
     if topic is None or topic.bim_snippet is None or topic.bim_snippet.snippet_type != SNIPPET_TYPE:
         return None
@@ -450,10 +468,10 @@ async def propose_changes(context: ToolContext, arguments: ProposeChangesArgumen
     found = change_set_problems(change_set)
     if found:
         raise ToolRefusal("The change set is not one: " + "; ".join(found))
-    topics = TopicRepository(context.graph, id_prefix=context.settings.server_assigned_id_prefix)
+    topics = _topics(context)
     proposing = Proposing(
         topics=topics,
-        links=TopicLinkRepository(context.graph, topics),
+        links=_links(context, topics),
         projects=project_store(context.graph, context.postgres),
         storage=context.storage,
         ifcgraph=context.ifcgraph,

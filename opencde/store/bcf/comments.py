@@ -19,7 +19,7 @@ from fastapi import Depends, HTTPException
 from opencde.bcf import events
 from opencde.bcf.schemas import CommentFields, CommentGET, CommentPOST, CommentPUT
 from opencde.bcf.topic_access import TopicsDep
-from opencde.deps import GraphDep
+from opencde.deps import GraphDep, PostgresDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.odata import Compiled, Field
@@ -313,8 +313,10 @@ class CommentRepository:
         return await self.graph.write(work)
 
 
-def comment_repository(graph: GraphDep, topics: TopicsDep) -> CommentStore:
-    return CommentRepository(graph, topics)
+def comment_repository(graph: GraphDep, postgres: PostgresDep, topics: TopicsDep) -> CommentStore:
+    from opencde.store.bcf.postgres import comment_store  # it imports this module
+
+    return comment_store(graph, postgres, topics)
 
 
 CommentsDep = Annotated[CommentStore, Depends(comment_repository)]

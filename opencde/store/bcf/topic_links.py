@@ -19,7 +19,7 @@ from opencde.bcf.schemas import (
     FileRef,
 )
 from opencde.bcf.topic_access import TopicsDep
-from opencde.deps import GraphDep
+from opencde.deps import GraphDep, PostgresDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.store.protocols import TopicLinkStore, TopicStore
@@ -275,8 +275,10 @@ class TopicLinkRepository:
         )
 
 
-def link_repository(graph: GraphDep, topics: TopicsDep) -> TopicLinkStore:
-    return TopicLinkRepository(graph, topics)
+def link_repository(graph: GraphDep, postgres: PostgresDep, topics: TopicsDep) -> TopicLinkStore:
+    from opencde.store.bcf.postgres import link_store  # it imports this module
+
+    return link_store(graph, postgres, topics)
 
 
 LinksDep = Annotated[TopicLinkStore, Depends(link_repository)]

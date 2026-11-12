@@ -52,6 +52,7 @@ from opencde.foundation.routes import CurrentUser, auth_payload_v21, versions_pa
 from opencde.ifcgraph.service import IfcGraphDep
 from opencde.ratelimit import limiter, registration_limit
 from opencde.store.bcf.comments import CommentsDep
+from opencde.store.bcf.events import EventsDep
 from opencde.store.bcf.topic_links import LinksDep
 from opencde.store.bcf.viewpoints import ViewpointsDep
 
@@ -96,25 +97,25 @@ async def current_user(principal: PrincipalDep) -> CurrentUser:
 
 
 @router.get(f"{PROJECT}/topics/events", summary="4.9.1 GET Topics Events")
-async def topics_events_get(ctx: ProjectCtx, graph: GraphDep, odata: ODataDep) -> list[dict[str, Any]]:
-    return await routes_events.of_project(ctx, graph, odata, "topic", events.NOT_IN_21)
+async def topics_events_get(ctx: ProjectCtx, store: EventsDep, odata: ODataDep) -> list[dict[str, Any]]:
+    return await routes_events.of_project(ctx, store, odata, "topic", events.NOT_IN_21)
 
 
 @router.get(f"{PROJECT}/topics/comments/events", summary="4.10.1 GET Comments Events")
-async def comments_events_get(ctx: ProjectCtx, graph: GraphDep, odata: ODataDep) -> list[dict[str, Any]]:
-    return await routes_events.of_project(ctx, graph, odata, "comment", events.NOT_IN_21)
+async def comments_events_get(ctx: ProjectCtx, store: EventsDep, odata: ODataDep) -> list[dict[str, Any]]:
+    return await routes_events.of_project(ctx, store, odata, "comment", events.NOT_IN_21)
 
 
 @router.get(f"{TOPIC}/events", summary="4.9.2 GET Topic Events")
-async def topic_events_get(topic: TopicCtx, graph: GraphDep, odata: ODataDep) -> list[dict[str, Any]]:
-    return await routes_events.of_topic(topic, graph, odata, events.NOT_IN_21)
+async def topic_events_get(topic: TopicCtx, store: EventsDep, odata: ODataDep) -> list[dict[str, Any]]:
+    return await routes_events.of_topic(topic, store, odata, events.NOT_IN_21)
 
 
 @router.get(f"{TOPIC}/comments/{{comment_id}}/events", summary="4.10.2 GET Comment Events")
 async def comment_events_get(
-    topic: TopicCtx, comment_id: CommentId, graph: GraphDep, comments: CommentsDep, odata: ODataDep
+    topic: TopicCtx, comment_id: CommentId, store: EventsDep, comments: CommentsDep, odata: ODataDep
 ) -> list[dict[str, Any]]:
-    return await routes_events.of_comment(topic, comment_id, graph, comments, odata, events.NOT_IN_21)
+    return await routes_events.of_comment(topic, comment_id, store, comments, odata, events.NOT_IN_21)
 
 
 # -- project extensions ---------------------------------------------------------------------------

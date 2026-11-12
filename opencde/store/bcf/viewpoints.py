@@ -35,7 +35,7 @@ from opencde.bcf.schemas import (
     Visibility,
 )
 from opencde.bcf.topic_access import TopicsDep
-from opencde.deps import GraphDep, SettingsDep, StorageDep
+from opencde.deps import GraphDep, PostgresDep, SettingsDep, StorageDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import is_uuid, new_id, normalize_guid
 from opencde.storage import LocalStorage, make_key
@@ -418,9 +418,11 @@ class ViewpointRepository:
 
 
 def viewpoint_repository(
-    graph: GraphDep, storage: StorageDep, topics: TopicsDep, settings: SettingsDep
+    graph: GraphDep, postgres: PostgresDep, storage: StorageDep, topics: TopicsDep, settings: SettingsDep
 ) -> ViewpointStore:
-    return ViewpointRepository(graph, storage, topics, max_image_bytes=settings.max_image_bytes)
+    from opencde.store.bcf.postgres import viewpoint_store  # it imports this module
+
+    return viewpoint_store(graph, postgres, storage, topics, max_image_bytes=settings.max_image_bytes)
 
 
 ViewpointsDep = Annotated[ViewpointStore, Depends(viewpoint_repository)]
