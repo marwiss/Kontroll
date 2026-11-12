@@ -32,8 +32,9 @@ pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
 
 RESOURCE = "http://testserver/mcp"
 WALL = {"storey": None, "start": [0, 0], "end": [4, 0], "thickness": 0.2, "height": 3, "name": "New wall",
-        "partition": None}  # fmt: skip
-DOOR = {"wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "sill": 0, "fill": "door", "name": None}
+        "type": None, "partition": None, "load_bearing": None, "status": None}  # fmt: skip
+DOOR = {"wall_id": "new-1", "offset": 1, "width": 0.9, "height": 2.1, "sill": 0, "fill": "door", "name": None,
+        "type": None, "side": None}  # fmt: skip
 
 
 async def _cloud(settings: Settings, project_id: str) -> None:

@@ -34,8 +34,9 @@ from tests.mcp_support import CLOUD, DOCUMENT, call, endpoint, principal, rpc
 
 PROPOSER = principal(scopes=("mcp", "mcp:propose"))
 WALL = {"storey": None, "start": [0, 0], "end": [4, 0], "thickness": None, "height": None, "name": "New wall",
-        "partition": None}  # fmt: skip
-DOOR = {"wall_id": "new-1", "offset": 1, "width": None, "height": None, "sill": None, "fill": "door", "name": None}
+        "type": None, "partition": None, "load_bearing": None, "status": None}  # fmt: skip
+DOOR = {"wall_id": "new-1", "offset": 1, "width": None, "height": None, "sill": None, "fill": "door", "name": None,
+        "type": None, "side": None}  # fmt: skip
 RENAME = {"guid": "1Xezbq735AdBO_4DerG66G", "step_id": None, "path": None, "attribute": "Name", "op": "set",
           "index": None, "old": "Wall 1", "new": "Wall 1b", "copy": None}  # fmt: skip
 
@@ -186,11 +187,12 @@ def test_the_steps_are_the_apps_operations_with_their_refs(client: TestClient, g
         ("change_attribute", None),
     ]
     stored = json.loads(graph.drafts[handle]["steps"])
+    door = {key: value for key, value in DOOR.items() if key not in ("type", "side")}
     assert write_tools.to_wheel(stored) == [
         {"tool": "create_wall", "storey": None, "start": [0, 0], "end": [4, 0], "thickness": 0.2, "height": 3,
          "name": "New wall"},
-        {"tool": "create_opening", **DOOR, "width": 0.9, "height": 2.1, "sill": 0},
-    ], "the defaults filled in, no partition unless true, and no refs"  # fmt: skip
+        {"tool": "create_opening", **door, "width": 0.9, "height": 2.1, "sill": 0},
+    ], "the defaults filled in, no partition, type, side, load_bearing or status unless given, and no refs"  # fmt: skip
     assert write_tools.changes(stored) == [
         {"guid": "1Xezbq735AdBO_4DerG66G", "attribute": "Name", "op": "set", "old": "Wall 1", "new": "Wall 1b"}
     ]
@@ -200,6 +202,47 @@ def test_the_steps_are_the_apps_operations_with_their_refs(client: TestClient, g
     assert graph.drafts[handle]["refs"] == 2
     assert ok(call(client, "manage_changeset", {"changeset_id": handle, "action": "clear"})) == {"ok": True, "steps": 0}
     assert graph.drafts[handle]["steps"] == "[]" and graph.drafts[handle]["refs"] == 0
+
+
+def test_a_type_an_element_and_an_edit_go_through_the_apps_schemas(client: TestClient, graph: DraftGraph) -> None:
+    """define_type's layers, create_element's shape and stair and edit_element are held to the app's schemas, the
+    nested objects with every field, and become the app's operations with their refs."""
+    handle = opened(client)
+    layers = [{"material": "Betong", "thickness": 0.2, "category": "concrete", "role": "load_bearing"}]
+    wall_type = {"kind": "wall", "name": "YV1", "layers": layers, "predefined_type": None, "material": None,
+                 "material_category": None, "operation": None, "partitioning": None, "width": None, "height": None,
+                 "lining_depth": None}  # fmt: skip
+    assert ok(call(client, "define_type", {"changeset_id": handle, **wall_type}))["ref"] == "new-1"
+    typed = ok(call(client, "create_wall", {"changeset_id": handle, **WALL, "type": "new-1", "load_bearing": True}))
+    assert typed["description"] == (
+        "new-2 Wall New wall on the lowest storey from (0, 0) to (4, 0), 0.2 m thick, 3 m high, type new-1, "
+        "load-bearing"
+    )
+    shape = {"profile": "rectangle", "x": 0.3, "y": 0.3, "radius": None, "outline": None, "depth": 3, "along": None}
+    column = {"storey": None, "ifc_class": "IfcColumn", "predefined_type": None, "object_type": None, "type": None,
+              "name": "P1", "at": [2, 0], "z": None, "rotation": None, "shape": shape, "stair": None, "part_of": None,
+              "host": None}  # fmt: skip
+    assert ok(call(client, "create_element", {"changeset_id": handle, **column}))["ref"] == "new-3"
+    partial = {**column, "shape": {"profile": "circle", "radius": 0.2}}
+    assert "shape" in refused(call(client, "create_element", {"changeset_id": handle, **partial}))
+    stair = {"risers": 1.5, "riser_height": 0.175, "tread_length": 0.27, "width": None, "thickness": None,
+             "landing": None}  # fmt: skip
+    flight = {**column, "ifc_class": "IfcStair", "shape": None, "stair": stair}
+    assert "stair.risers" in refused(call(client, "create_element", {"changeset_id": handle, **flight}))
+    edit = {"id": "new-2", "name": None, "start": None, "end": [5, 0], "thickness": None, "height": None,
+            "type": None, "outline": None, "offset": None, "width": None, "sill": None, "pitch": None,
+            "overhang": None, "base": None}  # fmt: skip
+    edited = ok(call(client, "edit_element", {"changeset_id": handle, **edit}))
+    assert edited == {"ok": True, "step": 4, "description": "Change new-2: end at (5, 0)"}, "an edit has no ref"
+    stored = write_tools.to_wheel(json.loads(graph.drafts[handle]["steps"]))
+    assert [op["tool"] for op in stored] == ["define_type", "create_wall", "create_element", "edit_element"]
+    assert stored[1]["type"] == "new-1" and stored[1]["load_bearing"] is True and "status" not in stored[1]
+    assert stored[2]["shape"] == {**shape, "along": "z"} and stored[3] == {
+        "tool": "edit_element",
+        "id": "new-2",
+        "end": [5, 0],
+    }
+    assert graph.drafts[handle]["refs"] == 3
 
 
 def test_a_step_that_is_refused_leaves_the_draft_as_it_was(client: TestClient, graph: DraftGraph) -> None:

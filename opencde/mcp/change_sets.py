@@ -58,14 +58,17 @@ TOOL_CALL_PREFIX = "mcp:"
 
 TITLES = {
     "create_storeys_and_grid": "Add storeys and a grid",
+    "define_type": "Define a type",
     "create_wall": "Add a wall",
     "create_slab": "Add a slab",
     "create_roof": "Add a roof",
     "create_opening": "Cut an opening",
+    "create_element": "Add a building element",
     "create_spaces": "Make the rooms spaces",
     "set_properties": "Set properties",
     "set_classification": "Classify elements",
     "assign": "Assign a storey or a material",
+    "edit_element": "Change an element in place",
     "transform_elements": "Move elements",
     "delete_elements": "Delete elements",
     "set_site": "Place the model on earth",

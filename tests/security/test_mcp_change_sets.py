@@ -24,7 +24,7 @@ PROPOSER = principal(scopes=("mcp", "mcp:propose"))
 READER = principal(scopes=("mcp",))
 METADATA = "http://testserver/.well-known/oauth-protected-resource/mcp"
 WALL = {"storey": None, "start": [0, 0], "end": [4, 0], "thickness": None, "height": None, "name": None,
-        "partition": None}  # fmt: skip
+        "type": None, "partition": None, "load_bearing": None, "status": None}  # fmt: skip
 ROLE = "does not propose change sets; that takes the role editor or manager"
 
 

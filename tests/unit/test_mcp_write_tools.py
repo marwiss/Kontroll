@@ -5,16 +5,28 @@ The calls below are the examples of the app's tests (``tests/ai-change``, ``ai-r
 at Dataspatium's f43), with the fields commit 64e116e added (a partition wall, a classification's system, an outline
 that repeats its first corner), and the answers and operations are what ``src/ai/write-tools.js`` at 64e116e gave for
 them, run with Node from a copy of the file: the port must answer the same, refs and errors included, and hand the
-wheel the same operations. JavaScript's own ways with numbers, texts and objects are tried one by one below.
+wheel the same operations. The tools and fields of commit 437982f (``define_type``, ``create_element``,
+``edit_element``, a typed wall, slab, roof and opening, load_bearing and status, a storey's description, a room's
+number and type, a material's category and the vertical datum) are tried by the calls in
+``fixtures/write_tools_437982f.json``, one sequence that builds and one that is refused, with the answers and
+operations that the app's file at 437982f gave for them; at 437982f the app still answers the examples below as it
+did at 64e116e. JavaScript's own ways with numbers, texts and objects are tried one by one below.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pytest
 
 from opencde.mcp import write_tools
+from tests.conftest import FIXTURES_DIR
+
+#: What the app's write-tools.js at 437982f answered: per sequence the calls with their answers, and the wheel's list.
+AT_437982F = json.loads((FIXTURES_DIR / "write_tools_437982f.json").read_text(encoding="utf-8"))
+#: The server's words where the app's name a tool the server does not offer (the module's docstring).
+SERVER_WORDS = ((" (search_ifc_class gives them)", ""), (" (search_ifc_class)", ""))
 
 # The calls, the client's answer to each, and the operations its toWheel gave at the end.
 THE_CHANGE_TEST = [
@@ -763,25 +775,126 @@ def test_the_port_answers_the_apps_examples_as_the_app_does(calls: list[Any], wh
     assert write_tools.to_wheel(cs["ops"]) == wheel, "the operations the server tries"
 
 
+@pytest.mark.parametrize("sequence", ["built", "refused"])
+def test_the_port_answers_the_calls_of_437982f_as_the_app_does(sequence: str) -> None:
+    cs: dict[str, Any] = {"ops": [], "refs": 0}
+    for name, arguments, answer in AT_437982F[sequence]["calls"]:
+        if "error" in answer:
+            for app, server in SERVER_WORDS:
+                answer["error"] = answer["error"].replace(app, server)
+        assert write_tools.call(cs, name, arguments) == answer, name
+    assert write_tools.to_wheel(cs["ops"]) == AT_437982F[sequence]["wheel"], "the operations the server tries"
+
+
+def test_the_sequence_of_437982f_gives_every_new_tool_and_field() -> None:
+    """Every tool that 437982f added and every field it added to a tool is given, not null, in a call the app took."""
+    given: dict[str, set[str]] = {}
+    for name, arguments, answer in AT_437982F["built"]["calls"]:
+        if not answer.get("ok"):
+            continue
+        fields = {key for key, value in arguments.items() if value not in (None, "", [])}
+        for key in ("storeys", "rooms"):
+            fields |= {f"{key}.{sub}" for item in arguments.get(key) or [] for sub, v in item.items() if v}
+        for key in ("shape", "stair"):  # the objects of create_element; a roof's shape is a word
+            nested = arguments.get(key) if isinstance(arguments.get(key), dict) else {}
+            fields |= {f"{key}.{sub}" for sub, v in nested.items() if v is not None}
+        given.setdefault(name, set()).update(fields)
+    added = {
+        "define_type": {"kind", "name", "layers", "predefined_type", "material", "material_category", "operation",
+                        "partitioning", "width", "height", "lining_depth"},
+        "create_element": {"storey", "ifc_class", "predefined_type", "object_type", "type", "name", "at", "z",
+                           "rotation", "shape", "stair", "part_of", "host", "shape.profile", "shape.x", "shape.y",
+                           "shape.radius", "shape.outline", "shape.depth", "shape.along", "stair.risers",
+                           "stair.riser_height", "stair.tread_length", "stair.width", "stair.landing"},
+        "edit_element": {"id", "name", "end", "thickness", "height", "type", "offset", "width", "sill", "pitch",
+                         "overhang", "base"},
+        "create_wall": {"type", "partition", "load_bearing", "status"},
+        "create_slab": {"type", "load_bearing", "status"},
+        "create_roof": {"type", "status"},
+        "create_opening": {"type", "side"},
+        "assign": {"category"},
+        "set_site": {"vertical_datum"},
+        "create_storeys_and_grid": {"storeys.description", "storeys.long_name"},
+        "create_spaces": {"rooms.number", "rooms.room_type"},
+    }  # fmt: skip
+    for name, fields in added.items():
+        assert fields <= given[name], (name, fields - given[name])
+
+
+def test_the_server_names_no_tool_it_does_not_offer() -> None:
+    """The app's create_element points at search_ifc_class and its edit_element at get_parameters, read tools of the
+    app that the server's MCP endpoint does not have: the server's words leave them out and keep the rest."""
+    offered = {tool["name"] for tool in write_tools.TOOLS}
+    for tool in write_tools.TOOLS:
+        for name in ("search_ifc_class", "search_bsdd", "get_parameters", "get_topology"):
+            assert name not in tool["description"] or name in offered, (tool["name"], name)
+    element = write_tools.tool("create_element")["description"]
+    assert "predefined_type is a value of the class's list, such as COLUMN;" in element
+    assert write_tools.tool("edit_element")["description"].endswith(
+        "type (define_type) to change it. Change elements with this instead of deleting and recreating them."
+    )
+    column = {"ifc_class": "IfcColumn", "predefined_type": "USERDEFINED", "at": [0, 0]}
+    assert write_tools.call({"ops": [], "refs": 0}, "create_element", column) == {
+        "error": "USERDEFINED needs object_type, the name of its kind; or choose a value of the class's list"
+    }
+
+
+def test_a_unit_in_a_value_is_read_as_the_app_reads_it() -> None:
+    """``unitIn``: a number with a unit of the list after it, in JavaScript's white space; a line break inside the
+    unit is no unit, as JavaScript's ``.`` takes none, and the digits are ASCII digits."""
+    assert write_tools.unit_in("40 dB") == ["40", "dB"]
+    assert write_tools.unit_in(" -1,5e3　kN﻿") == ["-1,5e3", "kN"]
+    assert write_tools.unit_in("0.18 W/(m² K)") == ["0.18", "W/(m² K)"], "spaces inside the unit are left out"
+    assert write_tools.unit_in("40 parsecs") is None and write_tools.unit_in("dB 40") is None
+    assert write_tools.unit_in("40\ndB") == ["40", "dB"] and write_tools.unit_in("40 d\nB") is None
+    assert write_tools.unit_in(40) is None and write_tools.unit_in("٤٠ dB") is None
+
+
+def test_texts_are_trimmed_of_javascripts_white_space() -> None:
+    cs: dict[str, Any] = {"ops": [], "refs": 0}
+    layer = {"material": "﻿Betong ", "thickness": 0.2, "category": " Concrete", "role": None}
+    out = write_tools.call(cs, "define_type", {"kind": " wall\n", "name": "　YV1\x85", "layers": [layer]})
+    assert out["description"] == "new-1 Wall type YV1\x85: Betong 0.2 m (0.2 m)", "U+0085 is no white space in JS"
+    assert cs["ops"][0]["layers"][0] == {"material": "Betong", "thickness": 0.2, "category": "concrete", "role": None}
+
+
 def test_the_tools_and_their_parameters_are_the_apps_in_its_order() -> None:
     assert [tool["name"] for tool in write_tools.TOOLS] == [
         "create_storeys_and_grid",
+        "define_type",
         "create_wall",
         "create_slab",
         "create_roof",
         "create_opening",
+        "create_element",
         "create_spaces",
         "set_properties",
         "set_classification",
         "assign",
+        "edit_element",
         "transform_elements",
         "delete_elements",
         "set_site",
         "manage_changeset",
     ]
+    assert write_tools.CREATES[-2:] == ("define_type", "create_element"), "the new tools that hand out a ref"
     assert list(write_tools.tool("create_wall")["properties"]) == [
-        "storey", "start", "end", "thickness", "height", "name", "partition"
+        "storey", "start", "end", "thickness", "height", "name", "type", "partition", "load_bearing", "status"
     ]  # fmt: skip
+    assert list(write_tools.tool("define_type")["properties"]) == [
+        "kind", "name", "layers", "predefined_type", "material", "material_category", "operation", "partitioning",
+        "width", "height", "lining_depth"
+    ]  # fmt: skip
+    assert list(write_tools.tool("create_element")["properties"]) == [
+        "storey", "ifc_class", "predefined_type", "object_type", "type", "name", "at", "z", "rotation", "shape",
+        "stair", "part_of", "host"
+    ]  # fmt: skip
+    assert list(write_tools.tool("edit_element")["properties"]) == [
+        "id", "name", "start", "end", "thickness", "height", "type", "outline", "offset", "width", "sill", "pitch",
+        "overhang", "base"
+    ]  # fmt: skip
+    assert list(write_tools.tool("assign")["properties"]) == ["ids", "storey", "material", "category"]
+    assert list(write_tools.tool("set_site")["properties"])[-1] == "vertical_datum"
     assert list(write_tools.tool("set_classification")["properties"]) == [
         "ids", "system", "name", "code", "uri", "edition", "source", "dictionary_uri"
     ]  # fmt: skip
