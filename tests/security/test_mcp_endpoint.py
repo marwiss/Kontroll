@@ -295,6 +295,32 @@ def test_no_argument_and_no_text_reaches_the_log(tmp_path: Path) -> None:
     assert all(INSTRUCTION[:40] not in json.dumps(found) for found in details)
 
 
+def test_an_error_in_a_tool_logs_neither_the_body_nor_the_token(tmp_path: Path) -> None:
+    """A database error inside a tool reaches the log as the error's type and the frames, never their locals: the
+    body, the arguments, the client and the caller's token stay out (the review of 2026-11-12)."""
+
+    class Failing(FakeGraph):
+        async def run(self, query: str, **params: Any) -> list[dict[str, Any]]:
+            raise RuntimeError("the database went away")
+
+    marker = "7d3c2a59-0000-4000-8000-00000000beef"
+    configure_logging("INFO", json_output=True)
+    root = logging.getLogger()
+    buffer = io.StringIO()
+    handler = logging.StreamHandler(buffer)
+    handler.setFormatter(root.handlers[0].formatter)
+    try:
+        with endpoint(tmp_path, Failing(), log_level="INFO", log_json=True) as client:
+            root.handlers[:] = [handler]
+            answer = call(client, "list_models", {"project_id": marker})
+    finally:
+        configure_logging("WARNING", json_output=False)
+    logged = buffer.getvalue()
+    assert answer.json()["error"]["message"] == "Internal error"
+    assert "mcp_internal_error" in logged and "RuntimeError" in logged, "the error was logged"
+    assert marker not in logged and "a-token-the-store-knows" not in logged and "token_hash" not in logged
+
+
 def test_a_bearer_token_is_never_answered_back(tmp_path: Path) -> None:
     with endpoint(tmp_path) as client:
         answers = [rpc(client, "server/discover"), call(client, "list_models", {"project_id": None})]

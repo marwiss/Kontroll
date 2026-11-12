@@ -67,7 +67,9 @@ def configure_logging(level: str = "INFO", json_output: bool = True) -> None:
         structlog.processors.StackInfoRenderer(),
     ]
     if json_output:
-        shared_processors.append(structlog.processors.dict_tracebacks)
+        # A traceback without the frames' locals: they hold request bodies, tokens and secrets, by value.
+        frames = structlog.tracebacks.ExceptionDictTransformer(show_locals=False)
+        shared_processors.append(structlog.processors.ExceptionRenderer(frames))
         renderer: Any = structlog.processors.JSONRenderer()
     else:
         shared_processors.append(structlog.processors.format_exc_info)
