@@ -6,14 +6,17 @@ seconds and held to 200 clashes and 256 kB; and the refusals. The database and t
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from typing import Any
 
 import pytest
 
 from opencde.mcp import clash
+from opencde.mcp.registry import ToolContext, ToolRefusal
+from tests.conftest import test_settings as make_settings
 from tests.mcp_read_support import CLASH, FakeService, clash_row, pair, tools
-from tests.mcp_support import CLOUD, DOCUMENT, FakeGraph, call
+from tests.mcp_support import CLOUD, DOCUMENT, FakeGraph, call, principal
 
 SIDE = {"document_id": DOCUMENT.upper(), "version_index": 3, "types": None}
 START = {"project_id": CLOUD, "a": SIDE, "b": SIDE, "mode": None, "tolerance": None, "clearance": None}
@@ -77,6 +80,42 @@ def test_a_user_with_two_checks_under_way_starts_no_third(tmp_path: Path) -> Non
     assert service.scheduled == [], "nothing is queued"
     (event,) = graph.events()
     assert event["type"] == "mcp.denied" and event["details"]["reason"] == "limit"
+
+
+def test_starts_side_by_side_count_each_other(tmp_path: Path) -> None:
+    """Ten calls at once queue two checks, not ten: the count and the queueing are one step, and the count takes in
+    every project of the user (the review of 2026-11-12)."""
+
+    class Slow(FakeService):
+        async def schedule_clash(self, **given: Any) -> str:
+            await asyncio.sleep(0.01)  # another call would count meanwhile, but for the lock
+            return await super().schedule_clash(**given)
+
+    service = Slow()
+
+    class Counting(FakeGraph):
+        async def run(self, query: str, **params: Any) -> list[dict[str, Any]]:
+            if "c.state IN ['queued', 'running']" in query:
+                self.calls.append((query, params))
+                return [{"n": len(service.scheduled)}]
+            return await super().run(query, **params)
+
+    graph = Counting()
+    settings = make_settings(tmp_path, mcp_enabled=True, ifcgraph_enabled=True, ifcgraph_clash_enabled=True)
+    context = ToolContext(
+        principal=principal(), settings=settings, graph=graph, tool="start_clash_check", ifcgraph=service
+    )
+    arguments = clash.StartClashCheckArguments.model_validate(START)
+
+    async def ten() -> list[Any]:
+        starts = (clash.start_clash_check(context, arguments) for _ in range(10))
+        return await asyncio.gather(*starts, return_exceptions=True)
+
+    outcomes = asyncio.run(ten())
+    assert len(service.scheduled) == clash.MAX_OPEN_CHECKS
+    assert sum(isinstance(outcome, ToolRefusal) for outcome in outcomes) == 10 - clash.MAX_OPEN_CHECKS
+    counted = [params for query, params in graph.calls if "c.state IN" in query]
+    assert all("project_id" not in params for params in counted), "every project of the user"
 
 
 def test_a_check_takes_the_mode_its_distances_and_the_classes_of_each_side(tmp_path: Path) -> None:

@@ -69,12 +69,14 @@ class GetClashCheckArguments(Arguments):
 #: an AI in a loop must not hold up the conversions and trials of a project behind its clash checks.
 MAX_OPEN_CHECKS = 2
 
-#: The user's queued or running clash checks in the project, from the user's node through MEMBER_OF.
+#: The user's queued or running clash checks in all their projects, from the user's node through MEMBER_OF.
 _OPEN_CHECKS = """
-MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:Clash)
+MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_CLASH]->(c:Clash)
 WHERE c.author = $author AND c.state IN ['queued', 'running']
 RETURN count(c) AS n
 """
+#: Starts one at a time in this process, which runs the jobs; a start takes two short statements.
+_STARTING = asyncio.Lock()
 
 
 def _service(context: ToolContext) -> IfcGraphService:
@@ -97,27 +99,25 @@ async def start_clash_check(context: ToolContext, arguments: StartClashCheckArgu
             **{key: value for key, value in options.items() if value is not None},
         }
     )
-    open_checks = await context.graph.run(
-        _OPEN_CHECKS,
-        user_id=context.principal.user_id,
-        project_id=project.project_id,
-        author=context.principal.username,
-    )
-    if open_checks and int(open_checks[0]["n"]) >= MAX_OPEN_CHECKS:
-        await context.deny(
-            "limit",
-            f"You already have {MAX_OPEN_CHECKS} clash checks waiting or running in this project; read them with "
-            "get_clash_check before you start another",
-            project_id=project.project_id,
+    async with _STARTING:  # the count and the queueing at once, so that calls side by side count each other
+        open_checks = await context.graph.run(
+            _OPEN_CHECKS, user_id=context.principal.user_id, author=context.principal.username
         )
-    with refusing():
-        row = await start_check(
-            service,
-            project_id=project.project_id,
-            user_id=context.principal.user_id,
-            author=context.principal.username,
-            body=body,
-        )
+        if open_checks and int(open_checks[0]["n"]) >= MAX_OPEN_CHECKS:
+            await context.deny(
+                "limit",
+                f"You already have {MAX_OPEN_CHECKS} clash checks waiting or running; read them with "
+                "get_clash_check before you start another",
+                project_id=project.project_id,
+            )
+        with refusing():
+            row = await start_check(
+                service,
+                project_id=project.project_id,
+                user_id=context.principal.user_id,
+                author=context.principal.username,
+                body=body,
+            )
     request = row["request"]
     await context.record(
         "mcp.clash.started",
