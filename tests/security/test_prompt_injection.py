@@ -13,6 +13,7 @@ worker.
 from __future__ import annotations
 
 import base64
+import copy
 import io
 import json
 import logging
@@ -35,6 +36,7 @@ from starlette.requests import Request
 from opencde import audit
 from opencde.accounts.roles import Role
 from opencde.admin.graph_query import check_statement
+from opencde.auth.scopes import MCP_PROPOSE, MCP_READ
 from opencde.bcf import schemas as bcf
 from opencde.bcf.binary import attachment_header, filename_from_content_disposition, sanitize_filename
 from opencde.documents.changes import problems
@@ -43,9 +45,7 @@ from opencde.documents.validation import Validation
 from opencde.ifcgraph.queries import QUERIES, InvalidParameters
 from opencde.logging import REDACTED, configure_logging
 from opencde.main import create_app
-from opencde.mcp import protocol, routes, write_tools
-from opencde.mcp.change_sets import CHANGE_SET_TOOLS
-from opencde.mcp.proposals import GET_PROPOSAL, LIST_PROPOSALS
+from opencde.mcp import change_sets, protocol, routes, write_tools
 from opencde.mcp.queries import MAX_TEXT
 from opencde.mcp.registry import MAX_NAME
 from opencde.odata import MAX_FILTER_LENGTH, ODataError, compile_filter
@@ -61,6 +61,7 @@ from opencde.ui import i18n
 from opencde.ui.templating import render
 from tests.conftest import FIXTURES_DIR
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
+from tests.mcp_drafts_support import TOPIC, DraftGraph, FakeProposing, FakeTopics, FakeTrials, trial
 from tests.mcp_read_support import (
     CLASH,
     PUBLISHED,
@@ -84,6 +85,7 @@ from tests.mcp_support import (
     headers,
     legacy,
     model_row,
+    principal,
     rpc,
 )
 from tests.mcp_support import project as member_of
@@ -859,7 +861,8 @@ def test_the_ids_text_is_read_as_data_and_quoted_in_the_report(tmp_path: Path) -
 #
 # An assistant reads what the tools answer, so a text from the projects comes back in its field, as data, and nowhere
 # else: never in the list of tools, the instructions, an error, the request log, the application's log or the audit
-# log. The database and the IFC-LPG module are stood in for (tests/mcp_support.py, tests/mcp_read_support.py).
+# log. The database and the IFC-LPG module are stood in for (tests/mcp_support.py, tests/mcp_read_support.py and,
+# with the drafts of the change sets, tests/mcp_drafts_support.py).
 
 
 def traces(text: str) -> tuple[str, ...]:
@@ -1040,7 +1043,8 @@ def test_every_mcp_read_tool_gives_the_text_back_as_data_and_nowhere_else(
 
 
 SIDE = {"document_id": DOCUMENT, "version_index": 3, "types": None}
-#: A call of each tool that the stand-ins answer; each argument of it is given each hostile value in turn.
+#: A call of each tool but the change sets' (``ON_A_DRAFT``) that the stand-ins answer; each argument of it is given
+#: each hostile value in turn.
 ANSWERED: dict[str, dict[str, Any]] = {
     "list_models": {"project_id": None},
     "server_query": QUERY_NOTHING | {"document_id": DOCUMENT, "name": "property", "pset": "Reuse", "property": "GTIN"},
@@ -1063,31 +1067,38 @@ HOSTILE_VALUES: tuple[Any, ...] = (
 )
 
 
-def _argument_paths(schema: dict[str, Any], above: tuple[str, ...] = ()) -> Iterator[tuple[str, ...]]:
-    """Every argument a tool takes, at any depth: an object, then each of its own."""
+Place = tuple[str | int, ...]
+
+
+def _argument_paths(schema: dict[str, Any], arguments: Any, above: Place = ()) -> Iterator[Place]:
+    """Every argument a tool takes, at any depth, where ``arguments`` hold it: an object, then each of its own; a
+    list, then its first item."""
     for name, part in schema["properties"].items():
         yield (*above, name)
-        for option in part.get("anyOf", [part]):
-            if "properties" in option:
-                yield from _argument_paths(option, (*above, name))
+        yield from _within(part, arguments.get(name) if isinstance(arguments, dict) else None, (*above, name))
 
 
-def _given(arguments: dict[str, Any], path: tuple[str, ...], value: Any) -> dict[str, Any]:
+def _within(part: dict[str, Any], value: Any, at: Place) -> Iterator[Place]:
+    for option in part.get("anyOf", [part]):
+        if "properties" in option and isinstance(value, dict):
+            yield from _argument_paths(option, value, at)
+        if isinstance(option.get("items"), dict) and isinstance(value, list) and value:
+            yield (*at, 0)
+            yield from _within(option["items"], value[0], (*at, 0))
+
+
+def _given(arguments: dict[str, Any], path: Place, value: Any) -> dict[str, Any]:
     changed = json.loads(json.dumps(arguments))  # the arguments as they go out, with no object shared
-    place = changed
+    place: Any = changed
     for name in path[:-1]:
         place = place[name]
     place[path[-1]] = value
     return changed
 
 
-#: The change sets' tools, whose texts are asked in ``tests/security/test_mcp_change_sets.py`` with drafts of their own.
-CHANGE_SETS = {tool.name for tool in (*CHANGE_SET_TOOLS, GET_PROPOSAL, LIST_PROPOSALS)}
-
-
 def test_every_tool_of_the_endpoint_is_called_with_hostile_arguments() -> None:
-    asked = [tool.name for tool in routes.TOOLS if tool.name not in CHANGE_SETS]
-    assert list(ANSWERED) == asked, "a new tool gets a call here, and is asked too"
+    asked = sorted(tool.name for tool in routes.TOOLS)
+    assert sorted([*ANSWERED, *ON_A_DRAFT]) == asked, "a new tool gets a call here, and is asked too"
 
 
 @pytest.mark.parametrize("name", list(ANSWERED))
@@ -1095,7 +1106,7 @@ def test_a_tool_refusal_never_quotes_its_arguments(name: str, tmp_path: Path) ->
     """Each argument, at any depth, is given each string, an object, a list and a very long text in turn, and each
     string names an argument the tool does not take: every refusal, which an assistant reads, says what is wrong in
     the code's own words, and none of the calls starts anything."""
-    paths = list(_argument_paths(routes._BY_NAME[name].definition()["inputSchema"]))
+    paths = list(_argument_paths(routes._BY_NAME[name].definition()["inputSchema"], ANSWERED[name]))
     calls = [_given(ANSWERED[name], path, value) for path in paths for value in HOSTILE_VALUES]
     calls += [ANSWERED[name] | {text: text} for text in INJECTIONS]
     service = FakeService(reports=[clash_row()])
@@ -1114,7 +1125,269 @@ def test_a_tool_refusal_never_quotes_its_arguments(name: str, tmp_path: Path) ->
     assert len(service.scheduled) == (name == "start_clash_check"), "only the call itself started a check"
 
 
+PROPOSER = principal(scopes=(MCP_READ, MCP_PROPOSE))
 LAYER = {"material": "Concrete", "thickness": 0.2, "category": "concrete", "role": "load_bearing"}
+OUTLINE = [[0, 0], [4, 0], [4, 4], [0, 4]]
+#: A call of each of the change sets' tools that the stand-ins answer (tests/mcp_drafts_support.py), on a draft that
+#: open_changeset opened, whose handle is given as ``changeset_id``, and that holds a wall type named after each
+#: string (``_drafted``); each argument of it is given each hostile value in turn.
+ON_A_DRAFT: dict[str, dict[str, Any]] = {
+    "open_changeset": {"document_id": DOCUMENT, "version_index": None},
+    "create_storeys_and_grid": {
+        "storeys": [{"name": "Plan 1", "elevation": 0, "description": "Entrance", "long_name": None}],
+        "grid": {"x_spacing": 6, "x_count": 2, "y_spacing": 6, "y_count": 2},
+    },
+    "define_type": {
+        "kind": "wall",
+        "name": "YV1",
+        "layers": [LAYER],
+        "predefined_type": "SOLIDWALL",
+        "material": None,
+        "material_category": None,
+        "operation": None,
+        "partitioning": None,
+        "width": None,
+        "height": None,
+        "lining_depth": None,
+    },
+    "create_wall": {
+        "storey": "Plan 1",
+        "start": [0, 0],
+        "end": [4, 0],
+        "thickness": None,
+        "height": 3,
+        "name": "Wall 1",
+        "type": "new-1",
+        "partition": None,
+        "load_bearing": True,
+        "status": "NEW",
+    },
+    "create_slab": {
+        "storey": "Plan 1",
+        "outline": OUTLINE,
+        "thickness": 0.25,
+        "name": "Slab 1",
+        "type": None,
+        "load_bearing": None,
+        "status": None,
+    },
+    "create_roof": {
+        "storey": None,
+        "shape": "gable",
+        "outline": OUTLINE,
+        "pitch": 30,
+        "overhang": None,
+        "thickness": None,
+        "ridge": "x",
+        "base": None,
+        "name": "Roof",
+        "type": None,
+        "status": None,
+    },
+    "create_opening": {
+        "wall_id": WALL_A,
+        "offset": 1,
+        "width": 0.9,
+        "height": 2.1,
+        "sill": 0,
+        "fill": "door",
+        "name": "Door 1",
+        "type": None,
+        "side": None,
+    },
+    "create_element": {
+        "storey": "Plan 1",
+        "ifc_class": "IfcColumn",
+        "predefined_type": "COLUMN",
+        "object_type": None,
+        "type": None,
+        "name": "Column 1",
+        "at": [2, 2],
+        "z": 0,
+        "rotation": 0,
+        "shape": {
+            "profile": "rectangle",
+            "x": 0.3,
+            "y": 0.3,
+            "radius": None,
+            "outline": None,
+            "depth": 3,
+            "along": "z",
+        },
+        "stair": None,
+        "part_of": None,
+        "host": None,
+    },
+    "create_spaces": {
+        "storey": "Plan 1",
+        "rooms": [
+            {"at": [2, 2], "index": None, "name": "Kitchen", "long_name": None, "number": "101", "room_type": None}
+        ],
+        "height": None,
+    },
+    "set_properties": {
+        "ids": [WALL_A],
+        "pset": "Pset_WallCommon",
+        "properties": [{"name": "Reference", "value": "YV1"}],
+    },
+    "set_classification": {
+        "ids": [WALL_A],
+        "system": "CoClass",
+        "name": "Wall",
+        "code": "QQB",
+        "uri": None,
+        "edition": None,
+        "source": None,
+        "dictionary_uri": None,
+    },
+    "assign": {"ids": [WALL_A], "storey": "Plan 1", "material": "Concrete", "category": "concrete"},
+    "edit_element": {
+        "id": WALL_A,
+        "name": "Wall A",
+        "start": [0, 0],
+        "end": [5, 0],
+        "thickness": None,
+        "height": None,
+        "type": None,
+        "outline": None,
+        "offset": None,
+        "width": None,
+        "sill": None,
+        "pitch": None,
+        "overhang": None,
+        "base": None,
+    },
+    "transform_elements": {"ids": [WALL_A], "dx": 1, "dy": 0, "dz": 0},
+    "delete_elements": {"ids": [WALL_A], "confirm": True},
+    "set_site": {  # SWEREF 99 18 00 with RH 2000 heights, as the tool's description advises
+        "latitude": 59.33,
+        "longitude": 18.07,
+        "elevation": 12,
+        "crs": "EPSG:5850",
+        "eastings": 153000,
+        "northings": 6580000,
+        "rotation": None,
+        "site_name": "Site",
+        "vertical_datum": None,
+    },
+    "manage_changeset": {"action": "list"},
+    "change_attribute": {
+        "guid": WALL_A,
+        "step_id": None,
+        "path": None,
+        "attribute": "Name",
+        "op": "set",
+        "index": None,
+        "old": "YVT-A",
+        "new": "Wall 1",
+        "copy": None,
+    },
+    "propose_changes": {"title": "Walls", "description": None, "ai_model": "claude-test"},
+    "get_proposal": {"project_id": CLOUD, "topic_guid": TOPIC, "wait_seconds": None},
+    "list_proposals": {"document_id": DOCUMENT, "limit": None},
+}
+
+
+def _drafted(client: TestClient) -> str:
+    """The handle of a draft on the document that holds a wall type named after each string, as an AI that read them
+    in a model might name them."""
+    opened = call(client, "open_changeset", ON_A_DRAFT["open_changeset"]).json()["result"]
+    handle = opened["structuredContent"]["changeset_id"]
+    for text in INJECTIONS:
+        typed = {"changeset_id": handle, **ON_A_DRAFT["define_type"], "name": text, "predefined_type": None}
+        assert call(client, "define_type", typed).json()["result"]["isError"] is False, text[:40]
+    return handle
+
+
+def _strings(value: Any) -> Iterator[str]:
+    """Every string of a JSON value, its keys among them."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            yield key
+            yield from _strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _strings(item)
+
+
+def _added(before: dict[str, dict[str, Any]], after: dict[str, dict[str, Any]]) -> list[Any]:
+    """The drafts and the steps a call added."""
+    added: list[Any] = []
+    for changeset_id, node in after.items():
+        if changeset_id not in before:
+            added.append(node)
+        else:
+            added += json.loads(node["steps"])[len(json.loads(before[changeset_id]["steps"])) :]
+    return added
+
+
+def _held_as_data(kept: Any, text: str) -> bool:
+    """Whether what a call kept holds ``text`` as one string, whole or cut where the tool cuts it; else it holds
+    nothing of it, as a tool leaves out an argument it has no use for."""
+    found = list(_strings(kept))
+    held = any(string and text.startswith(string) and len(string) >= min(len(text), 60) for string in found)
+    assert held or not any(trace in string for string in found for trace in traces(text)), (text[:40], found)
+    return held
+
+
+@pytest.mark.parametrize("name", list(ON_A_DRAFT))
+def test_a_change_set_tool_refusal_never_quotes_its_arguments_and_keeps_nothing(
+    name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, production_log: ProductionLog
+) -> None:
+    """The change sets' tools are asked as the others are, on a draft that holds the strings already: every refusal
+    says what is wrong in the code's own words, quoting neither the call nor the draft, and keeps nothing: no step, no
+    draft, no topic, no snippet, no trial. A text a tool takes goes into the draft or the proposal as it is, cut where
+    the tool cuts it; no log keeps it, and the audit log nothing of it but the AI model ``propose_changes`` names."""
+    monkeypatch.setattr(change_sets, "Proposing", FakeProposing)
+    monkeypatch.setattr(change_sets, "TopicRepository", FakeTopics)
+    monkeypatch.setattr(FakeProposing, "made", [])
+    graph, trials, writer = DraftGraph(), FakeTrials(trial()), _Writer()
+    schema = routes._BY_NAME[name].definition()["inputSchema"]
+    settings = {"ifcgraph_enabled": True, "request_log_enabled": True, "log_level": "INFO", "log_json": True}
+    taken = held = 0
+    refused: dict[Place | None, int] = {}
+    with endpoint(tmp_path, graph, PROPOSER, **settings) as client:
+        production_log.listen()
+        client.app.state.ifcgraph = trials  # type: ignore[attr-defined]
+        client.app.state.requestlog = writer  # type: ignore[attr-defined]
+        handle = _drafted(client)
+        drafted = copy.deepcopy(graph.drafts)
+        answered = ({"changeset_id": handle} if "changeset_id" in schema["properties"] else {}) | ON_A_DRAFT[name]
+        assert call(client, name, answered).json()["result"]["isError"] is False, "the call itself is answered"
+        proposed = len(FakeProposing.made)
+        paths = list(_argument_paths(schema, answered))
+        calls: list[tuple[Place | None, Any, dict[str, Any]]] = [
+            (path, value, _given(answered, path, value)) for path in paths for value in HOSTILE_VALUES
+        ]
+        calls += [(None, text, answered | {text: text}) for text in INJECTIONS]
+        for path, value, arguments in calls:
+            graph.drafts = copy.deepcopy(drafted)  # each call is asked of the draft as _drafted left it
+            made = len(FakeProposing.made)
+            answer = call(client, name, arguments)
+            assert answer.status_code == 200, "arguments are the tool's to refuse"
+            result = answer.json()["result"]
+            if result["isError"]:
+                (said,) = result["content"]
+                untraced(said["text"])
+                assert "structuredContent" not in result and graph.drafts == drafted, path
+                assert len(FakeProposing.made) == made, ("a refusal proposes nothing", path)
+                refused[path] = refused.get(path, 0) + 1
+                continue
+            taken += 1
+            if isinstance(value, str):
+                held += _held_as_data([*_added(drafted, graph.drafts), *FakeProposing.made[made:]], value)
+    assert all(refused.get(path) for path in paths) and refused[None] == len(INJECTIONS), "each refused something"
+    assert bool(held) == bool(taken), "a tool that takes a text keeps it"
+    assert len(FakeProposing.made) == proposed + (taken if name == "propose_changes" else 0), "proposed when taken"
+    assert not trials.scheduled and len(graph.drafts) == 1, "no trial and no other draft"
+    details = [event["details"] for event in graph.events()]
+    named = [found.pop("ai_model", None) for found in details]
+    assert all(model is None or len(model) <= change_sets.MAX_AUDIT_TEXT for model in named), "cut short"
+    untraced(json.dumps(details))
+    untraced(json.dumps(writer.entries))
+    untraced(production_log.text())
 
 
 @pytest.mark.parametrize("text", INJECTIONS)
