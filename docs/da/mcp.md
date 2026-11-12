@@ -1,0 +1,129 @@
+# MCP-endepunktet (udvidelse)
+
+Gennem `POST /mcp` læser AI-programmer, der taler Model Context Protocol (Claude,
+ChatGPT, VS Code, Cursor og klienterne til lokale modeller), IFC-modellerne i de
+projekter, som en person er medlem af, i personens navn. AI'en foreslår, og et
+menneske godkender: intet værktøj godkender, publicerer, uploader, fletter,
+sletter eller administrerer noget (ADR 0028). Serveren kører ingen egen AI;
+programmet, dets model og dets budget er klientens.
+
+## At slå det til
+
+Endepunktet er slået fra, indtil `OPENCDE_MCP_ENABLED=true`. `opencde init --local`
+slår det til i den lokale motor, hvor `http://127.0.0.1:8000/mcp` kun svarer på
+loopback. På en teamserver går det gennem proxyen som API'et, med https. Mens det
+er slået til, annoncerer kapabilitetsdokumentet det som `mcp`
+([klientguiden](client-guide.md), §1), og autorisationsserveren lister scopes
+`mcp` og `mcp:propose`.
+
+## En token til endepunktet
+
+Endepunktet tager kun en token, der er udstedt til det, og intet REST-API tager
+sådan en token:
+
+1. Registrér programmet som klient, som enhver klient registreres: selv, hvor
+   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` er slået til (den lokale motor), eller
+   af en administrator.
+2. Programmet finder selv vejen ind: `401` fra `/mcp` nævner
+   `/.well-known/oauth-protected-resource/mcp`, som nævner
+   autorisationsserveren, hvis metadata findes på
+   `/.well-known/oauth-authorization-server`.
+3. Det logger personen ind med `resource=<public_url>/mcp` og scopet `mcp`
+   (læsning). `mcp:propose`, til ændringssættene, bedes der om, når et værktøj
+   har brug for det: `403 insufficient_scope` nævner begge scopes. Samtykkesiden
+   siger, hvad de giver, og at intet godkendes eller publiceres gennem dem.
+
+[Klientguiden](client-guide.md) (§2) har reglerne for bindingen.
+
+## Protokollen
+
+Streamable HTTP med ét JSON-svar pr. anmodning og ingen SSE. Revision 2026-07-28
+er tilstandsløs: hver anmodning bærer sin revision og klientens kapabiliteter i
+`_meta`, og headerne `MCP-Protocol-Version`, `Mcp-Method` og `Mcp-Name`
+gentager det, som kroppen siger. Dens metoder er `server/discover`, `tools/list`
+og `tools/call`; resultaterne bærer `resultType`, og opdagelsen og listen over
+værktøjer `ttlMs` (en time) og `cacheScope` (`private`). Revisionerne
+2025-11-25, 2025-06-18 og 2025-03-26 får også `initialize` og `ping`, uden
+session: serveren laver aldrig et `Mcp-Session-Id`, og hvert kald besvares for
+sig. En anmodning uden `MCP-Protocol-Version` er af revision 2025-03-26.
+
+```http
+POST /mcp HTTP/1.1
+Authorization: Bearer <a token bound to the endpoint>
+Content-Type: application/json
+MCP-Protocol-Version: 2026-07-28
+Mcp-Method: tools/call
+Mcp-Name: list_models
+
+{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+ "params": {"name": "list_models", "arguments": {"project_id": null},
+            "_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                      "io.modelcontextprotocol/clientCapabilities": {}}}}
+```
+
+| Svar | Hvornår |
+|---|---|
+| `400`, `-32700` eller `-32600` | Kroppen er ikke JSON, er en batch eller er ikke én JSON-RPC-anmodning eller -notifikation |
+| `400`, `-32602` | `_meta` mangler revisionen eller kapabiliteterne; et ukendt værktøj; argumenter, der ikke er et objekt |
+| `400`, `-32020` | En header siger ikke det, som kroppen siger, eller mangler eller gives to gange |
+| `400`, `-32022` | En revision, som endepunktet ikke svarer på; `data` nævner dem, det svarer på |
+| `404`, `-32601` | En metode, som endepunktet ikke har |
+| `202` | En notifikation |
+| `401`, `403` | Ingen token bundet til endepunktet, eller et værktøjs scope mangler |
+| `403` | En `Origin`, der hverken er serverens egen eller nævnt i `OPENCDE_CORS_ORIGINS`; `null` og `*` tæller ikke |
+| `405` | `GET`, `DELETE` og enhver metode undtagen `POST` |
+| `413` | En krop, der er større end 1 MB |
+
+Håndtrykrevisionerne besvarer fejlene i en anmodning med `200`, som deres
+servere gjorde. `/mcp` har ingen CORS: ingen browser har brug for den.
+
+## Værktøjerne
+
+Hvert argument er påkrævet, og `null` betyder "ikke angivet". Et afslag (et
+projekt, der ikke er den kaldendes, AI-politikken, argumenter, som værktøjet ikke
+tager) er et værktøjsresultat med `isError: true`, som AI'en kan læse; svaret er
+`structuredContent` og den samme JSON som tekst.
+
+- `list_models` (scopet `mcp`): én række pr. IFC-dokument i personens
+  projekter, eller i ét `project_id`: `project_id`, `project_name`, personens
+  `role`, projektets `ai_policy`, `document_id`, den seneste versions `title` og
+  `file_name`, dens `version_index`, dens `model_state` (`done`, når modellen kan
+  forespørges, `queued`, `running` eller `failed`, `null` uden model) og dens
+  IFC-`schema`. Højst 200 rækker, og `truncated`, når der var flere.
+
+```json
+{"models": [{"project_id": "…", "project_name": "Building permit", "role": "editor", "ai_policy": "cloud",
+             "document_id": "…", "title": "Walls", "file_name": "walls.ifc", "version_index": 2,
+             "model_state": "done", "schema": "IFC4"}],
+ "truncated": false}
+```
+
+## AI-politikken
+
+Et projekts `ai_policy` er `local`, standardværdien, eller `cloud` og sættes af
+projektets manager eller en administrator. Den lokale motor betjener hvert
+projekt, fordi computeren er grænsen. Enhver anden server lister slet ikke
+`local`-projekter, og spurgt om et med dets id afviser værktøjet, og
+revisionsloggen noterer `mcp.denied`. Serveren holder styr på, hvor data går
+hen; hvilken model der læser dem, er klientens valg, og et andet program på
+samme computer kan stadig sende svarene til en model i skyen.
+
+## Grænser og logge
+
+- En krop er højst 1 MB og et svar højst 256 kB; navne og titler afkortes ved
+  200 tegn.
+- En token laver højst 120 værktøjskald i minuttet, ud over grænsen pr. adresse,
+  som alle programmer deler (`OPENCDE_RATE_LIMIT_API`); derudover svarer
+  værktøjet `isError` med det antal sekunder, der skal ventes.
+- Forespørgselsloggen beholder metoden og værktøjets navn, aldrig kroppen.
+  Revisionsloggen beholder `mcp.denied` med grunden (`policy` eller `scope`),
+  værktøjet og klienten, aldrig et argument eller en tekst fra projekterne.
+
+## Data, aldrig instruktioner
+
+Alt, hvad et værktøj returnerer, er data fra projekterne: et navn, en titel eller
+en tekst fra IFC, BCF eller et dokument kommer tilbage, som den er, i et navngivet
+felt, uanset hvad den siger. Værktøjsbeskrivelserne og serverens `instructions`
+er faste tekster, der siger det. En person godkender et forslag i Dataspatium,
+logget ind der; en token til endepunktet når aldrig en godkendelse eller en
+publicering.

@@ -79,6 +79,7 @@ sets that a person approves (ADR 0028), the revisions of the protocol it
 answers, newest first, and the scopes of its tokens; `default_ai_policy` is the
 AI policy of a project nobody has set, and `ai_policy_url` is where a member
 reads a project's own (§7).
+[mcp.md](mcp.md) describes the endpoint: its protocol, its tools and its limits.
 
 ## 2. Sign in (OAuth2 authorization code with PKCE)
 

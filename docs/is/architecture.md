@@ -31,6 +31,7 @@ flowchart LR
 | Geymslan | Eigin gögn þjónsins eftir sviðum: reikningar, OAuth2, BCF, Documents og verk, hvert þeirra geymsluklasi með sinni Cypher bak við samskiptareglu; aðskilið frá IFC-netinu, sem IFC-LPG heldur | `opencde/store/` |
 | Stjórnun | Síður og API fyrir stjórnendur, heilsufarsathuganir og beiðnaskráin | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Gerir upphlaðin líkön að hnútum og tengir sjónarhornseiningar við þá | `opencde/ifcgraph/` |
+| MCP-endapunkturinn | Verkfæri sem gervigreindarforrit lesa líkön verkefnanna í gegnum og leggja til, meðan manneskja samþykkir | `opencde/mcp/` |
 | Graflagið | Rekillinn, gagnagrunnsmállýskurnar tvær, skemað og það sem rennur út | `opencde/graph/` |
 | Síður | Sniðmát, stílar, skriftur og tungumálaskrárnar | `opencde/ui/` |
 
@@ -101,5 +102,6 @@ ekki nota.
 
 - [Fljótleg byrjun](quickstart.md): þjónninn og Dataspatium á þinni eigin tölvu.
 - [Að smíða biðlara](client-guide.md): það sem biðlari þarf.
+- [MCP-endapunkturinn](mcp.md): hvað gervigreindarforrit ná til, og hvernig.
 - [Ferli](flows/oauth2.md): innskráning, [skjöl](flows/documents.md) og
   [BCF-sjónarhorn](flows/bcf-viewpoint.md) sem runurit.

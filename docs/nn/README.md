@@ -423,6 +423,7 @@ den siste i kvar serie blir retta. Dataregium og Dataspatium med same nummer hø
 - [flows/](flows/): sekvensdiagram for OAuth2-, Documents API- og BCF-viewpoint-flytane.
 - [graph-schema.md](graph-schema.md): grafmodellen.
 - [ifc-lpg.md](ifc-lpg.md): IFC-LPG-modulen, kontrollane, versjonane, endringssetta, geometrien og døme på Cypher-spørjingar.
+- [mcp.md](mcp.md): MCP-endepunktet, som AI-program les modellane i prosjekta gjennom: å slå det på, tokena, protokollen, verktøya, AI-policyen og grensene.
 - Arkitekturavgjerder som ligg fast: ein grafdatabase som einaste lager, opake token i
   staden for JWT, portabel Cypher for Neo4j og Memgraph, eit nettgrensesnitt utan
   rammeverk, tryggingskopi på applikasjonsnivå, BCF API 2.1 ved sida av 3.0, ein

@@ -81,6 +81,7 @@ leggja til breytingasöfn sem manneskja samþykkir (ADR 0028), útgáfur
 samskiptareglunnar sem hann svarar, nýjustu fyrst, og scope-in fyrir tóka hans;
 `default_ai_policy` er gervigreindarstefna verkefnis sem enginn hefur stillt, og
 `ai_policy_url` er þar sem meðlimur les eigin stefnu verkefnis (§7).
+[mcp.md](mcp.md) lýsir endapunktinum: samskiptareglunni, verkfærunum og mörkunum.
 
 ## 2. Innskráning (OAuth2 authorization code með PKCE)
 

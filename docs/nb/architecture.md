@@ -31,6 +31,7 @@ flowchart LR
 | Lagringen | Serverens egne data per område: kontoer, OAuth2, BCF, Documents og jobber, hver en repository-klasse med sin Cypher bak en protokoll; atskilt fra IFC-grafen, som IFC-LPG holder | `opencde/store/` |
 | Administrasjon | Sider og et API for administratorer, helsesjekker og forespørselsloggen | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Gjør opplastede modeller til noder og lenker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
+| MCP-endepunktet | Verktøy som AI-programmer leser prosjektenes modeller og foreslår gjennom, mens en person godkjenner | `opencde/mcp/` |
 | Graflaget | Driveren, de to databasedialektene, skjemaet og det som utløper | `opencde/graph/` |
 | Sider | Maler, stiler, skript og språkkatalogene | `opencde/ui/` |
 
@@ -101,5 +102,6 @@ funksjoner koden ikke får bruke.
 
 - [Hurtigstart](quickstart.md): serveren og Dataspatium på din egen maskin.
 - [Å bygge en klient](client-guide.md): det en klient trenger.
+- [MCP-endepunktet](mcp.md): hva AI-programmer når, og hvordan.
 - [Flyter](flows/oauth2.md): innlogging, [dokumenter](flows/documents.md) og
   [BCF-viewpoints](flows/bcf-viewpoint.md) som sekvensdiagrammer.

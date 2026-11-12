@@ -441,6 +441,7 @@ kuuluvat yhteen:
 - [flows/](flows/): sekvenssikaaviot OAuth2-, Documents API- ja BCF-viewpoint-kuluista.
 - [graph-schema.md](graph-schema.md): graafimalli.
 - [ifc-lpg.md](ifc-lpg.md): IFC-LPG-moduuli, tarkistukset, versiot, muutosjoukot, geometria ja esimerkkejä Cypher-kyselyistä.
+- [mcp.md](mcp.md): MCP-päätepiste, jonka kautta tekoälyohjelmat lukevat projektien malleja: käyttöönotto, tokenit, protokolla, työkalut, tekoälykäytäntö ja rajat.
 - Pysyvät arkkitehtuuripäätökset: graafitietokanta ainoana tallennuspaikkana, läpinäkymättömät
   tunnisteet JWT:n sijaan, siirrettävä Cypher Neo4j:lle ja Memgraphille, verkkokäyttöliittymä
   ilman sovelluskehystä, varmuuskopio sovellustasolla, BCF API 2.1 3.0:n rinnalla,

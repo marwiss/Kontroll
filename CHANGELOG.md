@@ -20,6 +20,17 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- The MCP endpoint answers at `POST /mcp` while `OPENCDE_MCP_ENABLED` is true, which `opencde init --local` now
+  sets (ADR 0028): Streamable HTTP with JSON answers only, revision 2026-07-28 with `server/discover`, `tools/list`
+  and `tools/call`, its `_meta` and the headers `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` checked against
+  the body (`-32602`, `-32020`, `-32022`, and `404` with `-32601` for a method it does not have), and the handshake
+  revisions 2025-11-25, 2025-06-18 and 2025-03-26 through `initialize` and `ping`, without a session. GET and
+  DELETE answer 405; a batch, and a browser origin that is neither the server's own nor named in
+  `OPENCDE_CORS_ORIGINS`, are refused; every request needs a token bound to the endpoint. The first tool,
+  `list_models`, gives the IFC documents of the caller's projects with the latest version, the model's state and
+  its schema; a server other than the local engine does not list a `local` project and refuses it by its id, which
+  the audit log records as `mcp.denied`. A body is at most 1 MB and an answer 256 kB, and a token makes at most 120
+  tool calls a minute; the request log keeps the method and the tool, never the body (`docs/en/mcp.md`).
 - With `OPENCDE_ROOMS_ENABLED=true` (off by default), the report of an upload, a precheck and a trial also has the
   rooms of each storey as a section of its own, `rooms`, found from the walls with a copy of Dataspatium's code: per
   storey the rooms with their area, perimeter, walls and neighbours, the external walls with the compass sector they

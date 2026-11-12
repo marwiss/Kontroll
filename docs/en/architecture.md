@@ -31,6 +31,7 @@ flowchart LR
 | Storage | The server's own data by area: accounts, OAuth2, BCF, Documents and jobs, each a repository with its Cypher behind a protocol; apart from the IFC graph, which IFC-LPG keeps | `opencde/store/` |
 | Administration | Pages and an API for administrators, health checks and the request log | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Turns uploaded models into nodes and links viewpoint components to them | `opencde/ifcgraph/` |
+| MCP endpoint | Tools through which AI programs read the projects' models and propose, while a person approves | `opencde/mcp/` |
 | Graph layer | The driver, the two database dialects, the schema and what expires | `opencde/graph/` |
 | Pages | Templates, styles, scripts and the language catalogues | `opencde/ui/` |
 
@@ -101,5 +102,6 @@ list of functions the code must not use.
 
 - [Quick start](quickstart.md): the server and Dataspatium on your own machine.
 - [Client guide](client-guide.md): how to build a client.
+- [MCP endpoint](mcp.md): what AI programs reach, and how.
 - [Flows](flows/oauth2.md): sign-in, [documents](flows/documents.md) and
   [BCF viewpoints](flows/bcf-viewpoint.md) as sequence diagrams.

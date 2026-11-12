@@ -419,6 +419,7 @@ eiga saman:
 - [flows/](flows/): runuskýringarmyndir fyrir OAuth2-, Documents API- og BCF-viewpoint-flæðin.
 - [graph-schema.md](graph-schema.md): netlíkanið.
 - [ifc-lpg.md](ifc-lpg.md): IFC-LPG-einingin, prófanirnar, útgáfurnar, breytingasöfnin, rúmfræðin og dæmi um Cypher-fyrirspurnir.
+- [mcp.md](mcp.md): MCP-endapunkturinn, sem gervigreindarforrit lesa líkön verkefnanna í gegnum: að kveikja á honum, tókar hans, samskiptareglan, verkfærin, gervigreindarstefnan og mörkin.
 - Högunarákvarðanir sem standa: netgagnagrunnur sem eina geymslan, ógegnsæir tókar í
   stað JWT, færanlegt Cypher fyrir Neo4j og Memgraph, vefviðmót án ramma, afritun á
   forritsstigi, BCF API 2.1 við hlið 3.0, taplaust IFC-net sem les og skrifar STEP

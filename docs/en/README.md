@@ -427,6 +427,7 @@ number go together:
 - [flows/](flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [graph-schema.md](graph-schema.md): the graph model.
 - [ifc-lpg.md](ifc-lpg.md): the IFC-LPG module, the checks, the versions, the change sets, the geometry and examples of Cypher queries.
+- [mcp.md](mcp.md): the MCP endpoint, through which AI programs read the projects' models: turning it on, its tokens, the protocol, the tools, the AI policy and the limits.
 - Architecture decisions that stand: a graph database as the only store, opaque
   tokens instead of JWT, portable Cypher for Neo4j and Memgraph, a web interface
   without a framework, a backup at application level, BCF API 2.1 beside 3.0, a

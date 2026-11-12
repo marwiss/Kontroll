@@ -31,6 +31,7 @@ flowchart LR
 | Tallennus | Palvelimen omat tiedot alueittain: tilit, OAuth2, BCF, Documents ja työt, kukin repository-luokka Cypherineen protokollan takana; erillään IFC-graafista, jota IFC-LPG pitää | `opencde/store/` |
 | Hallinta | Sivut ja API ylläpitäjille, terveystarkistukset ja pyyntöloki | `opencde/admin/`, `opencde/requestlog.py` |
 | IFC-LPG | Muuttaa ladatut mallit solmuiksi ja linkittää näkymien komponentit niihin | `opencde/ifcgraph/` |
+| MCP-päätepiste | Työkalut, joiden kautta tekoälyohjelmat lukevat projektien malleja ja ehdottavat, kun taas ihminen hyväksyy | `opencde/mcp/` |
 | Graafikerros | Ajuri, kaksi tietokantadialektia, skeema ja se, mikä vanhenee | `opencde/graph/` |
 | Sivut | Mallipohjat, tyylit, skriptit ja kieliluettelot | `opencde/ui/` |
 
@@ -103,5 +104,6 @@ funktioista, joita koodi ei saa käyttää.
 
 - [Pika-aloitus](quickstart.md): palvelin ja Dataspatium omalla koneellasi.
 - [Asiakassovelluksen rakentaminen](client-guide.md): mitä asiakas tarvitsee.
+- [MCP-päätepiste](mcp.md): mihin tekoälyohjelmat ulottuvat ja miten.
 - [Kulut](flows/oauth2.md): kirjautuminen, [asiakirjat](flows/documents.md) ja
   [BCF-näkymät](flows/bcf-viewpoint.md) sekvenssikaavioina.

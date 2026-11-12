@@ -1,0 +1,128 @@
+# The MCP endpoint (extension)
+
+Through `POST /mcp`, AI programs that speak the Model Context Protocol (Claude,
+ChatGPT, VS Code, Cursor and the clients of local models) read the IFC models of
+the projects a person is a member of, in that person's name. The AI proposes and
+a person approves: no tool approves, publishes, uploads, merges, deletes or
+administers anything (ADR 0028). The server runs no AI of its own; the program,
+its model and its budget are the client's.
+
+## Turning it on
+
+The endpoint is off until `OPENCDE_MCP_ENABLED=true`. `opencde init --local`
+turns it on in the local engine, where `http://127.0.0.1:8000/mcp` answers on
+the loopback only. On a team server it goes through the proxy like the API, with
+https. While it is on, the capabilities document announces it as `mcp`
+([client guide](client-guide.md), §1), and the authorization server lists the
+scopes `mcp` and `mcp:propose`.
+
+## A token for the endpoint
+
+The endpoint takes only a token issued for it, and no REST API takes such a
+token:
+
+1. Register the program as a client, as any client is registered: itself, where
+   `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` is on (the local engine), or by an
+   administrator.
+2. The program finds the way in by itself: `401` from `/mcp` names
+   `/.well-known/oauth-protected-resource/mcp`, which names the authorization
+   server, whose metadata is at `/.well-known/oauth-authorization-server`.
+3. It signs the person in with `resource=<public_url>/mcp` and the scope `mcp`
+   (reading). `mcp:propose`, for the change sets, is asked for when a tool needs
+   it: `403 insufficient_scope` names both scopes. The consent page says what
+   they give and that nothing is approved or published through them.
+
+The [client guide](client-guide.md) (§2) has the rules of the binding.
+
+## The protocol
+
+Streamable HTTP with one JSON answer per request and no SSE. Revision
+2026-07-28 is stateless: every request carries its revision and the client's
+capabilities in `_meta`, and the headers `MCP-Protocol-Version`, `Mcp-Method`
+and `Mcp-Name` repeat what the body says. Its methods are `server/discover`,
+`tools/list` and `tools/call`; the results carry `resultType`, and the
+discovery and the list of tools `ttlMs` (an hour) and `cacheScope` (`private`).
+The revisions 2025-11-25, 2025-06-18 and 2025-03-26 get `initialize` and `ping`
+too, without a session: the server never makes an `Mcp-Session-Id`, and every
+call is answered on its own. A request without `MCP-Protocol-Version` is of
+2025-03-26.
+
+```http
+POST /mcp HTTP/1.1
+Authorization: Bearer <a token bound to the endpoint>
+Content-Type: application/json
+MCP-Protocol-Version: 2026-07-28
+Mcp-Method: tools/call
+Mcp-Name: list_models
+
+{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+ "params": {"name": "list_models", "arguments": {"project_id": null},
+            "_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                      "io.modelcontextprotocol/clientCapabilities": {}}}}
+```
+
+| Answer | When |
+|---|---|
+| `400`, `-32700` or `-32600` | The body is not JSON, is a batch, or is not one JSON-RPC request or notification |
+| `400`, `-32602` | `_meta` lacks the revision or the capabilities; an unknown tool; arguments that are not an object |
+| `400`, `-32020` | A header does not say what the body says, or is missing or given twice |
+| `400`, `-32022` | A revision the endpoint does not answer; `data` names those it does |
+| `404`, `-32601` | A method the endpoint does not have |
+| `202` | A notification |
+| `401`, `403` | No token bound to the endpoint, or a tool's scope missing |
+| `403` | An `Origin` that is neither the server's own nor named in `OPENCDE_CORS_ORIGINS`; `null` and `*` do not count |
+| `405` | `GET`, `DELETE` and every method but `POST` |
+| `413` | A body larger than 1 MB |
+
+The handshake revisions answer the errors of a request with `200`, as their
+servers did. `/mcp` has no CORS: no browser needs it.
+
+## The tools
+
+Every argument is required, and `null` means "not given". A refusal (a project
+that is not the caller's, the AI policy, arguments the tool does not take) is a
+tool result with `isError: true` that the AI can read; the answer is
+`structuredContent` and the same JSON as text.
+
+- `list_models` (scope `mcp`): one row per IFC document of the person's projects,
+  or of one `project_id`: `project_id`, `project_name`, the person's `role`, the
+  project's `ai_policy`, `document_id`, the `title` and `file_name` of the latest
+  version, its `version_index`, its `model_state` (`done` when the model can be
+  queried, `queued`, `running` or `failed`, `null` without a model) and its IFC
+  `schema`. At most 200 rows, and `truncated` when there were more.
+
+```json
+{"models": [{"project_id": "…", "project_name": "Building permit", "role": "editor", "ai_policy": "cloud",
+             "document_id": "…", "title": "Walls", "file_name": "walls.ifc", "version_index": 2,
+             "model_state": "done", "schema": "IFC4"}],
+ "truncated": false}
+```
+
+## The AI policy
+
+A project's `ai_policy` is `local`, the default, or `cloud`, set by its manager
+or an administrator. The local engine serves every project, since the computer
+is the boundary. Any other server lists `local` projects not at all, and asked
+for one by its id the tool refuses and the audit log records `mcp.denied`. The
+server keeps where the data goes; which model reads it is the client's choice,
+and another program on the same computer can still send the answers to a model
+in the cloud.
+
+## Limits and logs
+
+- A body is at most 1 MB, and an answer at most 256 kB; names and titles are cut
+  at 200 characters.
+- A token makes at most 120 tool calls a minute, beside the limit per address
+  that all programs share (`OPENCDE_RATE_LIMIT_API`); past it the tool answers
+  `isError` with the seconds to wait.
+- The request log keeps the method and the tool's name, never the body. The
+  audit log keeps `mcp.denied` with the reason (`policy` or `scope`), the tool
+  and the client, never an argument or a text from the projects.
+
+## Data, never instructions
+
+Everything a tool returns is data from the projects: a name, a title or a text
+from IFC, BCF or a document comes back as it is, in a named field, whatever it
+says. The tool descriptions and the server's `instructions` are fixed texts that
+say so. A person approves a proposal in Dataspatium, signed in there; a token
+for the endpoint never reaches an approval or a publication.

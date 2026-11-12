@@ -80,6 +80,7 @@ endringssett som ein person godkjenner (ADR 0028), revisjonane av protokollen
 som det svarar på, nyaste først, og scopa for tokena til det;
 `default_ai_policy` er AI-policyen for eit prosjekt som ingen har stilt inn, og
 `ai_policy_url` er der eit medlem les den eigne policyen til eit prosjekt (§7).
+[mcp.md](mcp.md) skildrar endepunktet: protokollen, verktøya og grensene.
 
 ## 2. Logg inn (OAuth2 authorization code med PKCE)
 

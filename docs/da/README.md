@@ -424,6 +424,7 @@ seneste i hver serie rettes. Dataregium og Dataspatium med det samme nummer hør
 - [flows/](flows/): sekvensdiagrammer for OAuth2-, Documents API- og BCF-viewpoint-flowene.
 - [graph-schema.md](graph-schema.md): grafmodellen.
 - [ifc-lpg.md](ifc-lpg.md): IFC-LPG-modulet, kontrollerne, versionerne, ændringssættene, geometrien og eksempler på Cypher-forespørgsler.
+- [mcp.md](mcp.md): MCP-endepunktet, gennem hvilket AI-programmer læser projekternes modeller: at slå det til, dets tokens, protokollen, værktøjerne, AI-politikken og grænserne.
 - Arkitekturbeslutninger, der ligger fast: en grafdatabase som eneste lager, opake
   tokens i stedet for JWT, portabel Cypher til Neo4j og Memgraph, en webgrænseflade
   uden framework, sikkerhedskopi på applikationsniveau, BCF API 2.1 ved siden af 3.0,

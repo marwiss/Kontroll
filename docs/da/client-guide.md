@@ -79,6 +79,7 @@ da MCP-endepunktet, hvor AI-programmer læser projekternes modeller og foreslår
 som det svarer på, nyeste først, og scopes for dets tokens; `default_ai_policy`
 er AI-politikken for et projekt, som ingen har indstillet, og `ai_policy_url`
 er, hvor et medlem læser et projekts egen (§7).
+[mcp.md](mcp.md) beskriver endepunktet: protokollen, værktøjerne og grænserne.
 
 ## 2. Log ind (OAuth2 authorization code med PKCE)
 

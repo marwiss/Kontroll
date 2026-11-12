@@ -83,6 +83,7 @@ versiot, joihin se vastaa, uusin ensin, ja sen tunnisteiden scopet;
 `default_ai_policy` on sellaisen projektin tekoälykäytäntö, jolle kukaan ei ole
 asettanut käytäntöä, ja `ai_policy_url` kertoo, mistä jäsen lukee projektin oman
 käytännön (§7).
+[mcp.md](mcp.md) kuvaa päätepisteen: protokollan, työkalut ja rajat.
 
 ## 2. Kirjautuminen (OAuth2 authorization code ja PKCE)
 
