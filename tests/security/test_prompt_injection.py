@@ -43,7 +43,7 @@ from opencde.documents.validation import Validation
 from opencde.ifcgraph.queries import QUERIES, InvalidParameters
 from opencde.logging import REDACTED, configure_logging
 from opencde.main import create_app
-from opencde.mcp import protocol, routes
+from opencde.mcp import protocol, routes, write_tools
 from opencde.mcp.change_sets import CHANGE_SET_TOOLS
 from opencde.mcp.proposals import GET_PROPOSAL, LIST_PROPOSALS
 from opencde.mcp.queries import MAX_TEXT
@@ -1112,6 +1112,40 @@ def test_a_tool_refusal_never_quotes_its_arguments(name: str, tmp_path: Path) ->
             refusals.append(said["text"])
     assert len(refusals) >= len(paths) + len(INJECTIONS), "each argument was refused something"
     assert len(service.scheduled) == (name == "start_clash_check"), "only the call itself started a check"
+
+
+LAYER = {"material": "Concrete", "thickness": 0.2, "category": "concrete", "role": "load_bearing"}
+
+
+@pytest.mark.parametrize("text", INJECTIONS)
+def test_a_write_tool_refusal_about_a_text_names_its_place_never_the_text(text: str) -> None:
+    """The refusals of Dataspatium's write tools that are about a text of the call, which the app's own words quote,
+    name where it is: a type's name taken already, a room's number listed twice, a property whose value has a unit,
+    and a vertical datum beside a compound code; and none keeps a step."""
+    cs: dict[str, Any] = {"ops": [], "refs": 0}
+    wall_type = {"kind": "wall", "name": text, "layers": [LAYER]}
+    assert write_tools.call(cs, "define_type", wall_type)["ok"] is True
+    rooms = [{"at": [x, 1], "name": text, "number": text} for x in (1, 3)]
+    unit = {
+        "ids": [WALL_A],
+        "pset": text,
+        "properties": [{"name": "Rw", "value": 52}, {"name": text, "value": "40 dB"}],
+    }
+    site = {"latitude": 59.33, "longitude": 18.07, "crs": "EPSG:5850", "eastings": 1, "northings": 2}
+    refusals = [
+        write_tools.call(cs, "define_type", wall_type),
+        write_tools.call(cs, "create_spaces", {"storey": text, "rooms": rooms}),
+        write_tools.call(cs, "set_properties", unit),
+        write_tools.call(cs, "set_site", site | {"vertical_datum": text}),
+    ]
+    assert [refusal["error"] for refusal in refusals] == [
+        "new-1 is a wall type of the same name already; give its ref as type, or choose another name",
+        "room 2 has the number of room 1; a room number is unique in the building",
+        "property 2: give the number only, without its unit (40): IFC gives the property its unit",
+        "EPSG:5850 gives its heights in RH 2000 already; leave vertical_datum null, or give the plan code EPSG:3011 "
+        "with this vertical_datum",
+    ]
+    assert len(cs["ops"]) == 1
 
 
 def _deep(value: Any, depth: int) -> Any:

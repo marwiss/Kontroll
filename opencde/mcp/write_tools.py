@@ -32,7 +32,11 @@ Against the original only this differs, so that the next copy is a diff away:
   that ``get_parameters`` reads an element's measures;
 - a room of ``create_spaces`` that is a list is no object here, where JavaScript finds the lists' own ``at``; the
   schema lets no such room through;
-- ``call()`` answers an error as the app does, ``{"error": …}``, which the endpoint makes a tool error.
+- ``call()`` answers an error as the app does, ``{"error": …}``, which the endpoint makes a tool error;
+- four errors that quote a text of the call in the app name its place instead, as the endpoint's refusals never quote
+  an argument (ADR 0028): a type's name taken already, a room's number listed twice (``room 2 has the number of room
+  1``), the set, the name and the value of a property whose value has a unit (``property 1``), and a vertical datum
+  beside a compound code.
 """
 
 from __future__ import annotations
@@ -991,7 +995,7 @@ def _vertical_datum(a: dict[str, Any], crs: str | None, op: dict[str, Any]) -> d
             return op
         raise WriteToolError(
             f"{crs.upper()} gives its heights in RH 2000 already; leave vertical_datum null, or give the plan code "
-            f"EPSG:{code - 2839} with vertical_datum {datum}"
+            f"EPSG:{code - 2839} with this vertical_datum"
         )
     op["vertical_datum"] = _slice(datum, 60)
     return op
@@ -1248,7 +1252,7 @@ def _no_twin(cs: dict[str, Any], kind: str, type_name: str) -> None:
     )
     if twin:
         raise WriteToolError(
-            f"{twin['ref']} is a {twin['kind']} type named {twin['name']} already; give its ref as type, or choose "
+            f"{twin['ref']} is a {twin['kind']} type of the same name already; give its ref as type, or choose "
             "another name"
         )
 
@@ -1617,10 +1621,11 @@ def build(cs: dict[str, Any], name: str, args: dict[str, Any] | None) -> dict[st
                     )
                 )
             numbers = [r.get("number") for r in rooms]
-            twice = next((r for i, r in enumerate(rooms) if r.get("number") and numbers.index(r["number"]) != i), None)
-            if twice:
+            twice = next((i for i, r in enumerate(rooms) if r.get("number") and numbers.index(r["number"]) != i), None)
+            if twice is not None:
                 raise WriteToolError(
-                    f"room number {twice['number']} is listed twice; a room number is unique in the building"
+                    f"room {twice + 1} has the number of room {numbers.index(numbers[twice]) + 1}; a room number is "
+                    "unique in the building"
                 )
         # Without a list the wheel names the rooms itself: the person's word for a room with {n} for its index.
         return {
@@ -1640,7 +1645,7 @@ def build(cs: dict[str, Any], name: str, args: dict[str, Any] | None) -> dict[st
                 "SE-ACME-42_Acoustics"
             )
         properties: dict[str, Any] = {}
-        for p in a["properties"]:
+        for i, p in enumerate(a["properties"]):
             value = p.get("value") if isinstance(p, dict) else None
             if not isinstance(p, dict) or not _given(p.get("name")) or not isinstance(value, str | bool | int | float):
                 raise WriteToolError("every property needs a name and a string, number or boolean value")
@@ -1648,8 +1653,8 @@ def build(cs: dict[str, Any], name: str, args: dict[str, Any] | None) -> dict[st
             if unit:
                 number = unit[0].replace(",", ".", 1)
                 raise WriteToolError(
-                    f'{pset}.{_string(p["name"])}: give the number only, without its unit ({number}, not "{value}"): '
-                    "IFC gives the property its unit"
+                    f"property {i + 1}: give the number only, without its unit ({number}): IFC gives the property "
+                    "its unit"
                 )
             properties[_slice(_string(p["name"]), 200)] = _slice(value, 1000) if isinstance(value, str) else value
         return {"tool": name, "ids": _id_list(cs, a.get("ids")), "pset": pset, "properties": _in_js_order(properties)}

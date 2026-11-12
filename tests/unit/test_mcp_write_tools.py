@@ -25,8 +25,20 @@ from tests.conftest import FIXTURES_DIR
 
 #: What the app's write-tools.js at 437982f answered: per sequence the calls with their answers, and the wheel's list.
 AT_437982F = json.loads((FIXTURES_DIR / "write_tools_437982f.json").read_text(encoding="utf-8"))
-#: The server's words where the app's name a tool the server does not offer (the module's docstring).
-SERVER_WORDS = ((" (search_ifc_class gives them)", ""), (" (search_ifc_class)", ""))
+#: The server's words where the app's name a tool the server does not offer, or quote a text of the call (the
+#: module's docstring).
+SERVER_WORDS = (
+    (" (search_ifc_class gives them)", ""),
+    (" (search_ifc_class)", ""),
+    (" type named YV1 already", " type of the same name already"),
+    (" type named BJ1 already", " type of the same name already"),
+    ("room number 101 is listed twice", "room 2 has the number of room 1"),
+    ('Pset_WallCommon.AcousticRating: give the number only, without its unit (40, not "40 dB")', "property 1: give "
+     "the number only, without its unit (40)"),
+    ('Pset_WallCommon.ThermalTransmittance: give the number only, without its unit (0.18, not " 0,18 W/m²K ")',
+     "property 1: give the number only, without its unit (0.18)"),
+    (" with vertical_datum NN 1900", " with this vertical_datum"),
+)  # fmt: skip
 
 # The calls, the client's answer to each, and the operations its toWheel gave at the end.
 THE_CHANGE_TEST = [
