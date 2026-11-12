@@ -58,6 +58,8 @@ ifc-lpg = ["opencde-server[ifc-db]"]
 ifcgraph = ["opencde-server[ifc-db]"]
 # A shared store for the rate limits when several server processes run (ADR 0007).
 redis = ["redis>=5.0"]
+# The server's own data in PostgreSQL rather than a graph (ADR 0029).
+postgres = ["asyncpg>=0.31"]
 
 [project.scripts]
 opencde = "opencde.cli:app"
@@ -75,6 +77,7 @@ dev = [
     "anyio>=4.11",
     "testcontainers>=4.15",
     "redis>=5.0",  # the shared store for the rate limits, tested against a real one
+    "asyncpg>=0.31",  # the server's own data in PostgreSQL, tested against a real one (ADR 0029)
     "jsonschema>=4.26",
     "mcp>=2.3",  # the official MCP SDK, only as the client that drives /mcp in the tests (ADR 0028, F32 c)
     "openapi-core>=0.23",
@@ -167,7 +170,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "-ra --strict-markers"
 markers = [
-    "integration: needs a graph database (testcontainers starts one)",
+    "integration: needs a graph database or PostgreSQL (testcontainers starts one)",
     "conformance: validates responses against the buildingSMART schemas",
     "security: penetration-style tests",
     "ui: browser tests with Playwright",

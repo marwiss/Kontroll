@@ -1,6 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The server's own storage apart from the IFC graph (ADR 0027): one connection by default, its own when configured,
-and a protocol per repository that says what each area answers for."""
+and a protocol per repository that says what each area answers for, which the graph's repositories and those of
+PostgreSQL (ADR 0029) both answer to."""
 
 from __future__ import annotations
 
@@ -13,6 +14,12 @@ from pydantic import ValidationError
 from opencde.bootstrap import make_store
 from opencde.graph.dialect import GraphDialect
 from opencde.store import protocols
+from opencde.store.accounts.postgres import (
+    PostgresProjectRepository,
+    PostgresTeamRepository,
+    PostgresUserRepository,
+    PostgresWebSessionRepository,
+)
 from opencde.store.accounts.projects import ProjectRepository
 from opencde.store.accounts.sessions import WebSessionRepository
 from opencde.store.accounts.teams import TeamRepository
@@ -49,6 +56,10 @@ REPOSITORIES = (
     ConversionRepository,
     ProposalRepository,
     ChangeSetDraftRepository,
+    PostgresUserRepository,
+    PostgresProjectRepository,
+    PostgresTeamRepository,
+    PostgresWebSessionRepository,
 )
 
 
@@ -80,7 +91,7 @@ def test_production_wants_the_stores_password_too(tmp_path: Path) -> None:
 def test_a_protocol_names_every_public_method_of_its_repository_as_it_is(repository: type) -> None:
     """The protocols are generated from the repositories; a method added, renamed or given another parameter shows
     up here until the protocol is made anew."""
-    protocol = getattr(protocols, repository.__name__.replace("Repository", "Store"))
+    protocol = getattr(protocols, repository.__name__.removeprefix("Postgres").replace("Repository", "Store"))
     public = {name: fn for name, fn in vars(repository).items() if not name.startswith("_") and inspect.isfunction(fn)}
     declared = {name: fn for name, fn in vars(protocol).items() if not name.startswith("_") and inspect.isfunction(fn)}
     assert set(declared) == set(public), "the same methods"
