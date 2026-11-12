@@ -106,8 +106,8 @@ def test_redirect_uri_rules() -> None:
     assert not redirect_uri_matches("https://a.test/cb", "https://a.test:8443/cb")
     assert redirect_uri_matches("http://127.0.0.1/cb", "http://127.0.0.1:53421/cb"), "loopback port may vary (RFC 8252)"
     assert not redirect_uri_matches("http://127.0.0.1/cb", "http://127.0.0.1:53421/other")
-    assert not redirect_uri_matches("http://localhost/cb", "http://localhost:53421/cb"), (
-        "localhost is not loopback-by-IP"
+    assert redirect_uri_matches("http://localhost/cb", "http://localhost:53421/cb"), (
+        "a program picks its port at sign-in, at localhost too (F40 b)"
     )
 
 

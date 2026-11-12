@@ -223,7 +223,7 @@ the server yourself:
   `127.0.0.1`. In production: ports 80 and 443 reachable from the internet and a
   DNS name for the server.
 - Clients need an `https` address in production; locally `http://127.0.0.1` is
-  accepted as a redirect URI, and `http://localhost` with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  accepted as a redirect URI, and `http://localhost` with `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` (or, while the MCP endpoint is on, for a sign-in to it alone).
 
 ## Words to know
 

@@ -98,6 +98,7 @@
   "auth.error.no_client": "Pyyntö ei nimeä asiakasta (client_id).",
   "auth.error.no_redirect": "Pyyntö ei nimeä redirect-URI:a, ja asiakkaalla on useita rekisteröityjä.",
   "auth.error.bad_redirect": "Redirect-URI:a ei ole rekisteröity tälle asiakkaalle.",
+  "auth.error.localhost_mcp": "Tämä ohjelma voi palata osoitteeseen http://localhost vain, kun se kirjautuu palvelimen MCP-päätepisteeseen.",
   "page.not_found.title": "Ei löydy",
   "page.not_found.message": "Tällaista sivua ei ole.",
   "account.title": "Oma tili",

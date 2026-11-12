@@ -67,8 +67,8 @@ consent the program lists the tools. A good start is `list_models`, then
 the program asks for `mcp:propose` at the first change-set tool, and the person
 is an editor or a manager of the project. Where the server registers no client
 by itself, an administrator registers the program with the redirect URI it
-names: `http://127.0.0.1` with any port is accepted, `http://localhost` only
-where `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` is on, which production refuses.
+names: `http://127.0.0.1` with any port, and `http://localhost` with any port
+for a sign-in to this endpoint alone; the server sends no other sign-in there.
 
 ## The protocol
 

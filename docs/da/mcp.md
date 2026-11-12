@@ -68,9 +68,9 @@ viser programmet værktøjerne. En god start er `list_models` og derefter
 foreslå beder programmet om `mcp:propose` ved det første værktøj til
 ændringssæt, og personen er editor eller manager i projektet. Hvor serveren ikke
 selv registrerer klienter, registrerer en administrator programmet med den
-omdirigeringsadresse, det angiver: `http://127.0.0.1` med vilkårlig port
-godtages, `http://localhost` kun hvor `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` er
-slået til, hvilket produktion afviser.
+omdirigeringsadresse, det angiver: `http://127.0.0.1` med vilkårlig port, og
+`http://localhost` med vilkårlig port for et login til dette endepunkt alene;
+serveren sender intet andet login dertil.
 
 ## Protokollen
 

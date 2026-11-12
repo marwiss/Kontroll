@@ -222,7 +222,7 @@ Den som bare bruker Dataregium gjennom en app, trenger en nettleser og en konto.
   `127.0.0.1`. I produksjon: portene 80 og 443 tilgjengelige fra internett og et
   DNS-navn for serveren.
 - Klienter trenger en `https`-adresse i produksjon; lokalt godtas `http://127.0.0.1`
-  som redirect-URI, og `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  som redirect-URI, og `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` (eller, mens MCP-endepunktet er på, for en innlogging mot det alene).
 
 ## Ord du bør kjenne
 

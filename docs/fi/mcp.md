@@ -69,9 +69,9 @@ jälkeen ohjelma luettelee työkalut. Hyvä alku on `list_models` ja sitten
 ohjelma pyytää `mcp:propose` ensimmäisen muutosjoukon työkalun kohdalla, ja
 henkilö on projektin editor tai manager. Jos palvelin ei itse rekisteröi
 asiakkaita, ylläpitäjä rekisteröi ohjelman sen ilmoittamalla
-uudelleenohjausosoitteella: `http://127.0.0.1` millä tahansa portilla
-hyväksytään, `http://localhost` vain kun `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` on
-päällä, minkä tuotanto torjuu.
+uudelleenohjausosoitteella: `http://127.0.0.1` millä tahansa portilla, ja
+`http://localhost` millä tahansa portilla pelkästään tähän päätepisteeseen
+kirjauduttaessa; muuta kirjautumista palvelin ei lähetä sinne.
 
 ## Protokolla
 

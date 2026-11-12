@@ -272,7 +272,7 @@ rekisteröityy itse osoitteessa `oauth2_dynamic_client_reg_url`, joka on kohtees
 tavalla, kun taas Foundation API:n rekisteröinti ei merkitse ketään. Julkinen asiakas ei
 voi koskaan jättää PKCE:tä pois, ja merkitty asiakas, joka lähettää `code_challenge`-arvon,
 sidotaan siihen. Käytä PKCE:tä, jos voit. Redirect-URI osoitteessa `http://localhost` vaatii
-asetuksen `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+asetuksen `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`. Kun MCP-päätepiste on päällä, asiakas voi myös rekisteröidä osoitteen `http://localhost` (mikä tahansa portti) pelkästään päätepisteeseen kirjautumista varten.
 
 ## 4. Documents API
 

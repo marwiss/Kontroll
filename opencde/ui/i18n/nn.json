@@ -98,6 +98,7 @@
   "auth.error.no_client": "Førespurnaden oppgjev ingen klient (client_id).",
   "auth.error.no_redirect": "Førespurnaden oppgjev ingen redirect-URI, og klienten har fleire registrerte.",
   "auth.error.bad_redirect": "Redirect-URI-en er ikkje registrert for denne klienten.",
+  "auth.error.localhost_mcp": "Dette programmet kan berre gå tilbake til http://localhost når det loggar inn mot MCP-endepunktet til serveren.",
   "page.not_found.title": "Ikkje funne",
   "page.not_found.message": "Det finst inga slik side.",
   "account.title": "Kontoen min",

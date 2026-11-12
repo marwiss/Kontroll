@@ -261,7 +261,7 @@ når `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, markeres på samme måde, mens
 registreringen i Foundation API ikke markerer nogen klient. En offentlig klient kan
 aldrig udelade PKCE, og en markeret klient, der sender en `code_challenge`, holdes til
 den. Brug PKCE, hvis du kan. En redirect-URI på `http://localhost` kræver
-`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`. Mens MCP-endepunktet er slået til, må en klient også registrere `http://localhost` (vilkårlig port) til et login til endepunktet alene.
 
 ## 4. Documents API
 

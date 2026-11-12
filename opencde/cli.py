@@ -640,7 +640,7 @@ def client_create(
     from opencde.store.oauth2.clients import ClientError, ClientRepository
 
     async def work(graph, settings):
-        repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
+        repo = ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost)
         try:
             return await repo.create(
                 name, redirect_uri, public=public, description=description, pkce_optional=without_pkce
@@ -662,7 +662,7 @@ def client_list() -> None:
     from opencde.store.oauth2.clients import ClientRepository
 
     async def work(graph, settings):
-        return await ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects).all()
+        return await ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost).all()
 
     for client in _run(work):
         kind = "public" if client.is_public else "confidential"
@@ -678,9 +678,9 @@ def client_rotate_secret(client_id: str) -> None:
 
     async def work(graph, settings):
         try:
-            return await ClientRepository(
-                graph, allow_localhost_redirects=settings.allow_localhost_redirects
-            ).rotate_secret(client_id)
+            return await ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost).rotate_secret(
+                client_id
+            )
         except ClientError as exc:
             raise _fail(str(exc)) from None
 
@@ -693,7 +693,7 @@ def client_approve(client_id: str) -> None:
     from opencde.store.oauth2.clients import ClientError, ClientRepository
 
     async def work(graph, settings):
-        repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
+        repo = ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost)
         try:
             await repo.update(client_id, disabled=False)
         except ClientError as exc:
@@ -714,7 +714,7 @@ def client_prune(
     from opencde.store.oauth2.clients import ClientRepository
 
     async def work(graph, settings):
-        repo = ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
+        repo = ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost)
         return await repo.prune_dynamic(all_dynamic=all_dynamic)
 
     print(f"OK      deleted {_run(work)} self-registered client(s)")

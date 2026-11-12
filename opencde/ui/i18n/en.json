@@ -98,6 +98,7 @@
   "auth.error.no_client": "The request does not name a client (client_id).",
   "auth.error.no_redirect": "The request does not name a redirect URI and the client has several registered.",
   "auth.error.bad_redirect": "The redirect URI is not registered for this client.",
+  "auth.error.localhost_mcp": "This program may come back to http://localhost only when it signs in to the server's MCP endpoint.",
   "page.not_found.title": "Not found",
   "page.not_found.message": "There is no such page.",
   "account.title": "My account",

@@ -94,6 +94,8 @@ def test_a_way_back_to_localhost_is_refused_with_its_own_code_and_advice(setting
         assert other.status_code == 400 and other.json()["code"] == "validation_error"
     with _client_for(settings, dynamic_client_registration=True, allow_localhost_redirects=True) as client:
         assert client.post("/foundation/oauth2/reg", json=to_localhost).status_code == 201
+    with _client_for(settings, dynamic_client_registration=True, mcp_enabled=True) as client:
+        assert client.post("/foundation/oauth2/reg", json=to_localhost).status_code == 201, "for MCP (F40 b)"
 
 
 def test_the_registration_limit_follows_the_environment(

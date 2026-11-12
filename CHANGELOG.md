@@ -45,6 +45,9 @@ storey, the check against bSDD, and the element of each rules finding. Works wit
   know, with the document in `document_id` and its specification named in the message, in the report of every file
   checked against that document. Each IDS version is read once, the lookups share the check's cache, and a trial of a
   change set never counts such a URI among its own findings.
+- While the MCP endpoint is on, a client may register `http://localhost` with any port as its way back, as several
+  MCP programs do, and the server sends a sign-in there only when it is for the MCP endpoint alone; every other
+  sign-in to localhost is refused on a page, as before, unless `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` is on.
 - The MCP page says how an AI program is connected: the address on the local engine and on a team server, and
   examples for Claude Code, VS Code and Cursor (`docs/en/mcp.md`).
 - The capabilities' `ifcgraph` names the store the models are in, `graph_store` (`neo4j` or `memgraph`), so that a

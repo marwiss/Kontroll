@@ -98,6 +98,7 @@
   "auth.error.no_client": "Begäran anger ingen klient (client_id).",
   "auth.error.no_redirect": "Begäran anger ingen redirect-URI och klienten har flera registrerade.",
   "auth.error.bad_redirect": "Redirect-URI:n är inte registrerad för den här klienten.",
+  "auth.error.localhost_mcp": "Det här programmet får återvända till http://localhost bara när det loggar in mot serverns MCP-ändpunkt.",
   "page.not_found.title": "Hittades inte",
   "page.not_found.message": "Det finns ingen sådan sida.",
   "account.title": "Mitt konto",

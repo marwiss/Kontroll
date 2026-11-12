@@ -51,6 +51,7 @@ from opencde.store.oauth2.clients import (
     MAX_DESCRIPTION,
     Client,
     ClientError,
+    is_localhost,
     redirect_uri_matches,
     validate_redirect_uri,
 )
@@ -173,6 +174,10 @@ async def authorize_page(
         return _error_redirect(redirect_to, "invalid_scope", str(exc), state, issuer)
     except resources.TargetError as exc:
         return _error_redirect(redirect_to, "invalid_target", str(exc), state, issuer)
+    if is_localhost(redirect_to) and bound_to is None and not settings.allow_localhost_redirects:
+        # F40 b: the way back to localhost is the MCP programs'; no other sign-in is sent there
+        message = tr(request, "auth.error.localhost_mcp")
+        return render(request, "auth/error.html", {"message": message}, status_code=400)
 
     token = form_tokens(request).sign(
         FORM_PURPOSE,
@@ -511,7 +516,7 @@ async def registered(
     public = body.token_endpoint_auth_method == AUTH_METHOD_NONE
     try:
         for uri in uris:
-            validate_redirect_uri(uri, allow_localhost=settings.allow_localhost_redirects)
+            validate_redirect_uri(uri, allow_localhost=settings.registers_localhost)
         client, secret = await clients.create(
             body.client_name,
             uris,

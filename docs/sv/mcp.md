@@ -67,9 +67,9 @@ sedan `server_query` med `name` null för de frågor en modell svarar på. För 
 föreslå ber programmet om `mcp:propose` vid det första verktyget för
 ändringsset, och personen är editor eller manager i projektet. Där servern inte
 registrerar klienter av sig själv registrerar en administratör programmet med
-den omdirigeringsadress det anger: `http://127.0.0.1` med valfri port godtas,
-`http://localhost` bara där `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` är på, vilket
-produktion vägrar.
+den omdirigeringsadress det anger: `http://127.0.0.1` med valfri port, och
+`http://localhost` med valfri port för en inloggning mot den här ändpunkten
+ensam; servern skickar ingen annan inloggning dit.
 
 ## Protokollet
 

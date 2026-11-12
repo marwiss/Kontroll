@@ -98,6 +98,7 @@
   "auth.error.no_client": "Beiðnin tilgreinir engan biðlara (client_id).",
   "auth.error.no_redirect": "Beiðnin tilgreinir ekkert redirect-URI og biðlarinn hefur nokkur skráð.",
   "auth.error.bad_redirect": "Þetta redirect-URI er ekki skráð fyrir þennan biðlara.",
+  "auth.error.localhost_mcp": "Þetta forrit má aðeins snúa aftur til http://localhost þegar það skráir sig inn á MCP-endapunkt þjónsins.",
   "page.not_found.title": "Fannst ekki",
   "page.not_found.message": "Engin slík síða er til.",
   "account.title": "Reikningurinn minn",

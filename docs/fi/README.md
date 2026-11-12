@@ -226,7 +226,7 @@ Palvelimen ajamiseen itse:
   internetistä ja DNS-nimi palvelimelle.
 - Asiakkaat tarvitsevat tuotannossa `https`-osoitteen; paikallisesti
   `http://127.0.0.1` hyväksytään uudelleenohjaus-URI:ksi, ja `http://localhost`
-  asetuksella `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  asetuksella `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` (tai, kun MCP-päätepiste on päällä, pelkästään siihen kirjauduttaessa).
 
 ## Sanoja, jotka on hyvä tuntea
 

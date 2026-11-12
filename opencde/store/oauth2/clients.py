@@ -89,6 +89,15 @@ FIELDS = (
 )
 
 
+LOOPBACK_NAMES = ("127.0.0.1", "::1", "localhost")
+
+
+def is_localhost(uri: str) -> bool:
+    """Whether the way back goes to http://localhost, which only a sign-in to the MCP endpoint may use (F40 b)."""
+    parts = urlsplit(uri)
+    return parts.scheme.lower() == "http" and (parts.hostname or "").lower() == "localhost"
+
+
 def validate_redirect_uri(uri: str, *, allow_localhost: bool = False) -> str:
     """Accept https URIs, loopback http URIs and private-use schemes of native apps; nothing else."""
     uri = uri.strip()
@@ -124,13 +133,14 @@ def validate_redirect_uri(uri: str, *, allow_localhost: bool = False) -> str:
 
 
 def redirect_uri_matches(registered: str, requested: str) -> bool:
-    """Exact match, except that loopback http URIs may use any port (RFC 8252 §7.3)."""
+    """Exact match, except that loopback http URIs may use any port (RFC 8252 §7.3); a registered
+    ``localhost`` is matched so too, since a program picks its port when it signs in (F40 b)."""
     if registered == requested:
         return True
     reg, req = urlsplit(registered), urlsplit(requested)
     if reg.scheme != "http" or req.scheme != "http":
         return False
-    if (reg.hostname or "").lower() not in ("127.0.0.1", "::1") or (reg.hostname or "").lower() != (
+    if (reg.hostname or "").lower() not in LOOPBACK_NAMES or (reg.hostname or "").lower() != (
         req.hostname or ""
     ).lower():
         return False

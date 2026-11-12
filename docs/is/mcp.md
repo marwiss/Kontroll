@@ -68,8 +68,9 @@ með `name` null fyrir fyrirspurnirnar sem líkan svarar. Til að leggja til bi�
 forritið um `mcp:propose` við fyrsta verkfæri breytingasetta, og manneskjan er
 editor eða manager í verkefninu. Þar sem þjónninn skráir ekki biðlara sjálfur
 skráir stjórnandi forritið með þeirri endurbeiningarslóð sem það gefur upp:
-`http://127.0.0.1` með hvaða gátt sem er er samþykkt, `http://localhost` aðeins
-þar sem `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` er virkt, sem framleiðsla hafnar.
+`http://127.0.0.1` með hvaða gátt sem er, og `http://localhost` með hvaða gátt
+sem er fyrir innskráningu á þennan endapunkt eingöngu; þjónninn sendir enga
+aðra innskráningu þangað.
 
 ## Samskiptareglan
 

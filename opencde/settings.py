@@ -572,6 +572,12 @@ class Settings(BaseSettings):
         return self.environment == "production"
 
     @property
+    def registers_localhost(self) -> bool:
+        """Whether a client may register a way back to http://localhost: everywhere with
+        ``OPENCDE_ALLOW_LOCALHOST_REDIRECTS``, and while the MCP endpoint is on for a sign-in to it alone (F40 b)."""
+        return self.allow_localhost_redirects or self.mcp_enabled
+
+    @property
     def is_local(self) -> bool:
         """The engine on a person's own computer (ADR 0023): loopback only, with a Host check."""
         return self.environment == "local"

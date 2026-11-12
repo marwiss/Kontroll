@@ -222,7 +222,7 @@ at køre serveren:
   `127.0.0.1`. I produktion: portene 80 og 443 tilgængelige fra internettet og et
   DNS-navn til serveren.
 - Klienter skal have en `https`-adresse i produktion; lokalt accepteres
-  `http://127.0.0.1` som redirect-URI, og `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  `http://127.0.0.1` som redirect-URI, og `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` (eller, mens MCP-endepunktet er slået til, til et login til det alene).
 
 ## Ord du bør kende
 

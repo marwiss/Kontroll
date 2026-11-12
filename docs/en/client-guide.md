@@ -254,7 +254,7 @@ registers itself at the `oauth2_dynamic_client_reg_url` in `GET /bcf/2.1/auth`, 
 `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, is marked the same way, while the
 Foundation API's registration marks no client. A public client can never leave PKCE
 out, and a marked client that sends a `code_challenge` is held to it. Use PKCE if you
-can. A redirect URI at `http://localhost` needs `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+can. A redirect URI at `http://localhost` needs `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`. While the MCP endpoint is on, a client may also register `http://localhost` (any port) for a sign-in to the endpoint alone.
 
 ## 4. Documents API
 

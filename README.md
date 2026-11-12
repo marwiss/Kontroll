@@ -225,7 +225,7 @@ konto. För att köra servern själv:
   `127.0.0.1`. I produktion: portarna 80 och 443 nåbara från internet och ett
   DNS-namn för servern.
 - Klienter behöver en `https`-adress i produktion; lokalt accepteras
-  `http://127.0.0.1` som redirect-URI, och `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  `http://127.0.0.1` som redirect-URI, och `http://localhost` med `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` (eller, medan MCP-ändpunkten är på, för en inloggning mot den ensam).
 
 ## Ord att känna till
 

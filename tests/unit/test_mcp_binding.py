@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
@@ -291,3 +292,44 @@ def test_the_capabilities_name_the_mcp_scopes_only_with_the_endpoint(
 ) -> None:
     assert mcp_on[0].get("/.well-known/dataregium").json()["scopes"][-2:] == ["mcp", "mcp:propose"]
     assert "mcp" not in mcp_off[0].get("/.well-known/dataregium").json()["scopes"]
+
+
+LOCALHOST = "http://localhost/callback"
+
+
+class LocalhostClients(Clients):
+    """A program that comes back to http://localhost, as several MCP programs do."""
+
+    async def get(self, client_id: str) -> Client | None:
+        found = await super().get(client_id)
+        return None if found is None else replace(found, redirect_uris=[LOCALHOST])
+
+
+def _localhost(client: TestClient, *pairs: tuple[str, str], scope: str | None = None) -> httpx.Response:
+    params = [
+        ("response_type", "code"),
+        ("client_id", CLIENT.client_id),
+        ("redirect_uri", "http://localhost:53682/callback"),
+        ("state", "s1"),
+        ("code_challenge", pkce.challenge_for("v" * 50)),
+        ("code_challenge_method", "S256"),
+        *pairs,
+    ]
+    if scope is not None:
+        params.append(("scope", scope))
+    return client.get("/foundation/oauth2/auth", params=params, follow_redirects=False)
+
+
+def test_a_way_back_to_localhost_is_for_a_sign_in_to_the_mcp_endpoint_alone(tmp_path: Path) -> None:
+    """F40 b: the MCP programs come back to localhost on a port of their own; no other sign-in goes there."""
+    app = create_app(make_settings(tmp_path, mcp_enabled=True), startup_wait_seconds=0)
+    app.dependency_overrides[get_clients] = LocalhostClients
+    app.dependency_overrides[get_graph] = Graph
+    with TestClient(app) as client:
+        for_mcp = _localhost(client, ("resource", MCP), scope="mcp")
+        for_rest = _localhost(client, scope="profile bcf")
+        unscoped = _localhost(client)
+    assert _signed(client, for_mcp)["resource"] == MCP, "the consent page, bound to the endpoint"
+    for refused in (for_rest, unscoped):
+        assert refused.status_code == 400 and "location" not in refused.headers, "nothing is sent to localhost"
+        assert "only when it signs in to the server" in refused.text

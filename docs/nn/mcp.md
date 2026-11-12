@@ -69,9 +69,9 @@ samtykket listar programmet verktøya. Ein god start er `list_models` og så
 føreslå ber programmet om `mcp:propose` ved det første verktøyet for
 endringssett, og personen er editor eller manager i prosjektet. Der serveren
 ikkje registrerer klientar sjølv, registrerer ein administrator programmet med
-omdirigeringsadressa det gjev: `http://127.0.0.1` med valfri port blir godteken,
-`http://localhost` berre der `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` er på, noko
-produksjon avslår.
+omdirigeringsadressa det gjev: `http://127.0.0.1` med valfri port, og
+`http://localhost` med valfri port for ei innlogging mot dette endepunktet
+aleine; serveren sender inga anna innlogging dit.
 
 ## Protokollen
 

@@ -264,7 +264,7 @@ token-adressa. Ein klient som registrerer seg sjølv på `oauth2_dynamic_client_
 måte, medan registreringa i Foundation API ikkje merkjer nokon klient. Ein offentleg
 klient kan aldri utelate PKCE, og ein merkt klient som sender ein `code_challenge`, blir
 halden til han. Bruk PKCE om du kan. Ein redirect-URI på `http://localhost` krev
-`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+`OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`. Medan MCP-endepunktet er på, kan ein klient òg registrere `http://localhost` (valfri port) for ei innlogging mot endepunktet aleine.
 
 ## 4. Documents API
 

@@ -260,7 +260,7 @@ innskráningarnar, gefið með HTTP Basic á tókaslóðinni. Biðlari sem skrá
 `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, er merktur á sama hátt, en skráningin í
 Foundation API merkir engan biðlara. Opinber biðlari getur aldrei sleppt PKCE, og merktur
 biðlari sem sendir `code_challenge` er bundinn við það. Notaðu PKCE ef þú getur.
-Redirect-URI á `http://localhost` krefst `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+Redirect-URI á `http://localhost` krefst `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`. Meðan MCP-endapunkturinn er virkur má biðlari einnig skrá `http://localhost` (hvaða gátt sem er) fyrir innskráningu á endapunktinn eingöngu.
 
 ## 4. Documents API
 

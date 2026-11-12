@@ -218,7 +218,7 @@ Sá sem notar Dataregium aðeins í gegnum forrit þarf vafra og aðgang. Til a�
   við `127.0.0.1`. Í rekstri: gáttir 80 og 443 aðgengilegar frá internetinu og
   DNS-nafn fyrir þjóninn.
 - Biðlarar þurfa `https`-slóð í rekstri; staðbundið er `http://127.0.0.1` samþykkt sem
-  redirect-URI, og `http://localhost` með `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true`.
+  redirect-URI, og `http://localhost` með `OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true` (eða, meðan MCP-endapunkturinn er virkur, fyrir innskráningu á hann eingöngu).
 
 ## Orð sem gott er að þekkja
 

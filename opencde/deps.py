@@ -46,7 +46,7 @@ def get_projects(graph: Annotated[Graph, Depends(get_graph)]) -> ProjectStore:
 def get_clients(
     graph: Annotated[Graph, Depends(get_graph)], settings: Annotated[Settings, Depends(get_settings)]
 ) -> ClientStore:
-    return ClientRepository(graph, allow_localhost_redirects=settings.allow_localhost_redirects)
+    return ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost)
 
 
 def client_ip(request: Request) -> str | None:
