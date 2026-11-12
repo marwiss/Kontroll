@@ -28,7 +28,13 @@ class ODataParams:
     request: Request | None = None
     response: Response | None = None
 
-    def compile(self, fields: Mapping[str, Field], orderable: Iterable[str], default_order: str) -> Compiled:
+    def compile(
+        self,
+        fields: Mapping[str, Field],
+        orderable: Iterable[str],
+        default_order: str,
+        default_sql_order: str | None = None,
+    ) -> Compiled:
         try:
             return compile_odata(
                 filter_=self.filter,
@@ -39,6 +45,7 @@ class ODataParams:
                 orderable=orderable,
                 default_order=default_order,
                 max_top=MAX_TOP,
+                default_sql_order=default_sql_order,
             )
         except ODataError as exc:
             raise HTTPException(400, f"Invalid query options: {exc}") from None
