@@ -41,7 +41,7 @@ RATE_UPLOAD = "120/minute"
 RATE_ADMIN = "240/minute"
 RATE_REGISTRATION = "5/hour"
 RATE_REGISTRATION_DEVELOPMENT = "60/hour"  # someone trying a server out registers again and again
-RATE_MCP_TOOL_CALLS = "120/minute"  # per token, on the MCP endpoint (ADR 0028): an AI's loop, not a person
+RATE_MCP_TOOL_CALLS = "120/minute"  # per user, on the MCP endpoint (ADR 0028): an AI's loop, not a person
 
 STORE_TIMEOUT_SECONDS = 1.0  # a shared store that stops answering must not hold up the server
 

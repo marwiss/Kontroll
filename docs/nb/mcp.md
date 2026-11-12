@@ -123,6 +123,9 @@ et verktøyresultat med `isError: true` som AI-en kan lese; svaret er
   `missing`, `seconds` og høyst 200 `clashes`, med `truncated` når det fantes
   flere. Begge kollisjonsverktøyene avslår uten
   `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  De tre vises bare mens IFC-LPG-modulen er på. En bruker har høyst to
+  kontroller som venter eller kjører, i alle prosjektene sine til sammen; en
+  tredje avslås, og revisjonsloggen fører `mcp.denied` med grunnen `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -215,7 +218,7 @@ til en modell i skyen.
 - En kropp er høyst 1 MB og et svar høyst 256 kB, med høyst 500 rader fra en
   spørring og 200 kollisjoner; navn og titler kuttes ved 200 tegn og en tekst i
   radene fra en spørring ved 1 000. `get_clash_check` venter høyst 20 sekunder.
-- Et token gjør høyst 120 verktøykall i minuttet, i tillegg til grensen per
+- En bruker gjør høyst 120 verktøykall i minuttet, uansett token, i tillegg til grensen per
   adresse som alle programmer deler (`OPENCDE_RATE_LIMIT_API`); utover den
   svarer verktøyet `isError` med hvor mange sekunder det må ventes.
 - Forespørselsloggen beholder metoden og verktøyets navn, aldri kroppen.

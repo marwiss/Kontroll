@@ -122,6 +122,9 @@ er `structuredContent` og den same JSON-en som tekst.
   eller køyrer: `state`, førespurnaden, `count`, `set_a`, `set_b`, `missing`,
   `seconds` og høgst 200 `clashes`, med `truncated` når det fanst fleire. Begge
   kollisjonsverktøya avslår utan `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  Dei tre blir viste berre medan IFC-LPG-modulen er på. Ein brukar har høgst to
+  kontrollar som ventar eller køyrer, i alle prosjekta sine til saman; ein
+  tredje blir avslått, og revisjonsloggen fører `mcp.denied` med grunnen `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -214,7 +217,7 @@ eit anna program på same maskin kan likevel sende svara til ein modell i skya.
   spørjing og 200 kollisjonar; namn og titlar blir kutta ved 200 teikn og ein
   tekst i radene frå ei spørjing ved 1 000. `get_clash_check` ventar høgst 20
   sekund.
-- Eit token gjer høgst 120 verktøykall i minuttet, i tillegg til grensa per
+- Ein brukar gjer høgst 120 verktøykall i minuttet, same kva token, i tillegg til grensa per
   adresse som alle program deler (`OPENCDE_RATE_LIMIT_API`); utover henne svarar
   verktøyet `isError` med kor mange sekund det må ventast.
 - Førespurnadsloggen held på metoden og namnet på verktøyet, aldri kroppen.

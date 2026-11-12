@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 from pydantic import Field, ValidationError
 
 from opencde.mcp import protocol, routes
-from opencde.mcp.registry import MAX_NAME, Arguments, input_schema, problems
+from opencde.mcp.registry import MAX_NAME, Arguments, input_schema, problems, text_result
 from tests.mcp_support import (
     BEARER,
     CLOUD,
@@ -452,3 +452,10 @@ def test_the_request_log_keeps_the_method_and_a_known_tool_never_the_body(tmp_pa
     ]
     assert all(secret not in str(entry) for entry in writer.entries)
     assert {entry["path"] for entry in writer.entries} == {"/mcp"}
+
+
+@pytest.mark.parametrize("number", [float("nan"), float("inf"), float("-inf")])
+def test_an_answer_with_a_number_json_has_not_is_a_tool_error(number: float) -> None:
+    """A STEP REAL such as 1.0E400 is an infinity: the answer is refused as a tool error, never a 500."""
+    refused = text_result({"rows": [[number]]})
+    assert refused["isError"] is True and "NaN or an infinity" in refused["content"][0]["text"]

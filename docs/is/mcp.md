@@ -124,6 +124,10 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
   `set_b`, `missing`, `seconds` og í mesta lagi 200 `clashes`, með `truncated`
   þegar þeir voru fleiri. Bæði árekstrarverkfærin hafna nema
   `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  Þessi þrjú eru aðeins skráð meðan IFC-LPG-einingin er virk. Notandi hefur í
+  mesta lagi tvær prófanir sem bíða eða eru í gangi, í öllum verkefnum sínum
+  samanlagt; þriðju er hafnað og endurskoðunarskráin skráir `mcp.denied` með
+  ástæðunni `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -219,7 +223,7 @@ sent svörin til líkans í skýinu.
   500 línum úr fyrirspurn og 200 árekstrum; nöfn og titlar eru styttir við 200
   stafi og texti í línum fyrirspurnar við 1.000. `get_clash_check` bíður í mesta
   lagi 20 sekúndur.
-- Tóki gerir í mesta lagi 120 verkfærisköll á mínútu, auk marka á hvert
+- Notandi gerir í mesta lagi 120 verkfærisköll á mínútu, hver sem tókinn er, auk marka á hvert
   vistfang sem öll forrit deila (`OPENCDE_RATE_LIMIT_API`); umfram það svarar
   verkfærið `isError` með þeim sekúndum sem bíða þarf.
 - Beiðnaskráin geymir aðferðina og heiti verkfærisins, aldrei meginmálið.

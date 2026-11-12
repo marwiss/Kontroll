@@ -10,12 +10,14 @@ from __future__ import annotations
 import io
 import json
 import logging
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 import structlog
 
+from opencde.auth.dependencies import get_tokens
 from opencde.auth.scopes import MCP_PROPOSE
 from opencde.logging import configure_logging
 from opencde.mcp import routes
@@ -26,6 +28,7 @@ from tests.mcp_support import (
     LOCAL,
     MODERN,
     FakeGraph,
+    OneToken,
     call,
     endpoint,
     headers,
@@ -184,18 +187,24 @@ def test_the_local_engine_answers_only_on_the_loopback_here_too(tmp_path: Path) 
 # -- the limit --------------------------------------------------------------------------------------------------------
 
 
-def test_a_token_makes_at_most_120_tool_calls_a_minute(tmp_path: Path) -> None:
+def test_a_user_makes_at_most_120_tool_calls_a_minute_whatever_the_token(tmp_path: Path) -> None:
     with endpoint(tmp_path, FakeGraph(models=[]), rate_limits_enabled=True) as client:
         answers = [call(client, "list_models", {"project_id": None}).json()["result"] for _ in range(121)]
         listed = rpc(client, "tools/list")
+        tokens = client.app.dependency_overrides  # type: ignore[attr-defined]
+        tokens[get_tokens] = lambda: OneToken(principal(hashed="refreshed"))
+        refreshed = call(client, "list_models", {"project_id": None}).json()["result"]
+        someone = replace(principal(hashed="another"), user_id="u-bertil", username="bertil")
+        tokens[get_tokens] = lambda: OneToken(someone)
+        other = call(client, "list_models", {"project_id": None}).json()["result"]
     assert all(answer["isError"] is False for answer in answers[:120])
     limited = answers[120]
     assert limited["isError"] is True and limited["content"][0]["text"].startswith(
-        "Too many tool calls: at most 120 a minute for each token. Try again in "
+        "Too many tool calls: at most 120 a minute for each user. Try again in "
     )
     assert listed.status_code == 200, "listing is no tool call"
-    with endpoint(tmp_path, FakeGraph(models=[]), principal(hashed="another"), rate_limits_enabled=True) as other:
-        assert call(other, "list_models", {"project_id": None}).json()["result"]["isError"] is False
+    assert refreshed["isError"] is True, "a new token of the same user has no budget of its own"
+    assert other["isError"] is False, "another user has"
 
 
 # -- the AI policy ----------------------------------------------------------------------------------------------------

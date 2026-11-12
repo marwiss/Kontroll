@@ -122,6 +122,9 @@ tager) er et værktøjsresultat med `isError: true`, som AI'en kan læse; svaret
   eller kører: dens `state`, anmodningen, `count`, `set_a`, `set_b`, `missing`,
   `seconds` og højst 200 `clashes`, med `truncated`, når der var flere. Begge
   kollisionsværktøjer afviser, medmindre `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  De tre vises kun, mens IFC-LPG-modulet er slået til. En bruger har højst to
+  kontroller, der venter eller kører, i alle sine projekter tilsammen; en tredje
+  afvises, og revisionsloggen registrerer `mcp.denied` med grunden `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -215,7 +218,7 @@ til en model i skyen.
   forespørgsel og 200 kollisioner; navne og titler afkortes ved 200 tegn og en
   tekst i en forespørgsels rækker ved 1.000. `get_clash_check` venter højst 20
   sekunder.
-- En token laver højst 120 værktøjskald i minuttet, ud over grænsen pr. adresse,
+- En bruger laver højst 120 værktøjskald i minuttet, uanset token, ud over grænsen pr. adresse,
   som alle programmer deler (`OPENCDE_RATE_LIMIT_API`); derudover svarer
   værktøjet `isError` med det antal sekunder, der skal ventes.
 - Forespørgselsloggen beholder metoden og værktøjets navn, aldrig kroppen.

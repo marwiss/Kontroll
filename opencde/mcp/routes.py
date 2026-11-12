@@ -9,7 +9,7 @@ checked (``-32602``), its headers against its body (``-32020``) and its revision
 ``server/discover``, ``tools/list`` and ``tools/call`` (else 404 and ``-32601``). A request of a handshake revision
 (2025-11-25, 2025-06-18, 2025-03-26) may be ``initialize``, ``ping``, ``tools/list`` or ``tools/call``, and is answered
 without a session: no ``Mcp-Session-Id`` is ever made, and one sent is ignored. GET and DELETE answer 405. A tool
-needs its scope (403 ``insufficient_scope`` for a step-up), and a token makes at most 120 tool calls a minute. The
+needs its scope (403 ``insufficient_scope`` for a step-up), and a user makes at most 120 tool calls a minute. The
 request log gets the method and the tool's name, never the body; nothing a client sends is logged.
 """
 
@@ -285,11 +285,11 @@ async def _call(
     if not caller.has_scope(tool.scope):
         await context.record("mcp.denied", reason="scope", scope=tool.scope)
         require_mcp_scope(caller, tool.scope, settings)
-    wait = wait_seconds(RATE_MCP_TOOL_CALLS, "mcp-tool-calls", caller.token_hash)
+    wait = wait_seconds(RATE_MCP_TOOL_CALLS, "mcp-tool-calls", caller.user_id)  # every token of the user at once
     if wait is not None:
         log.warning("mcp_tool_calls_limited", client_id=caller.client_id)
         return registry.error_result(
-            f"Too many tool calls: at most {RATE_MCP_TOOL_CALLS.replace('/', ' a ')} for each token. "
+            f"Too many tool calls: at most {RATE_MCP_TOOL_CALLS.replace('/', ' a ')} for each user. "
             f"Try again in {wait} seconds."
         )
     return await registry.call(tool, context, arguments)

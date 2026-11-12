@@ -122,6 +122,9 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
   eller körs: dess `state`, begäran, `count`, `set_a`, `set_b`, `missing`,
   `seconds` och högst 200 `clashes`, med `truncated` när det fanns fler. Båda
   krockverktygen vägrar om inte `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  De tre listas bara när IFC-LPG-modulen är på. En användare har högst två
+  krocktester som väntar eller körs, i alla sina projekt tillsammans; ett tredje
+  vägras, och granskningsloggen antecknar `mcp.denied` med skälet `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -213,7 +216,7 @@ molnet.
 - En kropp är högst 1 MB och ett svar högst 256 kB, med högst 500 rader ur en
   fråga och 200 krockar; namn och titlar kapas vid 200 tecken och en text i en
   frågas rader vid 1 000. `get_clash_check` väntar högst 20 sekunder.
-- En token gör högst 120 verktygsanrop i minuten, utöver gränsen per adress som
+- En användare gör högst 120 verktygsanrop i minuten, vilken token det än är, utöver gränsen per adress som
   alla program delar (`OPENCDE_RATE_LIMIT_API`); därutöver svarar verktyget
   `isError` med hur många sekunder som återstår att vänta.
 - Begärandeloggen behåller metoden och verktygets namn, aldrig kroppen.

@@ -20,6 +20,9 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- On the MCP endpoint `server_query` and the two clash tools are listed only while the IFC-LPG module is on, as
+  the change sets are; a user has at most two clash checks waiting or running in all their projects together, and
+  makes at most 120 tool calls a minute whatever the token; an answer holding NaN or an infinity is a tool error.
 - An error in the JSON log (`OPENCDE_LOG_JSON`, the default) carries its traceback without the frames' local
   variables, which held a request's body, its arguments and the caller's token.
 - The MCP endpoint proposes change sets while the IFC-LPG module is on (ADR 0028, step 2): `open_changeset` opens a

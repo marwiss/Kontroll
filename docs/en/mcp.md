@@ -122,6 +122,9 @@ tool result with `isError: true` that the AI can read; the answer is
   queued or running: its `state`, the request, `count`, `set_a`, `set_b`,
   `missing`, `seconds` and at most 200 `clashes`, with `truncated` when there
   were more. Both clash tools refuse unless `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  The three are listed only while the IFC-LPG module is on. A user has at most
+  two checks waiting or running, in all their projects together; a third is
+  refused, and the audit log records `mcp.denied` with the reason `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -211,7 +214,7 @@ the answers to a model in the cloud.
 - A body is at most 1 MB, and an answer at most 256 kB, with at most 500 rows of
   a query and 200 clashes; names and titles are cut at 200 characters, and a
   text in a query's rows at 1,000. `get_clash_check` waits at most 20 seconds.
-- A token makes at most 120 tool calls a minute, beside the limit per address
+- A user makes at most 120 tool calls a minute, whatever the token, beside the limit per address
   that all programs share (`OPENCDE_RATE_LIMIT_API`); past it the tool answers
   `isError` with the seconds to wait.
 - The request log keeps the method and the tool's name, never the body. The

@@ -177,7 +177,10 @@ def client_info(meta: Any) -> dict[str, str]:
 
 
 def text_result(answer: dict[str, Any]) -> dict[str, Any]:
-    text = json.dumps(answer, ensure_ascii=False, separators=(",", ":"))
+    try:
+        text = json.dumps(answer, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    except ValueError:  # NaN or an infinity, from a model, which JSON has no number for
+        return error_result("The answer holds a number JSON cannot carry (NaN or an infinity); ask for less")
     if len(text.encode("utf-8")) > MAX_ANSWER_BYTES:
         return error_result(f"The answer would be larger than {MAX_ANSWER_BYTES // 1024} kB; ask for less")
     return {"content": [{"type": "text", "text": text}], "structuredContent": answer, "isError": False}

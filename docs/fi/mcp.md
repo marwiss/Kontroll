@@ -126,6 +126,10 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
   `set_a`, `set_b`, `missing`, `seconds` ja enintään 200 `clashes`, ja
   `truncated`, kun niitä oli enemmän. Kumpikin törmäystyökalu kieltäytyy, ellei
   `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+  Nämä kolme näkyvät luettelossa vain, kun IFC-LPG-moduuli on päällä.
+  Käyttäjällä voi olla enintään kaksi odottavaa tai käynnissä olevaa
+  tarkastusta kaikissa projekteissaan yhteensä; kolmas torjutaan, ja
+  tarkastusloki kirjaa `mcp.denied`-tapahtuman syyllä `limit`.
 
 ```json
 {"name": "elements", "columns": ["global_id", "class", "name", "container"],
@@ -221,7 +225,7 @@ silti lähettää vastaukset pilvessä olevalle mallille.
   kyselyn riviä ja 200 törmäystä; nimet ja otsikot katkaistaan 200 merkkiin ja
   kyselyn rivien teksti 1 000 merkkiin. `get_clash_check` odottaa enintään 20
   sekuntia.
-- Token tekee enintään 120 työkalukutsua minuutissa, osoitekohtaisen rajan
+- Käyttäjä tekee enintään 120 työkalukutsua minuutissa tokenista riippumatta, osoitekohtaisen rajan
   lisäksi, jonka kaikki ohjelmat jakavat (`OPENCDE_RATE_LIMIT_API`); sen jälkeen
   työkalu vastaa `isError` ja kertoo, montako sekuntia on odotettava.
 - Pyyntöloki säilyttää metodin ja työkalun nimen, ei koskaan runkoa.
