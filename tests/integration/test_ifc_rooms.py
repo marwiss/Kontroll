@@ -83,6 +83,7 @@ def test_without_the_setting_the_report_has_no_rooms(
     closed_model(file)
     with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
         editor = login_as(client, world, "editor")
+        web_sign_in(client, world, "editor")  # the upload page asks for a browser session
         version = upload(client, world, editor, "box.ifc", file.read_bytes())
         entries = checked(client, editor, version)
         body = client.get(entries["ifc_validation_report"][0], headers=editor.headers).json()

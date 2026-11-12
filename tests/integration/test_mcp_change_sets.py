@@ -24,6 +24,7 @@ from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import Session, authorize, exchange
 from tests.integration.test_ifc_validation import MODEL, checked, settings_for, upload
+from tests.integration.test_web_signin import web_sign_in
 from tests.mcp_support import META, MODERN
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
@@ -100,6 +101,7 @@ def _tried(client: TestClient, session: Session, project_id: str, topic_guid: st
 def test_an_ai_proposes_a_wall_with_a_door_and_reads_a_clean_trial(mcp_client: tuple[TestClient, World]) -> None:
     client, world = mcp_client
     editor = login_as(client, world, "editor")
+    web_sign_in(client, world, "editor")  # the upload page asks for a browser session
     version = upload(client, world, editor, "three_walls_gtin.ifc", MODEL.read_bytes())
     assert checked(client, editor, version)["ifc_validation_status"] == ["passed"]
     document_id = version["document_id"]
