@@ -64,13 +64,32 @@ def test_the_list_of_tools_and_each_tool_conform(client: TestClient) -> None:
         Draft202012Validator.check_schema(tool["inputSchema"])
 
 
+def least(schema: dict[str, Any]) -> Any:
+    """The least a schema takes: null where it may, else the smallest value of its type, an object filled in."""
+    options = schema.get("anyOf", [schema])
+    if {"type": "null"} in options:
+        return None
+    found = options[0]
+    if "enum" in found:
+        return found["enum"][0]
+    kind = found.get("type")
+    if kind == "object":
+        return {name: least(part) for name, part in found["properties"].items()}
+    return {"array": [], "integer": found.get("minimum", 1), "number": found.get("minimum", 1.0)}.get(kind, "x")
+
+
 @pytest.mark.parametrize("tool", routes.TOOLS, ids=lambda tool: tool.name)
 def test_a_tools_schema_takes_what_its_model_takes(tool: Any) -> None:
-    schema = Draft202012Validator(tool.definition()["inputSchema"])
-    accepted = {name: None for name in tool.arguments.model_fields}
+    definition = tool.definition()["inputSchema"]
+    schema = Draft202012Validator(definition)
+    accepted = least(definition)
     tool.arguments.model_validate(accepted)
     assert schema.is_valid(accepted)
-    for refused in ({}, {**accepted, "more": 1}):
+    refusals: list[dict[str, Any]] = [{}, {**accepted, "more": 1}]
+    refusals += [
+        {**accepted, name: {**value, "more": 1}} for name, value in accepted.items() if isinstance(value, dict)
+    ]
+    for refused in refusals:
         assert not schema.is_valid(refused), refused
         with pytest.raises(ValueError):
             tool.arguments.model_validate(refused)

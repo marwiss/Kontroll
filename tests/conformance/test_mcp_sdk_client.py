@@ -15,6 +15,7 @@ import pytest
 from opencde.auth.dependencies import get_tokens
 from opencde.deps import get_graph
 from opencde.main import create_app
+from opencde.mcp import routes
 from tests.conftest import test_settings as make_settings
 from tests.mcp_support import BEARER, BOUND, CLOUD, FakeGraph, OneToken
 
@@ -42,7 +43,7 @@ async def test_the_sdks_client_discovers_lists_and_calls(tmp_path: Path, mode: s
         assert client.server_info is not None and client.server_info.name == "Dataregium OpenCDE server"
         assert client.server_capabilities.tools is not None
         listed = await client.list_tools()
-        assert [tool.name for tool in listed.tools] == ["list_models"]
+        assert [tool.name for tool in listed.tools] == [tool.name for tool in routes.TOOLS]
         answer = await client.call_tool("list_models", {"project_id": None})
         assert answer.is_error is False
         assert answer.structured_content is not None and answer.structured_content["models"][0]["project_id"] == CLOUD

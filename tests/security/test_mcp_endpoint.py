@@ -85,13 +85,14 @@ PROPOSER = Tool(
 def test_a_tool_that_proposes_needs_mcp_propose_and_names_both_scopes_for_the_step_up(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    names = [tool.name for tool in routes.TOOLS]
     monkeypatch.setattr(routes, "TOOLS", (*routes.TOOLS, PROPOSER))
     monkeypatch.setitem(routes._BY_NAME, PROPOSER.name, PROPOSER)
     graph = FakeGraph()
     with endpoint(tmp_path, graph) as reader:
         listed = [tool["name"] for tool in rpc(reader, "tools/list").json()["result"]["tools"]]
         refused = call(reader, "probe_propose", {})
-    assert listed == ["list_models", "probe_propose"], "every tool is listed, whatever the token holds"
+    assert listed == [*names, "probe_propose"], "every tool is listed, whatever the token holds"
     assert refused.status_code == 403 and refused.json()["code"] == "insufficient_scope"
     expected = f'Bearer error="insufficient_scope", resource_metadata="{METADATA}", scope="mcp mcp:propose"'
     assert refused.headers["www-authenticate"] == expected

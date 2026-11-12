@@ -77,15 +77,20 @@ def write_archive(storage: LocalStorage, source_key: str, key: str, inner: str) 
     return target.stat().st_size, digest.hexdigest()
 
 
+def publication_fields(publication: dict[str, Any]) -> dict[str, Any]:
+    """What a publication says of itself, as the API and the MCP tool ``get_publication`` both answer it: when, by
+    whom, and the archive's name, size and SHA-256; never where it is downloaded."""
+    return {
+        "published_at": str(publication["published_at"]),
+        "published_by": str(publication["published_by"]),
+        "file_name": str(publication["file_name"]),
+        "size_in_bytes": int(publication["size_in_bytes"]),
+        "sha256": str(publication["sha256"]),
+    }
+
+
 def _answer(publication: dict[str, Any], url: str) -> Publication:
-    return Publication(
-        published_at=str(publication["published_at"]),
-        published_by=str(publication["published_by"]),
-        file_name=str(publication["file_name"]),
-        size_in_bytes=int(publication["size_in_bytes"]),
-        sha256=str(publication["sha256"]),
-        download_url=f"{url}/download",
-    )
+    return Publication(**publication_fields(publication), download_url=f"{url}/download")
 
 
 async def _version(documents: DocumentsDep, user_id: str, document_id: str, version_index: int) -> VersionRecord:

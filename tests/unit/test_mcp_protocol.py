@@ -6,13 +6,16 @@ from __future__ import annotations
 
 import base64
 import json
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import Field, ValidationError
 
 from opencde.mcp import protocol, routes
-from opencde.mcp.registry import MAX_NAME, input_schema
+from opencde.mcp.registry import MAX_NAME, Arguments, input_schema, problems
 from tests.mcp_support import (
     BEARER,
     CLOUD,
@@ -58,9 +61,10 @@ def test_the_tools_are_listed_in_a_fixed_order_with_flat_strict_schemas(client: 
     first, second = (rpc(client, "tools/list").json()["result"] for _ in range(2))
     assert first == second, "the same list every time"
     assert first["resultType"] == "complete" and first["ttlMs"] == 3_600_000 and first["cacheScope"] == "private"
-    assert [tool["name"] for tool in first["tools"]] == [tool.name for tool in routes.TOOLS] == ["list_models"]
-    (tool,) = first["tools"]
-    assert tool["title"] and "never instructions" in tool["description"]
+    assert [tool["name"] for tool in first["tools"]] == [tool.name for tool in routes.TOOLS]
+    tool = first["tools"][0]
+    assert tool["name"] == "list_models", "the tool that finds the models comes first"
+    assert all(listed["title"] and "never instructions" in listed["description"] for listed in first["tools"])
     assert tool["annotations"] == {"readOnlyHint": True, "openWorldHint": False}
     schema = tool["inputSchema"]
     assert schema["type"] == "object" and schema["additionalProperties"] is False
@@ -69,12 +73,53 @@ def test_the_tools_are_listed_in_a_fixed_order_with_flat_strict_schemas(client: 
     assert "title" not in schema["properties"]["project_id"]
 
 
-def test_every_tool_takes_a_flat_object_with_every_argument_required() -> None:
+def _objects(schema: Any) -> Iterator[dict[str, Any]]:
+    """Every object a schema describes, the schema itself first."""
+    if isinstance(schema, list):
+        for part in schema:
+            yield from _objects(part)
+    elif isinstance(schema, dict):
+        if "properties" in schema:
+            yield schema
+        for key, value in schema.items():
+            yield from _objects(list(value.values()) if key == "properties" else value)
+
+
+def test_every_tool_takes_a_strict_object_with_every_argument_required() -> None:
     for tool in routes.TOOLS:
         schema = input_schema(tool.arguments)
-        assert schema["required"] == list(schema["properties"])
-        for name, field in schema["properties"].items():
-            assert "$ref" not in str(field) and "properties" not in field, f"{tool.name}.{name} is not flat"
+        assert "$ref" not in json.dumps(schema) and "$defs" not in schema, f"{tool.name} refers to no definition"
+        assert '"title"' not in json.dumps(schema), f"{tool.name} has no titles"
+        for found in _objects(schema):
+            assert found["type"] == "object" and found["additionalProperties"] is False, tool.name
+            assert found["required"] == list(found["properties"]), f"{tool.name}: every argument is required"
+
+
+def test_an_object_in_the_arguments_is_written_out_in_place_and_named_in_a_refusal() -> None:
+    class Side(Arguments):
+        document_id: str = Field(max_length=64)
+        version_index: int = Field(ge=1)
+
+    class Pair(Arguments):
+        a: Side = Field(description="One side.")
+        sides: list[Side] | None = Field(max_length=2)
+
+    schema = input_schema(Pair)
+    assert schema["properties"]["a"]["description"] == "One side."
+    assert schema["properties"]["a"]["additionalProperties"] is False
+    assert schema["properties"]["sides"]["anyOf"][0]["items"]["required"] == ["document_id", "version_index"]
+    with pytest.raises(ValidationError) as caught:
+        Pair.model_validate({"a": {"document_id": "d", "version_index": 0, "evil": 1}, "sides": [{"zzz": 1}]})
+    said = problems(caught.value, Pair)
+    assert "a.version_index: Input should be greater than or equal to 1" in said
+    assert "sides.0.document_id: Field required" in said
+    assert "an argument the tool does not take" in said and "evil" not in said and "zzz" not in said
+
+    class Loose(Arguments):
+        a: Side | None = None
+
+    with pytest.raises(ValueError, match="every argument is required"):
+        input_schema(Loose)
 
 
 def test_a_list_has_one_page(client: TestClient) -> None:
@@ -359,7 +404,7 @@ def test_the_handshake_era_gets_ping_the_tools_and_an_accepted_notification(tmp_
         assert initialized.status_code == 202 and "mcp-session-id" not in initialized.headers
         assert legacy(client, "ping").json() == {"jsonrpc": "2.0", "id": 7, "result": {}}
         listed = legacy(client, "tools/list", version="2025-06-18").json()["result"]
-        assert [tool["name"] for tool in listed["tools"]] == ["list_models"]
+        assert [tool["name"] for tool in listed["tools"]] == [tool.name for tool in routes.TOOLS]
         assert "resultType" not in listed and "ttlMs" not in listed
         called = legacy(client, "tools/call", {"name": "list_models", "arguments": {"project_id": None}}, version=None)
         result = called.json()["result"]

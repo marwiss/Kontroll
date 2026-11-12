@@ -27,6 +27,7 @@ from opencde.auth.resources import MCP_PATH
 from opencde.deps import GraphDep, SettingsDep, client_ip
 from opencde.errors import CODE_FORBIDDEN, CODE_PAYLOAD_TOO_LARGE, ApiError, error_response
 from opencde.graph.graph import Graph
+from opencde.ifcgraph.service import ifcgraph_service
 from opencde.logging import get_logger
 from opencde.mcp import protocol, registry
 from opencde.mcp.auth import McpPrincipal, require_mcp_scope
@@ -44,6 +45,8 @@ from opencde.mcp.protocol import (
     PROTOCOL_VERSION_KEY,
     McpError,
 )
+from opencde.mcp.publication import GET_PUBLICATION
+from opencde.mcp.queries import SERVER_QUERY
 from opencde.ratelimit import RATE_MCP_TOOL_CALLS, wait_seconds
 from opencde.settings import Settings
 from opencde.store.oauth2.tokens import Principal
@@ -52,7 +55,7 @@ TAG = "MCP (extension)"
 MAX_BODY_BYTES = 1_048_576
 
 #: The tools in the order ``tools/list`` gives them, which stays the same between releases but for what is added.
-TOOLS: tuple[registry.Tool, ...] = (LIST_MODELS,)
+TOOLS: tuple[registry.Tool, ...] = (LIST_MODELS, SERVER_QUERY, GET_PUBLICATION)
 _BY_NAME = {tool.name: tool for tool in TOOLS}
 _MODERN_METHODS = ("server/discover", "tools/list", "tools/call")
 _HANDSHAKE_METHODS = ("initialize", "ping", "tools/list", "tools/call")
@@ -263,6 +266,7 @@ async def _call(
         tool=tool.name,
         ip=client_ip(request),
         client_info=registry.client_info(params.get("_meta")),
+        ifcgraph=ifcgraph_service(request),
     )
     if not caller.has_scope(tool.scope):
         await context.record("mcp.denied", reason="scope", scope=tool.scope)

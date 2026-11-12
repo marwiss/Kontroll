@@ -5,33 +5,22 @@
 model, with their parameters and columns, and says how far the model's conversion has come. ``GET …/ifc-queries/{name}``
 asks one, with its parameters in the query string, and answers ``{"name", "columns", "rows", "truncated"}``, rows as
 lists in the order of the columns, as the administrators' graph query does. The same bearer token as the Documents API
-reaches both; the statements are IFC-LPG's (``ifc_lpg.queries``, through ``ifcgraph/queries.py``).
+reaches both; the statements are IFC-LPG's (``ifc_lpg.queries``), and the answers come from the functions of
+``ifcgraph/queries.py``, which the MCP tool ``server_query`` answers from too.
 """
 
 from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Path, Query, Request
-from neo4j.exceptions import Neo4jError
+from fastapi import APIRouter, Path, Query, Request
 from pydantic import BaseModel, Field
 
-from opencde.admin.graph_query import ReadingGraph
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.deps import GraphDep, SettingsDep
-from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, normalize_guid
-from opencde.ifcgraph.queries import (
-    CHANGED_SINCE,
-    CHANGED_SINCE_COLUMNS,
-    MAX_ROWS,
-    QUERIES,
-    TIMEOUT_SECONDS,
-    InvalidParameters,
-    run_query,
-)
+from opencde.ifcgraph.queries import CHANGED_SINCE, MAX_ROWS, ask_query, changed_since, list_queries
 from opencde.ifcgraph.service import IfcGraphDep
-from opencde.settings import Settings
 from opencde.store.documents.versions import DocumentsDep
 
 TAG = "IFC queries (extension)"
@@ -74,32 +63,6 @@ class IfcQueryAnswer(BaseModel):
     truncated: bool = Field(description="True when the model had more rows than an answer holds.")
 
 
-async def _model_state(
-    graph: Graph, documents: Any, settings: Settings, user_id: str, document_id: str, version_index: int
-) -> tuple[str, str]:
-    """How far the version's model has come, and its id; 404 when the user may not see the version or it has no
-    model."""
-    if not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
-    if not is_uuid(document_id):
-        raise HTTPException(404, "Document version not found")
-    rows = await graph.run(
-        """
-        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_CONVERSION]->(m:Conversion)
-        WHERE m.document_id = $document_id AND m.version_index = $version_index
-        RETURN m.state AS state, m.id AS id ORDER BY m.created_at DESC LIMIT 1
-        """,
-        user_id=user_id,
-        document_id=document_id,
-        version_index=version_index,
-    )
-    if rows:
-        return str(rows[0]["state"]), str(rows[0]["id"])
-    if await documents.version(user_id=user_id, document_id=document_id, version_index=version_index):
-        raise HTTPException(404, "This version has no IFC graph: it is not an IFC file, or came before the module")
-    raise HTTPException(404, "Document version not found")
-
-
 @router.get(
     "/documents/{document_id}/versions/{version_index}/ifc-queries",
     summary="List the named queries that can be asked of an IFC document version's graph",
@@ -116,34 +79,20 @@ async def ifc_queries(
 ) -> IfcQueries:
     """The queries, their parameters and columns, and how far the model's conversion has come."""
     document_id = normalize_guid(document_id) if is_uuid(document_id) else document_id
-    state, model_id = await _model_state(graph, documents, settings, principal.user_id, document_id, version_index)
+    listed = await list_queries(
+        graph,
+        documents,
+        settings,
+        ifcgraph,
+        user_id=principal.user_id,
+        document_id=document_id,
+        version_index=version_index,
+    )
     return IfcQueries(
-        workcopy=ifcgraph is not None and await ifcgraph.in_workcopy(model_id),
-        model_state=state,
+        workcopy=listed["workcopy"],
+        model_state=listed["model_state"],
         max_rows=MAX_ROWS,
-        queries=[
-            IfcQuery(
-                name=query.name,
-                description=query.description,
-                parameters=[
-                    IfcQueryParameter(name=p.name, description=p.description, required=p.required)
-                    for p in query.parameters
-                ],
-                columns=list(query.columns),
-            )
-            for query in QUERIES.values()
-        ]
-        + [
-            IfcQuery(
-                name=CHANGED_SINCE,
-                description="What changed in the document since a version: one row per change of each version's "
-                "change set up to this one, or one row with `whole_file` for a version uploaded as a whole file.",
-                parameters=[
-                    IfcQueryParameter(name="since", description="The version index to count from", required=True)
-                ],
-                columns=list(CHANGED_SINCE_COLUMNS),
-            )
-        ],
+        queries=[IfcQuery.model_validate(query) for query in listed["queries"]],
     )
 
 
@@ -163,40 +112,16 @@ async def ifc_changed_since(
     """One row per change of every version after `since` up to this one, as its change set names it (by GlobalId or
     STEP id, path, attribute and operation); a version uploaded as a whole file gives one row with `whole_file` true,
     since anything may have changed in it. Answered from the versions, so it needs no graph."""
-    if not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
-    if not is_uuid(document_id):
-        raise HTTPException(404, "Document version not found")
-    document_id = normalize_guid(document_id)
-    if await documents.version(user_id=principal.user_id, document_id=document_id, version_index=version_index) is None:
-        raise HTTPException(404, "Document version not found")
-    if since >= version_index:
-        raise HTTPException(400, "since must be an earlier version than this one")
-    rows: list[list[Any]] = []
-    truncated = False
-    for version in await documents.versions_since(
-        user_id=principal.user_id, document_id=document_id, since=since, until=version_index
-    ):
-        head = [version["version_index"], version["change_set_id"], version["author"], version["approved_by"]]
-        if version["changes"] is None:
-            rows.append([*head, True, None, None, None, None, None])
-            continue
-        for change in version["changes"]:
-            if len(rows) >= MAX_ROWS:
-                truncated = True
-                break
-            rows.append(
-                [
-                    *head,
-                    False,
-                    change.get("guid"),
-                    change.get("step_id"),
-                    change.get("path"),
-                    change.get("attribute"),
-                    change.get("op"),
-                ]
-            )
-    return IfcQueryAnswer(name=CHANGED_SINCE, columns=list(CHANGED_SINCE_COLUMNS), rows=rows, truncated=truncated)
+    document_id = normalize_guid(document_id) if is_uuid(document_id) else document_id
+    answer = await changed_since(
+        documents,
+        settings,
+        user_id=principal.user_id,
+        document_id=document_id,
+        version_index=version_index,
+        since=since,
+    )
+    return IfcQueryAnswer(**answer)
 
 
 @router.get(
@@ -217,28 +142,16 @@ async def ifc_query(
 ) -> IfcQueryAnswer:
     """The rows the query finds, at most `max_rows` of them. 409 while the model is still being converted. The
     working copy answers when it holds the model (ADR 0024)."""
-    query = QUERIES.get(name)
     document_id = normalize_guid(document_id) if is_uuid(document_id) else document_id
-    state, model_id = await _model_state(graph, documents, settings, principal.user_id, document_id, version_index)
-    if query is None:
-        raise HTTPException(404, f"There is no named query {name}")
-    try:
-        values = query.bind(dict(request.query_params))
-    except InvalidParameters as exc:
-        raise HTTPException(400, str(exc)) from None
-    if state != "done":
-        raise HTTPException(409, f"The IFC graph of this version is {state}, not done")
-    target = ifcgraph.graph if ifcgraph is not None else graph  # the IFC graph, apart from the server's own (F24 a)
-    if ifcgraph is not None and ifcgraph.workcopy is not None and await ifcgraph.in_workcopy(model_id):
-        target = ifcgraph.workcopy
-    try:
-        answer = await run_query(
-            ReadingGraph(target), model_id, name, values, max_rows=MAX_ROWS, timeout_seconds=TIMEOUT_SECONDS
-        )
-    except TimeoutError:
-        raise HTTPException(400, f"The query exceeded the time limit of {TIMEOUT_SECONDS:g} seconds") from None
-    except Neo4jError as exc:
-        if "TimedOut" in (exc.code or ""):
-            raise HTTPException(400, f"The query exceeded the time limit of {TIMEOUT_SECONDS:g} seconds") from None
-        raise
+    answer = await ask_query(
+        graph,
+        documents,
+        settings,
+        ifcgraph,
+        user_id=principal.user_id,
+        document_id=document_id,
+        version_index=version_index,
+        name=name,
+        parameters=dict(request.query_params),
+    )
     return IfcQueryAnswer(**answer)
