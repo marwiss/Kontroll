@@ -40,8 +40,8 @@ Against the original only this differs, so that the next copy is a diff away:
 - ``_ifc_topology`` also gives each storey the GlobalIds of the walls it could not read (``unread_walls``), and
   ``_topo_plan`` those of the walls with an open end (``dangling``), for the report's rooms, which name elements by
   GlobalId; the lines that do so are marked ``# Dataregium``;
-- ruff formats the copy in lines of 120 characters and lets its idioms be (``pyproject.toml``), and ten comments quiet
-  bandit (``# nosec B110`` and ``B112``, seven) and ty (``# ty: ignore``, three); no other statement changed.
+- ruff formats the copy in lines of 120 characters and lets its idioms be (``pyproject.toml``), and fourteen comments quiet
+  bandit (``# nosec B110`` and ``B112``, seven) and ty (``# ty: ignore``, seven); no other statement changed.
 """
 
 from __future__ import annotations
@@ -1704,7 +1704,7 @@ def _topo_axis(wall, scale):
         for item in r.Items or ():
             pts = _topo_curve(item)
             if pts and len(pts) >= 2:
-                m = (getattr(placement, "get_local_placement", None) or placement.get_placement)(
+                m = (getattr(placement, "get_local_placement", None) or placement.get_placement)(  # ty: ignore[unresolved-attribute]
                     wall.ObjectPlacement
                 )  # get_placement since IfcOpenShell 0.9.1
                 return [
@@ -2027,7 +2027,7 @@ def _topo_elevation(storey, scale):
 
         return (
             float(
-                (getattr(placement, "get_local_placement", None) or placement.get_placement)(storey.ObjectPlacement)[2][
+                (getattr(placement, "get_local_placement", None) or placement.get_placement)(storey.ObjectPlacement)[2][  # ty: ignore[unresolved-attribute]
                     3
                 ]
             )
