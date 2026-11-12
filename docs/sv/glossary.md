@@ -49,7 +49,7 @@ kommentar, viewpoint och projekt är samma ord som i Dataspatium.
 | Ord | Vad det betyder här |
 |---|---|
 | IFC-graf | En uppladdad modell som noder och relationer i databasen, valfritt |
-| IFC-LPG | Modulen som gör IFC-filer till en IFC-graf och tillbaka, fram till november 2026 kallad IFC-graph |
+| IFC-DB | Modulen som gör IFC-filer till en IFC-graf och tillbaka, fram till november 2026 kallad IFC-graph och sedan IFC-LPG |
 | `GlobalId` | Det bestående id:t för ett element i en IFC-fil |
 | `gtin` | GTIN för det element en viewpoints komponent nämner, läst ur modellen och sparad på komponenten |
 | GTIN | Global Trade Item Number, en produkts nummer; här läst från egenskapsuppsättningen `Reuse` |

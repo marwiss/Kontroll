@@ -62,7 +62,7 @@ Projekti, jonka jäsen käyttäjä ei ole, ei ole hänelle olemassa (404).
 
 ## Näkymästä malliin
 
-Kun [IFC-LPG](../ifc-lpg.md) on käytössä, jokainen komponentti, joka nimeää
+Kun [IFC-DB](../ifc-db.md) on käytössä, jokainen komponentti, joka nimeää
 projektin valmiissa malleissa olevan `GlobalId`-tunnuksen, saa elementin GTIN-arvon
 kenttään `gtin`, myös kun malli ladataan jälkeenpäin; itse elementti löytyy
 `GlobalId`-tunnuksella:

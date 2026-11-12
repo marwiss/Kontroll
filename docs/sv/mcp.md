@@ -134,12 +134,12 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
  "truncated": false}
 ```
 
-- `server_query` (scopet `mcp`): de [namngivna frågorna](ifc-lpg.md#namngivna-frågor)
+- `server_query` (scopet `mcp`): de [namngivna frågorna](ifc-db.md#namngivna-frågor)
   om en versions modell, med `document_id` och `version_index` (`null` för den
   senaste), som Documents API ställer dem. `name` är en av frågorna i serverns
   katalog, och var och en av deras parametrar är ett eget fält (`class`,
   `pset`, `property`, `global_id`, `since`); verktygets beskrivning räknar upp
-  frågorna med deras parametrar, så att en fråga som IFC-LPG lägger till syns
+  frågorna med deras parametrar, så att en fråga som IFC-DB lägger till syns
   när servern har uppdaterats. `name: null` listar dem, med modellens
   `model_state` och `workcopy`. En fråga svarar `name`, `columns`, högst 500
   `rows`, `count` (raderna den hittade, högst 10 000) och `truncated`; en text i
@@ -147,7 +147,7 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
 - `get_publication` (scopet `mcp`): om en version är publicerad, och i så fall
   `published_at`, `published_by`, `file_name`, `size_in_bytes` och `sha256`,
   vart och ett `null` så länge den inte är det; aldrig var arkivet laddas ned.
-- `start_clash_check` (scopet `mcp`): ett [krocktest](ifc-lpg.md#krocktest)
+- `start_clash_check` (scopet `mcp`): ett [krocktest](ifc-db.md#krocktest)
   mellan två versioner i ett projekt: `project_id`, `a` och `b` med
   `document_id`, `version_index` och `types` (IFC-klasser, `null` för varje
   element med en kropp), `mode` (`intersection` eller `clearance`), och
@@ -157,8 +157,8 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
   `clash_id`, och väntar högst `wait_seconds` (som mest 20) på ett som är köat
   eller körs: dess `state`, begäran, `count`, `set_a`, `set_b`, `missing`,
   `seconds` och högst 200 `clashes`, med `truncated` när det fanns fler. Båda
-  krockverktygen vägrar om inte `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
-  De tre listas bara när IFC-LPG-modulen är på. En användare har högst två
+  krockverktygen vägrar om inte `OPENCDE_IFC_DB_CLASH_ENABLED=true`.
+  De tre listas bara när IFC-DB-modulen är på. En användare har högst två
   krocktester som väntar eller körs, i alla sina projekt tillsammans; ett tredje
   vägras, och granskningsloggen antecknar `mcp.denied` med skälet `limit`.
 
@@ -170,7 +170,7 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
 
 ## Ändringsseten
 
-Medan IFC-LPG-modulen är på (`OPENCDE_IFC_LPG_ENABLED`), som prövar
+Medan IFC-DB-modulen är på (`OPENCDE_IFC_DB_ENABLED`), som prövar
 ändringsseten, har listan också verktygen som föreslår ändringar i en modell, i
 Dataspatiums ordning. De kräver scopet `mcp:propose`, rollen `editor` eller
 `manager` i projektet, prövad vid varje anrop som REST-API:t prövar den, och

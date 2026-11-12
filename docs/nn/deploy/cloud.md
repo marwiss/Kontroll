@@ -16,7 +16,7 @@ same serveren over HTTPS.
   DNS-namnet til serveren, eller la det stå tomt: serveren heiter då
   `<offentleg adresse>.sslip.io`, eit namn som peikar på adressa til maskina,
   slik at sertifikatet kjem med ein gong. `DATAREGIUM_ACME_EMAIL` er valfri.
-- Ei maskin med 2 vCPU og 4 GB minne eller meir (8 GB med IFC-LPG-modulen og
+- Ei maskin med 2 vCPU og 4 GB minne eller meir (8 GB med IFC-DB-modulen og
   store modellar), Ubuntu 24.04 LTS og ein disk på 30 GB eller meir.
 - Ei fast offentleg adresse, slik at namnet held fram med å peike på maskina.
   Azure gjev éi med `--public-ip-sku Standard`; hos AWS koplar du til ein

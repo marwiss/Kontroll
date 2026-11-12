@@ -16,8 +16,8 @@ during the backup; a backup taken while uploads are in progress may miss the
 parts of those uploads, which the clients simply redo.
 
 With the server's own data in a graph of its own (`OPENCDE_STORE_GRAPH_URI`,
-[ifc-lpg.md](../ifc-lpg.md)), one backup holds both graphs in the same files,
-IFC-LPG's nodes from the IFC graph and the rest from the store, and
+[ifc-db.md](../ifc-db.md)), one backup holds both graphs in the same files,
+IFC-DB's nodes from the IFC graph and the rest from the store, and
 `manifest.json` names the store's dialect in `store_dialect`. A restore puts
 each node where its label belongs, whichever graphs the backup came from, so a
 backup of one database restores into two and the other way round; it refuses

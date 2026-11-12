@@ -16,7 +16,7 @@ avgjer kven som får logge inn, og kva kvar enkelt får gjere i kvart prosjekt.
 Teknisk er Dataregium ein server for dei opne **OpenCDE-API-a** til buildingSMART
 (Foundation API 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), bygd på
 grafdatabasen Neo4j eller Memgraph. I 3-serien blir kvar opplasta IFC-modell ein
-tapsfri graf gjennom biblioteket [IFC-LPG](https://github.com/marwiss/IFC-LPG), med
+tapsfri graf gjennom biblioteket [IFC-DB](https://github.com/marwiss/IFC-DB), med
 versjonar, kontrollar og endringsframlegg. Serveren vart skriven om frå grunnen av ut
 frå ein forskingsprototype frå 2023, med tryggleik som det første kravet, og kvar
 klient som følgjer spesifikasjonane, kan kople seg til.
@@ -66,7 +66,7 @@ databasen hans.
    serveren, og set `OPENCDE_GRAPH_PASSWORD` til ditt eige passord på minst 16 teikn.
    Skal du prøve med Dataspatium og modellar, set du òg
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true` og
-   `OPENCDE_IFC_LPG_ENABLED=true`; [snøggstarten med Dataspatium](quickstart.md)
+   `OPENCDE_IFC_DB_ENABLED=true`; [snøggstarten med Dataspatium](quickstart.md)
    forklarer kvifor. Kvar innstilling er forklart i [.env.example](../../.env.example).
 3. **Start.** Dei same compose-filene verkar med Docker og med Podman; vel den du har:
 
@@ -96,7 +96,7 @@ databasen hans.
    <summary><b>Utan container</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # installerer Python 3.13 og alle avhengnader, med IFC-LPG
+   uv sync --extra ifc-db           # installerer Python 3.13 og alle avhengnader, med IFC-DB
    uv run opencde doctor            # kontrollerer konfigurasjonen og databasen
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -139,7 +139,7 @@ databasen hans.
 
    </details>
 
-   Kommandoen opprettar demobrukarar, prosjekt, klientar og ei sak, og med IFC-LPG
+   Kommandoen opprettar demobrukarar, prosjekt, klientar og ei sak, og med IFC-DB
    slått på òg ein eksempelmodell som graf. Passorda blir skrivne ut éin gong. Logg
    inn på <http://127.0.0.1:8000/signin> som `admin` og opne `/admin`.
 6. **Kople til ein klient.** Registrer appen din under *Klientar* (eller la han
@@ -189,9 +189,9 @@ før det er konfigurert.
   tunnel, den lokale motoren og arbeidskopien. `COMPOSE_FILE` i `.env` vel dei, så
   kommandoane er utan `-f`.
 - **Utan container**: Python 3.11 eller nyare med uv (prøvd på 3.11, 3.13 og 3.14),
-  `uv sync --extra ifc-lpg`, og Neo4j 5.26 eller Memgraph 3.14 på `OPENCDE_GRAPH_URI`.
+  `uv sync --extra ifc-db`, og Neo4j 5.26 eller Memgraph 3.14 på `OPENCDE_GRAPH_URI`.
 - **Dei viktigaste innstillingane**: `OPENCDE_APIS` vel API-a (alle tre som standard,
-  `["documents"]` i 1.0.0); `OPENCDE_IFC_LPG_ENABLED=true` slår på grafen og alt i 2-
+  `["documents"]` i 1.0.0); `OPENCDE_IFC_DB_ENABLED=true` slår på grafen og alt i 2-
   og 3-serien som gjeld modellar; `OPENCDE_ENVIRONMENT` er `development`, `production`
   eller `local` (den lokale motoren, `opencde init --local`).
 - **Endepunkt**: `/.well-known/dataregium` (versjonen og utvidingane som er slått på),
@@ -216,7 +216,7 @@ Den som berre bruker Dataregium gjennom ein app, treng ein nettlesar og ein kont
   eller Podman 5, eller Python 3.11 eller nyare med [uv](https://docs.astral.sh/uv/)
   og ein eigen Neo4j 5.26- eller Memgraph 3.14-database.
 - Om lag 1 GB minne til databasecontaineren (`NEO4J_HEAP` og `NEO4J_PAGECACHE` i
-  `.env`), og meir for store modellar med IFC-LPG.
+  `.env`), og meir for store modellar med IFC-DB.
 - Lokalt: port 8000 for serveren og 7484/7697 for databasen, alle bundne til
   `127.0.0.1`. I produksjon: portane 80 og 443 tilgjengelege frå internett og eit
   DNS-namn for serveren.
@@ -280,13 +280,13 @@ same versjonen av Dataspatium.
 - **Saker om modellen** (BCF API 3.0 og 2.1): spørsmål og merknader med kommentarar,
   bilete og visingar som peikar ut bygningsdelar, med filter og ein hendingslogg,
   validerte mot skjemaa til buildingSMART.
-- **Modellen som graf** (IFC-LPG-modulen, slått på med `OPENCDE_IFC_LPG_ENABLED`): ein
+- **Modellen som graf** (IFC-DB-modulen, slått på med `OPENCDE_IFC_DB_ENABLED`): ein
   opplasta IFC-modell blir ein graf i databasen, knytt til bygningsdelane i visingane
-  til sakene (sjå [IFC-LPG](ifc-lpg.md)).
+  til sakene (sjå [IFC-DB](ifc-db.md)).
 
 ### Òg i versjon 3 (med Dataspatium 3)
 
-- **Ein tapsfri modell**: grafen kjem frå biblioteket IFC-LPG og held alt i fila,
+- **Ein tapsfri modell**: grafen kjem frå biblioteket IFC-DB og held alt i fila,
   slik at ho kan skrivast tilbake slik ho kom.
 - **Kontroll av kvar opplasting** mot IFC-skjemaet, reglane til buildingSMART og
   IDS-krava til prosjektet; eit prosjekt kan avvise filer med feil, og ei fil kan
@@ -408,8 +408,8 @@ den siste i kvar serie blir retta. Dataregium og Dataspatium med same nummer hø
 | Dataregium | Kva ho har | Image | Høyrer saman med |
 |---|---|---|---|
 | 1.0.0 | Ein dokumentserver: Foundation API og Documents API, nettadministrasjonen på sju språk, prosjektadministrasjonen for den prosjektansvarlege og førespurnadsloggen. Ho er 2.0.0-koden med berre Documents API slått på (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Òg BCF API 3.0 og 2.1 på dei same dataa og IFC-LPG-modulen som lagar ein graf av kvar opplasta IFC-fil | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Òg den tapsfrie grafen frå biblioteket IFC-LPG, kontrollen av kvar opplasting, spørjingane, samanlikningane og kollisjonskontrollen, versjonar med endringsframlegg som blir prøvde, godkjende og slått saman, publiseringa av ein versjon, ein bygning frå éin modell inn i ein annan, geometrien som glTF, den lokale motoren og oppskriftene for skya og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 2.0.0 | Òg BCF API 3.0 og 2.1 på dei same dataa og IFC-DB-modulen som lagar ein graf av kvar opplasta IFC-fil | `2.0.0` | Dataspatium 2.0.0 |
+| 3.0.0 | Òg den tapsfrie grafen frå biblioteket IFC-DB, kontrollen av kvar opplasting, spørjingane, samanlikningane og kollisjonskontrollen, versjonar med endringsframlegg som blir prøvde, godkjende og slått saman, publiseringa av ein versjon, ein bygning frå éin modell inn i ein annan, geometrien som glTF, den lokale motoren og oppskriftene for skya og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lær meir
 
@@ -422,13 +422,13 @@ den siste i kvar serie blir retta. Dataregium og Dataspatium med same nummer hø
 - [glossary.md](glossary.md): orda dokumentasjonen bruker.
 - [flows/](flows/): sekvensdiagram for OAuth2-, Documents API- og BCF-viewpoint-flytane.
 - [graph-schema.md](graph-schema.md): grafmodellen.
-- [ifc-lpg.md](ifc-lpg.md): IFC-LPG-modulen, kontrollane, versjonane, endringssetta, geometrien og døme på Cypher-spørjingar.
+- [ifc-db.md](ifc-db.md): IFC-DB-modulen, kontrollane, versjonane, endringssetta, geometrien og døme på Cypher-spørjingar.
 - [mcp.md](mcp.md): MCP-endepunktet, som AI-program les modellane i prosjekta gjennom: å slå det på, tokena, protokollen, verktøya, AI-policyen og grensene.
 - Arkitekturavgjerder som ligg fast: ein grafdatabase som einaste lager, opake token i
   staden for JWT, portabel Cypher for Neo4j og Memgraph, eit nettgrensesnitt utan
   rammeverk, tryggingskopi på applikasjonsnivå, BCF API 2.1 ved sida av 3.0, ein
   tapsfri IFC-graf som sjølv les og skriv STEP og blir validert når han blir skriven,
-  reglane til buildingSMART i eit eige miljø, IFC-LPG som bibliotek, kontroll mot IDS-en
+  reglane til buildingSMART i eit eige miljø, IFC-DB som bibliotek, kontroll mot IDS-en
   til prosjektet, namngjevne spørjingar for medlemmer, kollisjonskontroll på serveren
   med IfcClash, versjonar som nodar med endringar og ein basis, ein lokal motor som
   berre svarar på di eiga datamaskin, og ein arbeidskopi i minnet ved sida av arkivet.
@@ -451,8 +451,8 @@ Dokumentasjonen finst på dei sju språka til denne README-en, kvart språk unde
 
 ## Avgrensingar i korte trekk
 
-- Alt som gjeld modellar, i 2- og 3-serien, krev IFC-LPG-modulen, som er slått av til
-  `OPENCDE_IFC_LPG_ENABLED=true`. Reglane til buildingSMART køyrer berre med imaget
+- Alt som gjeld modellar, i 2- og 3-serien, krev IFC-DB-modulen, som er slått av til
+  `OPENCDE_IFC_DB_ENABLED=true`. Reglane til buildingSMART køyrer berre med imaget
   `-gherkin`; utan det blir skjemaet og IDS kontrollerte.
 - Serveren implementerer BCF API 3.0 og 2.1, ikkje 1.0, der ressursane ser annleis ut.
 - Eksport av eit prosjekt som BCFzip er overlate til klientane; serveren lagrar saker,
@@ -462,8 +462,8 @@ Dokumentasjonen finst på dei sju språka til denne README-en, kvart språk unde
   Porten blir verande stengd med mindre administratoren publiserer han med vilje; den
   lesande grafspørjinga i administrasjons-API-et (`OPENCDE_GRAPH_QUERY_ENABLED`) gjev
   Cypher utan porten.
-- IFC-LPG-importen, kontrollane og prøvinga av endringssett køyrer i separate prosessar
-  med minne- og tidsgrenser (`OPENCDE_IFC_LPG_*`); svært store modellar blir avviste i
+- IFC-DB-importen, kontrollane og prøvinga av endringssett køyrer i separate prosessar
+  med minne- og tidsgrenser (`OPENCDE_IFC_DB_*`); svært store modellar blir avviste i
   staden for å bli liggjande halvt importerte, eller blir handterte av den lokale motoren.
 - Nettsidene er for innlogging, administrasjon, opplasting og val av dokument og for
   kontrollen og samanlikninga av ein versjon; sluttbrukarar arbeider i ein klient som
@@ -497,7 +497,7 @@ OpenCDE-API-a blir verande slik buildingSMART definerer dei; det serien legg til
 utvidingar til dei, under eigne namn og med ein eigen OpenAPI. Dette avsnittet seier kva
 som er avgjort, for den, menneske eller AI-agent, som fører ein del av det vidare.
 Arbeidsmåtane står i [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-grafen i
-[ifc-lpg.md](ifc-lpg.md).
+[ifc-db.md](ifc-db.md).
 
 ### Avgjort
 

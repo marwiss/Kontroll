@@ -269,34 +269,34 @@ Din klient behöver en callback-URL som webbläsaren kan nå (en
 loopback-lyssnare för skrivbordsappar). Servern anropar aldrig den URL:en
 själv.
 
-När IFC-LPG-modulen är på kontrolleras en IFC-fil som laddas upp som version mot
+När IFC-DB-modulen är på kontrolleras en IFC-fil som laddas upp som version mot
 IFC-schemat och, där servern har dem, buildingSMARTs ifc-gherkin-rules.
 Dess metadata har då `ifc_validation_status` och, när den är
 kontrollerad, de andra `ifc_validation_*`-posterna; `ifc_validation_report` är
 adressen till rapporten, ett tillägg som svarar på samma token. Se
-[ifc-lpg.md](ifc-lpg.md#kontroll-av-uppladdningar-mot-ifc-schemat).
+[ifc-db.md](ifc-db.md#kontroll-av-uppladdningar-mot-ifc-schemat).
 
 En version som rymmer en IFC-modell kan också få namngivna frågor, som dess
 våningar, rummens area eller en egenskaps värde. Det är ett tillägg som svarar
 på samma token och som kapabilitetsdokumentet annonserar i `ifc_queries`. Se
-[ifc-lpg.md](ifc-lpg.md#namngivna-frågor).
+[ifc-db.md](ifc-db.md#namngivna-frågor).
 
 Två IFC-versioner i ett projekt kan jämföras med avseende på krockar på samma
-sätt, ett tillägg som annonseras som `ifc_clash`. Se [ifc-lpg.md](ifc-lpg.md#krocktest).
+sätt, ett tillägg som annonseras som `ifc_clash`. Se [ifc-db.md](ifc-db.md#krocktest).
 
 En fil kan kontrolleras innan den laddas upp, ett tillägg som annonseras som
 `ifc_precheck`, och ett projekt kan avvisa filer med fel. Se
-[ifc-lpg.md](ifc-lpg.md#avvisa-filer-med-fel-och-kontrollera-en-fil-i-förväg).
+[ifc-db.md](ifc-db.md#avvisa-filer-med-fel-och-kontrollera-en-fil-i-förväg).
 
 En ändring av en modell föreslås som ett BCF-ärende vars `bim_snippet` är ett
 ändringsset, en form som annonseras som `ifc_changes`. Se
-[ifc-lpg.md](ifc-lpg.md#ändringsset).
+[ifc-db.md](ifc-db.md#ändringsset).
 
 Två IFC-versioner jämförs element för element med `ifc_diff`, efter GlobalId
-och sökväg. Se [ifc-lpg.md](ifc-lpg.md#jämföra-två-versioner).
+och sökväg. Se [ifc-db.md](ifc-db.md#jämföra-två-versioner).
 
 Geometrin i en IFC-version kommer som binär glTF med `ifc_geometry` (`lod=full` eller `box`, `classes`, `storey`),
-och varje byggdel har sin låda i grafen. Se [ifc-lpg.md](ifc-lpg.md#var-byggdelarna-är-och-geometrin).
+och varje byggdel har sin låda i grafen. Se [ifc-db.md](ifc-db.md#var-byggdelarna-är-och-geometrin).
 
 En `manager` publicerar en version med `publication`: `POST …/versions/{index}/publication` sparar filen som ett
 arkiv, `.ifczip` för en IFC-fil och `.zip` för en annan fil, och versionens metadata får `published_at`,
@@ -305,7 +305,7 @@ kontrollen har hittat fel. `GET …/publication` visar varje medlem vem som publ
 `…/publication/download` ger arkivet.
 
 En byggnad ur en annan modell kommer in i en modell i projektet som dess nästa version med `ifc_merge`, med
-en rapport först och ett val för varje objekt som skiljer sig. Se [ifc-lpg.md](ifc-lpg.md#en-byggnad-in-i-en-annan-modell).
+en rapport först och ett val för varje objekt som skiljer sig. Se [ifc-db.md](ifc-db.md#en-byggnad-in-i-en-annan-modell).
 
 ## 5. Korrelera din logg med serverns
 
@@ -495,7 +495,7 @@ revisionshändelse (`manage.*`). Kapabilitetsdokumentet annonserar det som
 Ett teams del av modellen är det som specifikationerna i dess IDS-dokument
 gäller för. Ett ändringsset som rör ett enda teams del godkänns av teamets
 ansvarige ensam; ett som rör flera teams delar, eller ingens, av en `manager`.
-Prövningen listar teamen i `teams`; se [ifc-lpg.md](ifc-lpg.md#ändringsset).
+Prövningen listar teamen i `teams`; se [ifc-db.md](ifc-db.md#ändringsset).
 
 Ett projekts `ai_policy` säger vart AI-verktyg får föra dess data (ADR 0028):
 `local`, policyn för ett nytt projekt och för ett som ingen har ställt in,

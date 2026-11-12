@@ -136,12 +136,12 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
  "truncated": false}
 ```
 
-- `server_query` (heimildin `mcp`): [nefndu fyrirspurnirnar](ifc-lpg.md#nefndar-fyrirspurnir)
+- `server_query` (heimildin `mcp`): [nefndu fyrirspurnirnar](ifc-db.md#nefndar-fyrirspurnir)
   um líkan útgáfu, með `document_id` og `version_index` (`null` fyrir þá
   nýjustu), eins og Documents API spyr þeirra. `name` er ein af fyrirspurnunum í
   skrá þjónsins, og hver færibreyta þeirra er sérstakt svæði (`class`, `pset`,
   `property`, `global_id`, `since`); lýsing verkfærisins telur fyrirspurnirnar
-  upp með færibreytum þeirra, svo fyrirspurn sem IFC-LPG bætir við birtist
+  upp með færibreytum þeirra, svo fyrirspurn sem IFC-DB bætir við birtist
   þegar þjónninn hefur verið uppfærður. `name: null` telur þær upp, með
   `model_state` og `workcopy` líkansins. Fyrirspurn svarar `name`, `columns`, í
   mesta lagi 500 `rows`, `count` (línunum sem hún fann, í mesta lagi 10.000) og
@@ -149,7 +149,7 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
 - `get_publication` (heimildin `mcp`): hvort útgáfa er birt, og ef svo er
   `published_at`, `published_by`, `file_name`, `size_in_bytes` og `sha256`,
   hvert `null` meðan hún er það ekki; aldrei hvaðan safnskráin er sótt.
-- `start_clash_check` (heimildin `mcp`): [árekstrarprófun](ifc-lpg.md#árekstrarprófun)
+- `start_clash_check` (heimildin `mcp`): [árekstrarprófun](ifc-db.md#árekstrarprófun)
   milli tveggja útgáfna verkefnis: `project_id`, `a` og `b` með `document_id`,
   `version_index` og `types` (IFC-klasar, `null` fyrir hverja einingu með
   rúmmál), `mode` (`intersection` eða `clearance`), og `tolerance` og
@@ -160,8 +160,8 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
   prófun sem er í röð eða í gangi: `state` hennar, beiðnina, `count`, `set_a`,
   `set_b`, `missing`, `seconds` og í mesta lagi 200 `clashes`, með `truncated`
   þegar þeir voru fleiri. Bæði árekstrarverkfærin hafna nema
-  `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
-  Þessi þrjú eru aðeins skráð meðan IFC-LPG-einingin er virk. Notandi hefur í
+  `OPENCDE_IFC_DB_CLASH_ENABLED=true`.
+  Þessi þrjú eru aðeins skráð meðan IFC-DB-einingin er virk. Notandi hefur í
   mesta lagi tvær prófanir sem bíða eða eru í gangi, í öllum verkefnum sínum
   samanlagt; þriðju er hafnað og endurskoðunarskráin skráir `mcp.denied` með
   ástæðunni `limit`.
@@ -174,7 +174,7 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
 
 ## Breytingasettin
 
-Meðan kveikt er á IFC-LPG-einingunni (`OPENCDE_IFC_LPG_ENABLED`), sem prófar
+Meðan kveikt er á IFC-DB-einingunni (`OPENCDE_IFC_DB_ENABLED`), sem prófar
 breytingasettin, eru á listanum líka verkfærin sem leggja til breytingar á
 líkani, í röð Dataspatium. Þau krefjast heimildarinnar `mcp:propose`,
 hlutverksins `editor` eða `manager` í verkefninu, sem er prófað við hvert kall

@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Ärenden, kommentarer, viewpoints, händelser, relaterade ärenden och projektdokument | `opencde/bcf/` |
 | Documents API | Uppladdning och urval via sidor i webbläsaren, versioner och metadata | `opencde/documents/` |
 | Konton | Användare, projekt, medlemskap och roller | `opencde/accounts/` |
-| Lagringen | Serverns egna data per område: konton, OAuth2, BCF, Documents och jobb, var och en en repository-klass med sin Cypher bakom ett protokoll; skild från IFC-grafen, som IFC-LPG håller | `opencde/store/` |
+| Lagringen | Serverns egna data per område: konton, OAuth2, BCF, Documents och jobb, var och en en repository-klass med sin Cypher bakom ett protokoll; skild från IFC-grafen, som IFC-DB håller | `opencde/store/` |
 | Administration | Sidor och ett API för administratörer, hälsokontroller och begärandeloggen | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Gör uppladdade modeller till noder och länkar viewpoint-komponenter till dem | `opencde/ifcgraph/` |
+| IFC-DB | Gör uppladdade modeller till noder och länkar viewpoint-komponenter till dem | `opencde/ifcgraph/` |
 | MCP-ändpunkten | Verktyg genom vilka AI-program läser projektens modeller och föreslår, medan en person godkänner | `opencde/mcp/` |
 | Graflagret | Drivrutinen, de två databasdialekterna, schemat och det som löper ut | `opencde/graph/` |
 | Sidor | Mallar, stilar, skript och språkkatalogerna | `opencde/ui/` |
@@ -58,7 +58,7 @@ flowchart LR
 | Användare, projekt, ärenden, kommentarer, viewpoints, dokumentmetadata, klienter och granskningsloggen | Grafdatabasen | [Grafschema](graph-schema.md) |
 | Token, koder och klienthemligheter som SHA-256-hashar; lösenord som Argon2id-hashar | Grafdatabasen | `tests/security/` |
 | Uppladdade filer och viewpoint-bilder, under namn som servern väljer | Fillagringen i `OPENCDE_DATA_DIR` | [Documents API-flöden](flows/documents.md) |
-| Modeller som noder och relationer | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
+| Modeller som noder och relationer | Grafdatabasen | [IFC-DB](ifc-db.md) |
 | Serverns egna inställningar och hemligheter | `.env` eller `/run/secrets` | [Lokalt test](deploy/local.md) |
 
 ## Arbete utanför anropen

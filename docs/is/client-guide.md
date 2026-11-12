@@ -268,34 +268,34 @@ Ferlin snerta vafra notandans; sjá [flows/documents.md](flows/documents.md).
 Biðlarinn þinn þarf callback-URL sem vafrinn nær í (loopback-hlustara fyrir
 skjáborðsforrit). Þjónninn kallar aldrei sjálfur á þá URL.
 
-Þegar IFC-LPG-einingin er virk er IFC-skrá sem hlaðið er upp sem útgáfu prófuð
+Þegar IFC-DB-einingin er virk er IFC-skrá sem hlaðið er upp sem útgáfu prófuð
 gagnvart IFC-skemanu og, þar sem þjónninn hefur þær, ifc-gherkin-rules frá
 buildingSMART. Lýsigögn hennar hafa þá `ifc_validation_status` og, þegar
 hún hefur verið prófuð, hinar `ifc_validation_*`-færslurnar;
 `ifc_validation_report` er slóð skýrslunnar, viðbót sem svarar sama tóka. Sjá
-[ifc-lpg.md](ifc-lpg.md#prófun-upphalaðra-skráa-gagnvart-ifc-skemanu).
+[ifc-db.md](ifc-db.md#prófun-upphalaðra-skráa-gagnvart-ifc-skemanu).
 
 Útgáfu sem geymir IFC-líkan má líka spyrja nefndra fyrirspurna, svo sem um
 hæðir hennar, flatarmál rýma eða gildi eiginleika. Það er viðbót sem svarar
 sama tóka og getuskjalið kynnir í `ifc_queries`. Sjá
-[ifc-lpg.md](ifc-lpg.md#nefndar-fyrirspurnir).
+[ifc-db.md](ifc-db.md#nefndar-fyrirspurnir).
 
 Tvær IFC-útgáfur verkefnis má bera saman með tilliti til árekstra á sama hátt,
-viðbót sem er tilkynnt sem `ifc_clash`. Sjá [ifc-lpg.md](ifc-lpg.md#árekstrarprófun).
+viðbót sem er tilkynnt sem `ifc_clash`. Sjá [ifc-db.md](ifc-db.md#árekstrarprófun).
 
 Skrá má prófa áður en henni er hlaðið upp, viðbót sem er tilkynnt sem
 `ifc_precheck`, og verkefni getur hafnað skrám með villum. Sjá
-[ifc-lpg.md](ifc-lpg.md#að-hafna-skrám-með-villum-og-prófa-skrá-fyrirfram).
+[ifc-db.md](ifc-db.md#að-hafna-skrám-með-villum-og-prófa-skrá-fyrirfram).
 
 Breyting á líkani er lögð til sem BCF-mál þar sem `bim_snippet` er
 breytingasett, form sem er tilkynnt sem `ifc_changes`. Sjá
-[ifc-lpg.md](ifc-lpg.md#breytingasett).
+[ifc-db.md](ifc-db.md#breytingasett).
 
 Tvær IFC-útgáfur eru bornar saman einingu fyrir einingu með `ifc_diff`, eftir
-GlobalId og slóð. Sjá [ifc-lpg.md](ifc-lpg.md#að-bera-saman-tvær-útgáfur).
+GlobalId og slóð. Sjá [ifc-db.md](ifc-db.md#að-bera-saman-tvær-útgáfur).
 
 Rúmfræði IFC-útgáfu kemur sem tvíundar-glTF með `ifc_geometry` (`lod=full` eða `box`, `classes`, `storey`),
-og hver byggingarhluti hefur kassa sinn í netinu. Sjá [ifc-lpg.md](ifc-lpg.md#hvar-byggingarhlutarnir-eru-og-rúmfræðin).
+og hver byggingarhluti hefur kassa sinn í netinu. Sjá [ifc-db.md](ifc-db.md#hvar-byggingarhlutarnir-eru-og-rúmfræðin).
 
 `manager` gefur út útgáfu með `publication`: `POST …/versions/{index}/publication` geymir skrána sem eina þjappaða
 skrá, `.ifczip` fyrir IFC-skrá og `.zip` fyrir aðra skrá, og lýsigögn útgáfunnar fá `published_at`,
@@ -304,7 +304,7 @@ prófunin fann villur. `GET …/publication` sýnir hverjum meðlimi hver gaf ha
 `…/publication/download` skilar þjöppuðu skránni.
 
 Bygging úr öðru líkani kemur inn í líkan verkefnisins sem næsta útgáfa þess með `ifc_merge`, fyrst með
-skýrslu og vali fyrir hvern hlut sem er ólíkur. Sjá [ifc-lpg.md](ifc-lpg.md#bygging-inn-í-annað-líkan).
+skýrslu og vali fyrir hvern hlut sem er ólíkur. Sjá [ifc-db.md](ifc-db.md#bygging-inn-í-annað-líkan).
 
 ## 5. Að tengja atvikaskrá þína við þjónsins
 
@@ -493,7 +493,7 @@ Getuskjalið tilkynnir það sem `project_administration`.
 Hluti teymis í líkaninu er það sem forskriftir IDS-skjals þess eiga við. Breytingasafn
 sem snertir hluta eins teymis samþykkir ábyrgðarmaður teymisins einn; það sem
 snertir hluta fleiri teyma, eða engra, samþykkir `manager`. Prófunin telur teymin
-upp í `teams`; sjá [ifc-lpg.md](ifc-lpg.md#breytingasett).
+upp í `teams`; sjá [ifc-db.md](ifc-db.md#breytingasett).
 
 `ai_policy` verkefnis segir hvert gervigreindartól mega fara með gögn þess
 (ADR 0028): `local`, stefna nýs verkefnis og verkefnis sem enginn hefur

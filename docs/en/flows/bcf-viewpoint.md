@@ -62,7 +62,7 @@ A project the user is not a member of does not exist for them (404).
 
 ## From a viewpoint to the model
 
-With the [IFC-LPG](../ifc-lpg.md) on, every component that names a `GlobalId`
+With the [IFC-DB](../ifc-db.md) on, every component that names a `GlobalId`
 the project's finished models have gets the element's GTIN as `gtin`, also when
 the model is uploaded afterwards; the element itself is found by the `GlobalId`:
 

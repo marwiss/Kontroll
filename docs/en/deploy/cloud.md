@@ -16,7 +16,7 @@ over HTTPS.
   server's DNS name, or leave it empty: the server is then called
   `<public address>.sslip.io`, a name that resolves to the machine's address,
   so that the certificate comes at once. `DATAREGIUM_ACME_EMAIL` is optional.
-- A machine with 2 vCPU and 4 GB of memory or more (8 GB with the IFC-LPG
+- A machine with 2 vCPU and 4 GB of memory or more (8 GB with the IFC-DB
   module and large models), Ubuntu 24.04 LTS and a disk of 30 GB or more.
 - A fixed public address, so that the name keeps pointing at the machine. Azure
   gives one with `--public-ip-sku Standard`; on AWS, attach an Elastic IP; on

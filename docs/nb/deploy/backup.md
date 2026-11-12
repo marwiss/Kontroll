@@ -16,8 +16,8 @@ sikkerhetskopieringen; en kopi tatt mens opplastinger pågår, kan mangle delene
 av de opplastingene, som klientene ganske enkelt gjør om igjen.
 
 Med serverens egne data i en egen graf (`OPENCDE_STORE_GRAPH_URI`,
-[ifc-lpg.md](../ifc-lpg.md)) holder én sikkerhetskopi begge grafene i de samme
-filene, IFC-LPGs noder fra IFC-grafen og resten fra lageret, og
+[ifc-db.md](../ifc-db.md)) holder én sikkerhetskopi begge grafene i de samme
+filene, IFC-DBs noder fra IFC-grafen og resten fra lageret, og
 `manifest.json` angir lagerets dialekt i `store_dialect`. En gjenoppretting
 legger hver node der etiketten hører hjemme, uansett hvilke grafer kopien kom
 fra, slik at en kopi av én database gjenopprettes i to og omvendt; den nekter

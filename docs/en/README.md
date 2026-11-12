@@ -16,7 +16,7 @@ the server decides who may sign in and what each person may do in each project.
 Technically, Dataregium is a server for buildingSMART's open **OpenCDE APIs**
 (Foundation API 1.0, BCF API 3.0 and 2.1, and Documents API 1.0), built on the
 graph database Neo4j or Memgraph. In the 3 series every uploaded IFC model
-becomes a lossless graph through the [IFC-LPG](https://github.com/marwiss/IFC-LPG)
+becomes a lossless graph through the [IFC-DB](https://github.com/marwiss/IFC-DB)
 library, with versions, checks and proposed changes. The server was rewritten from
 scratch out of a research prototype from 2023, with security as the first
 requirement, and any client that follows the specifications can connect.
@@ -67,7 +67,7 @@ server and its database.
    settings, and set `OPENCDE_GRAPH_PASSWORD` to a password of your own of at
    least 16 characters. To try it with Dataspatium and models, also set
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true`
-   and `OPENCDE_IFC_LPG_ENABLED=true`; the [quick start with Dataspatium](quickstart.md)
+   and `OPENCDE_IFC_DB_ENABLED=true`; the [quick start with Dataspatium](quickstart.md)
    explains why. Every setting is explained in [.env.example](../../.env.example).
 3. **Start.** The same compose files work with Docker and with Podman; pick the one you have:
 
@@ -97,7 +97,7 @@ server and its database.
    <summary><b>Without a container</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # installs Python 3.13 and every dependency, with IFC-LPG
+   uv sync --extra ifc-db           # installs Python 3.13 and every dependency, with IFC-DB
    uv run opencde doctor            # checks the configuration and the database
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -142,7 +142,7 @@ server and its database.
    </details>
 
    The command makes demonstration users, projects, clients and a topic, and with
-   IFC-LPG on also a sample model as a graph. The passwords are printed once. Sign
+   IFC-DB on also a sample model as a graph. The passwords are printed once. Sign
    in at <http://127.0.0.1:8000/signin> as `admin` and open `/admin`.
 6. **Connect a client.** Register your app under *Clients* (or let it register
    itself when `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) and point it at
@@ -191,9 +191,9 @@ nothing is open until it has been configured.
   TLS, a tunnel, the local engine and the working copy. `COMPOSE_FILE` in `.env`
   chooses them, so the commands go without `-f`.
 - **Without a container**: Python 3.11 or later with uv (tested on 3.11, 3.13 and
-  3.14), `uv sync --extra ifc-lpg`, and Neo4j 5.26 or Memgraph 3.14 at `OPENCDE_GRAPH_URI`.
+  3.14), `uv sync --extra ifc-db`, and Neo4j 5.26 or Memgraph 3.14 at `OPENCDE_GRAPH_URI`.
 - **The main settings**: `OPENCDE_APIS` chooses the APIs (all three by default,
-  `["documents"]` in 1.0.0); `OPENCDE_IFC_LPG_ENABLED=true` turns on the graph and
+  `["documents"]` in 1.0.0); `OPENCDE_IFC_DB_ENABLED=true` turns on the graph and
   everything in the 2 and 3 series that concerns models; `OPENCDE_ENVIRONMENT` is
   `development`, `production` or `local` (the local engine, `opencde init --local`).
 - **Endpoints**: `/.well-known/dataregium` (the version and the extensions that are
@@ -218,7 +218,7 @@ the server yourself:
   or Podman 5, or Python 3.11 or later with [uv](https://docs.astral.sh/uv/) and a
   Neo4j 5.26 or Memgraph 3.14 database of your own.
 - About 1 GB of memory for the database container (`NEO4J_HEAP` and
-  `NEO4J_PAGECACHE` in `.env`), and more for large models with IFC-LPG.
+  `NEO4J_PAGECACHE` in `.env`), and more for large models with IFC-DB.
 - Locally: port 8000 for the server and 7484/7697 for the database, all bound to
   `127.0.0.1`. In production: ports 80 and 443 reachable from the internet and a
   DNS name for the server.
@@ -282,13 +282,13 @@ version of Dataspatium.
 - **Topics about the model** (BCF API 3.0 and 2.1): questions and remarks with
   comments, pictures and views that point out building elements, with filters and an
   event log, validated against buildingSMART's schemas.
-- **The model as a graph** (the IFC-LPG module, turned on with
-  `OPENCDE_IFC_LPG_ENABLED`): an uploaded IFC model becomes a graph in the database,
-  linked to the building elements in the topics' views (see [IFC-LPG](ifc-lpg.md)).
+- **The model as a graph** (the IFC-DB module, turned on with
+  `OPENCDE_IFC_DB_ENABLED`): an uploaded IFC model becomes a graph in the database,
+  linked to the building elements in the topics' views (see [IFC-DB](ifc-db.md)).
 
 ### Also in version 3 (with Dataspatium 3)
 
-- **A lossless model**: the graph comes from the IFC-LPG library and holds
+- **A lossless model**: the graph comes from the IFC-DB library and holds
   everything in the file, so that it can be written back as it came.
 - **A check of every upload** against the IFC schema, buildingSMART's rules and the
   project's IDS requirements; a project can refuse files with errors, and a file can
@@ -412,8 +412,8 @@ number go together:
 | Dataregium | What it has | Image | Goes with |
 |---|---|---|---|
 | 1.0.0 | A document server: the Foundation API and the Documents API, the web administration in seven languages, the project administration for the project manager and the request log. It is the 2.0.0 code with only the Documents API on (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Also BCF API 3.0 and 2.1 on the same data and the IFC-LPG module that makes a graph of every uploaded IFC file | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Also the lossless graph from the IFC-LPG library, the check of every upload, the queries, the comparisons and the clash check, versions with change proposals that are tested, approved and merged, the publication of a version, a building of one model brought into another, the geometry as glTF, the local engine and the recipes for the cloud and nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 2.0.0 | Also BCF API 3.0 and 2.1 on the same data and the IFC-DB module that makes a graph of every uploaded IFC file | `2.0.0` | Dataspatium 2.0.0 |
+| 3.0.0 | Also the lossless graph from the IFC-DB library, the check of every upload, the queries, the comparisons and the clash check, versions with change proposals that are tested, approved and merged, the publication of a version, a building of one model brought into another, the geometry as glTF, the local engine and the recipes for the cloud and nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Learn more
 
@@ -426,13 +426,13 @@ number go together:
 - [glossary.md](glossary.md): the words the documentation uses.
 - [flows/](flows/): sequence diagrams of the OAuth2, Documents API and BCF viewpoint flows.
 - [graph-schema.md](graph-schema.md): the graph model.
-- [ifc-lpg.md](ifc-lpg.md): the IFC-LPG module, the checks, the versions, the change sets, the geometry and examples of Cypher queries.
+- [ifc-db.md](ifc-db.md): the IFC-DB module, the checks, the versions, the change sets, the geometry and examples of Cypher queries.
 - [mcp.md](mcp.md): the MCP endpoint, through which AI programs read the projects' models: turning it on, its tokens, the protocol, the tools, the AI policy and the limits.
 - Architecture decisions that stand: a graph database as the only store, opaque
   tokens instead of JWT, portable Cypher for Neo4j and Memgraph, a web interface
   without a framework, a backup at application level, BCF API 2.1 beside 3.0, a
   lossless IFC graph that reads and writes STEP itself and is validated when written,
-  buildingSMART's rules in an environment of their own, IFC-LPG as a library, a check
+  buildingSMART's rules in an environment of their own, IFC-DB as a library, a check
   against the project's IDS, named queries for members, a clash check on the server
   with IfcClash, versions as nodes with changes and a base, a local engine that only
   answers on your own computer and a working copy in memory beside the archive.
@@ -455,8 +455,8 @@ The documentation is in this README's seven languages, each language under
 
 ## Limitations in brief
 
-- Everything that concerns models, in the 2 and 3 series, needs the IFC-LPG module,
-  which is off until `OPENCDE_IFC_LPG_ENABLED=true`. buildingSMART's rules only run
+- Everything that concerns models, in the 2 and 3 series, needs the IFC-DB module,
+  which is off until `OPENCDE_IFC_DB_ENABLED=true`. buildingSMART's rules only run
   with the `-gherkin` image; without it the schema and IDS are checked.
 - The server implements BCF API 3.0 and 2.1, not 1.0, whose resources look different.
 - Exporting a project as BCFzip is left to the clients; the server stores topics,
@@ -465,8 +465,8 @@ The documentation is in this README's seven languages, each language under
   exposed Bolt port gives full access to whoever has the password. The port stays
   closed unless the administrator publishes it on purpose; the administration API's
   read-only graph query (`OPENCDE_GRAPH_QUERY_ENABLED`) gives Cypher without the port.
-- The IFC-LPG import, the checks and the testing of change sets run in separate
-  processes with memory and time limits (`OPENCDE_IFC_LPG_*`); very large models are
+- The IFC-DB import, the checks and the testing of change sets run in separate
+  processes with memory and time limits (`OPENCDE_IFC_DB_*`); very large models are
   refused instead of being left half imported, or are handled by the local engine.
 - The web pages are for signing in, administration, uploading and choosing documents
   and for a version's check and comparison; end users work in a client such as
@@ -499,7 +499,7 @@ today is under [What you can do](#what-you-can-do). The official OpenCDE APIs st
 buildingSMART defines them; what the series adds are extensions to them, under names
 of their own and with an OpenAPI of their own. This section says what is decided, for
 whoever, human or AI agent, carries a part of it further. The ways of working are in
-[CONTRIBUTING.md](../../CONTRIBUTING.md) and the IFC graph in [ifc-lpg.md](ifc-lpg.md).
+[CONTRIBUTING.md](../../CONTRIBUTING.md) and the IFC graph in [ifc-db.md](ifc-db.md).
 
 ### Decided
 

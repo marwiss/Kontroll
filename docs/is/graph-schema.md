@@ -26,7 +26,7 @@ skýrir venjurnar og merkimiðana, kafla fyrir kafla í þeirri röð sem áfang
   vensl; tilvísun sem er geymd sem eiginleiki (`AuditEvent.actor_user_id`,
   `UploadSession.user_id`) er talin upp í kassanum í stað þess að vera
   teiknuð sem lína.
-- Merkimiði sem byrjar á `Ifc` er alltaf einn af flokkum IFC, eins og IFC-LPG
+- Merkimiði sem byrjar á `Ifc` er alltaf einn af flokkum IFC, eins og IFC-DB
   skrifar þá; eigin færslur þjónsins (`Validation`, `Precheck`, `Proposal`,
   `Clash`, `Merge`) byrja aldrei þannig, svo að fyrirspurn geti greint IFC-gögn
   frá gögnum þjónsins sjálfs.
@@ -177,10 +177,10 @@ erDiagram
 | Merkimiði | Lykill | Eiginleikar | Athugasemdir |
 |---|---|---|---|
 | `Conversion` | `id`, atriðaskráð `project_id`, `document_id` | `model_id`, `document_id`, `version_index` eða `bcf_document_guid`, `file_name`, `storage_key`, `state`, `created_at`, `running_at`, `done_at`, `failed_at`, `error`, `geometry_key`, `spatial_pending`, `spatial_error`, `graph_report`, `graph_issue_count`, `graph_error_count`, `graph_ruleset`, `graph_checked_at`, og afrit af `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `form_version`, `format`, `spatial_at`, `spatial_products` og `spatial_failed` | Færsla þjónsins um umbreytingu (`HAS_CONVERSION`): skráin sem hún kom úr, lífsferill hennar (`state` er `queued`, `running`, `done` eða `failed`), rúmfræðifærslurnar og netprófunin; `model_id` nefnir líkanið, sem ber sama auðkenni, og ekkert annað tengir þau tvö. Eytt með verkefninu |
-| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | Færsla IFC-LPG um innflutt líkan, sem safnið eitt skrifar; `imported_at` segir að það sé allt í netinu (líkan frá því fyrir 2026-11-11 heldur `state` `done` til þess). Þjónninn skrifar aldrei á það |
+| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | Færsla IFC-DB um innflutt líkan, sem safnið eitt skrifar; `imported_at` segir að það sé allt í netinu (líkan frá því fyrir 2026-11-11 heldur `state` `done` til þess). Þjónninn skrifar aldrei á það |
 | `Entity` + flokkamerkimiðar | `id` (`<líkansauðkenni>:<step-auðkenni>`), atriðaskráð `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punktar í verkefnishnitum, metrar, á byggingarhluta með lögun), hvert bókstaflegt IFC-eigindi með heiti | Vensl milli eininga eru nefnd eftir IFC-eigindinu (áfram og andhverft), skrifuð eins og hver venslagerð með hástöfum og undirstrikum: `IsDefinedBy` verður `IS_DEFINED_BY` |
-| `StepBlock` | `id` (`<líkansauðkenni>:<fyrsta step-auðkenni>`) | `first_step`, `instances`, `text` | Tilvik í líkani sem var umbreytt með `OPENCDE_IFC_LPG_LOSSLESS` og eru ekki hnútar: skrifuð út sem STEP í röð auðkenna og þjöppuð. Skilaðu ekki hnútnum heilum í fyrirspurn, vegna `text` |
+| `StepBlock` | `id` (`<líkansauðkenni>:<fyrsta step-auðkenni>`) | `first_step`, `instances`, `text` | Tilvik í líkani sem var umbreytt með `OPENCDE_IFC_DB_LOSSLESS` og eru ekki hnútar: skrifuð út sem STEP í röð auðkenna og þjöppuð. Skilaðu ekki hnútnum heilum í fyrirspurn, vegna `text` |
 | `Merge` | `id` | `project_id`, `kind` (`merge` eða `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | Bygging úr líkani B færð inn í líkan verkefnisins (`HAS_MERGE`); `request` nefnir báðar útgáfurnar, og `version_index` er útgáfan sem hún varð. Sameinaða líkanið er tekið úr netinu þegar það hefur verið skrifað út. Eytt með verkefninu |
 | `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | Árekstrarprófun milli tveggja skjalaútgáfna í verkefninu (`HAS_CLASH`; ADR 0019); `request` nefnir báðar útgáfurnar, haminn og vikmörkin, og `report` geymir pörin sem fundust sem þjappað JSON. Eytt með verkefninu |
 
-Sjá [ifc-lpg.md](ifc-lpg.md) um umbreytingarreglurnar og dæmafyrirspurnir.
+Sjá [ifc-db.md](ifc-db.md) um umbreytingarreglurnar og dæmafyrirspurnir.

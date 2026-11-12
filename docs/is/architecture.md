@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Mál, athugasemdir, sjónarhorn, atburðir, tengd mál og skjöl verkefnis | `opencde/bcf/` |
 | Documents API | Upphleðsla og val á síðum í vafranum, útgáfur og lýsigögn | `opencde/documents/` |
 | Reikningar | Notendur, verkefni, aðild og hlutverk | `opencde/accounts/` |
-| Geymslan | Eigin gögn þjónsins eftir sviðum: reikningar, OAuth2, BCF, Documents og verk, hvert þeirra geymsluklasi með sinni Cypher bak við samskiptareglu; aðskilið frá IFC-netinu, sem IFC-LPG heldur | `opencde/store/` |
+| Geymslan | Eigin gögn þjónsins eftir sviðum: reikningar, OAuth2, BCF, Documents og verk, hvert þeirra geymsluklasi með sinni Cypher bak við samskiptareglu; aðskilið frá IFC-netinu, sem IFC-DB heldur | `opencde/store/` |
 | Stjórnun | Síður og API fyrir stjórnendur, heilsufarsathuganir og beiðnaskráin | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Gerir upphlaðin líkön að hnútum og tengir sjónarhornseiningar við þá | `opencde/ifcgraph/` |
+| IFC-DB | Gerir upphlaðin líkön að hnútum og tengir sjónarhornseiningar við þá | `opencde/ifcgraph/` |
 | MCP-endapunkturinn | Verkfæri sem gervigreindarforrit lesa líkön verkefnanna í gegnum og leggja til, meðan manneskja samþykkir | `opencde/mcp/` |
 | Graflagið | Rekillinn, gagnagrunnsmállýskurnar tvær, skemað og það sem rennur út | `opencde/graph/` |
 | Síður | Sniðmát, stílar, skriftur og tungumálaskrárnar | `opencde/ui/` |
@@ -58,7 +58,7 @@ flowchart LR
 | Notendur, verkefni, mál, athugasemdir, sjónarhorn, lýsigögn skjala, biðlarar og endurskoðunarskráin | Grafgagnagrunnurinn | [Grafskema](graph-schema.md) |
 | Tókar, kóðar og biðlaraleyndarmál sem SHA-256-tætigildi; lykilorð sem Argon2id-tætigildi | Grafgagnagrunnurinn | `tests/security/` |
 | Upphlaðnar skrár og myndir sjónarhorna, undir nöfnum sem þjónninn velur | Skráageymslan í `OPENCDE_DATA_DIR` | [Documents API-ferli](flows/documents.md) |
-| Líkön sem hnútar og tengsl | Grafgagnagrunnurinn | [IFC-LPG](ifc-lpg.md) |
+| Líkön sem hnútar og tengsl | Grafgagnagrunnurinn | [IFC-DB](ifc-db.md) |
 | Eigin stillingar og leyndarmál þjónsins | `.env` eða `/run/secrets` | [Staðbundin prófun](deploy/local.md) |
 
 ## Vinna utan beiðna

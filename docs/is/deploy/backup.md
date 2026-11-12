@@ -17,8 +17,8 @@ gangi getur vantað hluta þeirra upphala, sem biðlararnir einfaldlega
 endurtaka.
 
 Með eigin gögn þjónsins í eigin grafi (`OPENCDE_STORE_GRAPH_URI`,
-[ifc-lpg.md](../ifc-lpg.md)) heldur eitt öryggisafrit báðum gröfunum í sömu
-skrám, hnútum IFC-LPG úr IFC-grafinu og hinu úr geymslunni, og
+[ifc-db.md](../ifc-db.md)) heldur eitt öryggisafrit báðum gröfunum í sömu
+skrám, hnútum IFC-DB úr IFC-grafinu og hinu úr geymslunni, og
 `manifest.json` nefnir mállýsku geymslunnar í `store_dialect`. Endurheimt
 setur hvern hnút þangað sem merkimiði hans á heima, hvaða gröfum sem afritið
 kom úr, svo að afrit af einum gagnagrunni endurheimtist í tvo og öfugt; hún

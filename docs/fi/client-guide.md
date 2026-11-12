@@ -281,34 +281,34 @@ Asiakkaasi tarvitsee callback-URLin, johon selain pääsee
 (loopback-kuuntelija työpöytäsovelluksille). Palvelin ei koskaan kutsu tuota
 URLia itse.
 
-Kun IFC-LPG-moduuli on käytössä, versiona lähetetty IFC-tiedosto tarkistetaan
+Kun IFC-DB-moduuli on käytössä, versiona lähetetty IFC-tiedosto tarkistetaan
 IFC-skeemaa ja, jos palvelimella on ne, buildingSMARTin ifc-gherkin-rules-sääntöjä
 vasten. Sen metatiedoissa on silloin `ifc_validation_status` ja
 tarkistuksen jälkeen muut `ifc_validation_*`-kohdat; `ifc_validation_report` on
 raportin osoite, laajennus, joka vastaa samalle tunnisteelle. Katso
-[ifc-lpg.md](ifc-lpg.md#lähetysten-tarkistus-ifc-skeemaa-vasten).
+[ifc-db.md](ifc-db.md#lähetysten-tarkistus-ifc-skeemaa-vasten).
 
 IFC-mallin sisältävältä versiolta voi myös kysyä nimettyjä kyselyitä, kuten sen
 kerrokset, tilojen pinta-alat tai ominaisuuden arvon. Se on laajennus, joka
 vastaa samalle tunnisteelle ja jonka ominaisuusdokumentti ilmoittaa kentässä
-`ifc_queries`. Katso [ifc-lpg.md](ifc-lpg.md#nimetyt-kyselyt).
+`ifc_queries`. Katso [ifc-db.md](ifc-db.md#nimetyt-kyselyt).
 
 Projektin kahta IFC-versiota voi verrata törmäysten varalta samalla tavalla;
-laajennus ilmoitetaan nimellä `ifc_clash`. Katso [ifc-lpg.md](ifc-lpg.md#törmäystarkastus).
+laajennus ilmoitetaan nimellä `ifc_clash`. Katso [ifc-db.md](ifc-db.md#törmäystarkastus).
 
 Tiedoston voi tarkistaa ennen lähettämistä; laajennus ilmoitetaan nimellä
 `ifc_precheck`, ja projekti voi hylätä virheelliset tiedostot. Katso
-[ifc-lpg.md](ifc-lpg.md#virheellisten-tiedostojen-hylkääminen-ja-tiedoston-tarkistaminen-etukäteen).
+[ifc-db.md](ifc-db.md#virheellisten-tiedostojen-hylkääminen-ja-tiedoston-tarkistaminen-etukäteen).
 
 Muutosta malliin ehdotetaan BCF-asiana, jonka `bim_snippet` on muutosjoukko;
 muoto ilmoitetaan nimellä `ifc_changes`. Katso
-[ifc-lpg.md](ifc-lpg.md#muutosjoukot).
+[ifc-db.md](ifc-db.md#muutosjoukot).
 
 Kahta IFC-versiota verrataan elementti kerrallaan laajennuksella `ifc_diff`,
-GlobalId:n ja polun mukaan. Katso [ifc-lpg.md](ifc-lpg.md#kahden-version-vertailu).
+GlobalId:n ja polun mukaan. Katso [ifc-db.md](ifc-db.md#kahden-version-vertailu).
 
 IFC-version geometria tulee binäärisenä glTF:nä laajennuksella `ifc_geometry` (`lod=full` tai `box`, `classes`, `storey`),
-ja jokaisella rakennusosalla on laatikkonsa graafissa. Katso [ifc-lpg.md](ifc-lpg.md#missä-rakennusosat-ovat-ja-geometria).
+ja jokaisella rakennusosalla on laatikkonsa graafissa. Katso [ifc-db.md](ifc-db.md#missä-rakennusosat-ovat-ja-geometria).
 
 `manager` julkaisee version laajennuksella `publication`: `POST …/versions/{index}/publication` tallentaa
 tiedoston yhdeksi arkistoksi, IFC-tiedoston `.ifczip`-muodossa ja muun tiedoston `.zip`-muodossa, ja version
@@ -317,7 +317,7 @@ julkaista tarkistuksen ollessa kesken tai sen löydettyä virheitä. `GET …/pu
 jäsenelle, kuka sen julkaisi ja milloin, ja `…/publication/download` antaa arkiston.
 
 Toisen mallin rakennus tulee projektin malliin sen seuraavana versiona laajennuksella `ifc_merge`, ensin
-raportti ja valinta jokaiselle eroavalle objektille. Katso [ifc-lpg.md](ifc-lpg.md#rakennus-toiseen-malliin).
+raportti ja valinta jokaiselle eroavalle objektille. Katso [ifc-db.md](ifc-db.md#rakennus-toiseen-malliin).
 
 ## 5. Lokisi ja palvelimen lokin yhdistäminen
 
@@ -511,7 +511,7 @@ Tiimin osa mallista on se, mihin sen IDS-asiakirjan määrittelyt kohdistuvat.
 Muutosjoukon, joka koskee yhden tiimin osaa, hyväksyy tiimin vastuuhenkilö
 yksin; useamman tiimin osia tai ei kenenkään osaa koskevan hyväksyy `manager`.
 Kokeilu luettelee tiimit kentässä `teams`; katso
-[ifc-lpg.md](ifc-lpg.md#muutosjoukot).
+[ifc-db.md](ifc-db.md#muutosjoukot).
 
 Projektin `ai_policy` kertoo, minne tekoälytyökalut saavat viedä sen tiedot
 (ADR 0028): `local`, uuden projektin käytäntö ja sellaisen, jolle kukaan ei

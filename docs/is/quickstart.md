@@ -39,7 +39,7 @@ bókstafi og tölustafi.
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
 OPENCDE_REQUEST_LOG_ENABLED=true
-OPENCDE_IFC_LPG_ENABLED=true
+OPENCDE_IFC_DB_ENABLED=true
 ```
 
 | Lína | Hvað hún gerir | Án hennar |
@@ -47,7 +47,7 @@ OPENCDE_IFC_LPG_ENABLED=true
 | `OPENCDE_GRAPH_PASSWORD` | Lykilorð grafgagnagrunnsins | Styttra en 16 stafir: gagnagrunnurinn ræsist ekki |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Leyfir Dataspatium að skrá sig sjálft hjá þjóninum | Skref 3 stöðvast, og forritið biður um biðlaraauðkenni |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Vistar köll forritsins | Beiðnaskráin í skrefi 5 er áfram tóm |
-| `OPENCDE_IFC_LPG_ENABLED` | Gerir upphlaðin líkön að grafi | Ekkert graf í skrefi 5 |
+| `OPENCDE_IFC_DB_ENABLED` | Gerir upphlaðin líkön að grafi | Ekkert graf í skrefi 5 |
 
 Stillingarnar eru til að prófa Dataregium á eigin tölvu, ekki fyrir þjón sem aðrir nota.
 
@@ -137,7 +137,7 @@ Innskráð(ur) sem `admin` opnar þú <http://127.0.0.1:8000/admin>:
   spjaldið *Skrá* neðst í sýn uppsprettunnar í *Sækja*, svo að misheppnað kall finnist á
   báðum hliðum.
 
-Sýnilíkanið er þegar orðið graf, því að `OPENCDE_IFC_LPG_ENABLED=true` var í `.env`
+Sýnilíkanið er þegar orðið graf, því að `OPENCDE_IFC_DB_ENABLED=true` var í `.env`
 þegar þú keyrðir `opencde seed`. Neo4j Browser á <http://127.0.0.1:7484> (tengdu við
 `bolt://127.0.0.1:7697` sem `neo4j` með lykilorðinu úr `.env`) svarar þessari fyrirspurn
 með veggnum tengdum við íhlut viewpointsins:

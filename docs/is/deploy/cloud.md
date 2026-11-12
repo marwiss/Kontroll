@@ -16,7 +16,7 @@ HTTPS.
   DNS-nafn þjónsins, eða hafðu það autt: þjónninn heitir þá
   `<opinbert vistfang>.sslip.io`, nafn sem vísar á vistfang vélarinnar, svo að
   skírteinið kemur strax. `DATAREGIUM_ACME_EMAIL` er valfrjálst.
-- Vél með 2 vCPU og 4 GB minni eða meira (8 GB með IFC-LPG-einingunni og stórum
+- Vél með 2 vCPU og 4 GB minni eða meira (8 GB með IFC-DB-einingunni og stórum
   líkönum), Ubuntu 24.04 LTS og disk upp á 30 GB eða meira.
 - Fast opinbert vistfang, svo að nafnið haldi áfram að vísa á vélina. Azure
   gefur það með `--public-ip-sku Standard`; hjá AWS tengir þú Elastic IP; hjá

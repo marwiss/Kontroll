@@ -23,6 +23,12 @@ endpoint through which AI tools read the models and propose change sets that a p
 storey, the check against bSDD, the element of each rules finding, and the server's own data in a database of its
 own. Works with Dataspatium 3.0.0.
 
+- The IFC library IFC-LPG is now IFC-DB ([IFC-DB](https://github.com/marwiss/IFC-DB), package `ifc-db`, module
+  `ifc_db`), with the same calls and the same form of the graph. The module's extra is now `ifc-db`, its settings
+  `OPENCDE_IFC_DB_*`, its command `opencde ifc-db` and its page [docs/en/ifc-db.md](docs/en/ifc-db.md). The old
+  extras `ifc-lpg` and `ifcgraph`, the old settings `OPENCDE_IFC_LPG_*` and `OPENCDE_IFCGRAPH_*` and the old commands
+  still work, and the log and `opencde doctor` name the old settings a server is given; `raw` in
+  `GET /admin/api/settings` names the settings by their new names.
 - A change set's operations take Dataspatium's new write tools: `define_type` makes wall, slab, roof and covering
   types with their material layers and column, beam, footing, railing, door and window types, `create_element` makes
   columns, beams, members, footings, piles, coverings, railings, chimneys, shading devices, sanitary terminals,

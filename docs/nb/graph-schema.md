@@ -26,7 +26,7 @@ planens etapper la dem til.
   nedenfor tegner bare virkelige noder og relasjoner; en referanse som holdes
   som egenskap (`AuditEvent.actor_user_id`, `UploadSession.user_id`), listes i
   boksen i stedet for å tegnes som en linje.
-- En etikett som begynner med `Ifc`, er alltid en av IFC-klassene, slik IFC-LPG
+- En etikett som begynner med `Ifc`, er alltid en av IFC-klassene, slik IFC-DB
   skriver dem; serverens egne poster (`Validation`, `Precheck`, `Proposal`,
   `Clash`, `Merge`) begynner aldri slik, så en spørring kan skille IFC-data fra
   serverens egne.
@@ -177,10 +177,10 @@ erDiagram
 | Etikett | Nøkkel | Egenskaper | Merknader |
 |---|---|---|---|
 | `Conversion` | `id`, indeksert `project_id`, `document_id` | `model_id`, `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `created_at`, `running_at`, `done_at`, `failed_at`, `error`, `geometry_key`, `spatial_pending`, `spatial_error`, `graph_report`, `graph_issue_count`, `graph_error_count`, `graph_ruleset`, `graph_checked_at`, og en kopi av importens `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `form_version`, `format`, `spatial_at`, `spatial_products` og `spatial_failed` | Serverens post om en konvertering (`HAS_CONVERSION`): filen den kom fra, livssyklusen (`state` er `queued`, `running`, `done` eller `failed`), geometripostene og grafkontrollen; `model_id` navngir modellen, som bærer samme id, og ingenting annet knytter de to sammen. Slettes med prosjektet |
-| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | IFC-LPGs post om en importert modell, skrevet av biblioteket alene; `imported_at` sier at den er hel i grafen (en modell fra før 2026-11-11 beholder `state` `done` for det). Serveren skriver aldri på den |
+| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | IFC-DBs post om en importert modell, skrevet av biblioteket alene; `imported_at` sier at den er hel i grafen (en modell fra før 2026-11-11 beholder `state` `done` for det). Serveren skriver aldri på den |
 | `Entity` + klasseetiketter | `id` (`<modell-id>:<step-id>`), indeksert `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkter i prosjektkoordinater, meter, på en bygningsdel med form), hvert literalt IFC-attributt ved navn | Relasjoner mellom entiteter navngis etter IFC-attributtet (forover og inverst), skrevet som enhver relasjonstype med store bokstaver og understreker: `IsDefinedBy` blir `IS_DEFINED_BY` |
-| `StepBlock` | `id` (`<modell-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konvertert med `OPENCDE_IFC_LPG_LOSSLESS` som ikke er noder: skrevet ut som STEP i id-rekkefølge og komprimert. Ikke returner noden hel i en spørring, på grunn av `text` |
+| `StepBlock` | `id` (`<modell-id>:<første step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konvertert med `OPENCDE_IFC_DB_LOSSLESS` som ikke er noder: skrevet ut som STEP i id-rekkefølge og komprimert. Ikke returner noden hel i en spørring, på grunn av `text` |
 | `Merge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | En bygning fra modell B ført inn i en modell i prosjektet (`HAS_MERGE`); `request` oppgir begge versjonene, og `version_index` er versjonen den ble. Den sammenslåtte modellen tas ut av grafen når den er skrevet ut. Slettes med prosjektet |
 | `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | En kollisjonskontroll mellom to dokumentversjoner i prosjektet (`HAS_CLASH`; ADR 0019); `request` oppgir begge versjonene, modusen og toleransen, og `report` holder parene som ble funnet, som komprimert JSON. Slettes med prosjektet |
 
-Se [ifc-lpg.md](ifc-lpg.md) for konverteringsreglene og eksempelspørringer.
+Se [ifc-db.md](ifc-db.md) for konverteringsreglene og eksempelspørringer.

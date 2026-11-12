@@ -134,12 +134,12 @@ tool result with `isError: true` that the AI can read; the answer is
  "truncated": false}
 ```
 
-- `server_query` (scope `mcp`): the [named queries](ifc-lpg.md#named-queries)
+- `server_query` (scope `mcp`): the [named queries](ifc-db.md#named-queries)
   of a version's model, by `document_id` and `version_index` (`null` for the
   latest), as the Documents API asks them. `name` is one of the queries in the
   server's catalogue, and each of their parameters is a field of its own
   (`class`, `pset`, `property`, `global_id`, `since`); the tool's description
-  lists the queries with their parameters, so a query IFC-LPG adds appears when
+  lists the queries with their parameters, so a query IFC-DB adds appears when
   the server is updated. `name: null` lists them, with the model's
   `model_state` and `workcopy`. A query answers `name`, `columns`, at most 500
   `rows`, `count` (the rows it found, at most 10,000) and `truncated`; a text in
@@ -147,7 +147,7 @@ tool result with `isError: true` that the AI can read; the answer is
 - `get_publication` (scope `mcp`): whether a version is published, and if it is
   `published_at`, `published_by`, `file_name`, `size_in_bytes` and `sha256`,
   each `null` while it is not; never where the archive is downloaded.
-- `start_clash_check` (scope `mcp`): a [clash check](ifc-lpg.md#clash-check) of
+- `start_clash_check` (scope `mcp`): a [clash check](ifc-db.md#clash-check) of
   two versions of a project: `project_id`, `a` and `b` with `document_id`,
   `version_index` and `types` (IFC classes, `null` for every element with a
   body), `mode` (`intersection` or `clearance`), and `tolerance` and `clearance`
@@ -157,8 +157,8 @@ tool result with `isError: true` that the AI can read; the answer is
   `clash_id`, waiting at most `wait_seconds` (20 at the most) for one that is
   queued or running: its `state`, the request, `count`, `set_a`, `set_b`,
   `missing`, `seconds` and at most 200 `clashes`, with `truncated` when there
-  were more. Both clash tools refuse unless `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
-  The three are listed only while the IFC-LPG module is on. A user has at most
+  were more. Both clash tools refuse unless `OPENCDE_IFC_DB_CLASH_ENABLED=true`.
+  The three are listed only while the IFC-DB module is on. A user has at most
   two checks waiting or running, in all their projects together; a third is
   refused, and the audit log records `mcp.denied` with the reason `limit`.
 
@@ -170,7 +170,7 @@ tool result with `isError: true` that the AI can read; the answer is
 
 ## The change sets
 
-While the IFC-LPG module is on (`OPENCDE_IFC_LPG_ENABLED`), which tries the
+While the IFC-DB module is on (`OPENCDE_IFC_DB_ENABLED`), which tries the
 change sets, the list also holds the tools that propose changes to a model, in
 Dataspatium's order. They need the scope `mcp:propose`, the role `editor` or
 `manager` in the project, checked at every call as the REST API checks it, and

@@ -62,7 +62,7 @@ Eit prosjekt brukaren ikkje er medlem av, finst ikkje for vedkomande (404).
 
 ## Frå eit viewpoint til modellen
 
-Når [IFC-LPG](../ifc-lpg.md) er på, får kvar komponent som nemner ein `GlobalId`
+Når [IFC-DB](../ifc-db.md) er på, får kvar komponent som nemner ein `GlobalId`
 som dei ferdige modellane i prosjektet har, GTIN til elementet som `gtin`, òg når
 modellen blir lasta opp etterpå; sjølve elementet blir funne gjennom `GlobalId`:
 

@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Saker, kommentarar, viewpointar, hendingar, relaterte saker og prosjektdokument | `opencde/bcf/` |
 | Documents API | Opplasting og utval via sider i nettlesaren, versjonar og metadata | `opencde/documents/` |
 | Kontoar | Brukarar, prosjekt, medlemskap og roller | `opencde/accounts/` |
-| Lagringa | Dei eigne dataa til tenaren per område: kontoar, OAuth2, BCF, Documents og jobbar, kvar ein repository-klasse med si Cypher bak ein protokoll; skild frå IFC-grafen, som IFC-LPG held | `opencde/store/` |
+| Lagringa | Dei eigne dataa til tenaren per område: kontoar, OAuth2, BCF, Documents og jobbar, kvar ein repository-klasse med si Cypher bak ein protokoll; skild frå IFC-grafen, som IFC-DB held | `opencde/store/` |
 | Administrasjon | Sider og eit API for administratorar, helsesjekkar og førespurnadsloggen | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Gjer opplasta modellar til nodar og lenkjer viewpoint-komponentar til dei | `opencde/ifcgraph/` |
+| IFC-DB | Gjer opplasta modellar til nodar og lenkjer viewpoint-komponentar til dei | `opencde/ifcgraph/` |
 | MCP-endepunktet | Verktøy som AI-program les modellane i prosjekta og gjer framlegg gjennom, medan ein person godkjenner | `opencde/mcp/` |
 | Graflaget | Drivaren, dei to databasedialektane, skjemaet og det som går ut | `opencde/graph/` |
 | Sider | Malar, stilar, skript og språkkatalogane | `opencde/ui/` |
@@ -58,7 +58,7 @@ flowchart LR
 | Brukarar, prosjekt, saker, kommentarar, viewpointar, dokumentmetadata, klientar og revisjonsloggen | Grafdatabasen | [Grafskjema](graph-schema.md) |
 | Token, kodar og klientløyndommar som SHA-256-hashar; passord som Argon2id-hashar | Grafdatabasen | `tests/security/` |
 | Opplasta filer og viewpoint-bilete, under namn serveren vel | Fillageret i `OPENCDE_DATA_DIR` | [Documents API-flytar](flows/documents.md) |
-| Modellar som nodar og relasjonar | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
+| Modellar som nodar og relasjonar | Grafdatabasen | [IFC-DB](ifc-db.md) |
 | Dei eigne innstillingane og løyndommane til serveren | `.env` eller `/run/secrets` | [Lokal test](deploy/local.md) |
 
 ## Arbeid utanfor førespurnadene

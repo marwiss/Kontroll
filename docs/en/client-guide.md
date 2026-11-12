@@ -262,33 +262,33 @@ The flows involve the user's browser; see [flows/documents.md](flows/documents.m
 Your client needs a callback URL the browser can reach (a loopback listener
 for desktop apps). The server never calls that URL itself.
 
-With the IFC-LPG module on, an IFC file uploaded as a version is checked
+With the IFC-DB module on, an IFC file uploaded as a version is checked
 against the IFC schema and, where the server has them, buildingSMART's
 ifc-gherkin-rules. Its metadata then carries `ifc_validation_status` and,
 once checked, the other `ifc_validation_*` entries; `ifc_validation_report` is
 the address of the report, an extension that answers to the same token. See
-[ifc-lpg.md](ifc-lpg.md#checking-uploads-against-the-ifc-schema).
+[ifc-db.md](ifc-db.md#checking-uploads-against-the-ifc-schema).
 
 A version that holds an IFC model can also be asked named queries, such as its
 storeys, the areas of its spaces or the value of a property: an extension that
 answers to the same token, and that the capabilities document announces in
-`ifc_queries`. See [ifc-lpg.md](ifc-lpg.md#named-queries).
+`ifc_queries`. See [ifc-db.md](ifc-db.md#named-queries).
 
 Two IFC versions of a project can be compared for clashes the same way, an
-extension announced as `ifc_clash`. See [ifc-lpg.md](ifc-lpg.md#clash-check).
+extension announced as `ifc_clash`. See [ifc-db.md](ifc-db.md#clash-check).
 
 A file can be checked before it is uploaded, an extension announced as
 `ifc_precheck`, and a project may refuse files with errors. See
-[ifc-lpg.md](ifc-lpg.md#refusing-files-with-errors-and-checking-a-file-first).
+[ifc-db.md](ifc-db.md#refusing-files-with-errors-and-checking-a-file-first).
 
 A change to a model is proposed as a BCF topic whose `bim_snippet` is a change
-set, a form announced as `ifc_changes`. See [ifc-lpg.md](ifc-lpg.md#change-sets).
+set, a form announced as `ifc_changes`. See [ifc-db.md](ifc-db.md#change-sets).
 
 Two IFC versions are compared element by element with `ifc_diff`, by GlobalId
-and path. See [ifc-lpg.md](ifc-lpg.md#comparing-two-versions).
+and path. See [ifc-db.md](ifc-db.md#comparing-two-versions).
 
 The geometry of an IFC version comes as binary glTF with `ifc_geometry` (`lod=full` or `box`, `classes`, `storey`),
-and every product has its box in the graph. See [ifc-lpg.md](ifc-lpg.md#where-the-products-are-and-the-geometry).
+and every product has its box in the graph. See [ifc-db.md](ifc-db.md#where-the-products-are-and-the-geometry).
 
 A `manager` publishes a version with `publication`: `POST …/versions/{index}/publication` keeps the file as one
 archive, `.ifczip` for an IFC file and `.zip` for another, and the version's metadata gets `published_at`,
@@ -297,7 +297,7 @@ found errors. `GET …/publication` tells every member who published it and when
 the archive.
 
 A building of another model comes into a model of the project as its next version with `ifc_merge`, with a
-report first and a choice for each object that differs. See [ifc-lpg.md](ifc-lpg.md#a-building-into-another-model).
+report first and a choice for each object that differs. See [ifc-db.md](ifc-db.md#a-building-into-another-model).
 
 ## 5. Correlating your log with the server's
 
@@ -486,7 +486,7 @@ A team's part of the model is what the specifications of its IDS document
 apply to. A change set that touches the part of one team is approved by that
 team's responsible alone; one that touches the parts of several teams, or of
 none, by a `manager`. The trial lists the teams in `teams`; see
-[ifc-lpg.md](ifc-lpg.md#change-sets).
+[ifc-db.md](ifc-db.md#change-sets).
 
 A project's `ai_policy` says where AI tools may take its data (ADR 0028):
 `local`, the policy of a new project and of one nobody has set, lets AI tools

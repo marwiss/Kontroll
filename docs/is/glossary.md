@@ -49,7 +49,7 @@ verkefni eru sömu orð og í Dataspatium.
 | Orð | Hvað það merkir hér |
 |---|---|
 | IFC-graf | Upphlaðið líkan sem hnútar og tengsl í gagnagrunninum, valfrjálst |
-| IFC-LPG | Einingin sem breytir IFC-skrám í IFC-graf og til baka, hét IFC-graph fram í nóvember 2026 |
+| IFC-DB | Einingin sem breytir IFC-skrám í IFC-graf og til baka, hét IFC-graph og síðan IFC-LPG fram í nóvember 2026 |
 | `GlobalId` | Varanlegt auðkenni staks í IFC-skrá |
 | `gtin` | GTIN staksins sem eining sjónarhorns nefnir, lesið úr líkaninu og geymt á einingunni |
 | GTIN | Global Trade Item Number, númer vöru; hér lesið úr eiginleikasafninu `Reuse` |

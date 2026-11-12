@@ -134,12 +134,12 @@ et verktøyresultat med `isError: true` som AI-en kan lese; svaret er
  "truncated": false}
 ```
 
-- `server_query` (scopet `mcp`): de [navngitte spørringene](ifc-lpg.md#navngitte-spørringer)
+- `server_query` (scopet `mcp`): de [navngitte spørringene](ifc-db.md#navngitte-spørringer)
   mot en versjons modell, med `document_id` og `version_index` (`null` for den
   nyeste), slik Documents API stiller dem. `name` er en av spørringene i
   serverens katalog, og hver av parameterne deres er et eget felt (`class`,
   `pset`, `property`, `global_id`, `since`); verktøyets beskrivelse ramser opp
-  spørringene med parameterne deres, så en spørring IFC-LPG legger til, dukker
+  spørringene med parameterne deres, så en spørring IFC-DB legger til, dukker
   opp når serveren er oppdatert. `name: null` lister dem, med modellens
   `model_state` og `workcopy`. En spørring svarer `name`, `columns`, høyst 500
   `rows`, `count` (radene den fant, høyst 10 000) og `truncated`; en tekst i en
@@ -147,7 +147,7 @@ et verktøyresultat med `isError: true` som AI-en kan lese; svaret er
 - `get_publication` (scopet `mcp`): om en versjon er publisert, og i så fall
   `published_at`, `published_by`, `file_name`, `size_in_bytes` og `sha256`, hver
   `null` så lenge den ikke er det; aldri hvor arkivet lastes ned.
-- `start_clash_check` (scopet `mcp`): en [kollisjonskontroll](ifc-lpg.md#kollisjonskontroll)
+- `start_clash_check` (scopet `mcp`): en [kollisjonskontroll](ifc-db.md#kollisjonskontroll)
   mellom to versjoner i et prosjekt: `project_id`, `a` og `b` med
   `document_id`, `version_index` og `types` (IFC-klasser, `null` for hvert
   element med en kropp), `mode` (`intersection` eller `clearance`), og
@@ -158,8 +158,8 @@ et verktøyresultat med `isError: true` som AI-en kan lese; svaret er
   eller kjører: dens `state`, forespørselen, `count`, `set_a`, `set_b`,
   `missing`, `seconds` og høyst 200 `clashes`, med `truncated` når det fantes
   flere. Begge kollisjonsverktøyene avslår uten
-  `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
-  De tre vises bare mens IFC-LPG-modulen er på. En bruker har høyst to
+  `OPENCDE_IFC_DB_CLASH_ENABLED=true`.
+  De tre vises bare mens IFC-DB-modulen er på. En bruker har høyst to
   kontroller som venter eller kjører, i alle prosjektene sine til sammen; en
   tredje avslås, og revisjonsloggen fører `mcp.denied` med grunnen `limit`.
 
@@ -171,7 +171,7 @@ et verktøyresultat med `isError: true` som AI-en kan lese; svaret er
 
 ## Endringssettene
 
-Mens IFC-LPG-modulen er slått på (`OPENCDE_IFC_LPG_ENABLED`), som prøver
+Mens IFC-DB-modulen er slått på (`OPENCDE_IFC_DB_ENABLED`), som prøver
 endringssettene, har listen også verktøyene som foreslår endringer i en modell,
 i Dataspatiums rekkefølge. De krever scopet `mcp:propose`, rollen `editor` eller
 `manager` i prosjektet, prøvd ved hvert kall slik REST-API-et prøver den, og

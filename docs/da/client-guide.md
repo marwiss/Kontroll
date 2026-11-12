@@ -269,34 +269,34 @@ Forløbene involverer brugerens browser; se [flows/documents.md](flows/documents
 Din klient har brug for en callback-URL, som browseren kan nå (en
 loopback-lytter for desktopapps). Serveren kalder aldrig selv den URL.
 
-Når IFC-LPG-modulet er slået til, kontrolleres en IFC-fil, der uploades som
+Når IFC-DB-modulet er slået til, kontrolleres en IFC-fil, der uploades som
 version, mod IFC-skemaet og, hvor serveren har dem, buildingSMARTs
 ifc-gherkin-rules. Dens metadata har da `ifc_validation_status` og, når
 den er kontrolleret, de andre `ifc_validation_*`-poster; `ifc_validation_report`
 er adressen på rapporten, en udvidelse, der svarer på det samme token. Se
-[ifc-lpg.md](ifc-lpg.md#kontrol-af-uploads-mod-ifc-skemaet).
+[ifc-db.md](ifc-db.md#kontrol-af-uploads-mod-ifc-skemaet).
 
 En version, der rummer en IFC-model, kan også få navngivne forespørgsler, som
 dens etager, rummenes areal eller en egenskabs værdi. Det er en udvidelse, der
 svarer på det samme token, og som kapabilitetsdokumentet annoncerer i
-`ifc_queries`. Se [ifc-lpg.md](ifc-lpg.md#navngivne-forespørgsler).
+`ifc_queries`. Se [ifc-db.md](ifc-db.md#navngivne-forespørgsler).
 
 To IFC-versioner i et projekt kan sammenlignes for kollisioner på samme måde, en
-udvidelse, der annonceres som `ifc_clash`. Se [ifc-lpg.md](ifc-lpg.md#kollisionskontrol).
+udvidelse, der annonceres som `ifc_clash`. Se [ifc-db.md](ifc-db.md#kollisionskontrol).
 
 En fil kan kontrolleres, før den uploades, en udvidelse, der annonceres som
 `ifc_precheck`, og et projekt kan afvise filer med fejl. Se
-[ifc-lpg.md](ifc-lpg.md#afvise-filer-med-fejl-og-kontrollere-en-fil-på-forhånd).
+[ifc-db.md](ifc-db.md#afvise-filer-med-fejl-og-kontrollere-en-fil-på-forhånd).
 
 En ændring af en model foreslås som en BCF-sag, hvis `bim_snippet` er et
 ændringssæt, en form, der annonceres som `ifc_changes`. Se
-[ifc-lpg.md](ifc-lpg.md#ændringssæt).
+[ifc-db.md](ifc-db.md#ændringssæt).
 
 To IFC-versioner sammenlignes element for element med `ifc_diff`, efter
-GlobalId og sti. Se [ifc-lpg.md](ifc-lpg.md#sammenligne-to-versioner).
+GlobalId og sti. Se [ifc-db.md](ifc-db.md#sammenligne-to-versioner).
 
 Geometrien i en IFC-version kommer som binær glTF med `ifc_geometry` (`lod=full` eller `box`, `classes`, `storey`),
-og hver bygningsdel har sin kasse i grafen. Se [ifc-lpg.md](ifc-lpg.md#hvor-bygningsdelene-er-og-geometrien).
+og hver bygningsdel har sin kasse i grafen. Se [ifc-db.md](ifc-db.md#hvor-bygningsdelene-er-og-geometrien).
 
 En `manager` publicerer en version med `publication`: `POST …/versions/{index}/publication` gemmer filen som ét
 arkiv, `.ifczip` for en IFC-fil og `.zip` for en anden fil, og versionens metadata får `published_at`,
@@ -305,7 +305,7 @@ har fundet fejl. `GET …/publication` viser alle medlemmer, hvem der publicered
 `…/publication/download` giver arkivet.
 
 En bygning fra en anden model kommer ind i en model i projektet som dens næste version med `ifc_merge`, med
-en rapport først og et valg for hvert objekt, der er forskelligt. Se [ifc-lpg.md](ifc-lpg.md#en-bygning-ind-i-en-anden-model).
+en rapport først og et valg for hvert objekt, der er forskelligt. Se [ifc-db.md](ifc-db.md#en-bygning-ind-i-en-anden-model).
 
 ## 5. Korrelering af din log med serverens
 
@@ -493,7 +493,7 @@ revisionshændelse (`manage.*`). Kapabilitetsdokumentet annoncerer det som
 Et holds del af modellen er det, specifikationerne i dets IDS-dokument gælder
 for. Et ændringssæt, der rører ét holds del, godkendes af holdets ansvarlige
 alene; et, der rører flere holds dele eller ingens, af en `manager`. Prøven
-lister holdene i `teams`; se [ifc-lpg.md](ifc-lpg.md#ændringssæt).
+lister holdene i `teams`; se [ifc-db.md](ifc-db.md#ændringssæt).
 
 Et projekts `ai_policy` siger, hvor AI-værktøjer må føre dets data hen
 (ADR 0028): `local`, politikken for et nyt projekt og for et, som ingen har

@@ -1,3 +1,3 @@
-# IFC-LPG
+# IFC-DB
 
-Sida har flytta til [ifc-lpg.md](ifc-lpg.md). Modulen heitte IFC-graph fram til november 2026.
+Sida har flytta til [ifc-db.md](ifc-db.md). Modulen heitte IFC-graph og deretter IFC-LPG fram til november 2026.

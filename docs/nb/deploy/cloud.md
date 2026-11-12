@@ -16,7 +16,7 @@ serveren over HTTPS.
   serverens DNS-navn, eller la det stå tomt: serveren heter da
   `<offentlig adresse>.sslip.io`, et navn som peker på maskinens adresse, slik
   at sertifikatet kommer med en gang. `DATAREGIUM_ACME_EMAIL` er valgfri.
-- En maskin med 2 vCPU og 4 GB minne eller mer (8 GB med IFC-LPG-modulen og
+- En maskin med 2 vCPU og 4 GB minne eller mer (8 GB med IFC-DB-modulen og
   store modeller), Ubuntu 24.04 LTS og en disk på 30 GB eller mer.
 - En fast offentlig adresse, slik at navnet fortsetter å peke på maskinen.
   Azure gir én med `--public-ip-sku Standard`; hos AWS kobler du til en

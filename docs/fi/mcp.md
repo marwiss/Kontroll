@@ -138,12 +138,12 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
  "truncated": false}
 ```
 
-- `server_query` (scope `mcp`): version mallin [nimetyt kyselyt](ifc-lpg.md#nimetyt-kyselyt)
+- `server_query` (scope `mcp`): version mallin [nimetyt kyselyt](ifc-db.md#nimetyt-kyselyt)
   tunnisteilla `document_id` ja `version_index` (`null` viimeisimmälle), kuten
   Documents API ne kysyy. `name` on yksi palvelimen luettelon kyselyistä, ja
   kukin niiden parametreista on oma kenttänsä (`class`, `pset`, `property`,
   `global_id`, `since`); työkalun kuvaus luettelee kyselyt parametreineen, joten
-  kysely, jonka IFC-LPG lisää, näkyy, kun palvelin on päivitetty. `name: null`
+  kysely, jonka IFC-DB lisää, näkyy, kun palvelin on päivitetty. `name: null`
   luettelee ne mallin `model_state`- ja `workcopy`-tietojen kanssa. Kysely
   vastaa `name`, `columns`, enintään 500 `rows`, `count` (rivit, jotka se löysi,
   enintään 10 000) ja `truncated`; rivin teksti katkaistaan 1 000 merkkiin.
@@ -152,7 +152,7 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
   kukin `null` niin kauan kuin se ei ole; ei koskaan sitä, mistä arkisto
   ladataan.
 - `start_clash_check` (scope `mcp`): projektin kahden version
-  [törmäystarkastus](ifc-lpg.md#törmäystarkastus): `project_id`, `a` ja `b`,
+  [törmäystarkastus](ifc-db.md#törmäystarkastus): `project_id`, `a` ja `b`,
   joissa `document_id`, `version_index` ja `types` (IFC-luokat, `null` jokaiselle
   elementille, jolla on kappale), `mode` (`intersection` tai `clearance`) sekä
   `tolerance` ja `clearance` metreinä (`null` arvoille 0,001 ja 0,05). Se vastaa
@@ -162,8 +162,8 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
   20) tarkastusta, joka on jonossa tai käynnissä: sen `state`, pyyntö, `count`,
   `set_a`, `set_b`, `missing`, `seconds` ja enintään 200 `clashes`, ja
   `truncated`, kun niitä oli enemmän. Kumpikin törmäystyökalu kieltäytyy, ellei
-  `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
-  Nämä kolme näkyvät luettelossa vain, kun IFC-LPG-moduuli on päällä.
+  `OPENCDE_IFC_DB_CLASH_ENABLED=true`.
+  Nämä kolme näkyvät luettelossa vain, kun IFC-DB-moduuli on päällä.
   Käyttäjällä voi olla enintään kaksi odottavaa tai käynnissä olevaa
   tarkastusta kaikissa projekteissaan yhteensä; kolmas torjutaan, ja
   tarkastusloki kirjaa `mcp.denied`-tapahtuman syyllä `limit`.
@@ -176,7 +176,7 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
 
 ## Muutosjoukot
 
-Kun IFC-LPG-moduuli on käytössä (`OPENCDE_IFC_LPG_ENABLED`) ja kokeilee
+Kun IFC-DB-moduuli on käytössä (`OPENCDE_IFC_DB_ENABLED`) ja kokeilee
 muutosjoukot, luettelossa ovat myös työkalut, jotka ehdottavat muutoksia
 malliin, Dataspatiumin järjestyksessä. Ne vaativat scopen `mcp:propose`, roolin
 `editor` tai `manager` projektissa, tarkistettuna jokaisessa kutsussa kuten

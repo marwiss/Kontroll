@@ -18,8 +18,8 @@ kesken otetusta kopiosta voivat puuttua niiden latausten osat, jotka asiakkaat
 yksinkertaisesti tekevät uudelleen.
 
 Kun palvelimen omat tiedot ovat omassa graafissaan (`OPENCDE_STORE_GRAPH_URI`,
-[ifc-lpg.md](../ifc-lpg.md)), yksi varmuuskopio pitää molemmat graafit
-samoissa tiedostoissa, IFC-LPG:n solmut IFC-graafista ja muut varastosta, ja
+[ifc-db.md](../ifc-db.md)), yksi varmuuskopio pitää molemmat graafit
+samoissa tiedostoissa, IFC-DB:n solmut IFC-graafista ja muut varastosta, ja
 `manifest.json` nimeää varaston dialektin kentässä `store_dialect`. Palautus
 vie jokaisen solmun sinne, minne sen nimiö kuuluu, mistä graafeista kopio
 tahansa tuli, joten yhden tietokannan kopio palautuu kahteen ja päinvastoin;

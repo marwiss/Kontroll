@@ -39,7 +39,7 @@ tegn, bare bokstaver og tall.
 OPENCDE_GRAPH_PASSWORD=YourOwnPassword1234
 OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true
 OPENCDE_REQUEST_LOG_ENABLED=true
-OPENCDE_IFC_LPG_ENABLED=true
+OPENCDE_IFC_DB_ENABLED=true
 ```
 
 | Linje | Hva den gjør | Uten den |
@@ -47,7 +47,7 @@ OPENCDE_IFC_LPG_ENABLED=true
 | `OPENCDE_GRAPH_PASSWORD` | Passordet til grafdatabasen | Kortere enn 16 tegn: databasen starter ikke |
 | `OPENCDE_DYNAMIC_CLIENT_REGISTRATION` | Lar Dataspatium registrere seg selv hos serveren | Trinn 3 stopper, og appen ber om en klient-id |
 | `OPENCDE_REQUEST_LOG_ENABLED` | Lagrer appens kall | Forespørselsloggen i trinn 5 forblir tom |
-| `OPENCDE_IFC_LPG_ENABLED` | Gjør opplastede modeller til en graf | Ingen graf i trinn 5 |
+| `OPENCDE_IFC_DB_ENABLED` | Gjør opplastede modeller til en graf | Ingen graf i trinn 5 |
 
 Innstillingene er for å prøve Dataregium på din egen maskin, ikke for en server som
 andre bruker.
@@ -141,7 +141,7 @@ Innlogget som `admin` åpner du <http://127.0.0.1:8000/admin>:
   `X-Request-ID`-verdiene som kortet *Logg* nederst i kildens visning i *Hent*, slik
   at et mislykket kall kan finnes på begge sider.
 
-Eksempelmodellen er allerede en graf, fordi `OPENCDE_IFC_LPG_ENABLED=true` sto i
+Eksempelmodellen er allerede en graf, fordi `OPENCDE_IFC_DB_ENABLED=true` sto i
 `.env` da du kjørte `opencde seed`. Neo4j Browser på <http://127.0.0.1:7484> (koble til
 `bolt://127.0.0.1:7697` som `neo4j` med passordet fra `.env`) svarer på denne
 spørringen med veggen koblet til viewpointets komponent:

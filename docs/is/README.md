@@ -16,7 +16,7 @@ gera í hverju verkefni.
 Tæknilega er Dataregium þjónn fyrir opin **OpenCDE-forritaskil** buildingSMART
 (Foundation API 1.0, BCF API 3.0 og 2.1 og Documents API 1.0), byggður á
 netgagnagrunninum Neo4j eða Memgraph. Í 3-röðinni verður hvert upphlaðið IFC-líkan að
-taplausu neti með safninu [IFC-LPG](https://github.com/marwiss/IFC-LPG), með útgáfum,
+taplausu neti með safninu [IFC-DB](https://github.com/marwiss/IFC-DB), með útgáfum,
 prófunum og breytingatillögum. Þjónninn var endurskrifaður frá grunni út frá
 rannsóknarfrumgerð frá 2023, með öryggi sem fyrstu kröfu, og hver biðlari sem fylgir
 forskriftunum getur tengst.
@@ -65,7 +65,7 @@ forrit sem ræsa gáma. Fljótlega byrjunin ræsir tvo: þjóninn og gagnagrunn 
    settu `OPENCDE_GRAPH_PASSWORD` sem eigið lykilorð með að minnsta kosti 16 stöfum.
    Ef þú vilt prófa með Dataspatium og líkönum skaltu líka setja
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true` og
-   `OPENCDE_IFC_LPG_ENABLED=true`; [fljótlega byrjunin með Dataspatium](quickstart.md)
+   `OPENCDE_IFC_DB_ENABLED=true`; [fljótlega byrjunin með Dataspatium](quickstart.md)
    útskýrir hvers vegna. Hver stilling er útskýrð í [.env.example](../../.env.example).
 3. **Ræsa.** Sömu compose-skrár virka með Docker og Podman; veldu það sem þú hefur:
 
@@ -95,7 +95,7 @@ forrit sem ræsa gáma. Fljótlega byrjunin ræsir tvo: þjóninn og gagnagrunn 
    <summary><b>Án gáms</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # setur upp Python 3.13 og öll ósjálfstæði, með IFC-LPG
+   uv sync --extra ifc-db           # setur upp Python 3.13 og öll ósjálfstæði, með IFC-DB
    uv run opencde doctor            # athugar stillingar og gagnagrunn
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -138,7 +138,7 @@ forrit sem ræsa gáma. Fljótlega byrjunin ræsir tvo: þjóninn og gagnagrunn 
 
    </details>
 
-   Skipunin býr til sýninotendur, verkefni, biðlara og eitt mál, og með IFC-LPG
+   Skipunin býr til sýninotendur, verkefni, biðlara og eitt mál, og með IFC-DB
    virkt líka sýnilíkan sem net. Lykilorðin eru prentuð einu sinni. Skráðu þig inn á
    <http://127.0.0.1:8000/signin> sem `admin` og opnaðu `/admin`.
 6. **Tengja biðlara.** Skráðu forritið þitt undir *Biðlarar* (eða leyfðu því að skrá
@@ -187,9 +187,9 @@ en það hefur verið stillt.
   fyrirliggjandi proxy, Memgraph, ytri gagnagrunn, Bolt með TLS, göng, staðbundnu
   vélina og vinnueintakið. `COMPOSE_FILE` í `.env` velur þau, svo skipanirnar eru án `-f`.
 - **Án gáms**: Python 3.11 eða nýrra með uv (prófað á 3.11, 3.13 og 3.14),
-  `uv sync --extra ifc-lpg`, og Neo4j 5.26 eða Memgraph 3.14 á `OPENCDE_GRAPH_URI`.
+  `uv sync --extra ifc-db`, og Neo4j 5.26 eða Memgraph 3.14 á `OPENCDE_GRAPH_URI`.
 - **Helstu stillingar**: `OPENCDE_APIS` velur forritaskilin (öll þrjú sjálfgefið,
-  `["documents"]` í 1.0.0); `OPENCDE_IFC_LPG_ENABLED=true` virkjar netið og allt í 2- og
+  `["documents"]` í 1.0.0); `OPENCDE_IFC_DB_ENABLED=true` virkjar netið og allt í 2- og
   3-röðinni sem snýr að líkönum; `OPENCDE_ENVIRONMENT` er `development`, `production`
   eða `local` (staðbundna vélin, `opencde init --local`).
 - **Endapunktar**: `/.well-known/dataregium` (útgáfan og viðbæturnar sem eru virkar),
@@ -213,7 +213,7 @@ Sá sem notar Dataregium aðeins í gegnum forrit þarf vafra og aðgang. Til a�
   Podman 5, eða Python 3.11 eða nýrra með [uv](https://docs.astral.sh/uv/) og eigin
   Neo4j 5.26- eða Memgraph 3.14-gagnagrunn.
 - Um 1 GB minni fyrir gagnagrunnsgáminn (`NEO4J_HEAP` og `NEO4J_PAGECACHE` í `.env`),
-  og meira fyrir stór líkön með IFC-LPG.
+  og meira fyrir stór líkön með IFC-DB.
 - Staðbundið: gátt 8000 fyrir þjóninn og 7484/7697 fyrir gagnagrunninn, allar bundnar
   við `127.0.0.1`. Í rekstri: gáttir 80 og 443 aðgengilegar frá internetinu og
   DNS-nafn fyrir þjóninn.
@@ -276,13 +276,13 @@ Orðin sem þessi README notar, á daglegu máli; allur orðalistinn er í
 - **Mál um líkanið** (BCF API 3.0 og 2.1): spurningar og athugasemdir með ummælum,
   myndum og sjónarhornum sem benda á byggingarhluta, með síum og atburðaannál,
   sannprófuð gagnvart skemum buildingSMART.
-- **Líkanið sem net** (IFC-LPG-einingin, virkjuð með `OPENCDE_IFC_LPG_ENABLED`):
+- **Líkanið sem net** (IFC-DB-einingin, virkjuð með `OPENCDE_IFC_DB_ENABLED`):
   upphlaðið IFC-líkan verður að neti í gagnagrunninum, tengt byggingarhlutunum í
-  sjónarhornum málanna (sjá [IFC-LPG](ifc-lpg.md)).
+  sjónarhornum málanna (sjá [IFC-DB](ifc-db.md)).
 
 ### Einnig í útgáfu 3 (með Dataspatium 3)
 
-- **Taplaust líkan**: netið kemur úr safninu IFC-LPG og geymir allt í skránni, svo
+- **Taplaust líkan**: netið kemur úr safninu IFC-DB og geymir allt í skránni, svo
   hægt sé að skrifa hana til baka eins og hún kom.
 - **Prófun hverrar upphleðslu** gagnvart IFC-skemanu, reglum buildingSMART og
   IDS-kröfum verkefnisins; verkefni getur hafnað skrám með villum, og hægt er að
@@ -404,8 +404,8 @@ eiga saman:
 | Dataregium | Hvað hún hefur | Mynd | Á við |
 |---|---|---|---|
 | 1.0.0 | Skjalaþjónn: Foundation API og Documents API, vefstjórnunin á sjö tungumálum, verkefnastjórnunin fyrir verkefnastjórann og beiðnaannállinn. Hún er kóði 2.0.0 með aðeins Documents API virkt (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Einnig BCF API 3.0 og 2.1 á sömu gögnum og IFC-LPG-eininguna sem gerir net úr hverri upphlaðinni IFC-skrá | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Einnig taplausa netið úr safninu IFC-LPG, prófun hverrar upphleðslu, fyrirspurnirnar, samanburðinn og árekstrarprófunina, útgáfur með breytingatillögum sem eru prófaðar, samþykktar og sameinaðar, birtingu útgáfu, byggingu úr einu líkani inn í annað, rúmfræðina sem glTF, staðbundnu vélina og uppskriftirnar fyrir skýið og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 2.0.0 | Einnig BCF API 3.0 og 2.1 á sömu gögnum og IFC-DB-eininguna sem gerir net úr hverri upphlaðinni IFC-skrá | `2.0.0` | Dataspatium 2.0.0 |
+| 3.0.0 | Einnig taplausa netið úr safninu IFC-DB, prófun hverrar upphleðslu, fyrirspurnirnar, samanburðinn og árekstrarprófunina, útgáfur með breytingatillögum sem eru prófaðar, samþykktar og sameinaðar, birtingu útgáfu, byggingu úr einu líkani inn í annað, rúmfræðina sem glTF, staðbundnu vélina og uppskriftirnar fyrir skýið og nginx | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lærðu meira
 
@@ -418,13 +418,13 @@ eiga saman:
 - [glossary.md](glossary.md): orðin sem skjölunin notar.
 - [flows/](flows/): runuskýringarmyndir fyrir OAuth2-, Documents API- og BCF-viewpoint-flæðin.
 - [graph-schema.md](graph-schema.md): netlíkanið.
-- [ifc-lpg.md](ifc-lpg.md): IFC-LPG-einingin, prófanirnar, útgáfurnar, breytingasöfnin, rúmfræðin og dæmi um Cypher-fyrirspurnir.
+- [ifc-db.md](ifc-db.md): IFC-DB-einingin, prófanirnar, útgáfurnar, breytingasöfnin, rúmfræðin og dæmi um Cypher-fyrirspurnir.
 - [mcp.md](mcp.md): MCP-endapunkturinn, sem gervigreindarforrit lesa líkön verkefnanna í gegnum: að kveikja á honum, tókar hans, samskiptareglan, verkfærin, gervigreindarstefnan og mörkin.
 - Högunarákvarðanir sem standa: netgagnagrunnur sem eina geymslan, ógegnsæir tókar í
   stað JWT, færanlegt Cypher fyrir Neo4j og Memgraph, vefviðmót án ramma, afritun á
   forritsstigi, BCF API 2.1 við hlið 3.0, taplaust IFC-net sem les og skrifar STEP
   sjálft og er sannprófað þegar það er skrifað, reglur buildingSMART í eigin umhverfi,
-  IFC-LPG sem safn, prófun gagnvart IDS verkefnisins, nefndar fyrirspurnir fyrir
+  IFC-DB sem safn, prófun gagnvart IDS verkefnisins, nefndar fyrirspurnir fyrir
   meðlimi, árekstrarprófun á þjóninum með IfcClash, útgáfur sem hnútar með breytingum
   og grunni, staðbundin vél sem svarar aðeins á þinni eigin tölvu, og vinnueintak í
   minni við hlið safnsins.
@@ -447,8 +447,8 @@ enskan undir `docs/en/` er frumtextinn. CONTRIBUTING er á ensku.
 
 ## Takmarkanir í stuttu máli
 
-- Allt sem snýr að líkönum, í 2- og 3-röðinni, krefst IFC-LPG-einingarinnar, sem er
-  óvirk þar til `OPENCDE_IFC_LPG_ENABLED=true`. Reglur buildingSMART keyra aðeins með
+- Allt sem snýr að líkönum, í 2- og 3-röðinni, krefst IFC-DB-einingarinnar, sem er
+  óvirk þar til `OPENCDE_IFC_DB_ENABLED=true`. Reglur buildingSMART keyra aðeins með
   myndinni `-gherkin`; án hennar eru skemað og IDS prófuð.
 - Þjónninn útfærir BCF API 3.0 og 2.1, ekki 1.0, þar sem tilföngin líta öðruvísi út.
 - Útflutningur verkefnis sem BCFzip er látinn biðlurunum eftir; þjónninn geymir mál,
@@ -457,8 +457,8 @@ enskan undir `docs/en/` er frumtextinn. CONTRIBUTING er á ensku.
   eingöngu, svo opin Bolt-gátt veitir fullan aðgang þeim sem hefur lykilorðið. Gáttin
   er áfram lokuð nema stjórnandinn birti hana viljandi; lesandi netfyrirspurn
   stjórnunarforritaskilanna (`OPENCDE_GRAPH_QUERY_ENABLED`) gefur Cypher án gáttarinnar.
-- IFC-LPG-innflutningurinn, prófanirnar og prófun breytingasafna keyra í aðskildum
-  ferlum með minnis- og tímamörkum (`OPENCDE_IFC_LPG_*`); mjög stórum líkönum er
+- IFC-DB-innflutningurinn, prófanirnar og prófun breytingasafna keyra í aðskildum
+  ferlum með minnis- og tímamörkum (`OPENCDE_IFC_DB_*`); mjög stórum líkönum er
   hafnað í stað þess að þau verði hálfinnflutt, eða staðbundna vélin sér um þau.
 - Vefsíðurnar eru fyrir innskráningu, stjórnun, upphleðslu og val á skjölum og fyrir
   prófun og samanburð útgáfu; endanotendur vinna í biðlara eins og Dataspatium eða Bonsai.
@@ -492,7 +492,7 @@ OpenCDE-forritaskilin haldast eins og buildingSMART skilgreinir þau; það sem 
 bætir við eru viðbætur við þau, undir eigin nöfnum og með eigin OpenAPI. Þessi hluti
 segir hvað hefur verið ákveðið, fyrir þann, mann eða gervigreindarfulltrúa, sem ber
 hluta þess áfram. Vinnulagið er í [CONTRIBUTING.md](../../CONTRIBUTING.md) og IFC-netið í
-[ifc-lpg.md](ifc-lpg.md).
+[ifc-db.md](ifc-db.md).
 
 ### Ákveðið
 

@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Topics, comments, viewpoints, events, related topics and project documents | `opencde/bcf/` |
 | Documents API | Upload and selection through pages in the browser, versions and metadata | `opencde/documents/` |
 | Accounts | Users, projects, memberships and roles | `opencde/accounts/` |
-| Storage | The server's own data by area: accounts, OAuth2, BCF, Documents and jobs, each a repository with its Cypher behind a protocol; apart from the IFC graph, which IFC-LPG keeps | `opencde/store/` |
+| Storage | The server's own data by area: accounts, OAuth2, BCF, Documents and jobs, each a repository with its Cypher behind a protocol; apart from the IFC graph, which IFC-DB keeps | `opencde/store/` |
 | Administration | Pages and an API for administrators, health checks and the request log | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Turns uploaded models into nodes and links viewpoint components to them | `opencde/ifcgraph/` |
+| IFC-DB | Turns uploaded models into nodes and links viewpoint components to them | `opencde/ifcgraph/` |
 | MCP endpoint | Tools through which AI programs read the projects' models and propose, while a person approves | `opencde/mcp/` |
 | Graph layer | The driver, the two database dialects, the schema and what expires | `opencde/graph/` |
 | Pages | Templates, styles, scripts and the language catalogues | `opencde/ui/` |
@@ -58,7 +58,7 @@ flowchart LR
 | Users, projects, topics, comments, viewpoints, document metadata, clients and the audit log | Graph database | [Graph schema](graph-schema.md) |
 | Tokens, codes and client secrets, as SHA-256 hashes; passwords, as Argon2id hashes | Graph database | `tests/security/` |
 | Uploaded files and viewpoint images, under names the server chooses | File storage in `OPENCDE_DATA_DIR` | [Documents API flows](flows/documents.md) |
-| Models as nodes and relationships | Graph database | [IFC-LPG](ifc-lpg.md) |
+| Models as nodes and relationships | Graph database | [IFC-DB](ifc-db.md) |
 | The server's own settings and secrets | `.env` or `/run/secrets` | [Local test](deploy/local.md) |
 
 ## Work outside requests

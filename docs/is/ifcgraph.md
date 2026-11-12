@@ -1,3 +1,3 @@
-# IFC-LPG
+# IFC-DB
 
-Síðan hefur verið færð á [ifc-lpg.md](ifc-lpg.md). Einingin hét IFC-graph fram í nóvember 2026.
+Síðan hefur verið færð á [ifc-db.md](ifc-db.md). Einingin hét IFC-graph og síðan IFC-LPG fram í nóvember 2026.

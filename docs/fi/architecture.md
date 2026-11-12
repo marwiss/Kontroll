@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Asiat, kommentit, näkymät, tapahtumat, liittyvät asiat ja projektin asiakirjat | `opencde/bcf/` |
 | Documents API | Lataus ja valinta selaimen sivuilla, versiot ja metatiedot | `opencde/documents/` |
 | Tilit | Käyttäjät, projektit, jäsenyydet ja roolit | `opencde/accounts/` |
-| Tallennus | Palvelimen omat tiedot alueittain: tilit, OAuth2, BCF, Documents ja työt, kukin repository-luokka Cypherineen protokollan takana; erillään IFC-graafista, jota IFC-LPG pitää | `opencde/store/` |
+| Tallennus | Palvelimen omat tiedot alueittain: tilit, OAuth2, BCF, Documents ja työt, kukin repository-luokka Cypherineen protokollan takana; erillään IFC-graafista, jota IFC-DB pitää | `opencde/store/` |
 | Hallinta | Sivut ja API ylläpitäjille, terveystarkistukset ja pyyntöloki | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Muuttaa ladatut mallit solmuiksi ja linkittää näkymien komponentit niihin | `opencde/ifcgraph/` |
+| IFC-DB | Muuttaa ladatut mallit solmuiksi ja linkittää näkymien komponentit niihin | `opencde/ifcgraph/` |
 | MCP-päätepiste | Työkalut, joiden kautta tekoälyohjelmat lukevat projektien malleja ja ehdottavat, kun taas ihminen hyväksyy | `opencde/mcp/` |
 | Graafikerros | Ajuri, kaksi tietokantadialektia, skeema ja se, mikä vanhenee | `opencde/graph/` |
 | Sivut | Mallipohjat, tyylit, skriptit ja kieliluettelot | `opencde/ui/` |
@@ -59,7 +59,7 @@ flowchart LR
 | Käyttäjät, projektit, asiat, kommentit, näkymät, asiakirjojen metatiedot, asiakkaat ja tarkastusloki | Graafitietokanta | [Graafiskeema](graph-schema.md) |
 | Tokenit, koodit ja asiakassalaisuudet SHA-256-tiivisteinä; salasanat Argon2id-tiivisteinä | Graafitietokanta | `tests/security/` |
 | Ladatut tiedostot ja näkymien kuvat palvelimen valitsemilla nimillä | Tiedostotallennus kansiossa `OPENCDE_DATA_DIR` | [Documents API -kulut](flows/documents.md) |
-| Mallit solmuina ja suhteina | Graafitietokanta | [IFC-LPG](ifc-lpg.md) |
+| Mallit solmuina ja suhteina | Graafitietokanta | [IFC-DB](ifc-db.md) |
 | Palvelimen omat asetukset ja salaisuudet | `.env` tai `/run/secrets` | [Paikallinen testi](deploy/local.md) |
 
 ## Työ pyyntöjen ulkopuolella

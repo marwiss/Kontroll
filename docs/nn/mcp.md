@@ -136,12 +136,12 @@ er `structuredContent` og den same JSON-en som tekst.
  "truncated": false}
 ```
 
-- `server_query` (scopet `mcp`): dei [namngjevne spørjingane](ifc-lpg.md#namngjevne-spørjingar)
+- `server_query` (scopet `mcp`): dei [namngjevne spørjingane](ifc-db.md#namngjevne-spørjingar)
   mot modellen til ein versjon, med `document_id` og `version_index` (`null` for
   den nyaste), slik Documents API stiller dei. `name` er ei av spørjingane i
   katalogen til serveren, og kvar av parametrane deira er eit eige felt
   (`class`, `pset`, `property`, `global_id`, `since`); skildringa av verktøyet
-  ramsar opp spørjingane med parametrane deira, så ei spørjing IFC-LPG legg til,
+  ramsar opp spørjingane med parametrane deira, så ei spørjing IFC-DB legg til,
   dukkar opp når serveren er oppdatert. `name: null` listar dei, med
   `model_state` og `workcopy` til modellen. Ei spørjing svarar `name`,
   `columns`, høgst 500 `rows`, `count` (radene ho fann, høgst 10 000) og
@@ -149,7 +149,7 @@ er `structuredContent` og den same JSON-en som tekst.
 - `get_publication` (scopet `mcp`): om ein versjon er publisert, og i så fall
   `published_at`, `published_by`, `file_name`, `size_in_bytes` og `sha256`,
   kvar `null` så lenge han ikkje er det; aldri kvar arkivet blir lasta ned.
-- `start_clash_check` (scopet `mcp`): ein [kollisjonskontroll](ifc-lpg.md#kollisjonskontroll)
+- `start_clash_check` (scopet `mcp`): ein [kollisjonskontroll](ifc-db.md#kollisjonskontroll)
   mellom to versjonar i eit prosjekt: `project_id`, `a` og `b` med
   `document_id`, `version_index` og `types` (IFC-klassar, `null` for kvart
   element med ein kropp), `mode` (`intersection` eller `clearance`), og
@@ -159,8 +159,8 @@ er `structuredContent` og den same JSON-en som tekst.
   og `clash_id`, og ventar høgst `wait_seconds` (høgst 20) på ein som står i kø
   eller køyrer: `state`, førespurnaden, `count`, `set_a`, `set_b`, `missing`,
   `seconds` og høgst 200 `clashes`, med `truncated` når det fanst fleire. Begge
-  kollisjonsverktøya avslår utan `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
-  Dei tre blir viste berre medan IFC-LPG-modulen er på. Ein brukar har høgst to
+  kollisjonsverktøya avslår utan `OPENCDE_IFC_DB_CLASH_ENABLED=true`.
+  Dei tre blir viste berre medan IFC-DB-modulen er på. Ein brukar har høgst to
   kontrollar som ventar eller køyrer, i alle prosjekta sine til saman; ein
   tredje blir avslått, og revisjonsloggen fører `mcp.denied` med grunnen `limit`.
 
@@ -172,7 +172,7 @@ er `structuredContent` og den same JSON-en som tekst.
 
 ## Endringssetta
 
-Medan IFC-LPG-modulen er slått på (`OPENCDE_IFC_LPG_ENABLED`), som prøver
+Medan IFC-DB-modulen er slått på (`OPENCDE_IFC_DB_ENABLED`), som prøver
 endringssetta, har lista òg verktøya som føreslår endringar i ein modell, i
 rekkjefølgja til Dataspatium. Dei krev scopet `mcp:propose`, rolla `editor` eller
 `manager` i prosjektet, prøvd ved kvart kall slik REST-API-et prøver ho, og

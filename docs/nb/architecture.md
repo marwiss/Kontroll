@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Saker, kommentarer, viewpoints, hendelser, relaterte saker og prosjektdokumenter | `opencde/bcf/` |
 | Documents API | Opplasting og utvalg via sider i nettleseren, versjoner og metadata | `opencde/documents/` |
 | Kontoer | Brukere, prosjekter, medlemskap og roller | `opencde/accounts/` |
-| Lagringen | Serverens egne data per område: kontoer, OAuth2, BCF, Documents og jobber, hver en repository-klasse med sin Cypher bak en protokoll; atskilt fra IFC-grafen, som IFC-LPG holder | `opencde/store/` |
+| Lagringen | Serverens egne data per område: kontoer, OAuth2, BCF, Documents og jobber, hver en repository-klasse med sin Cypher bak en protokoll; atskilt fra IFC-grafen, som IFC-DB holder | `opencde/store/` |
 | Administrasjon | Sider og et API for administratorer, helsesjekker og forespørselsloggen | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Gjør opplastede modeller til noder og lenker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
+| IFC-DB | Gjør opplastede modeller til noder og lenker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
 | MCP-endepunktet | Verktøy som AI-programmer leser prosjektenes modeller og foreslår gjennom, mens en person godkjenner | `opencde/mcp/` |
 | Graflaget | Driveren, de to databasedialektene, skjemaet og det som utløper | `opencde/graph/` |
 | Sider | Maler, stiler, skript og språkkatalogene | `opencde/ui/` |
@@ -58,7 +58,7 @@ flowchart LR
 | Brukere, prosjekter, saker, kommentarer, viewpoints, dokumentmetadata, klienter og revisjonsloggen | Grafdatabasen | [Grafskjema](graph-schema.md) |
 | Tokener, koder og klienthemmeligheter som SHA-256-hasher; passord som Argon2id-hasher | Grafdatabasen | `tests/security/` |
 | Opplastede filer og viewpoint-bilder, under navn serveren velger | Fillageret i `OPENCDE_DATA_DIR` | [Documents API-flyter](flows/documents.md) |
-| Modeller som noder og relasjoner | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
+| Modeller som noder og relasjoner | Grafdatabasen | [IFC-DB](ifc-db.md) |
 | Serverens egne innstillinger og hemmeligheter | `.env` eller `/run/secrets` | [Lokal test](deploy/local.md) |
 
 ## Arbeid utenfor forespørslene

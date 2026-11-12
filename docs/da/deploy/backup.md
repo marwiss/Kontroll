@@ -16,8 +16,8 @@ sikkerhedskopieringen; en kopi taget, mens uploads er i gang, kan mangle
 delene af de uploads, hvilket klienterne blot gør om.
 
 Med serverens egne data i en graf for sig (`OPENCDE_STORE_GRAPH_URI`,
-[ifc-lpg.md](../ifc-lpg.md)) holder én sikkerhedskopi begge grafer i de samme
-filer, IFC-LPG's knuder fra IFC-grafen og resten fra lageret, og
+[ifc-db.md](../ifc-db.md)) holder én sikkerhedskopi begge grafer i de samme
+filer, IFC-DB's knuder fra IFC-grafen og resten fra lageret, og
 `manifest.json` angiver lagerets dialekt i `store_dialect`. En gendannelse
 lægger hver knude, hvor dens etiket hører hjemme, uanset hvilke grafer kopien
 kom fra, så en kopi af én database gendannes i to og omvendt; den nægter,

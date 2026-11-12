@@ -16,7 +16,7 @@ region. Dataspatium-klienter var som helst i världen loggar in på samma server
   serverns DNS-namn, eller lämna det tomt: servern heter då
   `<publik adress>.sslip.io`, ett namn som pekar på maskinens adress, så att
   certifikatet kommer direkt. `DATAREGIUM_ACME_EMAIL` är valfri.
-- En maskin med 2 vCPU och 4 GB minne eller mer (8 GB med IFC-LPG-modulen och
+- En maskin med 2 vCPU och 4 GB minne eller mer (8 GB med IFC-DB-modulen och
   stora modeller), Ubuntu 24.04 LTS och en disk på 30 GB eller mer.
 - En fast publik adress, så att namnet fortsätter att peka på maskinen. Azure
   ger en med `--public-ip-sku Standard`; hos AWS kopplar du en Elastic IP; hos

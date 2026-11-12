@@ -28,9 +28,9 @@ flowchart LR
 | BCF API | Sager, kommentarer, viewpoints, hændelser, relaterede sager og projektdokumenter | `opencde/bcf/` |
 | Documents API | Upload og valg via sider i browseren, versioner og metadata | `opencde/documents/` |
 | Konti | Brugere, projekter, medlemskaber og roller | `opencde/accounts/` |
-| Lagringen | Serverens egne data pr. område: konti, OAuth2, BCF, Documents og job, hver en repository-klasse med sin Cypher bag en protokol; adskilt fra IFC-grafen, som IFC-LPG holder | `opencde/store/` |
+| Lagringen | Serverens egne data pr. område: konti, OAuth2, BCF, Documents og job, hver en repository-klasse med sin Cypher bag en protokol; adskilt fra IFC-grafen, som IFC-DB holder | `opencde/store/` |
 | Administration | Sider og et API for administratorer, sundhedstjek og forespørgselsloggen | `opencde/admin/`, `opencde/requestlog.py` |
-| IFC-LPG | Gør uploadede modeller til noder og linker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
+| IFC-DB | Gør uploadede modeller til noder og linker viewpoint-komponenter til dem | `opencde/ifcgraph/` |
 | MCP-endepunktet | Værktøjer, gennem hvilke AI-programmer læser projekternes modeller og foreslår, mens en person godkender | `opencde/mcp/` |
 | Graflaget | Driveren, de to databasedialekter, skemaet og det, der udløber | `opencde/graph/` |
 | Sider | Skabeloner, typografier, scripts og sprogkatalogerne | `opencde/ui/` |
@@ -59,7 +59,7 @@ flowchart LR
 | Brugere, projekter, sager, kommentarer, viewpoints, dokumentmetadata, klienter og revisionsloggen | Grafdatabasen | [Grafskema](graph-schema.md) |
 | Tokens, koder og klienthemmeligheder som SHA-256-hashes; kodeord som Argon2id-hashes | Grafdatabasen | `tests/security/` |
 | Uploadede filer og viewpoint-billeder under navne, serveren vælger | Fillageret i `OPENCDE_DATA_DIR` | [Documents API-forløb](flows/documents.md) |
-| Modeller som noder og relationer | Grafdatabasen | [IFC-LPG](ifc-lpg.md) |
+| Modeller som noder og relationer | Grafdatabasen | [IFC-DB](ifc-db.md) |
 | Serverens egne indstillinger og hemmeligheder | `.env` eller `/run/secrets` | [Lokal test](deploy/local.md) |
 
 ## Arbejde uden for forespørgslerne

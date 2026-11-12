@@ -62,7 +62,7 @@ Verkefni sem notandinn á ekki aðild að er ekki til fyrir hann (404).
 
 ## Frá sjónarhorni til líkansins
 
-Þegar [IFC-LPG](../ifc-lpg.md) er virkt fær hver eining sem nefnir `GlobalId` sem
+Þegar [IFC-DB](../ifc-db.md) er virkt fær hver eining sem nefnir `GlobalId` sem
 fullbúin líkön verkefnisins hafa GTIN staksins sem `gtin`, einnig þegar líkanið er
 hlaðið upp síðar; stakið sjálft finnst með `GlobalId` þess:
 

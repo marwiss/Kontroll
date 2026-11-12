@@ -16,7 +16,7 @@ päättää, kuka saa kirjautua ja mitä kukin saa tehdä kussakin projektissa.
 Teknisesti Dataregium on palvelin buildingSMARTin avoimille **OpenCDE-rajapinnoille**
 (Foundation API 1.0, BCF API 3.0 ja 2.1 sekä Documents API 1.0), ja se on rakennettu
 Neo4j- tai Memgraph-graafitietokannan päälle. 3-sarjassa jokaisesta ladatusta
-IFC-mallista tulee häviötön graafi [IFC-LPG](https://github.com/marwiss/IFC-LPG)-kirjaston
+IFC-mallista tulee häviötön graafi [IFC-DB](https://github.com/marwiss/IFC-DB)-kirjaston
 avulla, versioineen, tarkistuksineen ja muutosehdotuksineen. Palvelin kirjoitettiin
 alusta uudelleen vuoden 2023 tutkimusprototyypin pohjalta niin, että tietoturva on
 ensimmäinen vaatimus, ja mikä tahansa määrityksiä noudattava asiakas voi muodostaa
@@ -67,7 +67,7 @@ kaksi: palvelimen ja sen tietokannan.
    asetukset, ja aseta `OPENCDE_GRAPH_PASSWORD` omaksi vähintään 16 merkin
    salasanaksi. Jos haluat kokeilla Dataspatiumin ja mallien kanssa, aseta myös
    `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`, `OPENCDE_REQUEST_LOG_ENABLED=true` ja
-   `OPENCDE_IFC_LPG_ENABLED=true`; [Dataspatiumin pika-aloitus](quickstart.md) kertoo
+   `OPENCDE_IFC_DB_ENABLED=true`; [Dataspatiumin pika-aloitus](quickstart.md) kertoo
    miksi. Jokainen asetus selitetään tiedostossa [.env.example](../../.env.example).
 3. **Käynnistä.** Samat compose-tiedostot toimivat Dockerin ja Podmanin kanssa; valitse se, joka sinulla on:
 
@@ -97,7 +97,7 @@ kaksi: palvelimen ja sen tietokannan.
    <summary><b>Ilman konttia</b></summary>
 
    ```sh
-   uv sync --extra ifc-lpg          # asentaa Python 3.13:n ja kaikki riippuvuudet, IFC-LPG mukaan lukien
+   uv sync --extra ifc-db           # asentaa Python 3.13:n ja kaikki riippuvuudet, IFC-DB mukaan lukien
    uv run opencde doctor            # tarkistaa määritykset ja tietokannan
    uv run opencde serve             # http://127.0.0.1:8000
    ```
@@ -142,7 +142,7 @@ kaksi: palvelimen ja sen tietokannan.
    </details>
 
    Komento luo esittelykäyttäjät, projektit, asiakkaat ja yhden asian, ja kun
-   IFC-LPG on käytössä, myös esimerkkimallin graafina. Salasanat tulostetaan kerran.
+   IFC-DB on käytössä, myös esimerkkimallin graafina. Salasanat tulostetaan kerran.
    Kirjaudu osoitteessa <http://127.0.0.1:8000/signin> käyttäjänä `admin` ja avaa `/admin`.
 6. **Yhdistä asiakas.** Rekisteröi sovelluksesi kohdassa *Asiakkaat* (tai anna sen
    rekisteröityä itse, kun `OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true`) ja osoita se
@@ -192,10 +192,10 @@ tietokannan salasanaa, eikä mikään ole auki ennen kuin se on määritetty.
   työkopiolle. `COMPOSE_FILE` tiedostossa `.env` valitsee ne, joten komennot ovat
   ilman `-f`:ää.
 - **Ilman konttia**: Python 3.11 tai uudempi uv:n kanssa (testattu versioilla 3.11,
-  3.13 ja 3.14), `uv sync --extra ifc-lpg`, ja Neo4j 5.26 tai Memgraph 3.14
+  3.13 ja 3.14), `uv sync --extra ifc-db`, ja Neo4j 5.26 tai Memgraph 3.14
   osoitteessa `OPENCDE_GRAPH_URI`.
 - **Tärkeimmät asetukset**: `OPENCDE_APIS` valitsee rajapinnat (oletuksena kaikki
-  kolme, 1.0.0:ssa `["documents"]`); `OPENCDE_IFC_LPG_ENABLED=true` ottaa käyttöön
+  kolme, 1.0.0:ssa `["documents"]`); `OPENCDE_IFC_DB_ENABLED=true` ottaa käyttöön
   graafin ja kaiken 2- ja 3-sarjassa, mikä koskee malleja; `OPENCDE_ENVIRONMENT` on
   `development`, `production` tai `local` (paikallinen moottori, `opencde init --local`).
 - **Päätepisteet**: `/.well-known/dataregium` (versio ja käytössä olevat laajennukset),
@@ -220,7 +220,7 @@ Palvelimen ajamiseen itse:
   tai Podman 5, tai Python 3.11 tai uudempi [uv](https://docs.astral.sh/uv/):n kanssa
   ja oma Neo4j 5.26- tai Memgraph 3.14 -tietokanta.
 - Noin 1 Gt muistia tietokantakontille (`NEO4J_HEAP` ja `NEO4J_PAGECACHE` tiedostossa
-  `.env`), ja enemmän suurille malleille IFC-LPG:n kanssa.
+  `.env`), ja enemmän suurille malleille IFC-DB:n kanssa.
 - Paikallisesti: portti 8000 palvelimelle ja 7484/7697 tietokannalle, kaikki
   sidottuina osoitteeseen `127.0.0.1`. Tuotannossa: portit 80 ja 443 tavoitettavissa
   internetistä ja DNS-nimi palvelimelle.
@@ -292,13 +292,13 @@ saman Dataspatium-version kanssa.
 - **Mallia koskevat asiat** (BCF API 3.0 ja 2.1): kysymykset ja huomautukset
   kommentteineen, kuvineen ja näkymineen, jotka osoittavat rakennusosia, suodattimineen
   ja tapahtumalokeineen, validoituina buildingSMARTin skeemoja vasten.
-- **Malli graafina** (IFC-LPG-moduuli, joka otetaan käyttöön asetuksella
-  `OPENCDE_IFC_LPG_ENABLED`): ladatusta IFC-mallista tulee graafi tietokantaan,
-  yhdistettynä asioiden näkymien rakennusosiin (katso [IFC-LPG](ifc-lpg.md)).
+- **Malli graafina** (IFC-DB-moduuli, joka otetaan käyttöön asetuksella
+  `OPENCDE_IFC_DB_ENABLED`): ladatusta IFC-mallista tulee graafi tietokantaan,
+  yhdistettynä asioiden näkymien rakennusosiin (katso [IFC-DB](ifc-db.md)).
 
 ### Lisäksi versiossa 3 (Dataspatium 3:n kanssa)
 
-- **Häviötön malli**: graafi tulee IFC-LPG-kirjastosta ja sisältää kaiken tiedostossa
+- **Häviötön malli**: graafi tulee IFC-DB-kirjastosta ja sisältää kaiken tiedostossa
   olevan, joten sen voi kirjoittaa takaisin sellaisena kuin se tuli.
 - **Jokaisen latauksen tarkistus** IFC-skeemaa, buildingSMARTin sääntöjä ja projektin
   IDS-vaatimuksia vasten; projekti voi hylätä virheelliset tiedostot, ja tiedoston voi
@@ -426,8 +426,8 @@ kuuluvat yhteen:
 | Dataregium | Mitä siinä on | Image | Kuuluu yhteen |
 |---|---|---|---|
 | 1.0.0 | Asiakirjapalvelin: Foundation API ja Documents API, verkkoylläpito seitsemällä kielellä, projektin ylläpito projektin vastuuhenkilölle ja pyyntöloki. Se on 2.0.0:n koodi, jossa vain Documents API on käytössä (`OPENCDE_APIS`) | `1.0.0` | Dataspatium 1.0.0 |
-| 2.0.0 | Lisäksi BCF API 3.0 ja 2.1 samoilla tiedoilla ja IFC-LPG-moduuli, joka tekee graafin jokaisesta ladatusta IFC-tiedostosta | `2.0.0` | Dataspatium 2.0.0 |
-| 3.0.0 | Lisäksi häviötön graafi IFC-LPG-kirjastosta, jokaisen latauksen tarkistus, kyselyt, vertailut ja törmäystarkastus, versiot muutosehdotuksineen, jotka kokeillaan, hyväksytään ja yhdistetään, version julkaisu, yhden mallin rakennus toiseen malliin, geometria glTF:nä, paikallinen moottori ja ohjeet pilveen ja nginxille | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
+| 2.0.0 | Lisäksi BCF API 3.0 ja 2.1 samoilla tiedoilla ja IFC-DB-moduuli, joka tekee graafin jokaisesta ladatusta IFC-tiedostosta | `2.0.0` | Dataspatium 2.0.0 |
+| 3.0.0 | Lisäksi häviötön graafi IFC-DB-kirjastosta, jokaisen latauksen tarkistus, kyselyt, vertailut ja törmäystarkastus, versiot muutosehdotuksineen, jotka kokeillaan, hyväksytään ja yhdistetään, version julkaisu, yhden mallin rakennus toiseen malliin, geometria glTF:nä, paikallinen moottori ja ohjeet pilveen ja nginxille | `3.0.0`, `latest`, `3.0.0-gherkin` | Dataspatium 3.0.0 |
 
 ## Lue lisää
 
@@ -440,13 +440,13 @@ kuuluvat yhteen:
 - [glossary.md](glossary.md): dokumentaation käyttämät sanat.
 - [flows/](flows/): sekvenssikaaviot OAuth2-, Documents API- ja BCF-viewpoint-kuluista.
 - [graph-schema.md](graph-schema.md): graafimalli.
-- [ifc-lpg.md](ifc-lpg.md): IFC-LPG-moduuli, tarkistukset, versiot, muutosjoukot, geometria ja esimerkkejä Cypher-kyselyistä.
+- [ifc-db.md](ifc-db.md): IFC-DB-moduuli, tarkistukset, versiot, muutosjoukot, geometria ja esimerkkejä Cypher-kyselyistä.
 - [mcp.md](mcp.md): MCP-päätepiste, jonka kautta tekoälyohjelmat lukevat projektien malleja: käyttöönotto, tokenit, protokolla, työkalut, tekoälykäytäntö ja rajat.
 - Pysyvät arkkitehtuuripäätökset: graafitietokanta ainoana tallennuspaikkana, läpinäkymättömät
   tunnisteet JWT:n sijaan, siirrettävä Cypher Neo4j:lle ja Memgraphille, verkkokäyttöliittymä
   ilman sovelluskehystä, varmuuskopio sovellustasolla, BCF API 2.1 3.0:n rinnalla,
   häviötön IFC-graafi, joka lukee ja kirjoittaa STEPiä itse ja validoidaan
-  kirjoitettaessa, buildingSMARTin säännöt omassa ympäristössään, IFC-LPG kirjastona,
+  kirjoitettaessa, buildingSMARTin säännöt omassa ympäristössään, IFC-DB kirjastona,
   tarkistus projektin IDS:ää vasten, nimetyt kyselyt jäsenille, törmäystarkastus
   palvelimella IfcClashilla, versiot solmuina muutoksineen ja perusversioineen,
   paikallinen moottori, joka vastaa vain omalla tietokoneella, ja työkopio muistissa
@@ -470,8 +470,8 @@ Dokumentaatio on tämän README:n seitsemällä kielellä, kukin kieli hakemisto
 
 ## Rajoitukset lyhyesti
 
-- Kaikki malleja koskeva 2- ja 3-sarjassa vaatii IFC-LPG-moduulin, joka on pois
-  käytöstä, kunnes `OPENCDE_IFC_LPG_ENABLED=true`. buildingSMARTin säännöt toimivat vain
+- Kaikki malleja koskeva 2- ja 3-sarjassa vaatii IFC-DB-moduulin, joka on pois
+  käytöstä, kunnes `OPENCDE_IFC_DB_ENABLED=true`. buildingSMARTin säännöt toimivat vain
   `-gherkin`-imagella; ilman sitä tarkistetaan skeema ja IDS.
 - Palvelin toteuttaa BCF API 3.0:n ja 2.1:n, ei 1.0:aa, jonka resurssit näyttävät
   erilaisilta.
@@ -482,8 +482,8 @@ Dokumentaatio on tämän README:n seitsemällä kielellä, kukin kieli hakemisto
   salasana. Portti pysyy suljettuna, ellei ylläpitäjä julkaise sitä tarkoituksella;
   ylläpitorajapinnan lukeva graafikysely (`OPENCDE_GRAPH_QUERY_ENABLED`) antaa Cypherin
   ilman porttia.
-- IFC-LPG-tuonti, tarkistukset ja muutosjoukkojen kokeilu toimivat erillisissä
-  prosesseissa muisti- ja aikarajoin (`OPENCDE_IFC_LPG_*`); hyvin suuret mallit
+- IFC-DB-tuonti, tarkistukset ja muutosjoukkojen kokeilu toimivat erillisissä
+  prosesseissa muisti- ja aikarajoin (`OPENCDE_IFC_DB_*`); hyvin suuret mallit
   hylätään sen sijaan, että ne jäisivät puoliksi tuoduiksi, tai ne käsitellään
   paikallisella moottorilla.
 - Verkkosivut ovat kirjautumista, ylläpitoa, lataamista ja asiakirjojen valintaa sekä
@@ -519,7 +519,7 @@ OpenCDE-rajapinnat pysyvät sellaisina kuin buildingSMART ne määrittelee; mit�
 lisää, ovat niiden laajennuksia omilla nimillään ja omalla OpenAPI:llaan. Tämä osio
 kertoo, mitä on päätetty, sille, ihmiselle tai tekoälyagentille, joka vie osan siitä
 eteenpäin. Työtavat ovat tiedostossa [CONTRIBUTING.md](../../CONTRIBUTING.md) ja
-IFC-graafi sivulla [ifc-lpg.md](ifc-lpg.md).
+IFC-graafi sivulla [ifc-db.md](ifc-db.md).
 
 ### Päätetty
 

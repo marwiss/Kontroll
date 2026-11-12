@@ -25,7 +25,7 @@ planens etapper lade till dem.
   riktiga noder och relationer; en referens som hålls som egenskap
   (`AuditEvent.actor_user_id`, `UploadSession.user_id`) listas i rutan i
   stället för att ritas som en linje.
-- En etikett som börjar på `Ifc` är alltid en av IFC:s klasser, som IFC-LPG
+- En etikett som börjar på `Ifc` är alltid en av IFC:s klasser, som IFC-DB
   skriver dem; serverns egna poster (`Validation`, `Precheck`, `Proposal`,
   `Clash`, `Merge`) börjar aldrig så, så att en fråga kan skilja IFC-data från
   serverns egna.
@@ -176,10 +176,10 @@ erDiagram
 | Etikett | Nyckel | Egenskaper | Anteckningar |
 |---|---|---|---|
 | `Conversion` | `id`, indexerad `project_id`, `document_id` | `model_id`, `document_id`, `version_index` eller `bcf_document_guid`, `file_name`, `storage_key`, `state`, `created_at`, `running_at`, `done_at`, `failed_at`, `error`, `geometry_key`, `spatial_pending`, `spatial_error`, `graph_report`, `graph_issue_count`, `graph_error_count`, `graph_ruleset`, `graph_checked_at`, och en kopia av importens `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `form_version`, `format`, `spatial_at`, `spatial_products` och `spatial_failed` | Serverns post om en konvertering (`HAS_CONVERSION`): filen den kom från, dess livscykel (`state` är `queued`, `running`, `done` eller `failed`), geometriposterna och grafkontrollen; `model_id` namnger modellen, som bär samma id, och inget annat kopplar de två. Raderas med projektet |
-| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | IFC-LPG:s post om en importerad modell, skriven bara av biblioteket; `imported_at` säger att den är hel i grafen (en modell från före 2026-11-11 behåller `state` `done` för det). Servern skriver aldrig på den |
+| `Model` | `id` | `schema`, `ifc_project_guid`, `entities`, `relationships`, `skipped`, `lossless`, `geometry`, `ifc_header`, `format`, `form_version`, `imported_at`, `spatial_at`, `spatial_products`, `spatial_failed`, `prepared_…` | IFC-DB:s post om en importerad modell, skriven bara av biblioteket; `imported_at` säger att den är hel i grafen (en modell från före 2026-11-11 behåller `state` `done` för det). Servern skriver aldrig på den |
 | `Entity` + klassetiketter | `id` (`<modell-id>:<step-id>`), indexerad `GlobalId`, `model_id` | `ifc_class`, `step_id`, `bbox_min`, `bbox_max`, `bbox_centre` (punkter i projektkoordinater, meter, på en byggdel med form), varje literalt IFC-attribut med namn | Relationer mellan entiteter namnges efter IFC-attributet (framåt och inverst), skrivna som varje relationstyp med versaler och understreck: `IsDefinedBy` blir `IS_DEFINED_BY` |
-| `StepBlock` | `id` (`<modell-id>:<första step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konverterad med `OPENCDE_IFC_LPG_LOSSLESS` som inte är noder: utskrivna som STEP i id-ordning och komprimerade. Returnera inte noden hel i en fråga, för `text` skull |
+| `StepBlock` | `id` (`<modell-id>:<första step-id>`) | `first_step`, `instances`, `text` | Instanser i en modell konverterad med `OPENCDE_IFC_DB_LOSSLESS` som inte är noder: utskrivna som STEP i id-ordning och komprimerade. Returnera inte noden hel i en fråga, för `text` skull |
 | `Merge` | `id` | `project_id`, `kind` (`merge` eller `prepare`), `state`, `request`, `author`, `created_at`, `running_at`, `finished_at`, `model_id`, `version_index`, `expires_at`, `report`, `error` | En byggnad ur modell B förd in i en modell i projektet (`HAS_MERGE`); `request` anger båda versionerna, och `version_index` är versionen den blev. Den sammanfogade modellen tas bort ur grafen när den är utskriven. Raderas med projektet |
 | `Clash` | `id` | `project_id`, `state`, `request`, `author`, `created_at`, `running_at`, `done_at`, `failed_at`, `count`, `set_a`, `set_b`, `missing`, `seconds`, `truncated`, `report`, `error` | Ett krocktest mellan två dokumentversioner i projektet (`HAS_CLASH`; ADR 0019); `request` anger båda versionerna, läget och toleransen, och `report` håller de funna paren som komprimerad JSON. Raderas med projektet |
 
-Se [ifc-lpg.md](ifc-lpg.md) för konverteringsreglerna och exempelfrågor.
+Se [ifc-db.md](ifc-db.md) för konverteringsreglerna och exempelfrågor.

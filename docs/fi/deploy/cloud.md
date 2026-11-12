@@ -17,7 +17,7 @@ palvelimeen HTTPS:n yli.
   palvelimen DNS-nimeksi tai jätä se tyhjäksi: palvelimen nimi on silloin
   `<julkinen osoite>.sslip.io`, nimi, joka osoittaa koneen osoitteeseen, joten
   varmenne saadaan heti. `DATAREGIUM_ACME_EMAIL` on valinnainen.
-- Kone, jossa on vähintään 2 vCPU:ta ja 4 Gt muistia (8 Gt IFC-LPG-moduulin ja
+- Kone, jossa on vähintään 2 vCPU:ta ja 4 Gt muistia (8 Gt IFC-DB-moduulin ja
   suurten mallien kanssa), Ubuntu 24.04 LTS ja vähintään 30 Gt:n levy.
 - Kiinteä julkinen osoite, jotta nimi osoittaa edelleen koneeseen. Azure antaa
   sellaisen valinnalla `--public-ip-sku Standard`; AWS:ssä liität Elastic IP:n;
