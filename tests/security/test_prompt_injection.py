@@ -44,6 +44,8 @@ from opencde.ifcgraph.queries import QUERIES, InvalidParameters
 from opencde.logging import REDACTED, configure_logging
 from opencde.main import create_app
 from opencde.mcp import protocol, routes
+from opencde.mcp.change_sets import CHANGE_SET_TOOLS
+from opencde.mcp.proposals import GET_PROPOSAL, LIST_PROPOSALS
 from opencde.mcp.queries import MAX_TEXT
 from opencde.mcp.registry import MAX_NAME
 from opencde.odata import MAX_FILTER_LENGTH, ODataError, compile_filter
@@ -1079,8 +1081,13 @@ def _given(arguments: dict[str, Any], path: tuple[str, ...], value: Any) -> dict
     return changed
 
 
+#: The change sets' tools, whose texts are asked in ``tests/security/test_mcp_change_sets.py`` with drafts of their own.
+CHANGE_SETS = {tool.name for tool in (*CHANGE_SET_TOOLS, GET_PROPOSAL, LIST_PROPOSALS)}
+
+
 def test_every_tool_of_the_endpoint_is_called_with_hostile_arguments() -> None:
-    assert list(ANSWERED) == [tool.name for tool in routes.TOOLS], "a new tool gets a call here, and is asked too"
+    asked = [tool.name for tool in routes.TOOLS if tool.name not in CHANGE_SETS]
+    assert list(ANSWERED) == asked, "a new tool gets a call here, and is asked too"
 
 
 @pytest.mark.parametrize("name", list(ANSWERED))
