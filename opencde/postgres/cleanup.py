@@ -3,7 +3,7 @@
 
 Readers always check ``expires_at``, so an expired row is harmless; this only keeps the tables small. It runs in the
 cleaner's round, in batches. Each expiring table has its statement here, as its area moves. The rows that own a file
-in storage return its key, and the file goes with the row.
+in storage (an upload's parts, a precheck) return its key, and the file goes with the row.
 """
 
 from __future__ import annotations
@@ -52,9 +52,18 @@ RETURNING storage_key
 EXPIRED_UPLOAD_SESSIONS = """
 DELETE FROM upload_sessions WHERE id IN (SELECT id FROM upload_sessions WHERE expires_at < $1 LIMIT $2)
 """
+#: Of the checks only a precheck expires; a version's check lasts as long as the version.
+EXPIRED_PRECHECKS = """
+DELETE FROM validations WHERE id IN (SELECT id FROM validations WHERE expires_at < $1 LIMIT $2)
+RETURNING storage_key
+"""
+EXPIRED_CHANGE_SET_DRAFTS = """
+DELETE FROM change_set_drafts
+WHERE changeset_id IN (SELECT changeset_id FROM change_set_drafts WHERE expires_at < $1 LIMIT $2)
+"""
 #: The statements of the rows that own a file, each returning its key; they run first, so that a row goes before
 #: what owns it (an upload's parts before their session).
-EXPIRING_WITH_FILES = (EXPIRED_UPLOAD_PARTS,)
+EXPIRING_WITH_FILES = (EXPIRED_UPLOAD_PARTS, EXPIRED_PRECHECKS)
 #: One statement per expiring table that owns no file, each run with the moment and the batch size.
 EXPIRING = (
     EXPIRED_WEB_SESSIONS,
@@ -64,6 +73,7 @@ EXPIRING = (
     EXPIRED_CLIENTS,
     EXPIRED_SELECTION_SESSIONS,
     EXPIRED_UPLOAD_SESSIONS,
+    EXPIRED_CHANGE_SET_DRAFTS,
 )
 
 

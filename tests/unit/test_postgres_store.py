@@ -187,7 +187,13 @@ def test_a_token_answers_for_its_user_and_client_and_a_secret_stays_inside() -> 
 
 def test_the_migrations_are_numbered_from_one_without_gaps(tmp_path: Path) -> None:
     shipped = [(m.version, m.name) for m in schema.migrations()]
-    assert shipped == [(1, "0001_accounts"), (2, "0002_oauth2"), (3, "0003_documents"), (4, "0004_bcf")]
+    assert shipped == [
+        (1, "0001_accounts"),
+        (2, "0002_oauth2"),
+        (3, "0003_documents"),
+        (4, "0004_bcf"),
+        (5, "0005_jobs"),
+    ], "every area's, in order"
     for names, words in ((["0001_a.sql", "0003_c.sql"], "without gaps"), (["1_a.sql"], "NNNN_name.sql")):
         folder = tmp_path / names[0]
         folder.mkdir()
@@ -290,13 +296,23 @@ async def test_expired_rows_go_in_batches() -> None:
     assert {args for _, args in fake.statements} == {("2026-11-12T00:00:00.000Z", cleanup.BATCH)}
 
 
+async def test_an_expired_prechecks_file_goes_with_it(tmp_path: Path) -> None:
+    storage = LocalStorage(tmp_path)
+    storage.write_bytes("prechecks/x.ifc", b"ISO-10303-21;")
+    gone = [{"storage_key": "prechecks/x.ifc"}, {"storage_key": "../outside"}]
+    fake = FakePostgres(lambda query, args: gone if query == cleanup.EXPIRED_PRECHECKS else None)
+    assert await cleanup.delete_expired(fake, storage=storage) == 2  # ty: ignore[invalid-argument-type]
+    assert not storage.exists("prechecks/x.ifc"), "a precheck's file goes with it; a key the storage refuses is no file"
+
+
 def test_every_expiring_table_is_in_the_cleaners_round() -> None:
     """A table with ``expires_at`` in any migration has its statement, which deletes by it in batches; a row that
-    owns a file gives back its key."""
+    owns a file gives back its key. A merge's ``expires_at`` is its prepared model's, which the merges' own round
+    takes out, keeping the record."""
     text = "\n".join(m.path.read_text(encoding="utf-8") for m in schema.migrations())
     expiring = {
         table for table, body in re.findall(r"CREATE TABLE (\w+) \((.*?)\n\);", text, re.DOTALL) if "expires_at" in body
-    }
+    } - {"merges"}
     assert {
         "web_sessions",
         "authorization_codes",
@@ -306,6 +322,8 @@ def test_every_expiring_table_is_in_the_cleaners_round() -> None:
         "selection_sessions",
         "upload_sessions",
         "upload_parts",
+        "validations",
+        "change_set_drafts",
     } <= expiring
     statements = (*cleanup.EXPIRING_WITH_FILES, *cleanup.EXPIRING)
     cleaned = {}
@@ -1052,7 +1070,7 @@ def test_the_bcf_migration_owns_by_foreign_keys_and_adds_its_files_to_the_projec
     assert "labels text[]" in text and 'title text COLLATE "C" NOT NULL' in text
     assert "CREATE OR REPLACE VIEW project_files" in text and "FROM document_files" in text and "FROM bcf_files" in text
     for view in ("proposal_files", "conversion_ifc_projects"):
-        assert f"CREATE VIEW {view}" in text, "the seams to the jobs area, which follows"
+        assert f"CREATE VIEW {view}" in text, "the seams to the jobs area, which 0005 defines anew"
 
 
 @pytest.mark.parametrize("statement", BCF_READS, ids=range(len(BCF_READS)))

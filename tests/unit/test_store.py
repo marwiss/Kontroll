@@ -49,6 +49,14 @@ from opencde.store.jobs.clashes import ClashRepository
 from opencde.store.jobs.conversions import ConversionRepository
 from opencde.store.jobs.drafts import ChangeSetDraftRepository
 from opencde.store.jobs.merges import MergeRepository
+from opencde.store.jobs.postgres import (
+    PostgresChangeSetDraftRepository,
+    PostgresClashRepository,
+    PostgresConversionRepository,
+    PostgresMergeRepository,
+    PostgresProposalRepository,
+    PostgresValidationRepository,
+)
 from opencde.store.jobs.proposals import ProposalRepository
 from opencde.store.jobs.validations import ValidationRepository
 from opencde.store.oauth2.clients import ClientRepository
@@ -93,6 +101,12 @@ REPOSITORIES = (
     PostgresTopicLinkRepository,
     PostgresBcfDocumentRepository,
     PostgresBcfEventRepository,
+    PostgresConversionRepository,
+    PostgresProposalRepository,
+    PostgresChangeSetDraftRepository,
+    PostgresValidationRepository,
+    PostgresClashRepository,
+    PostgresMergeRepository,
 )
 
 

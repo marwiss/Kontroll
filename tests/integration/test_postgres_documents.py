@@ -386,7 +386,7 @@ async def test_on_postgresql_the_seams_answer_what_the_other_areas_read(pg: Post
     files = await pg.run("SELECT storage_key FROM project_files WHERE project_id = $1", project.project_id)
     assert sorted(row["storage_key"] for row in files) == sorted([first.storage_key, second.storage_key])
     for view in ("SELECT count(*) AS n FROM version_validations", "SELECT count(*) AS n FROM version_graph_checks"):
-        assert await pg.one(view) == {"n": 0}, "empty until the jobs area defines them"
+        assert await pg.one(view) == {"n": 0}, "no version was checked"
     row = await pg.one("SELECT metadata FROM document_versions WHERE id = $1", first.version_id)
     assert row is not None and row["metadata"][0]["name"] == "file_name", "metadata is a jsonb document"
     await area.users.delete(editor.id)
