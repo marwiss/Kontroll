@@ -99,26 +99,62 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
  "truncated": false}
 ```
 
+- `server_query` (heimildin `mcp`): [nefndu fyrirspurnirnar](ifc-lpg.md#nefndar-fyrirspurnir)
+  um líkan útgáfu, með `document_id` og `version_index` (`null` fyrir þá
+  nýjustu), eins og Documents API spyr þeirra. `name` er ein af fyrirspurnunum í
+  skrá þjónsins, og hver færibreyta þeirra er sérstakt svæði (`class`, `pset`,
+  `property`, `global_id`, `since`); lýsing verkfærisins telur fyrirspurnirnar
+  upp með færibreytum þeirra, svo fyrirspurn sem IFC-LPG bætir við birtist
+  þegar þjónninn hefur verið uppfærður. `name: null` telur þær upp, með
+  `model_state` og `workcopy` líkansins. Fyrirspurn svarar `name`, `columns`, í
+  mesta lagi 500 `rows`, `count` (línunum sem hún fann, í mesta lagi 10.000) og
+  `truncated`; texti í línu er styttur við 1.000 stafi.
+- `get_publication` (heimildin `mcp`): hvort útgáfa er birt, og ef svo er
+  `published_at`, `published_by`, `file_name`, `size_in_bytes` og `sha256`,
+  hvert `null` meðan hún er það ekki; aldrei hvaðan safnskráin er sótt.
+- `start_clash_check` (heimildin `mcp`): [árekstrarprófun](ifc-lpg.md#árekstrarprófun)
+  milli tveggja útgáfna verkefnis: `project_id`, `a` og `b` með `document_id`,
+  `version_index` og `types` (IFC-klasar, `null` fyrir hverja einingu með
+  rúmmál), `mode` (`intersection` eða `clearance`), og `tolerance` og
+  `clearance` í metrum (`null` fyrir 0,001 og 0,05). Það svarar `clash_id` og
+  `state`, og endurskoðunarskráin skráir `mcp.clash.started`.
+- `get_clash_check` (heimildin `mcp`): skýrsla prófunar, eftir `project_id` og
+  `clash_id`, og bíður í mesta lagi `wait_seconds` (20 í mesta lagi) eftir
+  prófun sem er í röð eða í gangi: `state` hennar, beiðnina, `count`, `set_a`,
+  `set_b`, `missing`, `seconds` og í mesta lagi 200 `clashes`, með `truncated`
+  þegar þeir voru fleiri. Bæði árekstrarverkfærin hafna nema
+  `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+
+```json
+{"name": "elements", "columns": ["global_id", "class", "name", "container"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "1. etasje"]],
+ "count": 1, "truncated": false}
+```
+
 ## Gervigreindarstefnan
 
 `ai_policy` verkefnis er `local`, sjálfgefna gildið, eða `cloud`, og hana setur
 manager verkefnisins eða stjórnandi. Staðbundna vélin þjónar hverju verkefni,
 því tölvan er mörkin. Sérhver annar þjónn telur `local`-verkefni alls ekki upp,
-og sé spurt um eitt með auðkenni þess hafnar verkfærið og endurskoðunarskráin
-skráir `mcp.denied`. Þjónninn gætir þess hvert gögnin fara; hvaða líkan les þau
-er val biðlarans, og annað forrit á sömu tölvu getur samt sent svörin til líkans
-í skýinu.
+og sé spurt um eitt, með auðkenni þess eða einu skjala þess, hafnar verkfæri og
+endurskoðunarskráin skráir `mcp.denied`. Þjónninn gætir þess hvert gögnin fara;
+hvaða líkan les þau er val biðlarans, og annað forrit á sömu tölvu getur samt
+sent svörin til líkans í skýinu.
 
 ## Mörk og skrár
 
-- Meginmál er í mesta lagi 1 MB og svar í mesta lagi 256 kB; nöfn og titlar eru
-  styttir við 200 stafi.
+- Meginmál er í mesta lagi 1 MB og svar í mesta lagi 256 kB, með í mesta lagi
+  500 línum úr fyrirspurn og 200 árekstrum; nöfn og titlar eru styttir við 200
+  stafi og texti í línum fyrirspurnar við 1.000. `get_clash_check` bíður í mesta
+  lagi 20 sekúndur.
 - Tóki gerir í mesta lagi 120 verkfærisköll á mínútu, auk marka á hvert
   vistfang sem öll forrit deila (`OPENCDE_RATE_LIMIT_API`); umfram það svarar
   verkfærið `isError` með þeim sekúndum sem bíða þarf.
 - Beiðnaskráin geymir aðferðina og heiti verkfærisins, aldrei meginmálið.
-  Endurskoðunarskráin geymir `mcp.denied` með ástæðunni (`policy` eða `scope`),
-  verkfærinu og biðlaranum, aldrei færibreytu eða texta úr verkefnunum.
+  Endurskoðunarskráin geymir `mcp.denied` með ástæðunni (`policy` eða `scope`)
+  og `mcp.clash.started` með verkefninu, prófuninni og tveimur útgáfum hennar,
+  hvort tveggja með verkfærinu og biðlaranum, aldrei færibreytu eða texta úr
+  verkefnunum.
 
 ## Gögn, aldrei fyrirmæli
 

@@ -101,28 +101,63 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
  "truncated": false}
 ```
 
+- `server_query` (scope `mcp`): version mallin [nimetyt kyselyt](ifc-lpg.md#nimetyt-kyselyt)
+  tunnisteilla `document_id` ja `version_index` (`null` viimeisimmälle), kuten
+  Documents API ne kysyy. `name` on yksi palvelimen luettelon kyselyistä, ja
+  kukin niiden parametreista on oma kenttänsä (`class`, `pset`, `property`,
+  `global_id`, `since`); työkalun kuvaus luettelee kyselyt parametreineen, joten
+  kysely, jonka IFC-LPG lisää, näkyy, kun palvelin on päivitetty. `name: null`
+  luettelee ne mallin `model_state`- ja `workcopy`-tietojen kanssa. Kysely
+  vastaa `name`, `columns`, enintään 500 `rows`, `count` (rivit, jotka se löysi,
+  enintään 10 000) ja `truncated`; rivin teksti katkaistaan 1 000 merkkiin.
+- `get_publication` (scope `mcp`): onko versio julkaistu, ja jos on,
+  `published_at`, `published_by`, `file_name`, `size_in_bytes` ja `sha256`,
+  kukin `null` niin kauan kuin se ei ole; ei koskaan sitä, mistä arkisto
+  ladataan.
+- `start_clash_check` (scope `mcp`): projektin kahden version
+  [törmäystarkastus](ifc-lpg.md#törmäystarkastus): `project_id`, `a` ja `b`,
+  joissa `document_id`, `version_index` ja `types` (IFC-luokat, `null` jokaiselle
+  elementille, jolla on kappale), `mode` (`intersection` tai `clearance`) sekä
+  `tolerance` ja `clearance` metreinä (`null` arvoille 0,001 ja 0,05). Se vastaa
+  `clash_id` ja `state`, ja tarkastusloki kirjaa `mcp.clash.started`.
+- `get_clash_check` (scope `mcp`): tarkastuksen raportti tunnisteilla
+  `project_id` ja `clash_id`; se odottaa enintään `wait_seconds` (korkeintaan
+  20) tarkastusta, joka on jonossa tai käynnissä: sen `state`, pyyntö, `count`,
+  `set_a`, `set_b`, `missing`, `seconds` ja enintään 200 `clashes`, ja
+  `truncated`, kun niitä oli enemmän. Kumpikin törmäystyökalu kieltäytyy, ellei
+  `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+
+```json
+{"name": "elements", "columns": ["global_id", "class", "name", "container"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "1. etasje"]],
+ "count": 1, "truncated": false}
+```
+
 ## Tekoälykäytäntö
 
 Projektin `ai_policy` on `local`, oletusarvo, tai `cloud`, ja sen asettaa
 projektin manager tai ylläpitäjä. Paikallinen moottori palvelee jokaista
 projektia, koska tietokone on raja. Mikä tahansa muu palvelin ei luettele
-`local`-projekteja lainkaan, ja kun sellaista kysytään sen tunnisteella, työkalu
-kieltäytyy ja tarkastusloki kirjaa `mcp.denied`. Palvelin pitää huolen siitä,
-minne tiedot menevät; se, mikä malli niitä lukee, on asiakkaan valinta, ja toinen
-ohjelma samalla tietokoneella voi silti lähettää vastaukset pilvessä olevalle
-mallille.
+`local`-projekteja lainkaan, ja kun sellaista kysytään sen tunnisteella tai
+jollakin sen asiakirjoista, työkalu kieltäytyy ja tarkastusloki kirjaa
+`mcp.denied`. Palvelin pitää huolen siitä, minne tiedot menevät; se, mikä malli
+niitä lukee, on asiakkaan valinta, ja toinen ohjelma samalla tietokoneella voi
+silti lähettää vastaukset pilvessä olevalle mallille.
 
 ## Rajat ja lokit
 
-- Runko on enintään 1 Mt ja vastaus enintään 256 kt; nimet ja otsikot
-  katkaistaan 200 merkkiin.
+- Runko on enintään 1 Mt ja vastaus enintään 256 kt, ja siinä on enintään 500
+  kyselyn riviä ja 200 törmäystä; nimet ja otsikot katkaistaan 200 merkkiin ja
+  kyselyn rivien teksti 1 000 merkkiin. `get_clash_check` odottaa enintään 20
+  sekuntia.
 - Token tekee enintään 120 työkalukutsua minuutissa, osoitekohtaisen rajan
   lisäksi, jonka kaikki ohjelmat jakavat (`OPENCDE_RATE_LIMIT_API`); sen jälkeen
   työkalu vastaa `isError` ja kertoo, montako sekuntia on odotettava.
 - Pyyntöloki säilyttää metodin ja työkalun nimen, ei koskaan runkoa.
   Tarkastusloki säilyttää `mcp.denied`-tapahtuman syineen (`policy` tai
-  `scope`), työkalun ja asiakkaan, ei koskaan argumenttia eikä projektien
-  tekstiä.
+  `scope`) ja `mcp.clash.started`-tapahtuman projekteineen, tarkastuksineen ja
+  sen kahdella versiolla, kumpikin työkalun ja asiakkaan kanssa, ei koskaan
+  argumenttia eikä projektien tekstiä.
 
 ## Dataa, ei koskaan ohjeita
 

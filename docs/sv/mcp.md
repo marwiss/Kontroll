@@ -98,26 +98,60 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
  "truncated": false}
 ```
 
+- `server_query` (scopet `mcp`): de [namngivna frågorna](ifc-lpg.md#namngivna-frågor)
+  om en versions modell, med `document_id` och `version_index` (`null` för den
+  senaste), som Documents API ställer dem. `name` är en av frågorna i serverns
+  katalog, och var och en av deras parametrar är ett eget fält (`class`,
+  `pset`, `property`, `global_id`, `since`); verktygets beskrivning räknar upp
+  frågorna med deras parametrar, så att en fråga som IFC-LPG lägger till syns
+  när servern har uppdaterats. `name: null` listar dem, med modellens
+  `model_state` och `workcopy`. En fråga svarar `name`, `columns`, högst 500
+  `rows`, `count` (raderna den hittade, högst 10 000) och `truncated`; en text i
+  en rad kapas vid 1 000 tecken.
+- `get_publication` (scopet `mcp`): om en version är publicerad, och i så fall
+  `published_at`, `published_by`, `file_name`, `size_in_bytes` och `sha256`,
+  vart och ett `null` så länge den inte är det; aldrig var arkivet laddas ned.
+- `start_clash_check` (scopet `mcp`): ett [krocktest](ifc-lpg.md#krocktest)
+  mellan två versioner i ett projekt: `project_id`, `a` och `b` med
+  `document_id`, `version_index` och `types` (IFC-klasser, `null` för varje
+  element med en kropp), `mode` (`intersection` eller `clearance`), och
+  `tolerance` och `clearance` i meter (`null` för 0,001 och 0,05). Det svarar
+  `clash_id` och `state`, och granskningsloggen antecknar `mcp.clash.started`.
+- `get_clash_check` (scopet `mcp`): rapporten för ett test, med `project_id` och
+  `clash_id`, och väntar högst `wait_seconds` (som mest 20) på ett som är köat
+  eller körs: dess `state`, begäran, `count`, `set_a`, `set_b`, `missing`,
+  `seconds` och högst 200 `clashes`, med `truncated` när det fanns fler. Båda
+  krockverktygen vägrar om inte `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+
+```json
+{"name": "elements", "columns": ["global_id", "class", "name", "container"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "1. etasje"]],
+ "count": 1, "truncated": false}
+```
+
 ## AI-policyn
 
 Ett projekts `ai_policy` är `local`, standardvärdet, eller `cloud`, och sätts av
 projektets manager eller en administratör. Den lokala motorn betjänar varje
 projekt, eftersom datorn är gränsen. Varje annan server listar inte
-`local`-projekt alls, och tillfrågat om ett med dess id vägrar verktyget och
-granskningsloggen antecknar `mcp.denied`. Servern håller var data tar vägen;
-vilken modell som läser dem är klientens val, och ett annat program på samma
-dator kan ändå skicka svaren till en modell i molnet.
+`local`-projekt alls, och tillfrågat om ett, med dess id eller med ett av dess
+dokument, vägrar ett verktyg och granskningsloggen antecknar `mcp.denied`.
+Servern håller var data tar vägen; vilken modell som läser dem är klientens val,
+och ett annat program på samma dator kan ändå skicka svaren till en modell i
+molnet.
 
 ## Gränser och loggar
 
-- En kropp är högst 1 MB och ett svar högst 256 kB; namn och titlar kapas vid
-  200 tecken.
+- En kropp är högst 1 MB och ett svar högst 256 kB, med högst 500 rader ur en
+  fråga och 200 krockar; namn och titlar kapas vid 200 tecken och en text i en
+  frågas rader vid 1 000. `get_clash_check` väntar högst 20 sekunder.
 - En token gör högst 120 verktygsanrop i minuten, utöver gränsen per adress som
   alla program delar (`OPENCDE_RATE_LIMIT_API`); därutöver svarar verktyget
   `isError` med hur många sekunder som återstår att vänta.
 - Begärandeloggen behåller metoden och verktygets namn, aldrig kroppen.
-  Granskningsloggen behåller `mcp.denied` med skälet (`policy` eller `scope`),
-  verktyget och klienten, aldrig ett argument eller en text ur projekten.
+  Granskningsloggen behåller `mcp.denied` med skälet (`policy` eller `scope`)
+  och `mcp.clash.started` med projektet, testet och dess två versioner, var och
+  en med verktyget och klienten, aldrig ett argument eller en text ur projekten.
 
 ## Data, aldrig instruktioner
 

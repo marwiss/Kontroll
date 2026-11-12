@@ -98,26 +98,59 @@ tool result with `isError: true` that the AI can read; the answer is
  "truncated": false}
 ```
 
+- `server_query` (scope `mcp`): the [named queries](ifc-lpg.md#named-queries)
+  of a version's model, by `document_id` and `version_index` (`null` for the
+  latest), as the Documents API asks them. `name` is one of the queries in the
+  server's catalogue, and each of their parameters is a field of its own
+  (`class`, `pset`, `property`, `global_id`, `since`); the tool's description
+  lists the queries with their parameters, so a query IFC-LPG adds appears when
+  the server is updated. `name: null` lists them, with the model's
+  `model_state` and `workcopy`. A query answers `name`, `columns`, at most 500
+  `rows`, `count` (the rows it found, at most 10,000) and `truncated`; a text in
+  a row is cut at 1,000 characters.
+- `get_publication` (scope `mcp`): whether a version is published, and if it is
+  `published_at`, `published_by`, `file_name`, `size_in_bytes` and `sha256`,
+  each `null` while it is not; never where the archive is downloaded.
+- `start_clash_check` (scope `mcp`): a [clash check](ifc-lpg.md#clash-check) of
+  two versions of a project: `project_id`, `a` and `b` with `document_id`,
+  `version_index` and `types` (IFC classes, `null` for every element with a
+  body), `mode` (`intersection` or `clearance`), and `tolerance` and `clearance`
+  in metres (`null` for 0.001 and 0.05). It answers `clash_id` and `state`, and
+  the audit log records `mcp.clash.started`.
+- `get_clash_check` (scope `mcp`): the report of a check, by `project_id` and
+  `clash_id`, waiting at most `wait_seconds` (20 at the most) for one that is
+  queued or running: its `state`, the request, `count`, `set_a`, `set_b`,
+  `missing`, `seconds` and at most 200 `clashes`, with `truncated` when there
+  were more. Both clash tools refuse unless `OPENCDE_IFC_LPG_CLASH_ENABLED=true`.
+
+```json
+{"name": "elements", "columns": ["global_id", "class", "name", "container"],
+ "rows": [["1Xezbq735AdBO_4DerG66G", "IfcWallStandardCase", "YVT-A", "1. etasje"]],
+ "count": 1, "truncated": false}
+```
+
 ## The AI policy
 
 A project's `ai_policy` is `local`, the default, or `cloud`, set by its manager
 or an administrator. The local engine serves every project, since the computer
 is the boundary. Any other server lists `local` projects not at all, and asked
-for one by its id the tool refuses and the audit log records `mcp.denied`. The
-server keeps where the data goes; which model reads it is the client's choice,
-and another program on the same computer can still send the answers to a model
-in the cloud.
+for one, by its id or by one of its documents, a tool refuses and the audit log
+records `mcp.denied`. The server keeps where the data goes; which model reads it
+is the client's choice, and another program on the same computer can still send
+the answers to a model in the cloud.
 
 ## Limits and logs
 
-- A body is at most 1 MB, and an answer at most 256 kB; names and titles are cut
-  at 200 characters.
+- A body is at most 1 MB, and an answer at most 256 kB, with at most 500 rows of
+  a query and 200 clashes; names and titles are cut at 200 characters, and a
+  text in a query's rows at 1,000. `get_clash_check` waits at most 20 seconds.
 - A token makes at most 120 tool calls a minute, beside the limit per address
   that all programs share (`OPENCDE_RATE_LIMIT_API`); past it the tool answers
   `isError` with the seconds to wait.
 - The request log keeps the method and the tool's name, never the body. The
-  audit log keeps `mcp.denied` with the reason (`policy` or `scope`), the tool
-  and the client, never an argument or a text from the projects.
+  audit log keeps `mcp.denied` with the reason (`policy` or `scope`) and
+  `mcp.clash.started` with the project, the check and its two versions, each
+  with the tool and the client, never an argument or a text from the projects.
 
 ## Data, never instructions
 

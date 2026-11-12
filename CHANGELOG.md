@@ -20,6 +20,15 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- The MCP endpoint has four more tools (ADR 0028), each for every member of a project the server may give to AI
+  tools, with the same refusals as the REST routes. `server_query` asks the named queries of a version's model, by
+  `document_id` and `version_index` (null for the latest), with `name` an enumeration of the catalogue and a field
+  for each of its parameters, both built when the server starts, so a query IFC-LPG adds appears without code here;
+  `name` null lists the queries with `model_state` and `workcopy`, and a query answers at most 500 rows with `count`
+  and `truncated`. `get_publication` says whether a version is published, when, by whom and the archive's name,
+  size and SHA-256, never where it is downloaded. `start_clash_check` starts a clash check of two versions of a
+  project, recorded in the audit log as `mcp.clash.started`, and `get_clash_check` waits at most 20 seconds for its
+  report, with at most 200 clashes; both refuse while the clash check is off (`docs/en/mcp.md`).
 - The MCP endpoint answers at `POST /mcp` while `OPENCDE_MCP_ENABLED` is true, which `opencde init --local` now
   sets (ADR 0028): Streamable HTTP with JSON answers only, revision 2026-07-28 with `server/discover`, `tools/list`
   and `tools/call`, its `_meta` and the headers `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` checked against
