@@ -23,7 +23,7 @@ from opencde.ids import is_uuid, normalize_guid
 from opencde.mcp.change_sets import MODULE_OFF, NO_DOCUMENT
 from opencde.mcp.registry import MAX_ANSWER_BYTES, Arguments, Tool, ToolContext, ToolRefusal, member_project, text
 from opencde.odata import Compiled
-from opencde.store.documents.versions import DocumentRepository
+from opencde.store.documents.postgres import document_store
 from opencde.store.jobs.conversions import STATE_QUEUED, STATE_RUNNING
 from opencde.store.jobs.proposals import DEFAULT_ORDER, ProposalRepository
 
@@ -115,7 +115,7 @@ async def list_proposals(context: ToolContext, arguments: ListProposalsArguments
     user_id = context.principal.user_id
     document_id = normalize_guid(arguments.document_id) if is_uuid(arguments.document_id) else None
     latest = (
-        await DocumentRepository(context.graph).latest(user_id=user_id, document_id=document_id)
+        await document_store(context.graph, context.postgres).latest(user_id=user_id, document_id=document_id)
         if document_id
         else None
     )

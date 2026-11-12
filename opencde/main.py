@@ -142,7 +142,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
 
         async def each_round() -> None:
             if app.state.postgres is not None:
-                await delete_expired_rows(app.state.postgres)
+                await delete_expired_rows(app.state.postgres, storage=app.state.storage)
             if app.state.ifcgraph is not None:
                 await app.state.ifcgraph.resume_interrupted()
 

@@ -18,7 +18,7 @@ from fastapi import Depends, HTTPException
 from ifc_db.validation import unpack_report
 
 from opencde import audit
-from opencde.deps import GraphDep
+from opencde.deps import GraphDep, PostgresDep
 from opencde.documents.links import version_links
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion, FileDescription
 from opencde.documents.validation import Validation, with_graph_findings
@@ -462,8 +462,10 @@ def publication_metadata(publication: dict[str, Any], url: str) -> list[Document
     ]
 
 
-def document_repository(graph: GraphDep) -> DocumentStore:
-    return DocumentRepository(graph)
+def document_repository(graph: GraphDep, postgres: PostgresDep) -> DocumentStore:
+    from opencde.store.documents.postgres import document_store  # it imports this module
+
+    return document_store(graph, postgres)
 
 
 DocumentsDep = Annotated[DocumentStore, Depends(document_repository)]

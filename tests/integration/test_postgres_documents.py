@@ -1,11 +1,12 @@
 # This file was generated with the assistance of an AI coding tool.
 """The Documents area in PostgreSQL (ADR 0029) against a real database: the same cases on the graph's repositories
-and on PostgreSQL's, and what PostgreSQL adds of its own: versions and publications made at once, the seams the
-other areas read, and the cleaner deleting expired sessions with their parts' files.
+and on PostgreSQL's, what PostgreSQL adds of its own (versions and publications made at once, the seams the other
+areas read, the cleaner deleting expired sessions with their parts' files), and the browser's pages reading a
+document and a selection from PostgreSQL.
 
 PostgreSQL runs in a container of its own (``postgres_target`` and ``pg`` in the conftest), one per test session;
-every test starts from empty tables with the migrations applied. Each case runs once on the graph and once on PostgreSQL, which needs no graph:
-``-k on_postgresql`` starts PostgreSQL alone."""
+every test starts from empty tables with the migrations applied. Each case runs once on the graph and once on
+PostgreSQL, which needs no graph: ``-k on_postgresql`` starts PostgreSQL alone."""
 
 from __future__ import annotations
 
@@ -17,14 +18,19 @@ from typing import Any
 
 import pytest
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 from ifc_db.validation import pack_report
+from neo4j import GraphDatabase
+from pydantic import SecretStr
 
 from opencde.accounts.roles import Role
 from opencde.documents.schemas import DocumentMetadataEntry
 from opencde.graph.graph import Graph
 from opencde.ids import new_id
+from opencde.main import create_app
 from opencde.postgres.cleanup import delete_expired
 from opencde.postgres.database import Postgres
+from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
 from opencde.store.accounts.postgres import PostgresProjectRepository, PostgresTeamRepository, PostgresUserRepository
 from opencde.store.accounts.projects import ProjectRepository
@@ -45,6 +51,8 @@ from opencde.store.protocols import (
     UploadSessionStore,
     UserStore,
 )
+from tests.integration.conftest import GraphTarget, PostgresTarget, emptied_postgres
+from tests.integration.test_web_signin import form_token
 
 pytestmark = pytest.mark.integration
 
@@ -415,3 +423,58 @@ async def test_on_postgresql_expired_sessions_go_with_their_parts_files(pg: Post
     assert await pg.one("SELECT count(*) AS n FROM upload_parts") == {"n": 1}
     assert await lasting.by_token(kept_token) is not None
     assert await pg.one("SELECT count(*) AS n FROM selection_sessions") == {"n": 0}
+
+
+def test_the_browser_reads_a_document_and_a_selection_from_postgresql(
+    settings: Settings, clean_database: None, graph_target: GraphTarget, postgres_target: PostgresTarget
+) -> None:
+    """The routes choose PostgreSQL's repositories when ``OPENCDE_STORE_URL`` names it: the details page, its
+    download and the selection page read the version and the session there, and the graph holds no document."""
+    content = b"ISO-10303-21;"
+
+    async def seed() -> tuple[str, str]:
+        postgres = await emptied_postgres(postgres_target)
+        try:
+            area = _on_postgresql(postgres)
+            editor = await area.users.create("editor", PASSWORD)
+            project = await area.projects.create("Building permit")
+            await area.projects.set_member(project.project_id, editor.id, Role.EDITOR)
+            fields = _version(title="Floor plan", size_in_bytes=len(content))
+            LocalStorage(settings.data_dir).write_bytes(fields["storage_key"], content)
+            made = await area.documents.create_version(project_id=project.project_id, document_id=None, **fields)
+            _, token = await area.selections.create(
+                user_id=editor.id,
+                callback_url="http://localhost:9/callback",
+                callback_expires_in=300,
+                server_context=None,
+                extensions=[],
+            )
+            return made.document_id, token
+        finally:
+            await postgres.close()
+
+    document_id, token = asyncio.run(seed())
+    apart = settings.model_copy(
+        update={"store_url": postgres_target.url, "store_password": SecretStr(postgres_target.password)}
+    )
+    with TestClient(create_app(apart, startup_wait_seconds=30)) as client:
+        page = client.get("/signin")
+        signed_in = client.post(
+            "/signin",
+            data={"form_token": form_token(page.text), "username": "editor", "password": PASSWORD},
+            follow_redirects=False,
+        )
+        assert signed_in.status_code == 302, signed_in.text
+        details = client.get(f"/documents/1.0/documents/{document_id}/versions/1/details")
+        assert details.status_code == 200 and "Floor plan" in details.text
+        download = client.get(f"/documents/1.0/documents/{document_id}/versions/1/details/download")
+        assert download.status_code == 200 and download.content == content
+        assert client.get(f"/documents/1.0/documents/{document_id}/versions/2/details").status_code == 404
+        selection = client.get(f"/documents/1.0/select-ui/{token}")
+        assert selection.status_code == 200 and "Floor plan" in selection.text
+    with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
+        records, _, _ = driver.execute_query(
+            "MATCH (n) WHERE n:Document OR n:DocumentVersion OR n:SelectionSession RETURN count(n) AS n",
+            database_=settings.database_name,
+        )
+    assert records[0]["n"] == 0, "the graph holds no document"

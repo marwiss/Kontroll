@@ -44,8 +44,17 @@ from opencde.store.documents.postgres import (
     PostgresDocumentRepository,
     PostgresSelectionSessionRepository,
     PostgresUploadSessionRepository,
+    document_store,
+    selection_session_store,
+    upload_session_store,
 )
-from opencde.store.documents.versions import default_metadata
+from opencde.store.documents.sessions import (
+    SelectionSessionRepository,
+    UploadSessionRepository,
+    selection_sessions,
+    upload_sessions,
+)
+from opencde.store.documents.versions import DocumentRepository, default_metadata, document_repository
 from opencde.store.oauth2 import postgres as oauth2
 from opencde.store.oauth2.clients import ClientError, ClientRepository
 from opencde.store.oauth2.postgres import PostgresClientRepository, PostgresTokenRepository, client_store, token_store
@@ -963,3 +972,20 @@ async def test_expired_upload_parts_go_with_their_files_before_their_sessions() 
     assert storage.deleted == ["parts/a"], "a key the storage refuses is no file of its own"
     order = [query for query, _ in fake.statements]
     assert order.index(cleanup.EXPIRED_UPLOAD_PARTS) < order.index(cleanup.EXPIRED_UPLOAD_SESSIONS)
+
+
+def test_the_graph_holds_the_documents_unless_postgresql_is_named(tmp_path: Path) -> None:
+    graph, settings = object(), make_settings(tmp_path)
+    assert isinstance(document_store(graph, None), DocumentRepository)  # ty: ignore[invalid-argument-type]
+    assert isinstance(upload_session_store(graph, None, settings), UploadSessionRepository)  # ty: ignore[invalid-argument-type]
+    assert isinstance(selection_session_store(graph, None, settings), SelectionSessionRepository)  # ty: ignore[invalid-argument-type]
+    assert isinstance(document_repository(graph, None), DocumentRepository)  # ty: ignore[invalid-argument-type]
+    postgres = Postgres(URL, "", connect_timeout_seconds=1.0)
+    chosen = document_repository(graph, postgres)  # ty: ignore[invalid-argument-type]
+    assert isinstance(chosen, PostgresDocumentRepository) and chosen.audit_graph is graph, "the audit log stays"
+    uploads = upload_sessions(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
+    assert isinstance(uploads, PostgresUploadSessionRepository)
+    assert uploads.upload_ttl_seconds == settings.upload_session_ttl_seconds
+    selections = selection_sessions(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
+    assert isinstance(selections, PostgresSelectionSessionRepository)
+    assert selections.ui_ttl_seconds == settings.documents_session_ttl_seconds

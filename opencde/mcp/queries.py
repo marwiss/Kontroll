@@ -36,7 +36,8 @@ from opencde.mcp.registry import (
     member_version,
     refusing,
 )
-from opencde.store.documents.versions import DocumentRepository
+from opencde.store.documents.postgres import document_store
+from opencde.store.protocols import DocumentStore
 
 #: The rows an answer holds, as Dataspatium's tool gives them (its ``MAX_LIMIT``); the query itself holds the server's.
 MAX_ANSWER_ROWS = 500
@@ -161,7 +162,7 @@ def server_query_tool() -> Tool:
         values = given.model_dump()
         asked = {name: values[name] for name in parameters if values[name] is not None}
         record = await member_version(context, values["document_id"], values["version_index"])
-        documents = DocumentRepository(context.graph)
+        documents = document_store(context.graph, context.postgres)
         where = {
             "user_id": context.principal.user_id,
             "document_id": record.document_id,
@@ -202,7 +203,7 @@ def server_query_tool() -> Tool:
 
 
 async def _changes(
-    documents: DocumentRepository, context: ToolContext, where: dict[str, Any], asked: dict[str, Any]
+    documents: DocumentStore, context: ToolContext, where: dict[str, Any], asked: dict[str, Any]
 ) -> dict[str, Any]:
     """``changed-since`` with its parameters checked as the library checks a query's: ``since`` and nothing else."""
     other = sorted(set(asked) - {"since"})

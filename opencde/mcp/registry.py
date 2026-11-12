@@ -32,7 +32,8 @@ from opencde.mcp.protocol import CLIENT_INFO_KEY
 from opencde.settings import Settings
 from opencde.store.accounts.postgres import project_store
 from opencde.store.accounts.projects import Project
-from opencde.store.documents.versions import DocumentRepository, VersionRecord
+from opencde.store.documents.postgres import document_store
+from opencde.store.documents.versions import VersionRecord
 from opencde.store.oauth2.tokens import Principal
 
 if TYPE_CHECKING:
@@ -258,7 +259,7 @@ async def member_version(context: ToolContext, document_id: str, version_index: 
     did = normalize_guid(document_id) if is_uuid(document_id) else None
     record = None
     if did is not None:
-        documents, user_id = DocumentRepository(context.graph), context.principal.user_id
+        documents, user_id = document_store(context.graph, context.postgres), context.principal.user_id
         record = await (
             documents.latest(user_id=user_id, document_id=did)
             if version_index is None

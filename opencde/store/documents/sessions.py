@@ -17,7 +17,7 @@ from typing import Annotated, Any
 
 from fastapi import Depends
 
-from opencde.deps import GraphDep, SettingsDep
+from opencde.deps import GraphDep, PostgresDep, SettingsDep
 from opencde.graph.graph import Graph
 from opencde.ids import hash_secret, new_id, new_secret
 from opencde.store.protocols import SelectionSessionStore, UploadSessionStore
@@ -320,16 +320,16 @@ class SelectionSessionRepository:
         )
 
 
-def upload_sessions(graph: GraphDep, settings: SettingsDep) -> UploadSessionStore:
-    return UploadSessionRepository(
-        graph,
-        ui_ttl_seconds=settings.documents_session_ttl_seconds,
-        upload_ttl_seconds=settings.upload_session_ttl_seconds,
-    )
+def upload_sessions(graph: GraphDep, postgres: PostgresDep, settings: SettingsDep) -> UploadSessionStore:
+    from opencde.store.documents.postgres import upload_session_store  # it imports this module
+
+    return upload_session_store(graph, postgres, settings)
 
 
-def selection_sessions(graph: GraphDep, settings: SettingsDep) -> SelectionSessionStore:
-    return SelectionSessionRepository(graph, ui_ttl_seconds=settings.documents_session_ttl_seconds)
+def selection_sessions(graph: GraphDep, postgres: PostgresDep, settings: SettingsDep) -> SelectionSessionStore:
+    from opencde.store.documents.postgres import selection_session_store  # it imports this module
+
+    return selection_session_store(graph, postgres, settings)
 
 
 UploadSessionsDep = Annotated[UploadSessionStore, Depends(upload_sessions)]

@@ -14,7 +14,7 @@ from pydantic import Field
 
 from opencde.documents.routes_publication import publication_fields
 from opencde.mcp.registry import Arguments, Tool, ToolContext, member_version, text
-from opencde.store.documents.versions import DocumentRepository
+from opencde.store.documents.postgres import document_store
 
 _NOT_PUBLISHED = dict.fromkeys(("published_at", "published_by", "file_name", "size_in_bytes", "sha256"))
 
@@ -26,7 +26,7 @@ class GetPublicationArguments(Arguments):
 
 async def get_publication(context: ToolContext, arguments: GetPublicationArguments) -> dict[str, Any]:
     record = await member_version(context, arguments.document_id, arguments.version_index)
-    found = await DocumentRepository(context.graph).publication(
+    found = await document_store(context.graph, context.postgres).publication(
         user_id=context.principal.user_id, document_id=record.document_id, version_index=record.version_index
     )
     if found is None:

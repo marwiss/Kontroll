@@ -41,7 +41,7 @@ from opencde.mcp.registry import Arguments, Tool, ToolContext, ToolRefusal, memb
 from opencde.store.accounts.postgres import project_store
 from opencde.store.bcf.topic_links import TopicLinkRepository
 from opencde.store.bcf.topics import TopicRepository
-from opencde.store.documents.versions import DocumentRepository
+from opencde.store.documents.postgres import document_store
 from opencde.store.jobs.drafts import MAX_OPEN, MAX_STEPS, ChangeSetDraft, ChangeSetDraftRepository, DraftRefused
 from opencde.timeutil import now_iso
 
@@ -140,7 +140,7 @@ class OpenChangesetArguments(Arguments):
 
 async def open_changeset(context: ToolContext, arguments: OpenChangesetArguments) -> dict[str, Any]:
     user_id = context.principal.user_id
-    documents = DocumentRepository(context.graph)
+    documents = document_store(context.graph, context.postgres)
     document_id = normalize_guid(arguments.document_id) if is_uuid(arguments.document_id) else None
     latest = await documents.latest(user_id=user_id, document_id=document_id) if document_id else None
     if latest is None or document_id is None:
