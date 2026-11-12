@@ -129,6 +129,74 @@ verktygsresultat med `isError: true` som AI:n kan läsa; svaret är
  "count": 1, "truncated": false}
 ```
 
+## Ändringsseten
+
+Medan IFC-LPG-modulen är på (`OPENCDE_IFC_LPG_ENABLED`), som prövar
+ändringsseten, har listan också verktygen som föreslår ändringar i en modell, i
+Dataspatiums ordning. De kräver scopet `mcp:propose`, rollen `editor` eller
+`manager` i projektet, prövad vid varje anrop som REST-API:t prövar den, och
+projektets AI-policy; en roll som vägras blir `mcp.denied` med skälet `role`.
+Inget verktyg godkänner: en person gör det, i Dataspatium.
+
+- `open_changeset` (`document_id`, `version_index`, `null` för den senaste):
+  öppnar ett ändringsset på en version av ett IFC-dokument och svarar med dess
+  `changeset_id`, dess `base`, `expires_at` och `max_steps` (200).
+- Skrivverktygen `create_storeys_and_grid`, `create_wall`, `create_slab`,
+  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
+  `set_classification`, `assign`, `transform_elements`, `delete_elements` (med
+  `confirm: true`) och `set_site`: Dataspatiums egna, med dess scheman oförändrade
+  och `changeset_id` först. Ett anrop är en operation i ändringssetets `ops` i
+  formen `dataspatium-tools/1`, precis som appen gör den (standardvärdena
+  ifyllda, talen prövade, texterna kapade vid 200 tecken), eller appens fel, som
+  AI:n rättar. En vägg, ett bjälklag, ett tak eller en öppning får en ref,
+  `new-1`, `new-2` …, liksom varje rum som `create_spaces` räknar upp; ett element
+  nämns med sitt GlobalId, sitt STEP-id eller en ref.
+- `manage_changeset` (`action`: `list`, `remove_last` eller `clear`): stegen med
+  sina verktyg, refs och beskrivningar; det sista steget borttaget, med sina
+  refs; eller inga kvar.
+- `change_attribute` (`guid` eller `step_id`, `path`, `attribute`, `op` `set`,
+  `add` eller `remove`, `index`, `old`, `new`, `copy`): ett attribut på en instans
+  i basen, en post i ändringssetets `changes` i schemats form; `old` prövas när
+  ändringssetet prövas.
+- `propose_changes` (`title`; `description`, `null` för stegens egna rader;
+  `ai_model`, det AI:n uppger att den är): ett BCF-ärende i projektet med
+  ändringssetet som snippet, vars prövning servern köar. Dess proveniens nämner
+  användaren, den uppgivna `ai_model` och `tool_call` `mcp:` med stegens verktyg.
+  Anropat igen med samma handtag lägger det ändringssetet som det är då på samma
+  ärende och prövar det igen. Svarar med `project_id`, `topic_guid`, `state`
+  (`queued`) och hur många `ops` och `changes` ändringssetet har.
+- `get_proposal` (`project_id`, `topic_guid`, `wait_seconds` upp till 20; scopet
+  `mcp`): prövningen som `GET …/ifc-proposal` ger den, med väntan medan den är
+  `queued` eller `running`, med högst 50 fynd, `created` (GlobalId för det
+  operationerna skapade, efter dess ref) och `notes`.
+- `list_proposals` (`document_id`, `limit` upp till 50; scopet `mcp`): förslagen
+  mot ett dokument, nyaste först, som `GET …/ifc-proposals` listar dem, med
+  `project_id` och utan adresserna.
+
+Flödet:
+
+1. `list_models` ger dokumentet och dess senaste version.
+2. `open_changeset` ger handtaget, och skrivverktygen och `change_attribute`
+   fyller ändringssetet steg för steg; ett steg som blev fel rättas med
+   `manage_changeset` `remove_last` och ett nytt steg.
+3. `propose_changes` gör förslaget, och `get_proposal` svarar `clean`, `issues`
+   med fynden eller `failed`. Vid fynd rättar AI:n ändringssetet och föreslår det
+   igen.
+4. Vid `clean` säger AI:n till personen, som godkänner det i Dataspatium: en
+   manager i projektet, eller den ansvarige för det enda team vars del det rör.
+
+```json
+{"ok": true, "step": 1, "ref": "new-1",
+ "description": "new-1 Wall New wall on the lowest storey from (0, 0) to (4, 0), 0.2 m thick, 3 m high"}
+```
+
+Det öppna ändringssetet är ett utkast på servern, användarens eget. Dess handtag
+är ett namn, inte en behörighet: varje anrop prövar att utkastet är den
+anropandes och ligger i ett av den anropandes projekt. Det stängs 24 timmar
+efter senaste användningen, och servern raderar det; ett okänt eller stängt
+handtag är ett verktygsfel som ber om ett nytt. En användare har högst 10
+öppna, och ett ändringsset högst 200 steg.
+
 ## AI-policyn
 
 Ett projekts `ai_policy` är `local`, standardvärdet, eller `cloud`, och sätts av
@@ -149,9 +217,13 @@ molnet.
   alla program delar (`OPENCDE_RATE_LIMIT_API`); därutöver svarar verktyget
   `isError` med hur många sekunder som återstår att vänta.
 - Begärandeloggen behåller metoden och verktygets namn, aldrig kroppen.
-  Granskningsloggen behåller `mcp.denied` med skälet (`policy` eller `scope`)
+  Granskningsloggen behåller `mcp.denied` med skälet (`policy`, `role`, `scope` eller `limit`)
   och `mcp.clash.started` med projektet, testet och dess två versioner, var och
   en med verktyget och klienten, aldrig ett argument eller en text ur projekten.
+- Granskningsloggen behåller också `mcp.changeset.opened` och
+  `mcp.changeset.proposed`, med projektet, dokumentet, basen, ändringssetet,
+  ärendet, antalet operationer och ändringar och den uppgivna AI-modellen, kapad
+  vid 100 tecken; aldrig en titel, en beskrivning eller ett steg.
 
 ## Data, aldrig instruktioner
 

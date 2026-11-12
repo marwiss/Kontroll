@@ -20,6 +20,20 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- The MCP endpoint proposes change sets while the IFC-LPG module is on (ADR 0028, step 2): `open_changeset` opens a
+  draft on a version of an IFC document and answers its `changeset_id`; Dataspatium's write tools
+  (`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`,
+  `set_properties`, `set_classification`, `assign`, `transform_elements`, `delete_elements`, `set_site`), with the
+  app's schemas unchanged and `changeset_id` first, each add one operation to `ops` exactly as the app makes it, with
+  the refs `new-1` … and elements named by GlobalId, STEP id or ref; `manage_changeset` lists the steps and removes
+  the last or all; `change_attribute` adds a post in `changes`; `propose_changes` makes the BCF topic with the change
+  set as its snippet and queues its trial, and a later call with the same handle puts the change set on the same
+  topic again; `get_proposal` gives the trial, waiting up to 20 seconds, with at most 50 findings, and
+  `list_proposals` the proposals against a document. The change-set tools need `mcp:propose` and the role `editor`
+  or `manager` at every call (`mcp.denied` with the reason `role` otherwise); no tool approves. A draft is its user's,
+  closes 24 hours after its last use and is deleted by the server; a user has at most 10 open, a draft at most 200
+  steps. The audit log records `mcp.changeset.opened` and `mcp.changeset.proposed` with identifiers and counts
+  (`docs/en/mcp.md`).
 - The operations of a change set (`ops`) give the model Dataspatium 3.0.0 gives: every class and enumeration value
   they set is checked against the file's schema, and a value the release deprecates (bSI rule IFC102) is never
   written. A wall is `SOLIDWALL`, or `PARTITIONING` with `"partition": true`, never `STANDARD`; in IFC4X3 a storey

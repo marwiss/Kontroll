@@ -131,6 +131,78 @@ lesið; svarið er `structuredContent` og sama JSON sem texti.
  "count": 1, "truncated": false}
 ```
 
+## Breytingasettin
+
+Meðan kveikt er á IFC-LPG-einingunni (`OPENCDE_IFC_LPG_ENABLED`), sem prófar
+breytingasettin, eru á listanum líka verkfærin sem leggja til breytingar á
+líkani, í röð Dataspatium. Þau krefjast heimildarinnar `mcp:propose`,
+hlutverksins `editor` eða `manager` í verkefninu, sem er prófað við hvert kall
+eins og REST-forritaskilin prófa það, og gervigreindarstefnu verkefnisins;
+hlutverk sem er hafnað verður `mcp.denied` með ástæðunni `role`. Ekkert verkfæri
+samþykkir: það gerir manneskja, í Dataspatium.
+
+- `open_changeset` (`document_id`, `version_index`, `null` fyrir það nýjasta):
+  opnar breytingasett á útgáfu IFC-skjals og svarar með `changeset_id`, `base`,
+  `expires_at` og `max_steps` (200).
+- Skrifverkfærin `create_storeys_and_grid`, `create_wall`, `create_slab`,
+  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
+  `set_classification`, `assign`, `transform_elements`, `delete_elements` (með
+  `confirm: true`) og `set_site`: verkfæri Dataspatium sjálfs, með skemum þess
+  óbreyttum og `changeset_id` fremst. Kall er ein aðgerð í `ops` breytingasettsins
+  á forminu `dataspatium-tools/1`, nákvæmlega eins og forritið gerir hana
+  (sjálfgefin gildi fyllt út, tölur prófaðar, textar styttir við 200 stafi), eða
+  villa forritsins, sem gervigreindin lagfærir. Veggur, plata, þak eða op fær
+  ref, `new-1`, `new-2` …, og það fær líka hvert herbergi sem `create_spaces`
+  telur upp; eining er nefnd með GlobalId sínu, STEP-auðkenni sínu eða ref.
+- `manage_changeset` (`action`: `list`, `remove_last` eða `clear`): skrefin með
+  verkfærum sínum, refs og lýsingum; síðasta skrefið fjarlægt, með refs sínum;
+  eða ekkert eftir.
+- `change_attribute` (`guid` eða `step_id`, `path`, `attribute`, `op` `set`,
+  `add` eða `remove`, `index`, `old`, `new`, `copy`): einn eiginleiki eins
+  tilviks í grunninum, færsla í `changes` breytingasettsins á formi skemans;
+  `old` er prófað þegar breytingasettið er prófað.
+- `propose_changes` (`title`; `description`, `null` fyrir línur skrefanna sjálfra;
+  `ai_model`, það sem gervigreindin segist vera): BCF-mál í verkefninu með
+  breytingasettið sem snippet, og þjónninn setur prófun þess í biðröð. Uppruni
+  þess nefnir notandann, uppgefið `ai_model` og `tool_call` `mcp:` með verkfærum
+  skrefanna. Sé það kallað aftur með sama handfangi setur það breytingasettið
+  eins og það er þá á sama mál og prófar það aftur. Svarar með `project_id`,
+  `topic_guid`, `state` (`queued`) og hve mörg `ops` og `changes`
+  breytingasettið hefur.
+- `get_proposal` (`project_id`, `topic_guid`, `wait_seconds` allt að 20;
+  heimildin `mcp`): prófunin eins og `GET …/ifc-proposal` gefur hana, og beðið
+  meðan hún er `queued` eða `running`, með í mesta lagi 50 athugasemdum,
+  `created` (GlobalId þess sem aðgerðirnar bjuggu til, eftir ref þess) og
+  `notes`.
+- `list_proposals` (`document_id`, `limit` allt að 50; heimildin `mcp`):
+  tillögurnar gegn skjali, nýjustu fyrst, eins og `GET …/ifc-proposals` telur
+  þær upp, með `project_id` og án vistfanganna.
+
+Ferlið:
+
+1. `list_models` gefur skjalið og nýjustu útgáfu þess.
+2. `open_changeset` gefur handfangið, og skrifverkfærin og `change_attribute`
+   fylla breytingasettið skref fyrir skref; skref sem fór úrskeiðis er lagfært
+   með `manage_changeset` `remove_last` og nýju skrefi.
+3. `propose_changes` gerir tillöguna, og `get_proposal` svarar `clean`, `issues`
+   með athugasemdunum eða `failed`. Með athugasemdum lagfærir gervigreindin
+   breytingasettið og leggur það til aftur.
+4. Við `clean` segir gervigreindin manneskjunni frá, sem samþykkir það í
+   Dataspatium: manager verkefnisins eða sá ábyrgi fyrir eina teyminu sem hlutinn
+   sem það snertir tilheyrir.
+
+```json
+{"ok": true, "step": 1, "ref": "new-1",
+ "description": "new-1 Wall New wall on the lowest storey from (0, 0) to (4, 0), 0.2 m thick, 3 m high"}
+```
+
+Opna breytingasettið er drög á þjóninum, eign notandans. Handfang þess er nafn,
+ekki heimild: hvert kall prófar að drögin séu þess sem kallar og í einu af
+verkefnum þess sem kallar. Þeim er lokað 24 klukkustundum eftir síðustu notkun,
+og þjónninn eyðir þeim; óþekkt eða lokað handfang er verkfæravilla sem biður um
+nýtt. Notandi hefur í mesta lagi 10 opin, og breytingasett í mesta lagi 200
+skref.
+
 ## Gervigreindarstefnan
 
 `ai_policy` verkefnis er `local`, sjálfgefna gildið, eða `cloud`, og hana setur
@@ -151,10 +223,14 @@ sent svörin til líkans í skýinu.
   vistfang sem öll forrit deila (`OPENCDE_RATE_LIMIT_API`); umfram það svarar
   verkfærið `isError` með þeim sekúndum sem bíða þarf.
 - Beiðnaskráin geymir aðferðina og heiti verkfærisins, aldrei meginmálið.
-  Endurskoðunarskráin geymir `mcp.denied` með ástæðunni (`policy` eða `scope`)
+  Endurskoðunarskráin geymir `mcp.denied` með ástæðunni (`policy`, `role`, `scope` eða `limit`)
   og `mcp.clash.started` með verkefninu, prófuninni og tveimur útgáfum hennar,
   hvort tveggja með verkfærinu og biðlaranum, aldrei færibreytu eða texta úr
   verkefnunum.
+- Endurskoðunarskráin geymir líka `mcp.changeset.opened` og
+  `mcp.changeset.proposed` með verkefninu, skjalinu, grunninum,
+  breytingasettinu, málinu, fjölda aðgerða og breytinga og uppgefnu
+  gervigreindarlíkani, styttu við 100 stafi; aldrei titil, lýsingu eða skref.
 
 ## Gögn, aldrei fyrirmæli
 

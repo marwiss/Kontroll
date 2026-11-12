@@ -129,6 +129,73 @@ tool result with `isError: true` that the AI can read; the answer is
  "count": 1, "truncated": false}
 ```
 
+## The change sets
+
+While the IFC-LPG module is on (`OPENCDE_IFC_LPG_ENABLED`), which tries the
+change sets, the list also holds the tools that propose changes to a model, in
+Dataspatium's order. They need the scope `mcp:propose`, the role `editor` or
+`manager` in the project, checked at every call as the REST API checks it, and
+the project's AI policy; a refused role is `mcp.denied` with the reason `role`.
+No tool approves: a person does, in Dataspatium.
+
+- `open_changeset` (`document_id`, `version_index`, `null` for the latest):
+  opens a change set on a version of an IFC document and answers its
+  `changeset_id`, its `base`, `expires_at` and `max_steps` (200).
+- The write tools `create_storeys_and_grid`, `create_wall`, `create_slab`,
+  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
+  `set_classification`, `assign`, `transform_elements`, `delete_elements` (with
+  `confirm: true`) and `set_site`: Dataspatium's own, with its schemas unchanged
+  and `changeset_id` first. A call is one operation of the change set's `ops` in
+  the form `dataspatium-tools/1`, exactly as the app makes it (the defaults filled
+  in, the numbers checked, the texts cut at 200 characters), or the app's error,
+  which the AI mends. A wall, slab, roof or opening gets a ref, `new-1`,
+  `new-2` …, and so does each room that `create_spaces` lists; an element is named
+  by its GlobalId, its STEP id or a ref.
+- `manage_changeset` (`action`: `list`, `remove_last` or `clear`): the steps with
+  their tools, refs and descriptions; the last step removed, with its refs; or
+  none left.
+- `change_attribute` (`guid` or `step_id`, `path`, `attribute`, `op` `set`, `add`
+  or `remove`, `index`, `old`, `new`, `copy`): one attribute of one instance of the
+  base, a post in the change set's `changes` in the form of its schema; `old` is
+  checked when the change set is tried.
+- `propose_changes` (`title`; `description`, `null` for the steps' own lines;
+  `ai_model`, what the AI says it is): a BCF topic in the project with the change
+  set as its snippet, whose trial the server queues. Its provenance names the
+  user, the stated `ai_model` and `tool_call` `mcp:` with the steps' tools. Called
+  again with the same handle, it puts the change set as it is then on the same
+  topic and tries it again. Answers `project_id`, `topic_guid`, `state`
+  (`queued`) and how many `ops` and `changes` the change set holds.
+- `get_proposal` (`project_id`, `topic_guid`, `wait_seconds` up to 20; scope
+  `mcp`): the trial as `GET …/ifc-proposal` gives it, waiting while it is
+  `queued` or `running`, with at most 50 findings, `created` (the GlobalId of what
+  the operations made, by its ref) and `notes`.
+- `list_proposals` (`document_id`, `limit` up to 50; scope `mcp`): the proposals
+  against a document, newest first, as `GET …/ifc-proposals` lists them, with the
+  `project_id` and without the addresses.
+
+The flow:
+
+1. `list_models` gives the document and its latest version.
+2. `open_changeset` gives the handle, and the write tools and `change_attribute`
+   fill the change set step by step; a step that went wrong is mended with
+   `manage_changeset` `remove_last` and a new step.
+3. `propose_changes` makes the proposal, and `get_proposal` answers `clean`,
+   `issues` with the findings, or `failed`. With findings the AI mends the change
+   set and proposes it again.
+4. At `clean` the AI tells the person, who approves it in Dataspatium: a manager
+   of the project, or the responsible of the one team whose part it touches.
+
+```json
+{"ok": true, "step": 1, "ref": "new-1",
+ "description": "new-1 Wall New wall on the lowest storey from (0, 0) to (4, 0), 0.2 m thick, 3 m high"}
+```
+
+The open change set is a draft on the server, the user's own. Its handle is a
+name, not a permission: every call checks that the draft is the caller's and in
+one of the caller's projects. It closes 24 hours after its last use, and the
+server deletes it; an unknown or closed handle is a tool error that asks for a
+new one. A user has at most 10 open, and a change set at most 200 steps.
+
 ## The AI policy
 
 A project's `ai_policy` is `local`, the default, or `cloud`, set by its manager
@@ -148,9 +215,13 @@ the answers to a model in the cloud.
   that all programs share (`OPENCDE_RATE_LIMIT_API`); past it the tool answers
   `isError` with the seconds to wait.
 - The request log keeps the method and the tool's name, never the body. The
-  audit log keeps `mcp.denied` with the reason (`policy` or `scope`) and
+  audit log keeps `mcp.denied` with the reason (`policy`, `role`, `scope` or `limit`) and
   `mcp.clash.started` with the project, the check and its two versions, each
   with the tool and the client, never an argument or a text from the projects.
+- The audit log keeps `mcp.changeset.opened` and `mcp.changeset.proposed` too,
+  with the project, the document, the base, the change set, the topic, the
+  numbers of operations and changes and the stated AI model, cut at 100
+  characters; never a title, a description or a step.
 
 ## Data, never instructions
 

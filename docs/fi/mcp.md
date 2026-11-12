@@ -133,6 +133,77 @@ vastaus on `structuredContent` ja sama JSON tekstinä.
  "count": 1, "truncated": false}
 ```
 
+## Muutosjoukot
+
+Kun IFC-LPG-moduuli on käytössä (`OPENCDE_IFC_LPG_ENABLED`) ja kokeilee
+muutosjoukot, luettelossa ovat myös työkalut, jotka ehdottavat muutoksia
+malliin, Dataspatiumin järjestyksessä. Ne vaativat scopen `mcp:propose`, roolin
+`editor` tai `manager` projektissa, tarkistettuna jokaisessa kutsussa kuten
+REST-API tarkistaa sen, ja projektin tekoälykäytännön; hylätty rooli kirjataan
+`mcp.denied`-tapahtumaksi syynä `role`. Mikään työkalu ei hyväksy: sen tekee
+henkilö, Dataspatiumissa.
+
+- `open_changeset` (`document_id`, `version_index`, `null` uusimmalle): avaa
+  muutosjoukon IFC-dokumentin versioon ja vastaa sen `changeset_id`:llä,
+  `base`:lla, `expires_at`:lla ja `max_steps`:llä (200).
+- Kirjoitustyökalut `create_storeys_and_grid`, `create_wall`, `create_slab`,
+  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
+  `set_classification`, `assign`, `transform_elements`, `delete_elements`
+  (`confirm: true` -arvolla) ja `set_site`: Dataspatiumin omat, sen skeemat
+  muuttamattomina ja `changeset_id` ensimmäisenä. Kutsu on yksi operaatio
+  muutosjoukon `ops`-luettelossa muodossa `dataspatium-tools/1` täsmälleen
+  niin kuin sovellus sen tekee (oletusarvot täytettyinä, luvut tarkistettuina,
+  tekstit katkaistuina 200 merkkiin), tai sovelluksen virhe, jonka tekoäly
+  korjaa. Seinä, laatta, katto tai aukko saa refin, `new-1`, `new-2` …, samoin
+  jokainen huone, jonka `create_spaces` luettelee; elementti nimetään
+  GlobalId:llä, STEP-id:llä tai refillä.
+- `manage_changeset` (`action`: `list`, `remove_last` tai `clear`): vaiheet
+  työkaluineen, refeineen ja kuvauksineen; viimeinen vaihe poistettuna refeineen;
+  tai ei yhtään jäljellä.
+- `change_attribute` (`guid` tai `step_id`, `path`, `attribute`, `op` `set`,
+  `add` tai `remove`, `index`, `old`, `new`, `copy`): yksi perustan instanssin
+  attribuutti, muutosjoukon `changes`-luettelon kohta skeeman muodossa; `old`
+  tarkistetaan, kun muutosjoukkoa kokeillaan.
+- `propose_changes` (`title`; `description`, `null` vaiheiden omille riveille;
+  `ai_model`, mikä tekoäly ilmoittaa olevansa): BCF-asia projektissa, jonka
+  snippet on muutosjoukko ja jonka kokeilun palvelin asettaa jonoon. Sen alkuperä
+  nimeää käyttäjän, ilmoitetun `ai_model`:n ja `tool_call`:n `mcp:` vaiheiden
+  työkaluineen. Kun se kutsutaan uudelleen samalla kahvalla, se panee
+  muutosjoukon sellaisena kuin se silloin on samaan asiaan ja kokeilee sen
+  uudelleen. Vastaa `project_id`:llä, `topic_guid`:lla, `state`:lla (`queued`)
+  ja sillä, montako `ops`- ja `changes`-kohtaa muutosjoukossa on.
+- `get_proposal` (`project_id`, `topic_guid`, `wait_seconds` enintään 20; scope
+  `mcp`): kokeilu niin kuin `GET …/ifc-proposal` sen antaa, odottaen sen ollessa
+  `queued` tai `running`, enintään 50 huomautusta, `created` (operaatioiden
+  luomien GlobalId:t refin mukaan) ja `notes`.
+- `list_proposals` (`document_id`, `limit` enintään 50; scope `mcp`): dokumenttia
+  koskevat ehdotukset, uusin ensin, niin kuin `GET …/ifc-proposals` ne
+  luettelee, `project_id`:n kanssa ja ilman osoitteita.
+
+Kulku:
+
+1. `list_models` antaa dokumentin ja sen uusimman version.
+2. `open_changeset` antaa kahvan, ja kirjoitustyökalut ja `change_attribute`
+   täyttävät muutosjoukon vaihe vaiheelta; väärin mennyt vaihe korjataan
+   `manage_changeset`-työkalun `remove_last`-toiminnolla ja uudella vaiheella.
+3. `propose_changes` tekee ehdotuksen, ja `get_proposal` vastaa `clean`,
+   `issues` huomautuksineen tai `failed`. Huomautusten kanssa tekoäly korjaa
+   muutosjoukon ja ehdottaa sitä uudelleen.
+4. Tilassa `clean` tekoäly kertoo henkilölle, joka hyväksyy sen Dataspatiumissa:
+   projektin manager tai sen ainoan tiimin vastuuhenkilö, jonka osaa se koskee.
+
+```json
+{"ok": true, "step": 1, "ref": "new-1",
+ "description": "new-1 Wall New wall on the lowest storey from (0, 0) to (4, 0), 0.2 m thick, 3 m high"}
+```
+
+Avoin muutosjoukko on luonnos palvelimella, käyttäjän oma. Sen kahva on nimi,
+ei oikeus: jokainen kutsu tarkistaa, että luonnos on kutsujan ja jossakin
+kutsujan projekteista. Se sulkeutuu 24 tuntia viimeisen käytön jälkeen, ja
+palvelin poistaa sen; tuntematon tai suljettu kahva on työkaluvirhe, joka pyytää
+uutta. Käyttäjällä on enintään 10 avointa, ja muutosjoukossa enintään 200
+vaihetta.
+
 ## Tekoälykäytäntö
 
 Projektin `ai_policy` on `local`, oletusarvo, tai `cloud`, ja sen asettaa
@@ -154,10 +225,15 @@ silti lähettää vastaukset pilvessä olevalle mallille.
   lisäksi, jonka kaikki ohjelmat jakavat (`OPENCDE_RATE_LIMIT_API`); sen jälkeen
   työkalu vastaa `isError` ja kertoo, montako sekuntia on odotettava.
 - Pyyntöloki säilyttää metodin ja työkalun nimen, ei koskaan runkoa.
-  Tarkastusloki säilyttää `mcp.denied`-tapahtuman syineen (`policy` tai
-  `scope`) ja `mcp.clash.started`-tapahtuman projekteineen, tarkastuksineen ja
+  Tarkastusloki säilyttää `mcp.denied`-tapahtuman syineen (`policy`, `role`,
+  `scope` tai `limit`) ja `mcp.clash.started`-tapahtuman projekteineen, tarkastuksineen ja
   sen kahdella versiolla, kumpikin työkalun ja asiakkaan kanssa, ei koskaan
   argumenttia eikä projektien tekstiä.
+- Tarkastusloki säilyttää myös `mcp.changeset.opened`- ja
+  `mcp.changeset.proposed`-tapahtumat projektin, dokumentin, perustan,
+  muutosjoukon, asian, operaatioiden ja muutosten määrän sekä ilmoitetun
+  tekoälymallin kanssa, katkaistuna 100 merkkiin; ei koskaan otsikkoa, kuvausta
+  eikä vaihetta.
 
 ## Dataa, ei koskaan ohjeita
 
