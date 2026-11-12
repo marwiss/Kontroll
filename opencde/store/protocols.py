@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     )
     from opencde.documents.schemas import DocumentMetadataEntry
     from opencde.documents.validation import Validation
-    from opencde.graph.graph import Tx
     from opencde.odata import Compiled
     from opencde.storage import LocalStorage
     from opencde.store.accounts.projects import Project
@@ -218,7 +217,8 @@ class TopicStore(Protocol):
     async def exists(self, guid: str) -> bool: ...
     async def create(self, *, project_id: str, author: str, body: TopicPOST) -> TopicGET: ...
     async def update(self, *, project_id: str, guid: str, author: str, body: TopicPUT) -> TopicGET | None: ...
-    async def touch(self, tx: Tx, *, guid: str, author: str, now: str | None = None) -> None: ...
+    # The transaction is the store's own: the graph's ``Tx`` or PostgreSQL's.
+    async def touch(self, tx: Any, *, guid: str, author: str, now: str | None = None) -> None: ...
     async def delete(self, *, project_id: str, guid: str) -> list[str]: ...
 
 
@@ -288,6 +288,33 @@ class TopicLinkStore(Protocol):
     async def set_snippet(
         self, *, project_id: str, topic_guid: str, author: str, storage_key: str, filename: str | None, size: int
     ) -> None: ...
+
+
+class BcfEventStore(Protocol):
+    """What ``BcfEventRepository`` answers for; its own docstring says how."""
+
+    async def count(
+        self,
+        *,
+        user_id: str,
+        project_id: str,
+        kind: str,
+        compiled: Compiled,
+        topic_guid: str | None = None,
+        comment_guid: str | None = None,
+        left_out: frozenset[str] = frozenset(),
+    ) -> int: ...
+    async def query(
+        self,
+        *,
+        user_id: str,
+        project_id: str,
+        kind: str,
+        compiled: Compiled,
+        topic_guid: str | None = None,
+        comment_guid: str | None = None,
+        left_out: frozenset[str] = frozenset(),
+    ) -> list[dict[str, Any]]: ...
 
 
 class BcfDocumentStore(Protocol):

@@ -19,11 +19,14 @@ from ifc_db.validation import pack_report
 from opencde.accounts.roles import Role
 from opencde.auth import pkce
 from opencde.auth.dependencies import get_tokens
+from opencde.bcf.schemas import CommentPOST, TopicPOST
 from opencde.deps import get_clients, get_projects, get_users
 from opencde.ids import hash_secret
 from opencde.main import create_app
+from opencde.odata import compile_odata
 from opencde.postgres import cleanup, database, schema
 from opencde.postgres.database import Postgres, _count
+from opencde.storage import LocalStorage
 from opencde.store.accounts import postgres as accounts
 from opencde.store.accounts.postgres import (
     PostgresProjectRepository,
@@ -39,6 +42,21 @@ from opencde.store.accounts.projects import ProjectRepository
 from opencde.store.accounts.sessions import WebSessionRepository
 from opencde.store.accounts.teams import TeamRepository
 from opencde.store.accounts.users import AccountError, UserRepository
+from opencde.store.bcf import postgres as bcf
+from opencde.store.bcf.comments import CommentRepository
+from opencde.store.bcf.documents import BcfDocumentRepository
+from opencde.store.bcf.events import BcfEventRepository
+from opencde.store.bcf.postgres import (
+    PostgresBcfDocumentRepository,
+    PostgresBcfEventRepository,
+    PostgresCommentRepository,
+    PostgresTopicLinkRepository,
+    PostgresTopicRepository,
+    PostgresViewpointRepository,
+)
+from opencde.store.bcf.topic_links import TopicLinkRepository
+from opencde.store.bcf.topics import TOPIC_DEFAULT_ORDER, TOPIC_FIELDS, TOPIC_ORDERABLE, TopicRepository
+from opencde.store.bcf.viewpoints import ViewpointRepository
 from opencde.store.documents import postgres as documents
 from opencde.store.documents.postgres import (
     PostgresDocumentRepository,
@@ -74,6 +92,7 @@ PASSED_ON = {"database.py": {"query", "text"}, "cleanup.py": {"statement"}}
 URL = "postgresql://cde@127.0.0.1:9/cde"  # the discard port: refused at once
 WEAK = "x' OR '1'='1"
 LONG_ENOUGH = "a-long-and-strong-passphrase"
+GUID = "00000000-0000-4000-8000-000000000001"
 
 
 def _statements(tree: ast.Module) -> dict[str, str]:
@@ -94,6 +113,10 @@ def _literal(node: ast.expr, constants: dict[str, str], passed_on: set[str]) -> 
         return node.id in constants or node.id in passed_on
     if isinstance(node, ast.IfExp):
         return _literal(node.body, constants, passed_on) and _literal(node.orelse, constants, passed_on)
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "sql":
+        # A list's statement with the OData compiler's filter and order in it (``Compiled.sql``), made of its
+        # whitelist alone; the statement itself is a literal still.
+        return len(node.args) == 1 and not node.keywords and _literal(node.args[0], constants, passed_on)
     return False
 
 
@@ -164,7 +187,7 @@ def test_a_token_answers_for_its_user_and_client_and_a_secret_stays_inside() -> 
 
 def test_the_migrations_are_numbered_from_one_without_gaps(tmp_path: Path) -> None:
     shipped = [(m.version, m.name) for m in schema.migrations()]
-    assert shipped == [(1, "0001_accounts"), (2, "0002_oauth2"), (3, "0003_documents")]
+    assert shipped == [(1, "0001_accounts"), (2, "0002_oauth2"), (3, "0003_documents"), (4, "0004_bcf")]
     for names, words in ((["0001_a.sql", "0003_c.sql"], "without gaps"), (["1_a.sql"], "NNNN_name.sql")):
         folder = tmp_path / names[0]
         folder.mkdir()
@@ -989,3 +1012,165 @@ def test_the_graph_holds_the_documents_unless_postgresql_is_named(tmp_path: Path
     selections = selection_sessions(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
     assert isinstance(selections, PostgresSelectionSessionRepository)
     assert selections.ui_ttl_seconds == settings.documents_session_ttl_seconds
+
+
+# -- the BCF area --------------------------------------------------------------------------------------------------
+
+BCF_READS = (
+    bcf.TOPICS,
+    bcf.TOPICS_COUNT,
+    bcf.TOPIC,
+    bcf.COMMENTS,
+    bcf.COMMENTS_COUNT,
+    bcf.COMMENT,
+    bcf.VIEWPOINTS,
+    bcf.VIEWPOINT,
+    bcf.VIEWPOINT_NODE,
+    bcf.BITMAP,
+    bcf.COMPONENTS,
+    bcf.RELATED,
+    bcf.REFERENCES,
+    bcf.HEADER_FILES,
+    bcf.SNIPPET,
+    bcf.BCF_DOCUMENTS,
+    bcf.BCF_DOCUMENT,
+    bcf.LATEST_VERSIONS,
+    bcf.EVENTS,
+    bcf.EVENTS_COUNT,
+)
+
+
+def test_the_bcf_migration_owns_by_foreign_keys_and_adds_its_files_to_the_projects() -> None:
+    text = (schema.MIGRATIONS_DIR / "0004_bcf.sql").read_text(encoding="utf-8")
+    assert text.startswith("-- This file was generated with the assistance of an AI coding tool.")
+    assert "timestamptz" not in text and "iso_utc" in text
+    assert (
+        "guid text PRIMARY KEY,\n    project_id text NOT NULL REFERENCES projects (project_id) ON DELETE CASCADE,"
+        in text
+    )
+    assert text.count("ON DELETE CASCADE") >= 11, "what a project, a topic or a viewpoint owns goes with it"
+    assert "labels text[]" in text and 'title text COLLATE "C" NOT NULL' in text
+    assert "CREATE OR REPLACE VIEW project_files" in text and "FROM document_files" in text and "FROM bcf_files" in text
+    for view in ("proposal_files", "conversion_ifc_projects"):
+        assert f"CREATE VIEW {view}" in text, "the seams to the jobs area, which follows"
+
+
+@pytest.mark.parametrize("statement", BCF_READS, ids=range(len(BCF_READS)))
+def test_a_bcf_read_joins_the_membership_on_the_users_id(statement: str) -> None:
+    assert "JOIN memberships m ON m.project_id = " in statement and "AND m.user_id = $1" in statement
+
+
+def _topic_row(**fields: Any) -> dict[str, Any]:
+    return {
+        "guid": GUID,
+        "server_assigned_id": "ISSUE-0007",
+        "title": "Wall",
+        "creation_date": "2026-11-12T00:00:00.000Z",
+        "creation_author": "editor",
+        **fields,
+    }
+
+
+async def test_a_list_takes_the_filter_and_its_values_after_its_own_arguments() -> None:
+    fake = FakePostgres(lambda query, args: {"total": 0} if "AS total" in query else [_topic_row()])
+    topics = PostgresTopicRepository(fake)  # ty: ignore[invalid-argument-type]
+    quoted = WEAK.replace("'", "''")
+    compiled = compile_odata(
+        filter_=f"title eq '{quoted}' and labels/any(l: l eq 'A')",
+        orderby="index desc",
+        top=5,
+        skip=10,
+        fields=TOPIC_FIELDS,
+        orderable=TOPIC_ORDERABLE,
+        default_order=TOPIC_DEFAULT_ORDER,
+    )
+    (found,) = await topics.search(user_id="u-1", project_id="p-1", compiled=compiled)
+    assert found.server_assigned_id == "ISSUE-0007"
+    await topics.count(user_id="u-1", project_id="p-1", compiled=compiled)
+    (listing, listed), (counting, counted) = fake.statements
+    assert listed == ("u-1", "p-1", 10, 5, WEAK, "A") and counted == ("u-1", "p-1", WEAK, "A")
+    assert WEAK not in listing and "t.title = $5::text" in listing and "ORDER BY t.index DESC" in listing
+    assert "t.title = $3::text" in counting and "$filter" not in counting
+
+
+async def test_the_bcf_rules_come_before_the_database() -> None:
+    fake = FakePostgres()
+    topics, comments = PostgresTopicRepository(fake), PostgresCommentRepository(fake)  # ty: ignore[invalid-argument-type]
+    links = PostgresTopicLinkRepository(fake)  # ty: ignore[invalid-argument-type]
+    for attempt, words in (
+        (topics.create(project_id="p", author="a", body=TopicPOST(guid="x", title="t")), "UUID"),
+        (
+            comments.create(
+                project_id="p", topic_guid="t", author="a", body=CommentPOST(comment="c", viewpoint_guid="x")
+            ),
+            "viewpoint_guid must be a UUID",
+        ),
+        (
+            comments.create(project_id="p", topic_guid="t", author="a", body=CommentPOST(comment="c"), reply_to="x"),
+            "UUID",
+        ),
+        (links.set_related(project_id="p", topic_guid=GUID, author="a", guids=[GUID.upper()]), "itself"),
+        (links.set_related(project_id="p", topic_guid=GUID, author="a", guids=["x"]), "UUID"),
+    ):
+        with pytest.raises(HTTPException, match=words):
+            await attempt
+    assert fake.statements == [] and fake.transactions == 0, "nothing that is refused reaches the database"
+
+
+async def test_a_topic_is_counted_made_and_recorded_in_one_transaction() -> None:
+    def answer(query: str, args: tuple[Any, ...]) -> Any:
+        if query == bcf.TOPIC_COUNTER:
+            return {"n": 7}
+        if query == bcf.TOPIC_INSERT:
+            return _topic_row(guid=args[0], server_assigned_id=args[2], labels=["B", "A"], topic_status="Open")
+        return None
+
+    fake = FakePostgres(answer)
+    topics = PostgresTopicRepository(fake, id_prefix="T-")  # ty: ignore[invalid-argument-type]
+    topic = await topics.create(
+        project_id="p-1", author="editor", body=TopicPOST(guid=GUID.upper(), title="Wall", labels=["B", "A"])
+    )
+    assert topic.guid == GUID and fake.transactions == 1
+    assert [query for query, _ in fake.statements] == [
+        "SELECT 1 AS n FROM topics WHERE guid = $1",
+        bcf.TOPIC_COUNTER,
+        bcf.TOPIC_INSERT,
+        bcf.EVENT_INSERT,
+    ]
+    inserted, recorded = fake.statements[2][1], fake.statements[3][1]
+    assert inserted[:5] == (GUID, "p-1", "T-0007", inserted[3], "editor") and inserted[11] == ["B", "A"]
+    assert recorded[1:6] == ("p-1", "topic", GUID, None, "editor")
+    assert recorded[7] == ["topic_created", "title_updated", "status_updated", "label_added", "label_added"]
+    assert recorded[8] == ["", "Wall", "Open", "A", "B"], "a value-less action keeps its place"
+
+
+async def test_a_viewpoint_that_a_comment_refers_to_stays(tmp_path: Path) -> None:
+    def answer(query: str, args: tuple[Any, ...]) -> Any:
+        return {"comments": 1, "snapshot_key": None, "bitmap_keys": []} if query == bcf.VIEWPOINT_GOING else None
+
+    fake = FakePostgres(answer)
+    viewpoints = PostgresViewpointRepository(fake, LocalStorage(tmp_path), max_image_bytes=1)  # ty: ignore[invalid-argument-type]
+    with pytest.raises(HTTPException) as refused:
+        await viewpoints.delete(topic_guid="t", guid="v")
+    assert refused.value.status_code == 409 and [query for query, _ in fake.statements] == [bcf.VIEWPOINT_GOING]
+
+
+def test_the_graph_holds_the_bcf_area_unless_postgresql_is_named(tmp_path: Path) -> None:
+    graph: Any = object()
+    storage, postgres = LocalStorage(tmp_path), Postgres(URL, "", connect_timeout_seconds=1.0)
+    topics = bcf.topic_store(graph, None, id_prefix="ISSUE-")
+    assert isinstance(topics, TopicRepository)
+    assert isinstance(bcf.comment_store(graph, None, topics), CommentRepository)
+    assert isinstance(bcf.viewpoint_store(graph, None, storage, topics, max_image_bytes=1), ViewpointRepository)
+    assert isinstance(bcf.link_store(graph, None, topics), TopicLinkRepository)
+    assert isinstance(bcf.bcf_document_store(graph, None), BcfDocumentRepository)
+    assert isinstance(bcf.event_store(graph, None), BcfEventRepository)
+    topics = bcf.topic_store(graph, postgres, id_prefix="T-")
+    assert isinstance(topics, PostgresTopicRepository) and topics.id_prefix == "T-"
+    assert isinstance(bcf.comment_store(graph, postgres, topics), PostgresCommentRepository)
+    assert isinstance(
+        bcf.viewpoint_store(graph, postgres, storage, topics, max_image_bytes=1), PostgresViewpointRepository
+    )
+    assert isinstance(bcf.link_store(graph, postgres, topics), PostgresTopicLinkRepository)
+    assert isinstance(bcf.bcf_document_store(graph, postgres), PostgresBcfDocumentRepository)
+    assert isinstance(bcf.event_store(graph, postgres), PostgresBcfEventRepository)

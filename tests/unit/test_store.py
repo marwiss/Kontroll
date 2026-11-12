@@ -26,6 +26,15 @@ from opencde.store.accounts.teams import TeamRepository
 from opencde.store.accounts.users import UserRepository
 from opencde.store.bcf.comments import CommentRepository
 from opencde.store.bcf.documents import BcfDocumentRepository
+from opencde.store.bcf.events import BcfEventRepository
+from opencde.store.bcf.postgres import (
+    PostgresBcfDocumentRepository,
+    PostgresBcfEventRepository,
+    PostgresCommentRepository,
+    PostgresTopicLinkRepository,
+    PostgresTopicRepository,
+    PostgresViewpointRepository,
+)
 from opencde.store.bcf.topic_links import TopicLinkRepository
 from opencde.store.bcf.topics import TopicRepository
 from opencde.store.bcf.viewpoints import ViewpointRepository
@@ -56,6 +65,7 @@ REPOSITORIES = (
     ViewpointRepository,
     TopicLinkRepository,
     BcfDocumentRepository,
+    BcfEventRepository,
     DocumentRepository,
     UploadSessionRepository,
     SelectionSessionRepository,
@@ -71,6 +81,12 @@ REPOSITORIES = (
     PostgresDocumentRepository,
     PostgresUploadSessionRepository,
     PostgresSelectionSessionRepository,
+    PostgresTopicRepository,
+    PostgresCommentRepository,
+    PostgresViewpointRepository,
+    PostgresTopicLinkRepository,
+    PostgresBcfDocumentRepository,
+    PostgresBcfEventRepository,
 )
 
 
