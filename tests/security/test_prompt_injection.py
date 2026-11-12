@@ -542,8 +542,18 @@ def _validation(text: str) -> Validation:
         },
         {"name": "graph", "state": "failed", "ruleset": text, "issue_count": 0},
     ]
+    storey = {"storey": text, "elevation": 0.0, "closed": False, "rooms": [], "dangles": [[0.0, 0.0]], "walls": 3}
+    wall = {"global_id": "0" * 22, "name": text, "facing": "N", "length": 1.0}
+    rooms = {"storeys": [{**storey, "external": [wall], "unread": 1, "tolerance": 0.15, "north": "model"}], "cut": True}
     return Validation(
-        state="done", issue_count=3, error_count=2, checked_at=NOW, ruleset=text, issues=issues, checks=checks
+        state="done",
+        issue_count=3,
+        error_count=2,
+        checked_at=NOW,
+        ruleset=text,
+        issues=issues,
+        checks=checks,
+        rooms=rooms,
     )
 
 

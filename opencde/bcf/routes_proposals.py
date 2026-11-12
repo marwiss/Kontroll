@@ -5,7 +5,8 @@ When a topic's ``bim_snippet`` of the type ``DataregiumIfcChangeSet`` is uploade
 server applies the changes to the base version's file in a worker process (Dataspatium's write tools first, with the
 app's own code, where the change set carries them as ``ops``: ``ifcgraph/ops.py``), runs the checks an upload gets on
 the result and compares the findings with the base version's: the proposal is ``clean`` when every change and
-operation applied and no finding is new, else ``issues``. ``GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal``
+operation applied and no finding is new, else ``issues``; the rooms of the applied file, where the server finds them,
+are shown beside and never change that (F38 a). ``GET /bcf/3.0/projects/{id}/topics/{guid}/ifc-proposal``
 gives the trial to every member of the project, with the same bearer token as the topic.
 ``POST …/ifc-proposal/approve`` lets a ``manager``,
 or a team's responsible (below), make a clean trial the next version of the base document: the applied file becomes
@@ -45,7 +46,7 @@ from opencde.deps import ProjectsDep, SettingsDep, StorageDep
 from opencde.documents.links import api_base
 from opencde.documents.routes_clash import camera_looking_at
 from opencde.documents.schemas import DocumentMetadataEntry, DocumentVersion
-from opencde.documents.validation import IfcValidationCheck, IfcValidationIssue
+from opencde.documents.validation import IfcRooms, IfcValidationCheck, IfcValidationIssue, rooms_of
 from opencde.errors import CODE_VERSION_CONFLICT, ApiError
 from opencde.ids import new_id
 from opencde.ifcgraph.parts import owning_objects
@@ -125,6 +126,12 @@ class IfcProposalReport(BaseModel):
         default_factory=list, description="The teams whose part of the model the change set touches."
     )
     teams_error: str | None = Field(None, description="Why the teams' parts could not be found, when they could not.")
+    rooms: IfcRooms | None = Field(
+        None,
+        description="The rooms of each storey of the applied file, as in a version's report, when the server finds "
+        "them: they only inform, and neither `state` nor the approval depends on them (F38 a). Left out when it is off "
+        "or the rooms could not be found.",
+    )
 
 
 def _report(node: dict[str, Any]) -> IfcProposalReport:
@@ -153,6 +160,7 @@ def _report(node: dict[str, Any]) -> IfcProposalReport:
             IfcProposalTeam(team_id=str(team["team_id"]), name=str(team["name"])) for team in node.get("teams") or []
         ],
         teams_error=node.get("teams_error"),
+        rooms=rooms_of(node.get("rooms")),
     )
 
 

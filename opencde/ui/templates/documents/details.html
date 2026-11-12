@@ -94,6 +94,30 @@
 </section>
 {% endif %}
 
+{% if validation and validation.room_storeys %}
+<section class="card">
+  <h2>{{ t("docs.details.rooms_title") }}</h2>
+  <p class="card__lead">{{ t("docs.details.rooms_lead") }}</p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">{{ t("docs.details.rooms_storey") }}</th><th scope="col">{{ t("docs.details.rooms_title") }}</th><th scope="col">{{ t("common.status") }}</th><th scope="col">{{ t("docs.details.rooms_dangles") }}</th><th scope="col">{{ t("docs.details.rooms_walls") }}</th></tr></thead>
+      <tbody>
+        {% for storey in validation.room_storeys %}
+        <tr>
+          <td>{{ storey.storey or "" }}</td>
+          <td>{{ storey.rooms|length }}</td>
+          <td>{% if storey.closed %}{{ t("docs.details.rooms_closed") }}{% else %}{{ t("docs.details.rooms_open") }}{% endif %}</td>
+          <td>{{ storey.dangles|length }}</td>
+          <td>{{ storey.walls }}{% if storey.unread %} <span class="muted">{{ t("docs.details.rooms_unread", n=storey.unread) }}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if validation.rooms.cut %}<p class="muted">{{ t("docs.details.rooms_cut") }}</p>{% endif %}
+</section>
+{% endif %}
+
 <section class="card">
   <h2>{{ t("docs.details.all_versions") }}</h2>
   <div class="table-wrap">

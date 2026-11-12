@@ -180,6 +180,7 @@ def test_the_checks_of_an_upload_are_announced_with_whether_bsdd_is_asked(tmp_pa
                 "enabled": True,
                 "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation",
                 "bsdd": enabled,
+                "rooms": False,
             }, "bSDD is asked only when the operator turns it on (OB-42)"
     off = make_settings(tmp_path, ifcgraph_enabled=True, ifcgraph_validate_uploads=False, bsdd_enabled=True)
     with TestClient(create_app(off, startup_wait_seconds=0)) as client:
@@ -216,3 +217,15 @@ def test_the_ai_policy_is_announced_whether_or_not_mcp_is_on(tmp_path: Path) -> 
         }
     with TestClient(create_app(make_settings(tmp_path, apis=["bcf-2.1"]), startup_wait_seconds=0)) as client:
         assert client.get("/.well-known/dataregium").json()["extensions"]["ai_policy"] == {"enabled": False}
+
+
+def test_the_rooms_are_announced_when_the_operator_turns_them_on(tmp_path: Path) -> None:
+    """The rooms of each storey are off by default, and need the IFC-LPG module (F36 a)."""
+    assert make_settings(tmp_path).rooms_enabled is False, "off until configured"
+    for enabled in (False, True):
+        settings = make_settings(tmp_path, ifcgraph_enabled=True, rooms_enabled=enabled)
+        with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+            assert client.get("/.well-known/dataregium").json()["extensions"]["ifc_validation"]["rooms"] is enabled
+    module_off = make_settings(tmp_path, rooms_enabled=True)
+    with TestClient(create_app(module_off, startup_wait_seconds=0)) as client:
+        assert client.get("/.well-known/dataregium").json()["extensions"]["ifc_validation"] == {"enabled": False}

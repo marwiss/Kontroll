@@ -10,7 +10,9 @@ schema (``validation.py``), with the result on a ``Validation`` node below
 the version, which the Documents API shows (ADR 0011), against buildingSMART's
 rules where they are installed (ADR 0012), against the IDS documents of its
 project (ADR 0015), and against buildingSMART's Data Dictionary when enabled
-(OB-42, ``bsdd.py``). Two versions are compared for clashes on request, in the
+(OB-42, ``bsdd.py``); when enabled, the report also gets the rooms of each
+storey as a section of its own, which warns and stops nothing (F36 a and F38 a,
+``topology.py``). Two versions are compared for clashes on request, in the
 same worker pattern (ADR 0019, ``clash.py``). One job runs at a time, the check
 of a file before its conversion.
 """
@@ -41,6 +43,7 @@ from ifc_lpg.spatial import geometry_issues, import_spatial
 from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
 
 from opencde.admin.graph_query import ReadingGraph
+from opencde.documents.validation import IfcRooms
 from opencde.graph.graph import Graph
 from opencde.graph.schema import SchemaGraph, library_dialect
 from opencde.ids import new_id
@@ -586,10 +589,14 @@ class IfcGraphService:
             return None
         return row["of_version"] or row["of_precheck"]
 
-    async def _run_checks(self, storage_key: str, file_name: str, project_id: str | None) -> dict[str, Any]:
-        """The IFC schema, buildingSMART's rules, the project's IDS documents and bSDD on one file.
+    async def _run_checks(
+        self, storage_key: str, file_name: str, project_id: str | None, *, rooms: bool = True
+    ) -> dict[str, Any]:
+        """The IFC schema, buildingSMART's rules, the project's IDS documents and bSDD on one file, and its rooms.
 
-        The fields of an ``Validation`` node in state ``done``; an exception when the file could not be checked.
+        The fields of an ``Validation`` node in state ``done``; an exception when the file could not be checked. The
+        rooms (``_rooms``) are a section of their own, never issues; ``rooms`` False leaves them out, for a base that
+        a trial checks only for its findings.
         """
         with tempfile.TemporaryDirectory(prefix="ifcvalidation-") as tmp:
             source = await asyncio.to_thread(self._prepare_input, storage_key, file_name, Path(tmp))
@@ -606,6 +613,7 @@ class IfcGraphService:
             gherkin = await self._gherkin(source)
             ids = await self._ids(source, await self._ids_documents(project_id) if project_id else [])
             dictionary = await self._bsdd(source)
+            found = await self._rooms(source) if rooms else None
         checks: list[dict[str, Any]] = [
             {
                 "name": "schema",
@@ -628,7 +636,7 @@ class IfcGraphService:
             truncated = truncated or bool(other["truncated"])
         if len(issues) > MAX_REPORTED:
             issues, truncated = issues[:MAX_REPORTED], True
-        return {
+        fields: dict[str, Any] = {
             "checked_at": now_iso(),
             "issue_count": total,
             "error_count": errors,
@@ -637,6 +645,9 @@ class IfcGraphService:
             "checks": json.dumps(checks),
             "report": pack_report(issues),
         }
+        if rooms and self.settings.rooms_enabled:  # None when they could not be found, so that none are kept
+            fields["rooms"] = None if found is None else json.dumps(found, separators=(",", ":"))
+        return fields
 
     async def check_now(self, *, project_id: str, storage_key: str, file_name: str) -> dict[str, Any] | None:
         """Check a file before it becomes a version, for a project that refuses uploads with errors (ADR 0021).
@@ -743,6 +754,7 @@ class IfcGraphService:
         node = dict(row["node"])
         node["issues"] = unpack_report(node.pop("report", None))
         node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
+        node["rooms"] = json.loads(node["rooms"]) if node.get("rooms") else None
         return node
 
     # -- a change set tried on its base version (ADR 0021) --------------------------------------------
@@ -932,9 +944,10 @@ class IfcGraphService:
                 base_bsdd = await self._bsdd(source)
         checked = await self._run_checks(key, "proposal.ifc", project_id)
         if version["base_report"] is None:
-            base_issues = unpack_report(
-                (await self._run_checks(str(version["storage_key"]), str(version["file_name"]), project_id))["report"]
+            checked_base = await self._run_checks(
+                str(version["storage_key"]), str(version["file_name"]), project_id, rooms=False
             )
+            base_issues = unpack_report(checked_base["report"])
         else:
             base_issues = unpack_report(version["base_report"]) + (base_bsdd["issues"] if base_bsdd else [])
         known = {_issue_key(issue) for issue in base_issues}
@@ -961,6 +974,8 @@ class IfcGraphService:
             "teams": json.dumps(teams, separators=(",", ":")),
             "teams_error": teams_error,
         }
+        if "rooms" in checked:  # the applied file's rooms, which the state never depends on (F38 a)
+            fields["rooms"] = checked["rooms"]
         if made is not None:  # what the client maps its refs and its preview by, and what the approval shows
             fields["created"] = json.dumps(made["created"], separators=(",", ":"))
             fields["notes"] = json.dumps(made["notes"], separators=(",", ":"))
@@ -1163,7 +1178,7 @@ class IfcGraphService:
         node["issues"] = unpack_report(node.pop("report", None))
         node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
         node["teams"] = json.loads(node["teams"]) if node.get("teams") else []
-        for name in ("created", "notes", "ops_objects"):  # a trial of operations only
+        for name in ("created", "notes", "ops_objects", "rooms"):  # a trial of operations, or with the rooms, only
             node[name] = json.loads(node[name]) if node.get(name) else None
         return node
 
@@ -1348,6 +1363,25 @@ class IfcGraphService:
             log.warning("ifc_bsdd_failed", error=type(exc).__name__)
         check = {"name": "bsdd", "state": STATE_FAILED, "ruleset": bsdd_ruleset(client.host), "issue_count": 0}
         return {"check": {**check, "error": error[:300]}, "issues": [], "error_count": 0, "truncated": False}
+
+    async def _rooms(self, source: Path) -> dict[str, Any] | None:
+        """The rooms of each storey, found from its walls by a copy of Dataspatium's code in a worker (F36 a: the
+        server makes the client's room check), when enabled: the report's own section, which never stops anything
+        (F38 a: the rooms only warn). None when off, or when they could not be found, with the reason logged: the
+        worker's own words, or the class of what stopped it, never what the file says."""
+        if not self.settings.rooms_enabled:
+            return None
+        memory = str(self.settings.ifcgraph_memory_mb)
+        command = [sys.executable, "-m", "opencde.ifcgraph.topology", str(source), "--memory-mb", memory]
+        try:
+            found = json.loads((await self._in_a_process(command, "finding the rooms")).strip().splitlines()[-1])
+            if isinstance(found, dict) and "error" in found:
+                log.warning("ifc_rooms_failed", error=str(found["error"])[:300])
+                return None
+            return IfcRooms.model_validate(found).model_dump()  # kept as the reports give it
+        except Exception as exc:  # the time limit, or a worker that stopped: what it said may quote the file
+            log.warning("ifc_rooms_failed", error=type(exc).__name__)
+            return None
 
     def _prepare_input(self, storage_key: str, file_name: str, workdir: Path) -> Path:
         """The IFC file to convert; an ``.ifczip`` is unpacked with a cap on the unpacked size."""

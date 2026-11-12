@@ -54,6 +54,7 @@ def _report(settings: Any, node: dict[str, Any]) -> IfcPrecheckReport:
         ruleset=node.get("ruleset"),
         issues=node["issues"],
         checks=node["checks"],
+        rooms=node.get("rooms"),
     )
     return IfcPrecheckReport(
         **report(validation).model_dump(),

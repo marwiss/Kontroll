@@ -429,6 +429,13 @@ class Settings(BaseSettings):
         description="How long an answer of bSDD is kept in memory, so that a server process asks about a URI once "
         "a day; 0 asks every time.",
     )
+    # --- the rooms of each storey (F36 a) -----------------------------------
+    rooms_enabled: bool = Field(
+        False,
+        description="Find the rooms of each storey of every IFC upload, precheck and trial of a change set from its "
+        "walls, as Dataspatium does, and keep them as the report's section `rooms`, which never stops an upload or an "
+        "approval (needs the ifc-lpg extra and the IFC-LPG module).",
+    )
 
     # --- logging ----------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"

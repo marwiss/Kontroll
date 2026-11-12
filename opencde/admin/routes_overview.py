@@ -59,6 +59,7 @@ SAFE_SETTINGS = (
     "ifcgraph_enabled",
     "bsdd_enabled",
     "bsdd_api_url",
+    "rooms_enabled",
     "request_log_enabled",
     "request_log_retention_hours",
     "cors_origins",

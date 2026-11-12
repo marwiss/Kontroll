@@ -145,6 +145,7 @@ def capabilities(settings: Settings) -> dict[str, Any]:
                     "enabled": True,
                     "url": "/documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validation",
                     "bsdd": settings.bsdd_enabled,
+                    "rooms": settings.rooms_enabled,
                 }
                 if settings.ifcgraph_enabled and settings.ifcgraph_validate_uploads and settings.offers("documents")
                 else {"enabled": False}

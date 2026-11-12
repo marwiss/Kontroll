@@ -181,6 +181,7 @@ class DocumentRepository:
             RETURN r.state AS state, r.issue_count AS issue_count, r.error_count AS error_count,
                    r.truncated AS truncated, r.checked_at AS checked_at, r.ruleset AS ruleset, r.checks AS checks,
                    CASE WHEN $with_issues THEN r.report ELSE null END AS report,
+                   CASE WHEN $with_issues THEN r.rooms ELSE null END AS rooms,
                    m.graph_issue_count AS graph_issue_count, m.graph_error_count AS graph_error_count,
                    m.graph_ruleset AS graph_ruleset, CASE WHEN $with_issues THEN m.graph_report ELSE null END AS graph_report
             """,
@@ -200,6 +201,7 @@ class DocumentRepository:
             ruleset=row["ruleset"],
             issues=unpack_report(row["report"]),
             checks=json.loads(row["checks"]) if row["checks"] else [],
+            rooms=json.loads(row["rooms"]) if row["rooms"] else None,
         )
         return with_graph_findings(
             validation,

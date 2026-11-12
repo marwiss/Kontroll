@@ -4,7 +4,8 @@
 The IFC module checks every IFC file uploaded as a document version against the IFC schema, in the background, and
 keeps the result on an ``Validation`` node below the version (``IfcGraphService``, ADR 0011). The upload is never
 held back by it. The metadata of the version, which any Documents API client can read, carries a summary and the address
-of the report; the report lists the issues, each with the GlobalId of its element where it has one.
+of the report; the report lists the issues, each with the GlobalId of its element where it has one, and, where the
+server finds them, the rooms of each storey as a section of their own, which never counts as an issue (F38 a).
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from opencde.documents.schemas import DocumentMetadataEntry
 
 Status = Literal["pending", "passed", "warnings", "issues", "unknown"]
+Facing = Literal["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 MAX_ISSUES = 10_000  # as many issues as a report lists
 
 
@@ -32,6 +34,7 @@ class Validation:
     ruleset: str | None = None
     issues: list[dict[str, Any]] = field(default_factory=list)
     checks: list[dict[str, Any]] = field(default_factory=list)
+    rooms: dict[str, Any] | None = None  # the section of the rooms (``IfcRooms``), when they were found
 
     @property
     def rulesets(self) -> list[str]:
@@ -76,6 +79,11 @@ class Validation:
     def ids_not_read(self) -> list[dict[str, Any]]:
         """The IDS documents that could not be read, each with the reason."""
         return list((self.ids_check or {}).get("rules_not_run", []))
+
+    @property
+    def room_storeys(self) -> list[dict[str, Any]]:
+        """The storeys of the section of the rooms that hold walls, as the version's page lists them."""
+        return [storey for storey in (self.rooms or {}).get("storeys", []) if storey.get("walls")]
 
     @property
     def status(self) -> Status:
@@ -233,6 +241,66 @@ class IfcValidationCheck(_Report):
     )
 
 
+class IfcRoom(_Report):
+    index: int = Field(
+        description="The room's number on its storey, from 1, in the order of its centre: by the model's y to the "
+        "metre, then by its x."
+    )
+    area: float = Field(description="Its area in m², inside the walls' centre lines, to two decimals.")
+    perimeter: float = Field(description="Its perimeter in metres, along the centre lines, to two decimals.")
+    walls: list[str] = Field(default_factory=list, description="The GlobalIds of the walls along its boundary.")
+    neighbours: list[int] = Field(
+        default_factory=list, description="The rooms that share a stretch of boundary with it, by `index`."
+    )
+
+
+class IfcRoomsWall(_Report):
+    global_id: str = Field(description="The external wall's GlobalId.")
+    name: str | None = Field(None, description="Its name, as the file has it.")
+    facing: Facing = Field(
+        description="The compass sector its outside faces, `N`, `NE`, `E`, `SE`, `S`, `SW`, `W` or `NW`, with north "
+        "as the storey's `north` says."
+    )
+    length: float = Field(description="How far it runs along the outside of the rooms, in metres, to two decimals.")
+
+
+class IfcRoomsStorey(_Report):
+    storey: str | None = Field(None, description="The storey's name, as the file has it.")
+    elevation: float = Field(description="Its elevation in metres.")
+    closed: bool = Field(description="True when its walls enclose at least one room and no wall end is open.")
+    rooms: list[IfcRoom] = Field(
+        default_factory=list,
+        description="The rooms its walls' centre lines enclose, each at least 0.5 m² and 0.5 m across.",
+    )
+    external: list[IfcRoomsWall] = Field(
+        default_factory=list, description="The walls along the outside of its rooms, in the order of their facing."
+    )
+    dangles: list[list[float]] = Field(
+        default_factory=list, description="The open wall ends, each `[x, y]` in metres in the model's plan."
+    )
+    dangling_walls: list[str] = Field(default_factory=list, description="The GlobalIds of the walls with an open end.")
+    walls: int = Field(description="How many walls the storey contains.")
+    unread: int = Field(description="How many of them gave no centre line, from their `Axis` or their body.")
+    unread_walls: list[str] = Field(default_factory=list, description="The GlobalIds of those walls.")
+    tolerance: float = Field(
+        description="How far, in metres, a wall end may be from another wall and still be joined to it: half the "
+        "storey's thickest wall up to a metre (0.2 m when no wall says) plus 0.05 m."
+    )
+    north: Literal["map", "true_north", "model"] = Field(
+        description="Where north comes from: the map conversion (`map`), the model context's `TrueNorth`, or the "
+        "model's y axis when the file says neither (`model`)."
+    )
+
+
+class IfcRooms(_Report):
+    storeys: list[IfcRoomsStorey] = Field(default_factory=list, description="Every storey, by elevation.")
+    cut: bool = Field(
+        False,
+        description="True when a list was longer than it is here: at most 100 storeys, 500 rooms a storey, and 200 "
+        "entries in every other list.",
+    )
+
+
 class IfcValidationReport(_Report):
     status: Status = Field(
         description="`pending`, `passed`, `warnings` when every issue is a warning, `issues` when one or more is an "
@@ -245,6 +313,17 @@ class IfcValidationReport(_Report):
     truncated: bool = Field(False, description="True when the file has more issues than are listed (10,000).")
     checks: list[IfcValidationCheck] = Field(default_factory=list, description="Each check on its own.")
     issues: list[IfcValidationIssue] = Field(default_factory=list)
+    rooms: IfcRooms | None = Field(
+        None,
+        description="The rooms of each storey, found from the walls' centre lines as Dataspatium finds them, when the "
+        "server is set to (`rooms` in the capabilities' `ifc_validation`). A section of its own that only informs: it "
+        "changes neither the status nor the counts. Left out when it is off or the rooms could not be found.",
+    )
+
+
+def rooms_of(section: dict[str, Any] | None) -> IfcRooms | None:
+    """The kept section of the rooms, as the reports give it."""
+    return IfcRooms.model_validate(section) if section else None
 
 
 def report(validation: Validation) -> IfcValidationReport:
@@ -257,4 +336,5 @@ def report(validation: Validation) -> IfcValidationReport:
         truncated=validation.truncated,
         checks=[IfcValidationCheck.model_validate(check) for check in validation.checks],
         issues=[IfcValidationIssue.model_validate(issue) for issue in validation.issues],
+        rooms=rooms_of(validation.rooms),
     )
