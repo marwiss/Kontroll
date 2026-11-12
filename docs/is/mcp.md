@@ -148,16 +148,21 @@ samþykkir: það gerir manneskja, í Dataspatium.
 - `open_changeset` (`document_id`, `version_index`, `null` fyrir það nýjasta):
   opnar breytingasett á útgáfu IFC-skjals og svarar með `changeset_id`, `base`,
   `expires_at` og `max_steps` (200).
-- Skrifverkfærin `create_storeys_and_grid`, `create_wall`, `create_slab`,
-  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements` (með
-  `confirm: true`) og `set_site`: verkfæri Dataspatium sjálfs, með skemum þess
-  óbreyttum og `changeset_id` fremst. Kall er ein aðgerð í `ops` breytingasettsins
-  á forminu `dataspatium-tools/1`, nákvæmlega eins og forritið gerir hana
-  (sjálfgefin gildi fyllt út, tölur prófaðar, textar styttir við 200 stafi), eða
-  villa forritsins, sem gervigreindin lagfærir. Veggur, plata, þak eða op fær
-  ref, `new-1`, `new-2` …, og það fær líka hvert herbergi sem `create_spaces`
-  telur upp; eining er nefnd með GlobalId sínu, STEP-auðkenni sínu eða ref.
+- Skrifverkfærin `create_storeys_and_grid`, `define_type`, `create_wall`,
+  `create_slab`, `create_roof`, `create_opening`, `create_element`,
+  `create_spaces`, `set_properties`, `set_classification`, `assign`,
+  `edit_element`, `transform_elements`, `delete_elements` (með `confirm: true`) og
+  `set_site`: verkfæri Dataspatium sjálfs, með skemum þess óbreyttum og
+  `changeset_id` fremst. Kall er ein aðgerð í `ops` breytingasettsins á forminu
+  `dataspatium-tools/1`, nákvæmlega eins og forritið gerir hana (sjálfgefin gildi
+  fyllt út, tölur prófaðar, textar styttir við 200 stafi, valfrjálst svið aðeins
+  þegar það er gefið), eða villa forritsins, sem gervigreindin lagfærir. Gerð,
+  veggur, plata, þak, op eða byggingarhluti fær ref, `new-1`, `new-2` …, og það
+  fær líka hvert herbergi sem `create_spaces` telur upp; eining eða gerð er nefnd
+  með GlobalId sínu, STEP-auðkenni sínu eða ref. Lýsingarnar sleppa lesverkfærum
+  forritsins `search_ifc_class` og `get_parameters`, sem þessi endapunktur býður
+  ekki, og `set_properties` svarar með ráði leiðbeininganna um nafn á eigin safni
+  líkansins sem `note`.
 - `manage_changeset` (`action`: `list`, `remove_last` eða `clear`): skrefin með
   verkfærum sínum, refs og lýsingum; síðasta skrefið fjarlægt, með refs sínum;
   eða ekkert eftir.

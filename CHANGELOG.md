@@ -22,6 +22,17 @@ cloud region of one's own or beside an nginx, the operations of Dataspatium's wr
 endpoint through which AI tools read the models and propose change sets that a person approves, the rooms of each
 storey, the check against bSDD, and the element of each rules finding. Works with Dataspatium 3.0.0.
 
+- A change set's operations take Dataspatium's new write tools: `define_type` makes wall, slab, roof and covering
+  types with their material layers and column, beam, footing, railing, door and window types, `create_element` makes
+  columns, beams, members, footings, piles, coverings, railings, chimneys, shading devices, sanitary terminals,
+  furniture and straight stairs, and `edit_element` changes a wall, slab, opening or roof in place and keeps its
+  GlobalId. The other tools take a type, `load_bearing`, `status`, a storey's description and long name, a room's
+  number and type, a material's category and a vertical datum. After the operations the trial joins the walls that
+  meet, writes base quantities and sets IsExternal from the topology, with a note where it cannot; a site's map
+  conversion is in metres with the file's unit as its Scale. `set_properties` holds IFC's own sets to IfcOpenShell's
+  templates and refuses a unit in a value, and `transform_elements` moves a door or window with its opening and never
+  the site, the building or a storey. The capabilities document lists the three tools in `ifc_changes.ops_tools`,
+  and the MCP endpoint offers them with the app's schemas.
 - A finding of buildingSMART's rules that names an instance carries its class in `ifc_class` and, in
   `root_global_id`, the GlobalId of the nearest rooted entity that reaches it, forward through attributes and
   backward through inverse ones as IFC-LPG's paths do: the instance's own, or for a polyline in a wall's outline

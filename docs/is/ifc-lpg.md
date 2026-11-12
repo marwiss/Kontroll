@@ -580,21 +580,21 @@ líkan, og `409` þegar ekkert í henni er utan seilingar. Getuskjalið telur up
 
 Breytingasafn sem gert er með skrifverkfærum Dataspatium ber líka aðgerðir þeirra sem `ops`, með `ops_form`
 `dataspatium-tools/1`, svo að nýjar einingar, eyðingar og tengsl fylgi tillögunni. Hver aðgerð nefnir verkfæri sitt
-sem `tool` og hefur rök verkfærisins við hliðina, lengdir í metrum: `create_storeys_and_grid`, `create_wall`,
-`create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`, `set_classification`, `assign`,
-`transform_elements`, `delete_elements` og `set_site`. Þjónninn keyrir þær með afriti af eigin kóða appsins
-(`opencde/ifcgraph/ops.py`), svo að sömu aðgerðir gefa sama líkan í appinu og á þjóninum, í einingu skrárinnar,
-með þann sem lagði til og þjóninn í eigendasögunum sem IfcOpenShell býr til. Það sem vegg-, plötu-, þak- og
-opsaðgerðirnar búa til heitir `new-1`, `new-2` … í röð þeirra, og það gerir líka hvert herbergi sem `create_spaces`
-telur upp. Aðgerð nefnir einingu með GlobalId hennar, með STEP-auðkenni hennar aðeins þar sem ekkert GlobalId nær
-henni, eða með slíku ref, og hæð með nafni sínu. `create_wall` gefur vegg miðlínu hans sem `Axis`-framsetningu, og
-`create_spaces` gerir herbergin sem veggirnir loka, fundin eins og `rooms` skýrslunnar finnast, að rýmum
-(`IfcSpace`) á hæð sinni, út frá skránni eins og hún er á því skrefi: hvert með útlínu herbergisins upp að næstu hæð,
-`Qto_SpaceBaseQuantities` og efnislegum rýmismörkum að veggjunum meðfram brún þess og að dyrum og gluggum í þeim; dyr
-eða gluggi sem gerður er síðar í slíkum vegg afmarkar líka rýmið. `changes`
-má þá vera tómt: við hlið aðgerðanna lýsa breytingarnar því sem aðgerðirnar gera við tilvik sem eru til, eins og
-appið fann það, fyrir sameininguna, og breyting sem aðgerðirnar hafa þegar gert telst beitt. Getuskjalið auglýsir
-sniðið sem `ifc_changes.ops_form` og verkfærin sem `ifc_changes.ops_tools`.
+sem `tool` og hefur rök verkfærisins við hliðina, lengdir í metrum: `create_storeys_and_grid`, `define_type`,
+`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_element`, `create_spaces`, `set_properties`,
+`set_classification`, `assign`, `edit_element`, `transform_elements`, `delete_elements` og `set_site`. Þjónninn
+keyrir þær með afriti af eigin kóða appsins (`opencde/ifcgraph/ops.py`), svo að sömu aðgerðir gefa sama líkan í
+appinu og á þjóninum, í einingu skrárinnar, með þann sem lagði til og þjóninn í eigendasögunum sem IfcOpenShell býr
+til. Það sem gerða-, vegg-, plötu-, þak-, ops- og einingaaðgerðirnar búa til heitir `new-1`, `new-2` … í röð þeirra,
+og það gerir líka hvert herbergi sem `create_spaces` telur upp. Aðgerð nefnir einingu eða gerð með GlobalId hennar,
+með STEP-auðkenni hennar aðeins þar sem ekkert GlobalId nær henni, eða með slíku ref, og hæð með nafni sínu.
+`create_wall` gefur vegg miðlínu hans sem `Axis`-framsetningu, og `create_spaces` gerir herbergin sem veggirnir loka,
+fundin eins og `rooms` skýrslunnar finnast, að rýmum (`IfcSpace`) á hæð sinni, út frá skránni eins og hún er á því
+skrefi: hvert með útlínu herbergisins upp að næstu hæð, `Qto_SpaceBaseQuantities` og efnislegum rýmismörkum að
+veggjunum meðfram brún þess og að dyrum og gluggum í þeim; dyr eða gluggi sem gerður er síðar í slíkum vegg afmarkar
+líka rýmið. `changes` má þá vera tómt: við hlið aðgerðanna lýsa breytingarnar því sem aðgerðirnar gera við tilvik sem
+eru til, eins og appið fann það, fyrir sameininguna, og breyting sem aðgerðirnar hafa þegar gert telst beitt.
+Getuskjalið auglýsir sniðið sem `ifc_changes.ops_form` og verkfærin sem `ifc_changes.ops_tools`.
 
 ```json
 {
@@ -609,6 +609,26 @@ sniðið sem `ifc_changes.ops_form` og verkfærin sem `ifc_changes.ops_tools`.
   "changes": []
 }
 ```
+
+`define_type` gerir veggjagerð, plötugerð, þakgerð eða klæðningargerð með efnislögum (hvert með efni, þykkt, flokki
+efnisins og hlutverki lagsins), eða súlu-, bita-, undirstöðu-, handriðs-, hurðar- eða gluggagerð með efni; hurðargerð
+hefur opnunarhátt sinn `operation` og gluggagerð skiptingu sína `partitioning`, báðar með `width`, `height` og
+`lining_depth`, og IfcOpenShell teiknar rúmfræði þeirra. `create_wall`, `create_slab`, `create_roof`,
+`create_opening` og `create_element` taka slíka gerð sem `type`: einingin fær gerðina og þykkt sína úr lögunum, og
+hurð eða gluggi stærð og rúmfræði gerðarinnar, í fleti við vinstri hlið veggjarins eða, með `side` `right`, þá hægri.
+`create_element` gerir þá byggingarhluta sem hafa ekki eigið verkfæri: súlur, bita, stoðir, undirstöður, staura,
+klæðningar, handrið, reykháfa, sólskyggni, hreinlætistæki, húsgögn og beina stiga, `IfcStair` með stigarið og
+stigapalli; `part_of` gerir einingu að hluta annarrar, og `host` nefnir það sem klæðning hylur. `edit_element`
+breytir vegg, plötu, opi með hurð þess eða glugga, eða þaki á sínum stað, svo að það heldur GlobalId sínu.
+`create_wall` og `create_slab` taka `load_bearing`, þau og `create_roof` `status`, `assign` flokk efnisins
+`category`, hæð `description` og `long_name`, upptalið herbergi `number` og `room_type`, og `set_site` hæðarkerfið
+`vertical_datum`; kortaumbreytingin er í metrum með einingu skrárinnar sem Scale. Eftir aðgerðirnar tengir þjónninn,
+eins og appið, veggina sem mætast, gefur því sem gert var eða breytt grunnmagn og setur `IsExternal` út frá
+grannfræðinni; það sem hann getur ekki gert verður lína í `notes`. `set_properties` prófar safn sem heitir `Pset_`
+eða `Qto_` á móti sniðmáti IfcOpenShell fyrir skema skrárinnar og hafnar óþekktum eiginleika, gildi af rangri tegund
+og tölu með einingu sinni; eigið safn líkansins má ekki byrja svo. `transform_elements` færir hurð eða glugga með opi
+sínu og aldrei lóðina, bygginguna eða hæð. Í IFC4X3 hefur hæð hæðartölu sína í staðsetningunni einni, og rými er
+`SPACE`, aldrei `INTERNAL` eða `EXTERNAL` (regla buildingSMART IFC102).
 
 Prófunin beitir fyrst aðgerðunum og síðan breytingunum, og telur hvort tveggja í `change_count`. Aðgerð sem ekki er
 hægt að beita er athugasemd af taginu `op` með vísi sínum (`op`) og `tool`, með orðum kóða appsins, sem geta vitnað í

@@ -150,17 +150,21 @@ henkilö, Dataspatiumissa.
 - `open_changeset` (`document_id`, `version_index`, `null` uusimmalle): avaa
   muutosjoukon IFC-dokumentin versioon ja vastaa sen `changeset_id`:llä,
   `base`:lla, `expires_at`:lla ja `max_steps`:llä (200).
-- Kirjoitustyökalut `create_storeys_and_grid`, `create_wall`, `create_slab`,
-  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements`
+- Kirjoitustyökalut `create_storeys_and_grid`, `define_type`, `create_wall`,
+  `create_slab`, `create_roof`, `create_opening`, `create_element`,
+  `create_spaces`, `set_properties`, `set_classification`, `assign`,
+  `edit_element`, `transform_elements`, `delete_elements`
   (`confirm: true` -arvolla) ja `set_site`: Dataspatiumin omat, sen skeemat
   muuttamattomina ja `changeset_id` ensimmäisenä. Kutsu on yksi operaatio
-  muutosjoukon `ops`-luettelossa muodossa `dataspatium-tools/1` täsmälleen
-  niin kuin sovellus sen tekee (oletusarvot täytettyinä, luvut tarkistettuina,
-  tekstit katkaistuina 200 merkkiin), tai sovelluksen virhe, jonka tekoäly
-  korjaa. Seinä, laatta, katto tai aukko saa refin, `new-1`, `new-2` …, samoin
-  jokainen huone, jonka `create_spaces` luettelee; elementti nimetään
-  GlobalId:llä, STEP-id:llä tai refillä.
+  muutosjoukon `ops`-luettelossa muodossa `dataspatium-tools/1` täsmälleen niin
+  kuin sovellus sen tekee (oletusarvot täytettyinä, luvut tarkistettuina, tekstit
+  katkaistuina 200 merkkiin, valinnainen kenttä vain annettuna), tai sovelluksen
+  virhe, jonka tekoäly korjaa. Tyyppi, seinä, laatta, katto, aukko tai rakennusosa
+  saa refin, `new-1`, `new-2` …, samoin jokainen huone, jonka `create_spaces`
+  luettelee; elementti tai tyyppi nimetään GlobalId:llä, STEP-id:llä tai refillä.
+  Kuvauksista puuttuvat sovelluksen lukutyökalut `search_ifc_class` ja
+  `get_parameters`, joita tämä päätepiste ei tarjoa, ja `set_properties` vastaa
+  ohjeistuksen neuvolla mallin oman joukon nimestä kentässä `note`.
 - `manage_changeset` (`action`: `list`, `remove_last` tai `clear`): vaiheet
   työkaluineen, refeineen ja kuvauksineen; viimeinen vaihe poistettuna refeineen;
   tai ei yhtään jäljellä.

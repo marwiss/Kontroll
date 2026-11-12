@@ -589,21 +589,21 @@ konverterad modell, och `409` när inget i den är utom räckhåll. Kapabilitets
 
 Ett ändringsset som gjorts med Dataspatiums skrivverktyg bär också deras operationer som `ops`, med `ops_form`
 `dataspatium-tools/1`, så att nya element, raderingar och samband kommer med i förslaget. Varje operation anger sitt
-verktyg som `tool` och har verktygets argument bredvid sig, längder i meter: `create_storeys_and_grid`,
-`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-`set_classification`, `assign`, `transform_elements`, `delete_elements` och `set_site`. Servern kör dem med en kopia
-av appens egen kod (`opencde/ifcgraph/ops.py`), så att samma operationer ger samma modell i appen och på servern, i
-filens enhet, med den som föreslog och servern i de ägarhistoriker som IfcOpenShell gör. Det som vägg-, bjälklags-,
-tak- och öppningsoperationerna skapar heter `new-1`, `new-2` … i deras ordning, och så gör varje rum som
-`create_spaces` listar. En operation anger ett element med dess GlobalId, med dess STEP-id bara där inget GlobalId
-når det, eller med en sådan ref, och en våning med dess namn. `create_wall` ger en vägg dess mittlinje som en
-`Axis`-representation, och `create_spaces` gör rummen som väggarna sluter, funna så som rapportens `rooms` finns, till
-utrymmen (`IfcSpace`) på sin våning, ur filen som den är vid det steget: vart och ett med rummets kontur upp till
-nästa våning, `Qto_SpaceBaseQuantities` och fysiska utrymmesgränser mot väggarna längs dess kant och mot dörrarna och
-fönstren i dem; en dörr eller ett fönster som görs senare i en sådan vägg gränsar också mot utrymmet.
-`changes` får då vara tom: bredvid operationerna beskriver ändringarna vad operationerna gör
-med befintliga instanser, så som appen fann det, för sammanfogningen, och en ändring som operationerna redan gjort
-räknas som tillämpad. Kapabilitetsdokumentet annonserar formen som `ifc_changes.ops_form` och verktygen som
+verktyg som `tool` och har verktygets argument bredvid sig, längder i meter: `create_storeys_and_grid`, `define_type`,
+`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_element`, `create_spaces`, `set_properties`,
+`set_classification`, `assign`, `edit_element`, `transform_elements`, `delete_elements` och `set_site`. Servern kör
+dem med en kopia av appens egen kod (`opencde/ifcgraph/ops.py`), så att samma operationer ger samma modell i appen och
+på servern, i filens enhet, med den som föreslog och servern i de ägarhistoriker som IfcOpenShell gör. Det som typ-,
+vägg-, bjälklags-, tak-, öppnings- och elementoperationerna skapar heter `new-1`, `new-2` … i deras ordning, och så
+gör varje rum som `create_spaces` listar. En operation anger ett element eller en typ med dess GlobalId, med dess
+STEP-id bara där inget GlobalId når det, eller med en sådan ref, och en våning med dess namn. `create_wall` ger en
+vägg dess mittlinje som en `Axis`-representation, och `create_spaces` gör rummen som väggarna sluter, funna så som
+rapportens `rooms` finns, till utrymmen (`IfcSpace`) på sin våning, ur filen som den är vid det steget: vart och ett
+med rummets kontur upp till nästa våning, `Qto_SpaceBaseQuantities` och fysiska utrymmesgränser mot väggarna längs
+dess kant och mot dörrarna och fönstren i dem; en dörr eller ett fönster som görs senare i en sådan vägg gränsar också
+mot utrymmet. `changes` får då vara tom: bredvid operationerna beskriver ändringarna vad operationerna gör med
+befintliga instanser, så som appen fann det, för sammanfogningen, och en ändring som operationerna redan gjort räknas
+som tillämpad. Kapabilitetsdokumentet annonserar formen som `ifc_changes.ops_form` och verktygen som
 `ifc_changes.ops_tools`.
 
 ```json
@@ -619,6 +619,26 @@ räknas som tillämpad. Kapabilitetsdokumentet annonserar formen som `ifc_change
   "changes": []
 }
 ```
+
+`define_type` gör en väggtyp, bjälklagstyp, taktyp eller beklädnadstyp med materialskikt (vart och ett med material,
+tjocklek, materialets kategori och skiktets roll), eller en pelar-, balk-, grundläggnings-, räckes-, dörr- eller
+fönstertyp med material; en dörrtyp har sitt öppningssätt `operation` och en fönstertyp sin indelning `partitioning`,
+båda med `width`, `height` och `lining_depth`, och IfcOpenShell ritar deras geometri. `create_wall`, `create_slab`,
+`create_roof`, `create_opening` och `create_element` tar en sådan typ som `type`: elementet får typen och sin tjocklek
+ur skikten, och en dörr eller ett fönster typens storlek och geometri, i liv med väggens vänstra sida eller, med
+`side` `right`, dess högra. `create_element` gör de byggdelar som inte har ett eget verktyg: pelare, balkar, stänger,
+grundläggning, pålar, beklädnader, räcken, skorstenar, solskydd, sanitetsdon, möbler och raka trappor, en `IfcStair`
+med trapplopp och vilplan; `part_of` gör ett element till en del av ett annat, och `host` anger vad en beklädnad
+täcker. `edit_element` ändrar en vägg, ett bjälklag, en öppning med dess dörr eller fönster, eller ett tak på plats,
+så att det behåller sitt GlobalId. `create_wall` och `create_slab` tar `load_bearing`, de och `create_roof` `status`,
+`assign` materialets `category`, en våning `description` och `long_name`, ett listat rum `number` och `room_type`, och
+`set_site` ett `vertical_datum`; kartkonverteringen är i meter med filens enhet som Scale. Efter operationerna knyter
+servern, som appen, ihop väggarna som möts, ger det som skapats eller ändrats basmängder och sätter `IsExternal` ur
+topologin; det den inte kan göra blir en rad i `notes`. `set_properties` prövar en mängd som heter `Pset_` eller
+`Qto_` mot IfcOpenShells mall för filens schema och avvisar en okänd egenskap, ett värde av fel typ och ett tal med
+sin enhet; en egen mängd får inte börja så. `transform_elements` flyttar en dörr eller ett fönster med sin öppning och
+aldrig tomten, byggnaden eller en våning. I IFC4X3 har en våning sin höjd enbart i sin placering, och ett utrymme är
+`SPACE`, aldrig `INTERNAL` eller `EXTERNAL` (buildingSMART:s regel IFC102).
 
 Prövningen tillämpar först operationerna och sedan ändringarna, och räknar båda i `change_count`. En operation som
 inte kan tillämpas är en anmärkning av slaget `op` med sitt index (`op`) och `tool`, med orden i appens kod, som kan

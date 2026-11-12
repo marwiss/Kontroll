@@ -144,16 +144,21 @@ Inget verktyg godkänner: en person gör det, i Dataspatium.
 - `open_changeset` (`document_id`, `version_index`, `null` för den senaste):
   öppnar ett ändringsset på en version av ett IFC-dokument och svarar med dess
   `changeset_id`, dess `base`, `expires_at` och `max_steps` (200).
-- Skrivverktygen `create_storeys_and_grid`, `create_wall`, `create_slab`,
-  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements` (med
-  `confirm: true`) och `set_site`: Dataspatiums egna, med dess scheman oförändrade
-  och `changeset_id` först. Ett anrop är en operation i ändringssetets `ops` i
-  formen `dataspatium-tools/1`, precis som appen gör den (standardvärdena
-  ifyllda, talen prövade, texterna kapade vid 200 tecken), eller appens fel, som
-  AI:n rättar. En vägg, ett bjälklag, ett tak eller en öppning får en ref,
-  `new-1`, `new-2` …, liksom varje rum som `create_spaces` räknar upp; ett element
-  nämns med sitt GlobalId, sitt STEP-id eller en ref.
+- Skrivverktygen `create_storeys_and_grid`, `define_type`, `create_wall`,
+  `create_slab`, `create_roof`, `create_opening`, `create_element`,
+  `create_spaces`, `set_properties`, `set_classification`, `assign`,
+  `edit_element`, `transform_elements`, `delete_elements` (med `confirm: true`)
+  och `set_site`: Dataspatiums egna, med dess scheman oförändrade och
+  `changeset_id` först. Ett anrop är en operation i ändringssetets `ops` i formen
+  `dataspatium-tools/1`, precis som appen gör den (standardvärdena ifyllda, talen
+  prövade, texterna kapade vid 200 tecken, ett valfritt fält bara när det anges),
+  eller appens fel, som AI:n rättar. En typ, en vägg, ett bjälklag, ett tak, en
+  öppning eller en byggdel får en ref, `new-1`, `new-2` …, liksom varje rum som
+  `create_spaces` räknar upp; ett element eller en typ nämns med sitt GlobalId,
+  sitt STEP-id eller en ref. Beskrivningarna utelämnar appens läsverktyg
+  `search_ifc_class` och `get_parameters`, som den här ändpunkten inte erbjuder,
+  och `set_properties` svarar med vägledningens råd om namnet på en egen mängd som
+  `note`.
 - `manage_changeset` (`action`: `list`, `remove_last` eller `clear`): stegen med
   sina verktyg, refs och beskrivningar; det sista steget borttaget, med sina
   refs; eller inga kvar.

@@ -585,20 +585,21 @@ in `ifc_changes.ops` and the address as `ifc_changes.unreachable_url`.
 A change set made with Dataspatium's write tools also carries their operations as `ops`, with `ops_form`
 `dataspatium-tools/1`, so that new elements, deletions and relationships reach the proposal. Each operation names
 its tool as `tool` and holds the tool's arguments beside it, lengths in metres: `create_storeys_and_grid`,
-`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-`set_classification`, `assign`, `transform_elements`, `delete_elements` and `set_site`. The server runs them with a
-copy of the app's own code (`opencde/ifcgraph/ops.py`), so that the same operations give the same model in the app
-and on the server, in the file's unit, with the proposer and the server in the owner histories that IfcOpenShell
-makes. What the wall, slab, roof and opening operations create is named `new-1`, `new-2` … in their order, and so is
-each room that `create_spaces` lists. An operation names an element by its GlobalId, by its STEP id only where no
-GlobalId reaches it, or by such a ref, and a storey by its name. `create_wall` gives a wall its centre line as an
-`Axis` representation, and `create_spaces` makes the rooms the walls enclose, found as the report's `rooms` are,
-spaces (`IfcSpace`) of their storey, from the file as it stands at that step: each with the room's outline up to the
-next storey, `Qto_SpaceBaseQuantities`, and physical space boundaries to the walls along its edge and to the doors
-and windows in them; a door or window made later in such a wall bounds the space too.
-`changes` may then be empty: beside the operations they describe what the operations do to
-existing instances, as the app found it, for the merge, and a change the operations made already counts as applied.
-The capabilities document announces the form as `ifc_changes.ops_form` and the tools as `ifc_changes.ops_tools`.
+`define_type`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_element`, `create_spaces`,
+`set_properties`, `set_classification`, `assign`, `edit_element`, `transform_elements`, `delete_elements` and
+`set_site`. The server runs them with a copy of the app's own code (`opencde/ifcgraph/ops.py`), so that the same
+operations give the same model in the app and on the server, in the file's unit, with the proposer and the server in
+the owner histories that IfcOpenShell makes. What the type, wall, slab, roof, opening and element operations create
+is named `new-1`, `new-2` … in their order, and so is each room that `create_spaces` lists. An operation names an
+element or a type by its GlobalId, by its STEP id only where no GlobalId reaches it, or by such a ref, and a storey
+by its name. `create_wall` gives a wall its centre line as an `Axis` representation, and `create_spaces` makes the
+rooms the walls enclose, found as the report's `rooms` are, spaces (`IfcSpace`) of their storey, from the file as it
+stands at that step: each with the room's outline up to the next storey, `Qto_SpaceBaseQuantities`, and physical
+space boundaries to the walls along its edge and to the doors and windows in them; a door or window made later in
+such a wall bounds the space too. `changes` may then be empty: beside the operations they describe what the
+operations do to existing instances, as the app found it, for the merge, and a change the operations made already
+counts as applied. The capabilities document announces the form as `ifc_changes.ops_form` and the tools as
+`ifc_changes.ops_tools`.
 
 ```json
 {
@@ -613,6 +614,27 @@ The capabilities document announces the form as `ifc_changes.ops_form` and the t
   "changes": []
 }
 ```
+
+`define_type` makes a wall, slab, roof or covering type with its material layers (each with its material, thickness,
+the material's category and the layer's role), or a column, beam, footing, railing, door or window type with its
+material; a door type has its `operation` and a window type its `partitioning`, both with `width`, `height` and
+`lining_depth`, and IfcOpenShell draws their geometry. `create_wall`, `create_slab`, `create_roof`, `create_opening`
+and `create_element` take such a type as `type`: the element gets the type and its thickness from the layers, and a
+door or window the type's size and geometry, flush with the wall's left face or, with `side` `right`, its right
+face. `create_element` makes the building elements that have no tool of their own: columns, beams, members,
+footings, piles, coverings, railings, chimneys, shading devices, sanitary terminals, furniture and straight stairs,
+an `IfcStair` with its flight and a landing; `part_of` makes an element a part of another, and `host` names what a
+covering covers. `edit_element` changes a wall, a slab, an opening with its door or window, or a roof in place, so
+that it keeps its GlobalId. `create_wall` and `create_slab` take `load_bearing`, they and `create_roof` `status`,
+`assign` the material's `category`, a storey `description` and `long_name`, a listed room `number` and `room_type`,
+and `set_site` a `vertical_datum`; the map conversion is in metres with the file's unit as its Scale. After the
+operations the server, as the app does, joins the walls that meet, gives what was made or changed its base
+quantities and sets `IsExternal` from the topology; what it cannot do becomes a line in `notes`. `set_properties`
+holds a set named `Pset_` or `Qto_` to IfcOpenShell's template for the file's schema and refuses an unknown
+property, a value of the wrong type and a number with its unit; a set of the model's own may not begin so.
+`transform_elements` moves a door or window with its opening and never the site, the building or a storey. In IFC4X3
+a storey has its height in its placement alone and a space is `SPACE`, never `INTERNAL` or `EXTERNAL`
+(buildingSMART's rule IFC102).
 
 The trial applies the operations first, then the changes, and counts both in `change_count`. An operation that
 cannot be applied is a finding of kind `op` with its index (`op`) and `tool`, in the words of the app's code, which

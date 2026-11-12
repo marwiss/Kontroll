@@ -590,21 +590,21 @@ handlingerne i `ifc_changes.ops` og adressen som `ifc_changes.unreachable_url`.
 Et ændringssæt lavet med Dataspatiums skriveværktøjer bærer også deres operationer som `ops`, med `ops_form`
 `dataspatium-tools/1`, så nye elementer, sletninger og relationer kommer med i forslaget. Hver operation angiver sit
 værktøj som `tool` og har værktøjets argumenter ved siden af sig, længder i meter: `create_storeys_and_grid`,
-`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-`set_classification`, `assign`, `transform_elements`, `delete_elements` og `set_site`. Serveren kører dem med en kopi
-af appens egen kode (`opencde/ifcgraph/ops.py`), så de samme operationer giver den samme model i appen og på
-serveren, i filens enhed, med den, der foreslog, og serveren i de ejerhistorikker, som IfcOpenShell laver. Det, som
-væg-, dæk-, tag- og åbningsoperationerne skaber, hedder `new-1`, `new-2` … i deres rækkefølge, og det gør hvert rum,
-som `create_spaces` opregner, også. En operation angiver et element med dets GlobalId, med dets STEP-id kun, hvor
-intet GlobalId når det, eller med sådan en ref, og en etage med dens navn. `create_wall` giver en væg dens
-midterlinje som en `Axis`-repræsentation, og `create_spaces` gør de rum, væggene lukker om, fundet som rapportens
-`rooms` findes, til rum (`IfcSpace`) på deres etage, ud fra filen, som den er ved det trin: hvert med rummets omrids
-op til næste etage, `Qto_SpaceBaseQuantities` og fysiske rumafgrænsninger mod væggene langs dets kant og mod dørene
-og vinduerne i dem; en dør eller et vindue, der laves senere i sådan en væg, afgrænser også rummet.
-`changes` må da være tom: ved siden af operationerne beskriver ændringerne, hvad
-operationerne gør ved eksisterende instanser, som appen fandt det, til fletningen, og en ændring, som operationerne
-allerede har lavet, tæller som anvendt. Kapabilitetsdokumentet annoncerer formen som `ifc_changes.ops_form` og
-værktøjerne som `ifc_changes.ops_tools`.
+`define_type`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_element`, `create_spaces`,
+`set_properties`, `set_classification`, `assign`, `edit_element`, `transform_elements`, `delete_elements` og
+`set_site`. Serveren kører dem med en kopi af appens egen kode (`opencde/ifcgraph/ops.py`), så de samme operationer
+giver den samme model i appen og på serveren, i filens enhed, med den, der foreslog, og serveren i de
+ejerhistorikker, som IfcOpenShell laver. Det, som type-, væg-, dæk-, tag-, åbnings- og elementoperationerne skaber,
+hedder `new-1`, `new-2` … i deres rækkefølge, og det gør hvert rum, som `create_spaces` opregner, også. En operation
+angiver et element eller en type med dets GlobalId, med dets STEP-id kun, hvor intet GlobalId når det, eller med
+sådan en ref, og en etage med dens navn. `create_wall` giver en væg dens midterlinje som en `Axis`-repræsentation, og
+`create_spaces` gør de rum, væggene lukker om, fundet som rapportens `rooms` findes, til rum (`IfcSpace`) på deres
+etage, ud fra filen, som den er ved det trin: hvert med rummets omrids op til næste etage, `Qto_SpaceBaseQuantities`
+og fysiske rumafgrænsninger mod væggene langs dets kant og mod dørene og vinduerne i dem; en dør eller et vindue, der
+laves senere i sådan en væg, afgrænser også rummet. `changes` må da være tom: ved siden af operationerne beskriver
+ændringerne, hvad operationerne gør ved eksisterende instanser, som appen fandt det, til fletningen, og en ændring,
+som operationerne allerede har lavet, tæller som anvendt. Kapabilitetsdokumentet annoncerer formen som
+`ifc_changes.ops_form` og værktøjerne som `ifc_changes.ops_tools`.
 
 ```json
 {
@@ -619,6 +619,26 @@ værktøjerne som `ifc_changes.ops_tools`.
   "changes": []
 }
 ```
+
+`define_type` laver en vægtype, dæktype, tagtype eller beklædningstype med materialelag (hvert med materiale,
+tykkelse, materialets kategori og lagets rolle), eller en søjle-, bjælke-, fundament-, rækværks-, dør- eller
+vinduestype med materiale; en dørtype har sin åbningsmåde `operation` og en vinduestype sin opdeling `partitioning`,
+begge med `width`, `height` og `lining_depth`, og IfcOpenShell tegner deres geometri. `create_wall`, `create_slab`,
+`create_roof`, `create_opening` og `create_element` tager sådan en type som `type`: elementet får typen og sin
+tykkelse ud fra lagene, og en dør eller et vindue typens størrelse og geometri, i flugt med væggens venstre side
+eller, med `side` `right`, dens højre. `create_element` laver de bygningsdele, der ikke har et eget værktøj: søjler,
+bjælker, stænger, fundamenter, pæle, beklædninger, rækværker, skorstene, solafskærmning, sanitet, møbler og lige
+trapper, en `IfcStair` med trappeløb og repos; `part_of` gør et element til en del af et andet, og `host` angiver,
+hvad en beklædning dækker. `edit_element` ændrer en væg, et dæk, en åbning med dens dør eller vindue, eller et tag på
+stedet, så det beholder sit GlobalId. `create_wall` og `create_slab` tager `load_bearing`, de og `create_roof`
+`status`, `assign` materialets `category`, en etage `description` og `long_name`, et opregnet rum `number` og
+`room_type`, og `set_site` et `vertical_datum`; kortkonverteringen er i meter med filens enhed som Scale. Efter
+operationerne forbinder serveren, som appen gør, de vægge, der mødes, giver det, der er skabt eller ændret,
+basismængder og sætter `IsExternal` ud fra topologien; det, den ikke kan, bliver en linje i `notes`. `set_properties`
+prøver et sæt, der hedder `Pset_` eller `Qto_`, mod IfcOpenShells skabelon for filens skema og afviser en ukendt
+egenskab, en værdi af forkert type og et tal med sin enhed; et eget sæt må ikke begynde sådan. `transform_elements`
+flytter en dør eller et vindue med sin åbning og aldrig grunden, bygningen eller en etage. I IFC4X3 har en etage sin
+højde i sin placering alene, og et rum er `SPACE`, aldrig `INTERNAL` eller `EXTERNAL` (buildingSMARTs regel IFC102).
 
 Prøven anvender først operationerne og derefter ændringerne og tæller begge i `change_count`. En operation, der ikke
 kan anvendes, er en anmærkning af arten `op` med sit indeks (`op`) og `tool`, med ordene i appens kode, som kan

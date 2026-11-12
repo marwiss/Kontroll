@@ -144,16 +144,21 @@ grunden `role`. Intet værktøj godkender: det gør en person, i Dataspatium.
 - `open_changeset` (`document_id`, `version_index`, `null` for den seneste):
   åbner et ændringssæt på en version af et IFC-dokument og svarer med dets
   `changeset_id`, dets `base`, `expires_at` og `max_steps` (200).
-- Skriveværktøjerne `create_storeys_and_grid`, `create_wall`, `create_slab`,
-  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements` (med
-  `confirm: true`) og `set_site`: Dataspatiums egne, med dets skemaer uændrede og
-  `changeset_id` først. Et kald er én operation i ændringssættets `ops` i formen
+- Skriveværktøjerne `create_storeys_and_grid`, `define_type`, `create_wall`,
+  `create_slab`, `create_roof`, `create_opening`, `create_element`,
+  `create_spaces`, `set_properties`, `set_classification`, `assign`,
+  `edit_element`, `transform_elements`, `delete_elements` (med `confirm: true`) og
+  `set_site`: Dataspatiums egne, med dets skemaer uændrede og `changeset_id`
+  først. Et kald er én operation i ændringssættets `ops` i formen
   `dataspatium-tools/1`, præcis som appen laver den (standardværdierne udfyldt,
-  tallene prøvet, teksterne afkortet ved 200 tegn), eller appens fejl, som AI'en
-  retter. En væg, et dæk, et tag eller en åbning får en ref, `new-1`, `new-2` …,
-  og det gør hvert rum, som `create_spaces` opregner; et element nævnes ved sit
-  GlobalId, sit STEP-id eller en ref.
+  tallene prøvet, teksterne afkortet ved 200 tegn, et valgfrit felt kun når det er
+  angivet), eller appens fejl, som AI'en retter. En type, en væg, et dæk, et tag,
+  en åbning eller en bygningsdel får en ref, `new-1`, `new-2` …, og det gør hvert
+  rum, som `create_spaces` opregner; et element eller en type nævnes ved sit
+  GlobalId, sit STEP-id eller en ref. Beskrivelserne udelader appens læseværktøjer
+  `search_ifc_class` og `get_parameters`, som dette endepunkt ikke tilbyder, og
+  `set_properties` svarer med vejledningens råd om navnet på et eget sæt som
+  `note`.
 - `manage_changeset` (`action`: `list`, `remove_last` eller `clear`): trinnene
   med deres værktøjer, refs og beskrivelser; det sidste trin fjernet, med dets
   refs; eller ingen tilbage.

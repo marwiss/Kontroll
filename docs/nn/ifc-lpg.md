@@ -595,22 +595,22 @@ viser operasjonane i `ifc_changes.ops` og adressa som `ifc_changes.unreachable_u
 
 Eit endringssett laga med skriveverktøya til Dataspatium ber òg operasjonane deira som `ops`, med `ops_form`
 `dataspatium-tools/1`, slik at nye element, slettingar og relasjonar kjem med i forslaget. Kvar operasjon oppgjev
-verktøyet sitt som `tool` og har argumenta til verktøyet ved sida av seg, lengder i meter:
-`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`,
-`set_properties`, `set_classification`, `assign`, `transform_elements`, `delete_elements` og `set_site`. Serveren
-køyrer dei med ein kopi av den eigne koden til appen (`opencde/ifcgraph/ops.py`), slik at dei same operasjonane gjev
-den same modellen i appen og på serveren, i eininga til fila, med den som foreslo og serveren i eigarhistorikkane som
-IfcOpenShell lagar. Det som vegg-, dekke-, tak- og opningsoperasjonane skaper, heiter `new-1`, `new-2` … i
-rekkjefølgja si, og det gjer òg kvart rom som `create_spaces` listar opp. Ein operasjon oppgjev eit element med
-GlobalId-en sin, med STEP-id-en sin berre der ingen GlobalId når det, eller med ein slik ref, og ein etasje med namnet
-sitt. `create_wall` gjev ein vegg midtlinja si som ein `Axis`-representasjon, og `create_spaces` gjer romma veggane
-lukkar, funne slik `rooms` i rapporten blir funne, til rom (`IfcSpace`) i etasjen sin, ut frå fila slik ho er ved det
-steget: kvart med omrisset til rommet opp til neste etasje, `Qto_SpaceBaseQuantities` og fysiske romavgrensingar mot
-veggane langs kanten og mot dørene og vindauga i dei; ei dør eller eit vindauge som blir laga seinare i ein slik vegg,
-avgrensar òg rommet. `changes` kan då vere tom: ved sida av operasjonane skildrar
-endringane kva operasjonane gjer med instansar som finst, slik appen fann det, for samanslåinga, og ei endring som
-operasjonane alt har gjort, tel som brukt. Kapabilitetsdokumentet kunngjer forma som `ifc_changes.ops_form` og
-verktøya som `ifc_changes.ops_tools`.
+verktøyet sitt som `tool` og har argumenta til verktøyet ved sida av seg, lengder i meter: `create_storeys_and_grid`,
+`define_type`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_element`, `create_spaces`,
+`set_properties`, `set_classification`, `assign`, `edit_element`, `transform_elements`, `delete_elements` og
+`set_site`. Serveren køyrer dei med ein kopi av den eigne koden til appen (`opencde/ifcgraph/ops.py`), slik at dei
+same operasjonane gjev den same modellen i appen og på serveren, i eininga til fila, med den som foreslo og serveren i
+eigarhistorikkane som IfcOpenShell lagar. Det som type-, vegg-, dekke-, tak-, opnings- og elementoperasjonane skaper,
+heiter `new-1`, `new-2` … i rekkjefølgja si, og det gjer òg kvart rom som `create_spaces` listar opp. Ein operasjon
+oppgjev eit element eller ein type med GlobalId-en sin, med STEP-id-en sin berre der ingen GlobalId når det, eller med
+ein slik ref, og ein etasje med namnet sitt. `create_wall` gjev ein vegg midtlinja si som ein `Axis`-representasjon,
+og `create_spaces` gjer romma veggane lukkar, funne slik `rooms` i rapporten blir funne, til rom (`IfcSpace`) i
+etasjen sin, ut frå fila slik ho er ved det steget: kvart med omrisset til rommet opp til neste etasje,
+`Qto_SpaceBaseQuantities` og fysiske romavgrensingar mot veggane langs kanten og mot dørene og vindauga i dei; ei dør
+eller eit vindauge som blir laga seinare i ein slik vegg, avgrensar òg rommet. `changes` kan då vere tom: ved sida av
+operasjonane skildrar endringane kva operasjonane gjer med instansar som finst, slik appen fann det, for samanslåinga,
+og ei endring som operasjonane alt har gjort, tel som brukt. Kapabilitetsdokumentet kunngjer forma som
+`ifc_changes.ops_form` og verktøya som `ifc_changes.ops_tools`.
 
 ```json
 {
@@ -625,6 +625,27 @@ verktøya som `ifc_changes.ops_tools`.
   "changes": []
 }
 ```
+
+`define_type` lagar ein veggtype, dekketype, taktype eller kledningstype med materialsjikt (kvart med materiale,
+tjukn, kategorien til materialet og rolla til sjiktet), eller ein søyle-, bjelke-, fundament-, rekkverks-, dør- eller
+vindaugetype med materiale; ein dørtype har opningsmåten sin `operation` og ein vindaugetype inndelinga si
+`partitioning`, begge med `width`, `height` og `lining_depth`, og IfcOpenShell teiknar geometrien deira.
+`create_wall`, `create_slab`, `create_roof`, `create_opening` og `create_element` tek ein slik type som `type`:
+elementet får typen og tjukna si frå sjikta, og ei dør eller eit vindauge storleiken og geometrien til typen, i liv
+med venstre sida av veggen eller, med `side` `right`, den høgre. `create_element` lagar bygningsdelane som ikkje har
+eit eige verktøy: søyler, bjelkar, stavar, fundament, pelar, kledningar, rekkverk, skorsteinar, solskjerming,
+sanitærutstyr, møblar og rette trapper, ein `IfcStair` med trappeløp og repos; `part_of` gjer eit element til ein del
+av eit anna, og `host` oppgjev kva ein kledning dekkjer. `edit_element` endrar ein vegg, eit dekke, ei opning med døra
+eller vindauget sitt, eller eit tak på staden, slik at det held på GlobalId-en sin. `create_wall` og `create_slab` tek
+`load_bearing`, dei og `create_roof` `status`, `assign` `category` for materialet, ein etasje `description` og
+`long_name`, eit oppført rom `number` og `room_type`, og `set_site` eit `vertical_datum`; kartkonverteringa er i meter
+med eininga til fila som Scale. Etter operasjonane koplar serveren, slik appen gjer, saman veggane som møtest, gjev
+det som er laga eller endra, basismengder og set `IsExternal` ut frå topologien; det han ikkje kan gjere, vert ei
+linje i `notes`. `set_properties` prøver eit sett som heiter `Pset_` eller `Qto_`, mot malen til IfcOpenShell for
+skjemaet til fila og avviser ein ukjend eigenskap, ein verdi av feil type og eit tal med eininga si; eit eige sett kan
+ikkje byrje slik. `transform_elements` flyttar ei dør eller eit vindauge med opninga si og aldri tomta, bygningen
+eller ein etasje. I IFC4X3 har ein etasje høgda si i plasseringa åleine, og eit rom er `SPACE`, aldri `INTERNAL` eller
+`EXTERNAL` (regelen IFC102 til buildingSMART).
 
 Prøven bruker først operasjonane og så endringane, og tel begge i `change_count`. Ein operasjon som ikkje kan
 brukast, er ein merknad av slaget `op` med indeksen sin (`op`) og `tool`, med orda i koden til appen, som kan sitere

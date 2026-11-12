@@ -144,16 +144,21 @@ grunnen `role`. Ingen verktøy godkjenner: det gjer ein person, i Dataspatium.
 - `open_changeset` (`document_id`, `version_index`, `null` for den siste): opnar
   eit endringssett på ein versjon av eit IFC-dokument og svarar med
   `changeset_id`, `base`, `expires_at` og `max_steps` (200).
-- Skriveverktøya `create_storeys_and_grid`, `create_wall`, `create_slab`,
-  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements` (med
-  `confirm: true`) og `set_site`: dei Dataspatium sjølv har, med skjemaa uendra og
-  `changeset_id` først. Eit kall er éin operasjon i `ops` i endringssettet i forma
+- Skriveverktøya `create_storeys_and_grid`, `define_type`, `create_wall`,
+  `create_slab`, `create_roof`, `create_opening`, `create_element`,
+  `create_spaces`, `set_properties`, `set_classification`, `assign`,
+  `edit_element`, `transform_elements`, `delete_elements` (med `confirm: true`) og
+  `set_site`: dei Dataspatium sjølv har, med skjemaa uendra og `changeset_id`
+  først. Eit kall er éin operasjon i `ops` i endringssettet i forma
   `dataspatium-tools/1`, nøyaktig slik appen lagar han (standardverdiane fylte
-  inn, tala prøvde, tekstane kutta ved 200 teikn), eller feilen til appen, som
-  AI-en rettar. Ein vegg, eit dekke, eit tak eller ei opning får ein ref, `new-1`,
-  `new-2` …, og det gjer kvart rom som `create_spaces` listar opp; eit element
-  vert nemnt ved GlobalId-en sin, STEP-id-en sin eller ein ref.
+  inn, tala prøvde, tekstane kutta ved 200 teikn, eit valfritt felt berre når det
+  er oppgjeve), eller feilen til appen, som AI-en rettar. Ein type, ein vegg, eit
+  dekke, eit tak, ei opning eller ein bygningsdel får ein ref, `new-1`, `new-2` …,
+  og det gjer kvart rom som `create_spaces` listar opp; eit element eller ein type
+  vert nemnt ved GlobalId-en sin, STEP-id-en sin eller ein ref. Skildringane
+  utelèt leseverktøya `search_ifc_class` og `get_parameters` i appen, som dette
+  endepunktet ikkje tilbyr, og `set_properties` svarar med rådet frå rettleiinga
+  om namnet på eit eige sett som `note`.
 - `manage_changeset` (`action`: `list`, `remove_last` eller `clear`): stega med
   verktøya, refs og skildringane sine; det siste steget fjerna, med refs; eller
   ingen att.

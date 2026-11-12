@@ -600,23 +600,24 @@ versiolla ei ole muunnettua mallia, ja `409`, kun mikään siinä ei ole ulottum
 luettelee toiminnot kentässä `ifc_changes.ops` ja osoitteen kentässä `ifc_changes.unreachable_url`.
 
 Dataspatiumin kirjoitustyökaluilla tehty muutosjoukko kantaa myös niiden toiminnot kentässä `ops`, ja `ops_form` on
-`dataspatium-tools/1`, jotta uudet elementit, poistot ja suhteet tulevat mukaan ehdotukseen. Jokainen toiminto
-nimeää työkalunsa kentässä `tool` ja pitää työkalun argumentit rinnallaan, pituudet metreinä:
-`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`,
-`set_properties`, `set_classification`, `assign`, `transform_elements`, `delete_elements` ja `set_site`. Palvelin
-ajaa ne kopiolla sovelluksen omasta koodista (`opencde/ifcgraph/ops.py`), joten samat toiminnot antavat saman mallin
-sovelluksessa ja palvelimella, tiedoston yksikössä, ja IfcOpenShellin tekemissä omistajahistorioissa ovat ehdottaja ja
-palvelin. Seinä-, laatta-, katto- ja aukkotoimintojen luomat nimetään `new-1`, `new-2` … niiden järjestyksessä, ja
-niin nimetään myös jokainen huone, jonka `create_spaces` luettelee. Toiminto nimeää elementin sen GlobalId:llä,
-STEP-tunnisteella vain, kun mikään GlobalId ei sitä tavoita, tai tällaisella ref-tunnuksella, ja kerroksen sen
-nimellä. `create_wall` antaa seinälle sen keskilinjan `Axis`-esityksenä, ja `create_spaces` tekee seinien rajaamista
-huoneista, jotka löydetään samoin kuin raportin `rooms`, kerroksensa tiloja (`IfcSpace`) tiedostosta sellaisena kuin
-se on tuossa vaiheessa: kukin saa huoneen ääriviivan seuraavaan kerrokseen asti, `Qto_SpaceBaseQuantities`-suureet
-ja fyysiset tilarajat reunansa seiniin ja niissä oleviin oviin ja ikkunoihin; myöhemmin tällaiseen seinään tehty ovi
-tai ikkuna rajaa myös tilaa. `changes` saa silloin olla tyhjä: toimintojen rinnalla muutokset
-kuvaavat, mitä toiminnot tekevät olemassa oleville instansseille, sellaisena kuin sovellus sen havaitsi,
-yhdistämistä varten, ja muutos, jonka toiminnot jo tekivät, lasketaan sovelletuksi. Kyvykkyysdokumentti ilmoittaa
-muodon nimellä `ifc_changes.ops_form` ja työkalut nimellä `ifc_changes.ops_tools`.
+`dataspatium-tools/1`, jotta uudet elementit, poistot ja suhteet tulevat mukaan ehdotukseen. Jokainen toiminto nimeää
+työkalunsa kentässä `tool` ja pitää työkalun argumentit rinnallaan, pituudet metreinä: `create_storeys_and_grid`,
+`define_type`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_element`, `create_spaces`,
+`set_properties`, `set_classification`, `assign`, `edit_element`, `transform_elements`, `delete_elements` ja
+`set_site`. Palvelin ajaa ne kopiolla sovelluksen omasta koodista (`opencde/ifcgraph/ops.py`), joten samat toiminnot
+antavat saman mallin sovelluksessa ja palvelimella, tiedoston yksikössä, ja IfcOpenShellin tekemissä
+omistajahistorioissa ovat ehdottaja ja palvelin. Tyyppi-, seinä-, laatta-, katto-, aukko- ja elementtitoimintojen
+luomat nimetään `new-1`, `new-2` … niiden järjestyksessä, ja niin nimetään myös jokainen huone, jonka `create_spaces`
+luettelee. Toiminto nimeää elementin tai tyypin sen GlobalId:llä, STEP-tunnisteella vain, kun mikään GlobalId ei sitä
+tavoita, tai tällaisella ref-tunnuksella, ja kerroksen sen nimellä. `create_wall` antaa seinälle sen keskilinjan
+`Axis`-esityksenä, ja `create_spaces` tekee seinien rajaamista huoneista, jotka löydetään samoin kuin raportin
+`rooms`, kerroksensa tiloja (`IfcSpace`) tiedostosta sellaisena kuin se on tuossa vaiheessa: kukin saa huoneen
+ääriviivan seuraavaan kerrokseen asti, `Qto_SpaceBaseQuantities`-suureet ja fyysiset tilarajat reunansa seiniin ja
+niissä oleviin oviin ja ikkunoihin; myöhemmin tällaiseen seinään tehty ovi tai ikkuna rajaa myös tilaa. `changes` saa
+silloin olla tyhjä: toimintojen rinnalla muutokset kuvaavat, mitä toiminnot tekevät olemassa oleville instansseille,
+sellaisena kuin sovellus sen havaitsi, yhdistämistä varten, ja muutos, jonka toiminnot jo tekivät, lasketaan
+sovelletuksi. Kyvykkyysdokumentti ilmoittaa muodon nimellä `ifc_changes.ops_form` ja työkalut nimellä
+`ifc_changes.ops_tools`.
 
 ```json
 {
@@ -631,6 +632,27 @@ muodon nimellä `ifc_changes.ops_form` ja työkalut nimellä `ifc_changes.ops_to
   "changes": []
 }
 ```
+
+`define_type` tekee seinä-, laatta-, katto- tai verhoustyypin materiaalikerroksineen (kullakin materiaali, paksuus,
+materiaalin luokka ja kerroksen rooli) tai pilari-, palkki-, antura-, kaide-, ovi- tai ikkunatyypin materiaaleineen;
+ovityypillä on avautumistapansa `operation` ja ikkunatyypillä jakonsa `partitioning`, kummallakin `width`, `height` ja
+`lining_depth`, ja IfcOpenShell piirtää niiden geometrian. `create_wall`, `create_slab`, `create_roof`,
+`create_opening` ja `create_element` ottavat tällaisen tyypin kenttään `type`: elementti saa tyypin ja paksuutensa
+kerroksista, ja ovi tai ikkuna tyypin koon ja geometrian, seinän vasemman pinnan tasossa tai, kun `side` on `right`,
+oikean. `create_element` tekee rakennusosat, joilla ei ole omaa työkalua: pilarit, palkit, sauvat, anturat, paalut,
+verhoukset, kaiteet, savupiiput, aurinkosuojat, saniteettikalusteet, huonekalut ja suorat portaat, `IfcStair`
+porrassyöksyineen ja tasanteineen; `part_of` tekee elementistä toisen osan, ja `host` nimeää, minkä verhous peittää.
+`edit_element` muuttaa seinää, laattaa, aukkoa ovineen tai ikkunoineen tai kattoa paikallaan, niin että se säilyttää
+GlobalId-tunnuksensa. `create_wall` ja `create_slab` ottavat `load_bearing`-arvon, ne ja `create_roof` `status`-arvon,
+`assign` materiaalin luokan `category`, kerros kentät `description` ja `long_name`, luetteloitu huone kentät `number`
+ja `room_type`, ja `set_site` korkeusjärjestelmän `vertical_datum`; karttamuunnos on metreinä ja sen Scale tiedoston
+yksikkö. Toimintojen jälkeen palvelin, kuten sovelluskin, liittää kohtaavat seinät, antaa luoduille ja muutetuille
+perussuureet ja asettaa `IsExternal`-arvon topologiasta; minkä se ei voi tehdä, tulee riviksi kenttään `notes`.
+`set_properties` tarkistaa joukon, jonka nimi alkaa `Pset_` tai `Qto_`, IfcOpenShellin tiedoston skeeman pohjaa vasten
+ja hylkää tuntemattoman ominaisuuden, väärän tyyppisen arvon ja luvun yksikköineen; mallin oma joukko ei saa alkaa
+niin. `transform_elements` siirtää oven tai ikkunan aukkonsa mukana eikä koskaan tonttia, rakennusta tai kerrosta.
+IFC4X3:ssa kerroksen korkeus on vain sen sijoituksessa, ja tila on `SPACE`, ei koskaan `INTERNAL` tai `EXTERNAL`
+(buildingSMARTin sääntö IFC102).
 
 Kokeilu soveltaa ensin toiminnot ja sitten muutokset ja laskee molemmat kenttään `change_count`. Toiminto, jota ei
 voida soveltaa, on lajin `op` huomautus, jossa on sen indeksi (`op`) ja `tool`, sovelluksen koodin sanoin, jotka

@@ -144,16 +144,21 @@ No tool approves: a person does, in Dataspatium.
 - `open_changeset` (`document_id`, `version_index`, `null` for the latest):
   opens a change set on a version of an IFC document and answers its
   `changeset_id`, its `base`, `expires_at` and `max_steps` (200).
-- The write tools `create_storeys_and_grid`, `create_wall`, `create_slab`,
-  `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements` (with
-  `confirm: true`) and `set_site`: Dataspatium's own, with its schemas unchanged
-  and `changeset_id` first. A call is one operation of the change set's `ops` in
-  the form `dataspatium-tools/1`, exactly as the app makes it (the defaults filled
-  in, the numbers checked, the texts cut at 200 characters), or the app's error,
-  which the AI mends. A wall, slab, roof or opening gets a ref, `new-1`,
-  `new-2` …, and so does each room that `create_spaces` lists; an element is named
-  by its GlobalId, its STEP id or a ref.
+- The write tools `create_storeys_and_grid`, `define_type`, `create_wall`,
+  `create_slab`, `create_roof`, `create_opening`, `create_element`,
+  `create_spaces`, `set_properties`, `set_classification`, `assign`,
+  `edit_element`, `transform_elements`, `delete_elements` (with `confirm: true`)
+  and `set_site`: Dataspatium's own, with its schemas unchanged and `changeset_id`
+  first. A call is one operation of the change set's `ops` in the form
+  `dataspatium-tools/1`, exactly as the app makes it (the defaults filled in, the
+  numbers checked, the texts cut at 200 characters, an optional field only when it
+  is given), or the app's error, which the AI mends. A type, wall, slab, roof,
+  opening or building element gets a ref, `new-1`, `new-2` …, and so does each
+  room that `create_spaces` lists; an element or a type is named by its GlobalId,
+  its STEP id or a ref. The descriptions leave out the app's read tools
+  `search_ifc_class` and `get_parameters`, which this endpoint does not offer, and
+  `set_properties` answers the guidance's advice on the name of a set of the
+  model's own as `note`.
 - `manage_changeset` (`action`: `list`, `remove_last` or `clear`): the steps with
   their tools, refs and descriptions; the last step removed, with its refs; or
   none left.
