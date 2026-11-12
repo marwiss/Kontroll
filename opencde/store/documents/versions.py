@@ -90,6 +90,52 @@ def _record(row: dict[str, Any]) -> VersionRecord:
     )
 
 
+def _validation(row: dict[str, Any]) -> Validation:
+    """A version's check as both stores read it: the ``Validation``'s fields, and the graph check's as ``graph_*``."""
+    validation = Validation(
+        state=str(row["state"]),
+        issue_count=None if row["issue_count"] is None else int(row["issue_count"]),
+        error_count=None if row["error_count"] is None else int(row["error_count"]),
+        truncated=bool(row["truncated"]),
+        checked_at=row["checked_at"],
+        ruleset=row["ruleset"],
+        issues=unpack_report(row["report"]),
+        checks=json.loads(row["checks"]) if row["checks"] else [],
+        rooms=json.loads(row["rooms"]) if row["rooms"] else None,
+    )
+    return with_graph_findings(
+        validation,
+        issue_count=row["graph_issue_count"],
+        error_count=row["graph_error_count"],
+        ruleset=row["graph_ruleset"],
+        issues=unpack_report(row["graph_report"]),
+    )
+
+
+def _change(row: dict[str, Any]) -> dict[str, Any]:
+    """A version of ``versions_since``: who made it, and its change set unpacked, or none for a whole file."""
+    return {
+        "version_index": int(row["version_index"]),
+        "author": row["author"],
+        "approved_by": row["approved_by"],
+        "change_set_id": row["change_set_id"],
+        "changes": unpack_report(row["change_set"]) if row["change_set"] else None,
+    }
+
+
+def _change_set(row: dict[str, Any], document_id: str) -> dict[str, Any] | None:
+    """The change set a version was approved from, unpacked, with the version it was built on; None without one."""
+    if not row["change_set"]:
+        return None
+    return {
+        "change_set_id": row["change_set_id"],
+        "base": {"document_id": document_id, "version_index": int(row["parent"])},
+        "proposed_by": row["author"],
+        "approved_by": row["approved_by"],
+        "changes": unpack_report(row["change_set"]),
+    }
+
+
 class DocumentRepository:
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
@@ -190,26 +236,7 @@ class DocumentRepository:
             version_index=version_index,
             with_issues=with_issues,
         )
-        if row is None:
-            return None
-        validation = Validation(
-            state=str(row["state"]),
-            issue_count=None if row["issue_count"] is None else int(row["issue_count"]),
-            error_count=None if row["error_count"] is None else int(row["error_count"]),
-            truncated=bool(row["truncated"]),
-            checked_at=row["checked_at"],
-            ruleset=row["ruleset"],
-            issues=unpack_report(row["report"]),
-            checks=json.loads(row["checks"]) if row["checks"] else [],
-            rooms=json.loads(row["rooms"]) if row["rooms"] else None,
-        )
-        return with_graph_findings(
-            validation,
-            issue_count=row["graph_issue_count"],
-            error_count=row["graph_error_count"],
-            ruleset=row["graph_ruleset"],
-            issues=unpack_report(row["graph_report"]),
-        )
+        return _validation(row) if row else None
 
     async def create_version(
         self,
@@ -342,16 +369,7 @@ class DocumentRepository:
             since=since,
             until=until,
         )
-        return [
-            {
-                "version_index": int(row["version_index"]),
-                "author": row["author"],
-                "approved_by": row["approved_by"],
-                "change_set_id": row["change_set_id"],
-                "changes": unpack_report(row["change_set"]) if row["change_set"] else None,
-            }
-            for row in rows
-        ]
+        return [_change(row) for row in rows]
 
     async def change_set(self, *, user_id: str, document_id: str, version_index: int) -> dict[str, Any] | None:
         """The change set a version was approved from (ADR 0021), unpacked; None when it has none."""
@@ -366,15 +384,7 @@ class DocumentRepository:
             document_id=document_id,
             version_index=version_index,
         )
-        if row is None or not row["change_set"]:
-            return None
-        return {
-            "change_set_id": row["change_set_id"],
-            "base": {"document_id": document_id, "version_index": int(row["parent"])},
-            "proposed_by": row["author"],
-            "approved_by": row["approved_by"],
-            "changes": unpack_report(row["change_set"]),
-        }
+        return _change_set(row, document_id) if row else None
 
     async def publication(self, *, user_id: str, document_id: str, version_index: int) -> dict[str, Any] | None:
         """The publication of a version (F9 a), or None while it is not published."""
