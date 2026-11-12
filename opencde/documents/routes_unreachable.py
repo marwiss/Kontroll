@@ -10,21 +10,17 @@ own and the version it came from keeps the instances.
 
 from __future__ import annotations
 
-import json
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from opencde.bcf.access import ProjectCtx
-from opencde.bcf.schemas import BimSnippet, TopicPOST
 from opencde.bcf.topic_access import TopicsDep
 from opencde.deps import ProjectsDep, SettingsDep, StorageDep
-from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, SNIPPET_TYPE, problems
+from opencde.documents.changes import MAX_CHANGES, SCHEMA_PATH, problems
+from opencde.documents.proposing import Proposing
 from opencde.ids import is_uuid
 from opencde.ifcgraph.service import IfcGraphDep
-from opencde.storage import make_key
 from opencde.store.bcf.topic_links import LinksDep
-from opencde.store.bcf.topics import validate_against_extensions
 from opencde.timeutil import now_iso
 
 TAG = "IFC change sets (extension)"
@@ -93,39 +89,20 @@ async def unreachable_proposal(
     found = problems(change_set)
     if found:  # the server's own change set: a mistake here is the server's, never the caller's
         raise HTTPException(500, "The proposed change set is not one: " + "; ".join(found))
-    extensions = await projects.extensions(ctx.project_id) or {}
-    title = f"Remove what no GlobalId reaches in {model.get('file_name') or 'the model'}, version {body.version_index}"
-    topic_body = TopicPOST(
-        title=title[:200],
+    proposing = Proposing(
+        topics=topics, links=links, projects=projects, storage=storage, ifcgraph=ifcgraph, public_url=base_url
+    )
+    topic = await proposing.topic(
+        project_id=ctx.project_id,
+        author=ctx.username,
+        title=f"Remove what no GlobalId reaches in {model.get('file_name') or 'the model'}, version {body.version_index}",
         description=(
             f"{len(steps)} instances of version {body.version_index} that nothing with a GlobalId reaches, forward "
             "or backward, each deleted by its STEP id. Proposed by the server from the report's check graph; the "
             "version they came from keeps them."
         ),
-        topic_type="Request" if "Request" in (extensions.get("topic_type") or []) else None,
-        topic_status="Open" if "Open" in (extensions.get("topic_status") or []) else None,
-        bim_snippet=BimSnippet(
-            snippet_type=SNIPPET_TYPE,
-            is_external=False,
-            reference="ifc-unreachable.json",
-            reference_schema=f"{base_url}{SCHEMA_PATH}",
-        ),
-    )
-    validate_against_extensions(topic_body, extensions)
-    topic = await topics.create(project_id=ctx.project_id, author=ctx.username, body=topic_body)
-    key = make_key("snippets", topic.guid, "bin")
-    data = json.dumps(change_set, separators=(",", ":")).encode("utf-8")
-    storage.write_bytes(key, data)
-    await links.set_snippet(
-        project_id=ctx.project_id,
-        topic_guid=topic.guid,
-        author=ctx.username,
-        storage_key=key,
-        filename="ifc-unreachable.json",
-        size=len(data),
-    )
-    await ifcgraph.schedule_proposal(
-        project_id=ctx.project_id, topic_guid=topic.guid, snippet_key=key, author=ctx.username
+        change_set=change_set,
+        reference="ifc-unreachable.json",
     )
     return IfcUnreachableProposal(
         topic_guid=topic.guid,

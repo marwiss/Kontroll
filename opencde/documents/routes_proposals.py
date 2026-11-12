@@ -54,23 +54,26 @@ class IfcProposalEntry(BaseModel):
     approve_url: str = Field(description="Its approval: `POST …/ifc-proposal/approve`, for those who may.")
 
 
-def _entry(base_url: str, row: dict[str, Any]) -> IfcProposalEntry:
-    """A row of the listing from the repository's columns; ``base_url`` is the server's, without a trailing slash."""
-    proposal_url = f"{base_url}/bcf/3.0/projects/{row['project_id']}/topics/{row['topic_guid']}/ifc-proposal"
+def proposal_row(row: dict[str, Any]) -> dict[str, Any]:
+    """A row of the listing from the repository's columns, without the addresses; the MCP endpoint's too."""
     description = row.get("description")
-    return IfcProposalEntry(
-        topic_guid=str(row["topic_guid"]),
-        title=str(row["title"]),
-        description=str(description)[:MAX_DESCRIPTION] if description else None,
-        state=str(row["state"]),
-        base_version_index=int(row["base_version_index"]),
-        change_count=None if row.get("change_count") is None else int(row["change_count"]),
-        author=str(row["author"]),
-        checked_at=row.get("checked_at"),
-        version_index=None if row.get("version_index") is None else int(row["version_index"]),
-        proposal_url=proposal_url,
-        approve_url=proposal_url + "/approve",
-    )
+    return {
+        "topic_guid": str(row["topic_guid"]),
+        "title": str(row["title"]),
+        "description": str(description)[:MAX_DESCRIPTION] if description else None,
+        "state": str(row["state"]),
+        "base_version_index": int(row["base_version_index"]),
+        "change_count": None if row.get("change_count") is None else int(row["change_count"]),
+        "author": str(row["author"]),
+        "checked_at": row.get("checked_at"),
+        "version_index": None if row.get("version_index") is None else int(row["version_index"]),
+    }
+
+
+def _entry(base_url: str, row: dict[str, Any]) -> IfcProposalEntry:
+    """A row of the listing with its addresses; ``base_url`` is the server's, without a trailing slash."""
+    proposal_url = f"{base_url}/bcf/3.0/projects/{row['project_id']}/topics/{row['topic_guid']}/ifc-proposal"
+    return IfcProposalEntry(**proposal_row(row), proposal_url=proposal_url, approve_url=proposal_url + "/approve")
 
 
 @router.get(

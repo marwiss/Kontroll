@@ -15,7 +15,7 @@ from typing import Any
 import pytest
 from ifc_lpg.validation import pack_report, unpack_report
 
-from opencde.bcf.routes_proposals import _report as proposal_report
+from opencde.bcf.routes_proposals import proposal_report
 from opencde.documents.routes_precheck import _report as precheck_report
 from opencde.documents.validation import Validation, report
 from opencde.ids import new_id

@@ -134,7 +134,8 @@ class IfcProposalReport(BaseModel):
     )
 
 
-def _report(node: dict[str, Any]) -> IfcProposalReport:
+def proposal_report(node: dict[str, Any]) -> IfcProposalReport:
+    """The trial as ``GET …/ifc-proposal`` gives it, from the service's node; the MCP endpoint's too."""
     base = None
     if node.get("base_document_id"):
         base = IfcProposalBase(document_id=str(node["base_document_id"]), version_index=int(node["base_version_index"]))
@@ -197,7 +198,7 @@ async def proposal_get(topic: TopicCtx, ifcgraph: IfcGraphDep) -> IfcProposalRep
     node = await ifcgraph.proposal(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid)
     if node is None:
         raise HTTPException(404, "This topic has no change set that was tried")
-    return _report(node)
+    return proposal_report(node)
 
 
 def _copy_hashed(storage: LocalStorage, source: Path, key: str) -> tuple[int, str]:
