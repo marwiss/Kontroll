@@ -21,8 +21,8 @@ from pydantic import Field, StringConstraints
 from opencde.documents.routes_clash import IfcClashPair, IfcClashRequest, check_report, clash_service, start_check
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.mcp.registry import MAX_ANSWER_BYTES, Arguments, Tool, ToolContext, member_project, refusing, text
-from opencde.store.jobs.clashes import ClashRepository
 from opencde.store.jobs.conversions import STATE_QUEUED, STATE_RUNNING
+from opencde.store.jobs.postgres import clash_store
 
 MAX_CLASHES = 200
 MAX_WAIT_SECONDS = 20
@@ -94,7 +94,7 @@ async def start_clash_check(context: ToolContext, arguments: StartClashCheckArgu
         }
     )
     async with _STARTING:  # the count and the queueing at once, so that calls side by side count each other
-        clashes = ClashRepository(context.graph)
+        clashes = clash_store(context.graph, context.postgres)
         started = await clashes.open_count(user_id=context.principal.user_id, author=context.principal.username)
         if started >= MAX_OPEN_CHECKS:  # in all the user's projects
             await context.deny(

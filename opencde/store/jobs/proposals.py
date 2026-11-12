@@ -17,7 +17,7 @@ from typing import Annotated, Any
 
 from fastapi import Depends
 
-from opencde.deps import GraphDep
+from opencde.deps import GraphDep, PostgresDep
 from opencde.graph.graph import Graph, Tx
 from opencde.odata import Compiled, Field
 from opencde.store.protocols import ProposalStore
@@ -193,8 +193,10 @@ class ProposalRepository:
         )
 
 
-def proposal_repository(graph: GraphDep) -> ProposalStore:
-    return ProposalRepository(graph)
+def proposal_repository(graph: GraphDep, postgres: PostgresDep) -> ProposalStore:
+    from opencde.store.jobs.postgres import proposal_store  # it imports this module
+
+    return proposal_store(graph, postgres)
 
 
 ProposalsDep = Annotated[ProposalStore, Depends(proposal_repository)]

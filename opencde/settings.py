@@ -231,7 +231,9 @@ class Settings(BaseSettings):
     store_url: str | None = Field(
         None,
         description="PostgreSQL for the server's own data instead of a graph (ADR 0029), as "
-        "postgresql://user@host:5432/database without the password. Only the accounts have followed so far, so it is "
+        "postgresql://user@host:5432/database without the password. The accounts, OAuth2, the Documents API, BCF and "
+        "the jobs have followed; the audit and request logs, the sign-in throttle, the administration's figures, the "
+        "command line, the seed, the backup and some of the IFC-DB service's reads are still the graph's, so it is "
         "accepted in the test environment alone; it excludes OPENCDE_STORE_GRAPH_URI.",
     )
     store_password: SecretStr = SecretStr("")
@@ -528,7 +530,7 @@ class Settings(BaseSettings):
         if self.store_graph_uri is not None:
             raise ValueError("OPENCDE_STORE_URL and OPENCDE_STORE_GRAPH_URI exclude each other: one store holds it all")
         if self.environment != "test":
-            raise ValueError("OPENCDE_STORE_URL is not supported yet: only the accounts have followed to PostgreSQL")
+            raise ValueError("OPENCDE_STORE_URL is not supported yet: not all of the server's data has followed")
         return self
 
     @field_validator("workcopy_graph_uri")

@@ -58,19 +58,14 @@ from opencde.postgres.database import Postgres
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
 from opencde.store.accounts.postgres import team_store
-from opencde.store.jobs.clashes import ClashRepository
-from opencde.store.jobs.conversions import (
-    FACTS,
-    SPATIAL_FACTS,
-    STATE_DONE,
-    STATE_FAILED,
-    STATE_QUEUED,
-    STATE_RUNNING,
-    ConversionRepository,
+from opencde.store.jobs.conversions import FACTS, SPATIAL_FACTS, STATE_DONE, STATE_FAILED, STATE_QUEUED, STATE_RUNNING
+from opencde.store.jobs.postgres import (
+    clash_store,
+    conversion_store,
+    merge_store,
+    proposal_store,
+    validation_store,
 )
-from opencde.store.jobs.merges import MergeRepository
-from opencde.store.jobs.proposals import ProposalRepository
-from opencde.store.jobs.validations import ValidationRepository
 from opencde.store.protocols import ClashStore, ConversionStore, MergeStore, ProposalStore, ValidationStore
 from opencde.timeutil import later_iso, now_iso
 
@@ -191,11 +186,11 @@ class IfcGraphService:
         self.graph = graph  # IFC-DB's models: the library's calls alone run here (ADR 0027)
         self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a): every statement
         self.postgres = postgres  # the areas of the server's own data that have followed to PostgreSQL (ADR 0029)
-        self.conversions: ConversionStore = ConversionRepository(self.store)
-        self.validations: ValidationStore = ValidationRepository(self.store)
-        self.proposals: ProposalStore = ProposalRepository(self.store)
-        self.clashes: ClashStore = ClashRepository(self.store)
-        self.merges: MergeStore = MergeRepository(self.store)
+        self.conversions: ConversionStore = conversion_store(self.store, postgres)
+        self.validations: ValidationStore = validation_store(self.store, postgres)
+        self.proposals: ProposalStore = proposal_store(self.store, postgres)
+        self.clashes: ClashStore = clash_store(self.store, postgres)
+        self.merges: MergeStore = merge_store(self.store, postgres)
         self.storage = storage
         self.settings = settings
         self.bsdd: BsddClient | None = None  # made on the first check against bSDD; its cache lives on (OB-42)

@@ -43,8 +43,9 @@ from opencde.store.bcf.postgres import PostgresTopicLinkRepository, PostgresTopi
 from opencde.store.bcf.topic_links import TopicLinkRepository
 from opencde.store.bcf.topics import TopicRepository
 from opencde.store.documents.postgres import document_store
-from opencde.store.jobs.drafts import MAX_OPEN, MAX_STEPS, ChangeSetDraft, ChangeSetDraftRepository, DraftRefused
-from opencde.store.protocols import TopicLinkStore, TopicStore
+from opencde.store.jobs.drafts import MAX_OPEN, MAX_STEPS, ChangeSetDraft, DraftRefused
+from opencde.store.jobs.postgres import change_set_draft_store
+from opencde.store.protocols import ChangeSetDraftStore, TopicLinkStore, TopicStore
 from opencde.timeutil import now_iso
 
 UNKNOWN = (
@@ -88,8 +89,8 @@ class ChangesetArguments(Arguments):
     changeset_id: ChangesetId
 
 
-def _drafts(context: ToolContext) -> ChangeSetDraftRepository:
-    return ChangeSetDraftRepository(context.graph)
+def _drafts(context: ToolContext) -> ChangeSetDraftStore:
+    return change_set_draft_store(context.graph, context.postgres)
 
 
 async def _proposer(context: ToolContext, project_id: str, role: Role) -> None:

@@ -352,3 +352,42 @@ def test_the_graph_holds_the_jobs_unless_postgresql_is_named() -> None:
     ):
         assert isinstance(choose(graph, None), on_graph)  # ty: ignore[invalid-argument-type]
         assert isinstance(choose(graph, postgres), on_postgres)  # ty: ignore[invalid-argument-type]
+
+
+def test_the_ifc_db_service_keeps_its_jobs_where_the_store_is(tmp_path: Any) -> None:
+    from opencde.ifcgraph.service import IfcGraphService
+    from opencde.storage import LocalStorage
+    from tests.conftest import test_settings as make_settings
+
+    settings = make_settings(tmp_path, ifcgraph_enabled=True)
+    postgres = Postgres(URL, "", connect_timeout_seconds=1.0)
+    graph = object()
+    on_postgres = IfcGraphService(graph, LocalStorage(tmp_path), settings, postgres=postgres)  # ty: ignore[invalid-argument-type]
+    for name, kind in (
+        ("conversions", PostgresConversionRepository),
+        ("validations", PostgresValidationRepository),
+        ("proposals", PostgresProposalRepository),
+        ("clashes", PostgresClashRepository),
+        ("merges", PostgresMergeRepository),
+    ):
+        assert isinstance(getattr(on_postgres, name), kind), name
+    on_graph = IfcGraphService(graph, LocalStorage(tmp_path), settings)  # ty: ignore[invalid-argument-type]
+    assert isinstance(on_graph.merges, MergeRepository) and isinstance(on_graph.conversions, ConversionRepository)
+
+
+def test_the_documents_api_and_the_mcp_endpoint_find_the_jobs_where_the_store_is(tmp_path: Any) -> None:
+    from opencde.mcp.change_sets import _drafts
+    from opencde.mcp.registry import ToolContext
+    from opencde.store.jobs.proposals import proposal_repository
+    from tests.conftest import test_settings as make_settings
+    from tests.mcp_support import principal
+
+    postgres = Postgres(URL, "", connect_timeout_seconds=1.0)
+    graph = object()
+    assert isinstance(proposal_repository(graph, postgres), PostgresProposalRepository)  # ty: ignore[invalid-argument-type]
+    assert isinstance(proposal_repository(graph, None), ProposalRepository)  # ty: ignore[invalid-argument-type]
+    context = ToolContext(
+        principal=principal(), settings=make_settings(tmp_path), graph=graph, tool="open_changeset", postgres=postgres
+    )  # ty: ignore[invalid-argument-type]
+    assert isinstance(_drafts(context), PostgresChangeSetDraftRepository)
+    assert isinstance(_drafts(replace(context, postgres=None)), ChangeSetDraftRepository)

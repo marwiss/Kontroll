@@ -25,7 +25,8 @@ from opencde.mcp.registry import MAX_ANSWER_BYTES, Arguments, Tool, ToolContext,
 from opencde.odata import Compiled
 from opencde.store.documents.postgres import document_store
 from opencde.store.jobs.conversions import STATE_QUEUED, STATE_RUNNING
-from opencde.store.jobs.proposals import DEFAULT_ORDER, ProposalRepository
+from opencde.store.jobs.postgres import proposal_store
+from opencde.store.jobs.proposals import DEFAULT_ORDER
 
 MAX_WAIT_SECONDS = 20
 POLL_SECONDS = 0.5
@@ -124,7 +125,8 @@ async def list_proposals(context: ToolContext, arguments: ListProposalsArguments
     await member_project(context, latest.project_id)
     limit = arguments.limit or MAX_PROPOSALS
     page = Compiled(where=None, params={}, order_by=DEFAULT_ORDER, skip=0, limit=limit + 1)
-    rows = await ProposalRepository(context.graph).of_document(user_id=user_id, document_id=document_id, compiled=page)
+    proposals = proposal_store(context.graph, context.postgres)
+    rows = await proposals.of_document(user_id=user_id, document_id=document_id, compiled=page)
     proposals = [
         {**proposal_row(row), "title": text(row["title"]), "project_id": row["project_id"]} for row in rows[:limit]
     ]
