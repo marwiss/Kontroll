@@ -28,14 +28,14 @@ from opencde.ifcgraph.diff import MAX_ENTRIES as DIFF_MAX_ENTRIES
 from opencde.ifcgraph.gltf import LODS
 from opencde.ifcgraph.queries import CHANGED_SINCE, QUERIES
 from opencde.ifcgraph.queries import MAX_ROWS as QUERIES_MAX_ROWS
+from opencde.mcp.protocol import PROTOCOL_VERSIONS as MCP_PROTOCOL_VERSIONS
 from opencde.settings import Settings
 from opencde.store.accounts.projects import DEFAULT_AI_POLICY
 
 router = APIRouter(tags=["Capabilities (extension)"])
 
 ADMIN_API_VERSION = 1  # counts breaking changes of the administration API
-# The MCP endpoint (ADR 0028): the revisions of the protocol it answers, newest first, and the scopes of its tokens.
-MCP_PROTOCOL_VERSIONS = ("2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26")
+# The MCP endpoint (ADR 0028): the scopes of its tokens; the revisions it answers are its own (newest first).
 MCP_SCOPES = ("mcp", "mcp:propose")
 
 

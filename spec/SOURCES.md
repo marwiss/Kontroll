@@ -13,9 +13,17 @@ is adopted.
 | BCF API 2.1 | https://github.com/buildingSMART/BCF-API | branch `release_2_1` at commit `8ec30319b0c7e2e3b1c7bdbf4ec7793f2451b4c3` | `Schemas_draft-03/**/*.json` (52 files, JSON Schema draft-03) |
 | Foundation API 1.0 | https://github.com/buildingSMART/foundation-API | tag `v1.0` at commit `d8577940560a4ee8428ca0b073cd0572fb2bc0e3` | `schemas/*.json` (6 files) |
 | Documents API 1.0 | https://github.com/buildingSMART/documents-API | branch `main` at commit `938bd7636e094c2dc3c65ad6dae846ac3c7b6a9b` (release `v1.0`) | `swagger.yaml` (OpenAPI 3.0.0) |
+| MCP 2026-07-28 | https://github.com/modelcontextprotocol/modelcontextprotocol | branch `main` at commit `38353251fab3bdeead03dd8283b9e66076ce1a7f` (the revision of 2026-07-28 with its schema fix of 2026-11-06) | `schema/2026-07-28/schema.json` as `mcp/2026-07-28/schema.json` (JSON Schema 2020-12), `LICENSE` |
 
 The prose specifications (README files) are not copied; read them at the
 repositories above at the same revisions.
+
+The Model Context Protocol's schema is not buildingSMART's: it is the MCP
+project's, under the Apache License 2.0 or, for older contributions, the MIT
+License (`mcp/LICENSE`). Its prose specification is at
+https://modelcontextprotocol.io/specification/2026-07-28/. The MCP endpoint
+(ADR 0028) answers by this revision, and its conformance tests validate the
+endpoint's answers against the schema.
 
 The tag `v2.1` is older than the branch. The branch got 49 commits up to June 2020, among them DELETE of topics
 and comments and the document reference fields, and it is what clients of 2.1 are written against. It has no

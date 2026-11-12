@@ -256,6 +256,8 @@ def _write_local_env(path: Path) -> None:
         "OPENCDE_ALLOW_LOCALHOST_REDIRECTS=true",
         "OPENCDE_DYNAMIC_CLIENT_REGISTRATION=true",
         "OPENCDE_IFC_LPG_ENABLED=true",
+        # AI programs on this computer reach the projects' models through MCP (ADR 0028); every project is served here.
+        "OPENCDE_MCP_ENABLED=true",
         "NEO4J_HEAP=1g",
         "NEO4J_PAGECACHE=512m",
         "OPENCDE_LOCAL_PORT=8000",

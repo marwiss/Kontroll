@@ -50,6 +50,7 @@ from opencde.graph.schema import apply_schema
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.logging import configure_logging, get_logger
 from opencde.mcp import auth as mcp_auth
+from opencde.mcp import routes as mcp_routes
 from opencde.middleware import (
     ApiCORSMiddleware,
     BodySizeLimitMiddleware,
@@ -95,6 +96,11 @@ OPENAPI_TAGS = [
         "name": "OAuth2 metadata (extension)",
         "description": "Outside the OpenCDE specifications: the authorization server metadata (RFC 8414) and, while "
         "the MCP endpoint is on, its protected resource metadata (RFC 9728).",
+    },
+    {
+        "name": "MCP (extension)",
+        "description": "Outside the OpenCDE specifications: the Model Context Protocol endpoint for AI programs, while "
+        "it is on (ADR 0028). Its tools read the projects' models; nothing is approved or published through it.",
     },
     {
         "name": "IFC validation (extension)",
@@ -241,6 +247,7 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
     app.include_router(oauth2_metadata.router)
     if settings.mcp_enabled:
         app.include_router(mcp_auth.router)
+        app.include_router(mcp_routes.router)
     if settings.offers("bcf-3.0"):
         app.include_router(bcf_router.v30)
     if settings.offers("bcf-2.1"):

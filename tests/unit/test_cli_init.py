@@ -42,6 +42,7 @@ def test_the_local_engine_gets_random_passwords_and_named_origins(tmp_path: Path
     assert len(env["OPENCDE_GRAPH_PASSWORD"]) >= 24 and len(env["OPENCDE_SECRET_KEY"]) >= 48
     assert "*" not in env["OPENCDE_CORS_ORIGINS"] and "null" in env["OPENCDE_CORS_ORIGINS"]
     assert env["COMPOSE_FILE"] == "docker/compose.yaml:docker/compose.local.yaml"
+    assert env["OPENCDE_MCP_ENABLED"] == "true", "AI programs on the computer reach the models (ADR 0028)"
     assert "Dataspatium" in done.output
 
 

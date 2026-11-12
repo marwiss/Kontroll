@@ -7,7 +7,7 @@ the query string, which may carry filters with personal data), the operation
 as the OpenAPI summary names it, status, duration, the ``X-Request-ID`` the
 client sent or the server minted, bytes in and out, and who called (user and
 client from the bearer principal, or the browser user of a page) from which
-address. Never bodies, headers or tokens. Entries expire after
+address; for the MCP endpoint the method and the tool. Never bodies, headers or tokens. Entries expire after
 ``OPENCDE_REQUEST_LOG_RETENTION_HOURS`` and are swept by the cleaner; the
 administration shows them at ``/admin/requests`` and serves them as JSON at
 ``/admin/api/requests`` for administrators holding the ``admin`` scope.
@@ -77,7 +77,11 @@ class RequestLogWriter:
 
 
 def _operation(scope: Scope) -> str | None:
-    """The matched route's OpenAPI summary (the specification's operation name), else its name."""
+    """The matched route's OpenAPI summary (the specification's operation name), else its name; for the MCP endpoint
+    the method and the tool it names (ADR 0028), never its body."""
+    mcp = (scope.get("state") or {}).get("mcp_operation")
+    if mcp:
+        return f"MCP {mcp}"
     route = scope.get("route")
     if route is None:
         endpoint = scope.get("endpoint")
