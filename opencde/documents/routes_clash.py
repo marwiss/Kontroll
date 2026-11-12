@@ -6,7 +6,8 @@ versions of the project, with IfcClash in a worker process; ``GET …/ifc-clash`
 ``GET …/ifc-clash/{id}`` gives one with its clashes, in the form Dataspatium's own clash core writes, so that a client
 shows the server's result as it shows its own. ``POST …/ifc-clash/{id}/topics`` turns chosen clashes into BCF topics
 with a viewpoint each, on request only: the server never makes topics by itself. The same bearer token as the
-Documents API reads and starts checks; making topics needs the ``bcf`` scope and the ``createTopic`` action.
+Documents API reads and starts checks; making topics needs the ``bcf`` scope and the ``createTopic`` action. The MCP
+tools ``start_clash_check`` and ``get_clash_check`` start and read checks through the same functions.
 """
 
 from __future__ import annotations
@@ -164,18 +165,55 @@ def _report(request: Request, row: dict[str, Any]) -> IfcClashReport:
     )
 
 
+def clash_service(ifcgraph: IfcGraphService | None, settings: Any) -> IfcGraphService:
+    """The service, on a server with the check turned on; 404 otherwise. The routes and the MCP tools both ask it."""
+    if ifcgraph is None or not settings.ifcgraph_enabled or not settings.ifcgraph_clash_enabled:
+        raise HTTPException(404, "The clash check is off on this server")
+    return ifcgraph
+
+
+async def start_check(
+    service: IfcGraphService, *, project_id: str, user_id: str, author: str, body: IfcClashRequest
+) -> dict[str, Any]:
+    """Queue a check of two versions of a project the user is a member of, and its record as it starts; 404 for a
+    document id that is none. Whether both are IFC files of the project the check itself finds out."""
+    spec = body.model_dump()
+    for side in ("a", "b"):
+        if not is_uuid(spec[side]["document_id"]):
+            raise HTTPException(404, "Document version not found")
+        spec[side]["document_id"] = normalize_guid(spec[side]["document_id"])
+    clash_id = await service.schedule_clash(project_id=project_id, author=author, request=spec)
+    row = await service.clash_report(user_id=user_id, project_id=project_id, clash_id=clash_id, with_clashes=False)
+    if row is None:  # the project vanished under us
+        raise HTTPException(404, "Project not found")
+    return row
+
+
+async def check_report(
+    service: IfcGraphService, *, user_id: str, project_id: str, clash_id: str, with_clashes: bool
+) -> dict[str, Any]:
+    """One check of a project the user is a member of, with its clashes when asked for; 404 when there is none."""
+    if not is_uuid(clash_id):
+        raise HTTPException(404, "Clash check not found")
+    row = await service.clash_report(
+        user_id=user_id, project_id=project_id, clash_id=normalize_guid(clash_id), with_clashes=with_clashes
+    )
+    if row is None:
+        raise HTTPException(404, "Clash check not found")
+    return row
+
+
 async def _service(
     ifcgraph: IfcGraphService | None, settings: Any, users: Any, user_id: str, project_id: str
 ) -> tuple[IfcGraphService, str]:
     """The service and the project id, for a member of the project on a server with the check turned on."""
-    if ifcgraph is None or not settings.ifcgraph_enabled or not settings.ifcgraph_clash_enabled:
-        raise HTTPException(404, "The clash check is off on this server")
+    service = clash_service(ifcgraph, settings)
     if not is_uuid(project_id):
         raise HTTPException(404, "Project not found")
     pid = normalize_guid(project_id)
     if await users.project_role(user_id, pid) is None:
         raise HTTPException(404, "Project not found")
-    return ifcgraph, pid
+    return service, pid
 
 
 @router.post(
@@ -200,16 +238,8 @@ async def start_clash(
     Both versions must be IFC files of this project. 404 when the project is not yours or the check is off.
     """
     service, pid = await _service(ifcgraph, settings, users, principal.user_id, project_id)
-    spec = body.model_dump()
-    for side in ("a", "b"):
-        if not is_uuid(spec[side]["document_id"]):
-            raise HTTPException(404, "Document version not found")
-        spec[side]["document_id"] = normalize_guid(spec[side]["document_id"])
-    clash_id = await service.schedule_clash(project_id=pid, author=principal.username, request=spec)
-    row = await service.clash_report(user_id=principal.user_id, project_id=pid, clash_id=clash_id, with_clashes=False)
-    if row is None:  # the project vanished under us
-        raise HTTPException(404, "Project not found")
-    response.headers["Location"] = _url(request, pid, clash_id)
+    row = await start_check(service, project_id=pid, user_id=principal.user_id, author=principal.username, body=body)
+    response.headers["Location"] = _url(request, pid, row["id"])
     return _report(request, row)
 
 
@@ -250,13 +280,7 @@ async def get_clash(
 ) -> IfcClashReport:
     """Each clash names both elements (STEP id, GlobalId, class, name, storey), its kind, depth or distance and point."""
     service, pid = await _service(ifcgraph, settings, users, principal.user_id, project_id)
-    if not is_uuid(clash_id):
-        raise HTTPException(404, "Clash check not found")
-    row = await service.clash_report(
-        user_id=principal.user_id, project_id=pid, clash_id=normalize_guid(clash_id), with_clashes=True
-    )
-    if row is None:
-        raise HTTPException(404, "Clash check not found")
+    row = await check_report(service, user_id=principal.user_id, project_id=pid, clash_id=clash_id, with_clashes=True)
     return _report(request, row)
 
 

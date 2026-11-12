@@ -31,6 +31,7 @@ from opencde.ifcgraph.service import ifcgraph_service
 from opencde.logging import get_logger
 from opencde.mcp import protocol, registry
 from opencde.mcp.auth import McpPrincipal, require_mcp_scope
+from opencde.mcp.clash import GET_CLASH_CHECK, START_CLASH_CHECK
 from opencde.mcp.ifc_models import LIST_MODELS
 from opencde.mcp.protocol import (
     CLIENT_CAPABILITIES_KEY,
@@ -55,7 +56,7 @@ TAG = "MCP (extension)"
 MAX_BODY_BYTES = 1_048_576
 
 #: The tools in the order ``tools/list`` gives them, which stays the same between releases but for what is added.
-TOOLS: tuple[registry.Tool, ...] = (LIST_MODELS, SERVER_QUERY, GET_PUBLICATION)
+TOOLS: tuple[registry.Tool, ...] = (LIST_MODELS, SERVER_QUERY, GET_PUBLICATION, START_CLASH_CHECK, GET_CLASH_CHECK)
 _BY_NAME = {tool.name: tool for tool in TOOLS}
 _MODERN_METHODS = ("server/discover", "tools/list", "tools/call")
 _HANDSHAKE_METHODS = ("initialize", "ping", "tools/list", "tools/call")
