@@ -91,7 +91,7 @@ async def schedule(
 ) -> str:
     """Queue a merge into a project, or the preparation of B for one (``kind``); returns the job's id."""
     merge_id = new_id()
-    await service.graph.run(
+    await service.store.run(
         """
         MATCH (p:Project {project_id: $project_id})
         CREATE (p)-[:HAS_MERGE]->(:Merge {
@@ -118,7 +118,7 @@ def _start(service: IfcGraphService, merge_id: str) -> None:
 
 
 async def _set(service: IfcGraphService, merge_id: str, state: str, **fields: Any) -> None:
-    await service.graph.run(
+    await service.store.run(
         "MATCH (j:Merge {id: $id}) SET j.state = $state, j += $fields",
         id=merge_id,
         state=state,
@@ -130,7 +130,7 @@ async def run(service: IfcGraphService, merge_id: str) -> None:
     """Run one queued merge: make C, write it out, make it the next version of A's document, and take C out again."""
     async with service._lock:
         model_id = new_id()  # C, in the graph until it is written out
-        rows = await service.graph.run(
+        rows = await service.store.run(
             """
             MATCH (j:Merge {id: $id, state: $queued})
             SET j.state = $running, j.running_at = $now, j.model_id = $model_id
@@ -221,7 +221,7 @@ async def prepared(
     service: IfcGraphService, *, user_id: str, project_id: str, prepare_id: str
 ) -> dict[str, Any] | None:
     """A preparation of this project that is done and has not expired: its model's id and what it was asked for."""
-    row = await service.graph.one(
+    row = await service.store.one(
         """
         MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
               -[:HAS_MERGE]->(j:Merge {id: $id, kind: $kind, state: $done})
@@ -254,8 +254,8 @@ async def _as_version(
 ) -> int:
     """C written out as the next version of A's document, when the document has not moved on since A's version."""
     base = request["base"]
-    documents = DocumentRepository(service.graph)
-    latest = await service.graph.one(
+    documents = DocumentRepository(service.store)
+    latest = await service.store.one(
         """
         MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
               -[:HAS_VERSION]->(v:DocumentVersion)
@@ -277,7 +277,7 @@ async def _as_version(
         written = Path(tmp) / "merged.ifc"
         await service.export(model_id, written)
         size, sha256 = await asyncio.to_thread(_copy_hashed, service, written, key)
-    project_name = await service.graph.one(
+    project_name = await service.store.one(
         "MATCH (p:Project {project_id: $project_id}) RETURN p.name AS name", project_id=project_id
     )
     metadata = default_metadata(
@@ -334,7 +334,7 @@ def _copy_hashed(service: IfcGraphService, source: Path, key: str) -> tuple[int,
 
 async def job(service: IfcGraphService, *, user_id: str, project_id: str, merge_id: str) -> dict[str, Any] | None:
     """One merge, when the user is a member of its project."""
-    row = await service.graph.one(
+    row = await service.store.one(
         """
         MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_MERGE]->(j:Merge {id: $id})
         RETURN properties(j) AS merge
@@ -372,7 +372,7 @@ async def resume(service: IfcGraphService) -> None:
     """After a stop: a job that was running is failed and its model taken out, and a queued one starts. Each round,
     a prepared model whose day is over is taken out too."""
     given_up = later_iso(-2 * float(service.settings.ifcgraph_timeout_seconds))
-    expired = await service.graph.run(
+    expired = await service.store.run(
         "MATCH (j:Merge {kind: $kind, state: $done}) WHERE j.expires_at <= $now RETURN j.id AS id, j.model_id AS model_id",
         kind=KIND_PREPARE,
         done=STATE_DONE,
@@ -381,7 +381,7 @@ async def resume(service: IfcGraphService) -> None:
     for row in expired:
         await _drop(service, str(row["model_id"]))
         await _set(service, str(row["id"]), STATE_EXPIRED)
-    rows = await service.graph.run(
+    rows = await service.store.run(
         """
         MATCH (j:Merge)
         WHERE j.state = $queued OR (j.state = $running AND j.running_at < $given_up)

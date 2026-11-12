@@ -183,8 +183,8 @@ class IfcGraphService:
         store: Graph | None = None,
     ) -> None:
         self.workcopy = workcopy  # the second graph that holds the head model of every document (ADR 0024)
-        self.graph = graph
-        self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a)
+        self.graph = graph  # IFC-LPG's models: the library's calls alone run here (ADR 0027)
+        self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a): every statement
         self.conversions: ConversionStore = ConversionRepository(self.store)
         self.storage = storage
         self.settings = settings
@@ -263,7 +263,7 @@ class IfcGraphService:
                 await self._set_state(row["id"], STATE_QUEUED)
             log.info("ifcgraph_resumed", model_id=row["id"])
             self._start(row["id"], row["storage_key"], row["file_name"])
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (p:Proposal)
             WHERE p.state = $queued OR (p.state = $running AND p.running_at < $given_up)
@@ -282,7 +282,7 @@ class IfcGraphService:
             self._start_proposal(row["id"])
         if not self.settings.ifcgraph_validate_uploads:
             return
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (r:Validation)
             WHERE r.state = $queued OR (r.state = $running AND r.running_at < $given_up)
@@ -525,7 +525,7 @@ class IfcGraphService:
 
     async def _queue_validation(self, version_id: str, storage_key: str, file_name: str) -> None:
         validation_id = new_id()
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (v:DocumentVersion {id: $version_id})
             CREATE (v)-[:HAS_VALIDATION]->(r:Validation {
@@ -551,7 +551,7 @@ class IfcGraphService:
         task.add_done_callback(self._tasks.discard)
 
     async def _set_validation(self, validation_id: str, state: str, **fields: Any) -> None:
-        await self.graph.run(
+        await self.store.run(
             "MATCH (r:Validation {id: $id}) SET r.state = $state, r += $fields",
             id=validation_id,
             state=state,
@@ -561,7 +561,7 @@ class IfcGraphService:
     async def _validate(self, validation_id: str, storage_key: str, file_name: str) -> None:
         """Check one upload; the issues may quote the file, so only their number is logged."""
         async with self._lock:
-            rows = await self.graph.run(
+            rows = await self.store.run(
                 """
                 MATCH (r:Validation {id: $id, state: $queued})
                 SET r.state = $running, r.running_at = $now
@@ -585,7 +585,7 @@ class IfcGraphService:
 
     async def _project_of(self, validation_id: str) -> str | None:
         """The project of a check: through the version for an upload, straight from the project for a precheck."""
-        row = await self.graph.one(
+        row = await self.store.one(
             """
             MATCH (r:Validation {id: $id})
             OPTIONAL MATCH (r)<-[:HAS_VALIDATION]-(:DocumentVersion)<-[:HAS_VERSION]-(:Document)
@@ -681,7 +681,7 @@ class IfcGraphService:
     ) -> None:
         """A check made before the version existed (``check_now``) becomes the version's ``Validation`` node."""
         now = now_iso()
-        await self.graph.run(
+        await self.store.run(
             """
             MATCH (v:DocumentVersion {id: $version_id})
             CREATE (v)-[:HAS_VALIDATION]->(r:Validation {id: $id, storage_key: $storage_key, file_name: $file_name})
@@ -700,7 +700,7 @@ class IfcGraphService:
         self, *, precheck_id: str, project_id: str, storage_key: str, file_name: str, author: str
     ) -> None:
         """Queue the checks on a file a member sent to try; the node and the file live ``PRECHECK_SECONDS``."""
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (p:Project {project_id: $project_id})
             CREATE (p)-[:HAS_PRECHECK]->(r:Validation:Precheck {
@@ -728,7 +728,7 @@ class IfcGraphService:
         """A refused upload stays as a precheck, so that its report can be read; returns the precheck's id."""
         precheck_id = new_id()
         now = now_iso()
-        await self.graph.run(
+        await self.store.run(
             """
             MATCH (p:Project {project_id: $project_id})
             CREATE (p)-[:HAS_PRECHECK]->(r:Validation:Precheck {
@@ -750,7 +750,7 @@ class IfcGraphService:
 
     async def precheck(self, *, user_id: str, project_id: str, precheck_id: str) -> dict[str, Any] | None:
         """A precheck of a project the user is a member of, its issues unpacked; None when there is none."""
-        row = await self.graph.one(
+        row = await self.store.one(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
                   -[:HAS_PRECHECK]->(r:Precheck {id: $id})
@@ -772,7 +772,7 @@ class IfcGraphService:
 
     async def schedule_proposal(self, *, project_id: str, topic_guid: str, snippet_key: str, author: str) -> str:
         """Queue the trial of a topic's change set; an earlier trial of the topic goes, with its file."""
-        gone = await self.graph.run(
+        gone = await self.store.run(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:Proposal)
             WITH p, p.storage_key AS key
@@ -788,7 +788,7 @@ class IfcGraphService:
                     self.storage.delete(row["key"])
         proposal_id = new_id()
         base = await asyncio.to_thread(self._base_of, snippet_key)
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
             CREATE (t)-[:HAS_PROPOSAL]->(p:Proposal {
@@ -830,7 +830,7 @@ class IfcGraphService:
         task.add_done_callback(self._tasks.discard)
 
     async def _set_proposal(self, proposal_id: str, state: str, **fields: Any) -> None:
-        await self.graph.run(
+        await self.store.run(
             "MATCH (p:Proposal {id: $id}) SET p.state = $state, p += $fields",
             id=proposal_id,
             state=state,
@@ -840,7 +840,7 @@ class IfcGraphService:
     async def _run_proposal(self, proposal_id: str) -> None:
         """Try one change set; the findings may quote the file, so only their number is logged."""
         async with self._lock:
-            row = await self.graph.one(
+            row = await self.store.one(
                 """
                 MATCH (p:Proposal {id: $id, state: $queued})
                 SET p.state = $running, p.running_at = $now
@@ -888,7 +888,7 @@ class IfcGraphService:
         if base_version_index is not None:
             base["version_index"] = base_version_index
         elif change_set.get("keep_theirs"):
-            latest = await self.graph.one(
+            latest = await self.store.one(
                 """
                 MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                       -[:HAS_VERSION]->(v:DocumentVersion)
@@ -899,7 +899,7 @@ class IfcGraphService:
             )
             if latest is not None and latest["latest"] is not None:
                 base["version_index"] = int(latest["latest"])
-        version = await self.graph.one(
+        version = await self.store.one(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                   -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
@@ -1002,7 +1002,7 @@ class IfcGraphService:
     ) -> tuple[list[dict[str, Any]], str | None]:
         """The teams whose part of the model the change set touches (F11 b, F19 a), and why that is unknown when it
         is: then a ``manager`` approves."""
-        parts = [part for part in await TeamRepository(self.graph).parts(project_id) if part["storage_key"]]
+        parts = [part for part in await TeamRepository(self.store).parts(project_id) if part["storage_key"]]
         if not parts:
             return [], None
         command = [sys.executable, "-m", "opencde.ifcgraph.parts", "--memory-mb", str(self.settings.ifcgraph_memory_mb)]
@@ -1031,7 +1031,7 @@ class IfcGraphService:
         The approval does this on the latest version when the change set collides with nothing that came
         between its base and the latest (ADR 0021). The request waits for the trial.
         """
-        row = await self.graph.one(
+        row = await self.store.one(
             """
             MATCH (p:Proposal {id: $id})
             RETURN p.project_id AS project_id, p.snippet_key AS snippet_key, p.author AS author
@@ -1063,7 +1063,7 @@ class IfcGraphService:
     ) -> list[dict[str, Any]] | None:
         """What each change's attribute holds in a stored version of a document, read by the apply worker; each entry
         ``{"value"}`` or ``{"error"}``. None when the version's file is not there."""
-        row = await self.graph.one(
+        row = await self.store.one(
             """
             MATCH (:Document {document_id: $document_id})-[:HAS_VERSION]->(v:DocumentVersion {version_index: $index})
             RETURN v.storage_key AS storage_key, v.file_name AS file_name
@@ -1133,7 +1133,7 @@ class IfcGraphService:
 
     async def change_set_of(self, *, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The change set a topic carries, as uploaded; None when the topic has no trial any more."""
-        row = await self.graph.one(
+        row = await self.store.one(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})
                   -[:HAS_PROPOSAL]->(p:Proposal)
@@ -1177,7 +1177,7 @@ class IfcGraphService:
 
     async def proposal(self, *, user_id: str, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The trial of a topic's change set, for a member of the project, its issues unpacked; None without one."""
-        row = await self.graph.one(
+        row = await self.store.one(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
                   -[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:Proposal)
@@ -1285,7 +1285,7 @@ class IfcGraphService:
         the reports show the newest check, and the checks run one at a time behind the others."""
         if not self.settings.ifcgraph_validate_uploads:
             return 0
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (:Project {project_id: $id})-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
             WITH d, v ORDER BY v.version_index DESC
@@ -1306,7 +1306,7 @@ class IfcGraphService:
 
     async def _ids_documents(self, project_id: str) -> list[dict[str, Any]]:
         """The latest version of every IDS document in the project of the file being checked (ADR 0015)."""
-        return await self.graph.run(
+        return await self.store.run(
             """
             MATCH (:Project {project_id: $id})-[:HAS_DOCUMENT]->(d:Document)-[:HAS_VERSION]->(v:DocumentVersion)
             WITH d, v ORDER BY v.version_index DESC
@@ -1622,7 +1622,7 @@ class IfcGraphService:
         and copy the configured property, the GTIN, onto the components that name them; a component keeps its
         GTIN where the model lacks the property. No relationship into the model is made: the element is found by
         its ``GlobalId``. Returns how many of the GlobalIds the model has."""
-        rows = await self.graph.run(scope + "WHERE c.ifc_guid IS NOT NULL RETURN DISTINCT c.ifc_guid AS guid", **params)
+        rows = await self.store.run(scope + "WHERE c.ifc_guid IS NOT NULL RETURN DISTINCT c.ifc_guid AS guid", **params)
         guids = [str(row["guid"]) for row in rows if _GUID.match(str(row["guid"]))]
         found = 0
         for start in range(0, len(guids), MAX_GLOBAL_IDS):
@@ -1636,7 +1636,7 @@ class IfcGraphService:
             found += len(values)
             gtins = [{"guid": v["global_id"], "gtin": str(v["value"])} for v in values if v["value"] is not None]
             if gtins:
-                await self.graph.run(
+                await self.store.run(
                     "UNWIND $gtins AS gtin\n" + scope + "WHERE c.ifc_guid = gtin.guid SET c.gtin = gtin.gtin",
                     gtins=gtins,
                     **params,
@@ -1652,7 +1652,7 @@ class IfcGraphService:
     async def schedule_clash(self, *, project_id: str, author: str, request: dict[str, Any]) -> str:
         """Queue a clash check between two document versions of a project; returns the check's id."""
         clash_id = new_id()
-        await self.graph.run(
+        await self.store.run(
             """
             MATCH (p:Project {project_id: $project_id})
             CREATE (p)-[:HAS_CLASH]->(:Clash {
@@ -1673,7 +1673,7 @@ class IfcGraphService:
 
     async def _clash_input(self, project_id: str, side: dict[str, Any], workdir: Path) -> Path:
         """The file of one side of a check, from the project's own document versions."""
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (:Project {project_id: $project_id})-[:HAS_DOCUMENT]->(:Document {document_id: $document_id})
                   -[:HAS_VERSION]->(v:DocumentVersion {version_index: $version_index})
@@ -1696,7 +1696,7 @@ class IfcGraphService:
     async def _run_clash(self, clash_id: str) -> None:
         """Run one queued check in the worker process and store its report; the file names stay out of the log."""
         async with self._lock:
-            rows = await self.graph.run(
+            rows = await self.store.run(
                 """
                 MATCH (c:Clash {id: $id, state: $queued})
                 SET c.state = $running, c.running_at = $now
@@ -1738,7 +1738,7 @@ class IfcGraphService:
                     report = json.loads(answer.strip().splitlines()[-1])
             except Exception as exc:
                 log.warning("ifc_clash_failed", clash_id=clash_id, error=type(exc).__name__)
-                await self.graph.run(
+                await self.store.run(
                     "MATCH (c:Clash {id: $id}) SET c.state = $state, c.failed_at = $now, c.error = $error",
                     id=clash_id,
                     state=STATE_FAILED,
@@ -1753,7 +1753,7 @@ class IfcGraphService:
                         "version_index": request[key]["version_index"],
                         **clash[key],
                     }
-            await self.graph.run(
+            await self.store.run(
                 """
                 MATCH (c:Clash {id: $id})
                 SET c.state = $state, c.done_at = $now, c.count = $count, c.set_a = $set_a, c.set_b = $set_b,
@@ -1774,7 +1774,7 @@ class IfcGraphService:
 
     async def clash_reports(self, *, user_id: str, project_id: str) -> list[dict[str, Any]]:
         """The checks of a project the user is a member of, newest first, without their clashes."""
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:Clash)
             RETURN properties(c) AS clash ORDER BY c.created_at DESC LIMIT 100
@@ -1788,7 +1788,7 @@ class IfcGraphService:
         self, *, user_id: str, project_id: str, clash_id: str, with_clashes: bool
     ) -> dict[str, Any] | None:
         """One check, when the user is a member of its project."""
-        rows = await self.graph.run(
+        rows = await self.store.run(
             """
             MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
                   -[:HAS_CLASH]->(c:Clash {id: $clash_id})
