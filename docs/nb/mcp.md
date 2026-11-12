@@ -35,6 +35,42 @@ slikt token:
 
 [Klientguiden](client-guide.md) (§2) har reglene for bindingen.
 
+## Å koble til et AI-program
+
+Programmet trenger bare endepunktets adresse; det registrerer seg, logger
+personen inn og finner scopene selv, som ovenfor.
+
+- Den lokale motoren: `http://127.0.0.1:8000/mcp`, for programmer på samme
+  datamaskin, som når hvert prosjekt.
+- En teamserver: `https://cde.example.org/mcp` med serverens eget navn, som bare når prosjektene der
+  AI-policyen er `cloud`. Et program som kjører i skyen, som en kobling i Claude
+  eller ChatGPT, når en teamserver på internett og aldri den lokale motoren.
+
+Slik programmenes egne veiledninger beskriver det, legger Claude Code den til
+med en kommando, VS Code i `.vscode/mcp.json` og Cursor i `~/.cursor/mcp.json`:
+
+```sh
+claude mcp add --transport http dataregium https://cde.example.org/mcp
+```
+
+```json
+{"servers": {"dataregium": {"type": "http", "url": "https://cde.example.org/mcp"}}}
+```
+
+```json
+{"mcpServers": {"dataregium": {"url": "https://cde.example.org/mcp"}}}
+```
+
+Det første kallet åpner serverens innloggingsside i nettleseren; etter
+samtykket lister programmet verktøyene. En god start er `list_models` og så
+`server_query` med `name` null for spørringene en modell svarer på. For å
+foreslå ber programmet om `mcp:propose` ved det første verktøyet for
+endringssett, og personen er editor eller manager i prosjektet. Der serveren
+ikke registrerer klienter selv, registrerer en administrator programmet med
+omdirigeringsadressen det oppgir: `http://127.0.0.1` med vilkårlig port godtas,
+`http://localhost` bare der `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` er på, noe
+produksjon avslår.
+
 ## Protokollen
 
 Streamable HTTP med ett JSON-svar per forespørsel og ingen SSE. Revisjon

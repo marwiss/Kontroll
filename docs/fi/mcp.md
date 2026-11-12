@@ -36,6 +36,43 @@ REST-rajapinta ota vastaan sellaista tokenia:
 
 [Asiakasopas](client-guide.md) (§2) kertoo sidonnan säännöt.
 
+## Tekoälyohjelman yhdistäminen
+
+Ohjelma tarvitsee vain päätepisteen osoitteen; se rekisteröityy, kirjaa
+henkilön sisään ja löytää scopet itse, kuten edellä.
+
+- Paikallinen moottori: `http://127.0.0.1:8000/mcp`, saman tietokoneen
+  ohjelmille, jotka tavoittavat jokaisen projektin.
+- Tiimipalvelin: `https://cde.example.org/mcp` palvelimen omalla nimellä, joka tavoittaa vain ne
+  projektit, joiden tekoälykäytäntö on `cloud`. Pilvessä toimiva ohjelma, kuten
+  Clauden tai ChatGPT:n liitin, tavoittaa internetissä olevan tiimipalvelimen
+  eikä koskaan paikallista moottoria.
+
+Ohjelmien omien ohjeiden mukaan Claude Code lisää sen komennolla, VS Code
+tiedostossa `.vscode/mcp.json` ja Cursor tiedostossa `~/.cursor/mcp.json`:
+
+```sh
+claude mcp add --transport http dataregium https://cde.example.org/mcp
+```
+
+```json
+{"servers": {"dataregium": {"type": "http", "url": "https://cde.example.org/mcp"}}}
+```
+
+```json
+{"mcpServers": {"dataregium": {"url": "https://cde.example.org/mcp"}}}
+```
+
+Ensimmäinen kutsu avaa palvelimen kirjautumissivun selaimessa; suostumuksen
+jälkeen ohjelma luettelee työkalut. Hyvä alku on `list_models` ja sitten
+`server_query`, jossa `name` on null, mallin kysymyksiä varten. Ehdottaakseen
+ohjelma pyytää `mcp:propose` ensimmäisen muutosjoukon työkalun kohdalla, ja
+henkilö on projektin editor tai manager. Jos palvelin ei itse rekisteröi
+asiakkaita, ylläpitäjä rekisteröi ohjelman sen ilmoittamalla
+uudelleenohjausosoitteella: `http://127.0.0.1` millä tahansa portilla
+hyväksytään, `http://localhost` vain kun `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` on
+päällä, minkä tuotanto torjuu.
+
 ## Protokolla
 
 Streamable HTTP, yksi JSON-vastaus pyyntöä kohden eikä SSE:tä. Versio

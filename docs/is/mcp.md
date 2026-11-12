@@ -35,6 +35,42 @@ REST-forritaskil taka við slíkum tóka:
 
 [Biðlaraleiðbeiningarnar](client-guide.md) (§2) hafa reglur bindingarinnar.
 
+## Að tengja gervigreindarforrit
+
+Forritið þarf aðeins slóð endapunktsins; það skráir sig, skráir manneskjuna inn
+og finnur heimildirnar sjálft, eins og að ofan.
+
+- Staðbundna vélin: `http://127.0.0.1:8000/mcp`, fyrir forrit á sömu tölvu,
+  sem ná til hvers verkefnis.
+- Teymisþjónn: `https://cde.example.org/mcp` með eigin nafni þjónsins, sem nær aðeins til þeirra
+  verkefna sem hafa gervigreindarstefnuna `cloud`. Forrit sem keyrir í skýinu,
+  eins og tengill í Claude eða ChatGPT, nær til teymisþjóns á netinu en aldrei
+  til staðbundnu vélarinnar.
+
+Eins og eigin leiðbeiningar forritanna lýsa því bætir Claude Code honum við með
+skipun, VS Code í `.vscode/mcp.json` og Cursor í `~/.cursor/mcp.json`:
+
+```sh
+claude mcp add --transport http dataregium https://cde.example.org/mcp
+```
+
+```json
+{"servers": {"dataregium": {"type": "http", "url": "https://cde.example.org/mcp"}}}
+```
+
+```json
+{"mcpServers": {"dataregium": {"url": "https://cde.example.org/mcp"}}}
+```
+
+Fyrsta kallið opnar innskráningarsíðu þjónsins í vafranum; eftir samþykkið
+listar forritið verkfærin. Gott upphaf er `list_models` og síðan `server_query`
+með `name` null fyrir fyrirspurnirnar sem líkan svarar. Til að leggja til biður
+forritið um `mcp:propose` við fyrsta verkfæri breytingasetta, og manneskjan er
+editor eða manager í verkefninu. Þar sem þjónninn skráir ekki biðlara sjálfur
+skráir stjórnandi forritið með þeirri endurbeiningarslóð sem það gefur upp:
+`http://127.0.0.1` með hvaða gátt sem er er samþykkt, `http://localhost` aðeins
+þar sem `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` er virkt, sem framleiðsla hafnar.
+
 ## Samskiptareglan
 
 Streamable HTTP með einu JSON-svari á hverja beiðni og engu SSE. Útgáfa

@@ -34,6 +34,42 @@ token:
 
 The [client guide](client-guide.md) (§2) has the rules of the binding.
 
+## Connecting an AI program
+
+The program needs the endpoint's address alone; it registers, signs the person
+in and finds the scopes by itself, as above.
+
+- The local engine: `http://127.0.0.1:8000/mcp`, for programs on the same
+  computer, which reach every project.
+- A team server: `https://cde.example.org/mcp` with the server's own name, which reaches only the
+  projects whose AI policy is `cloud`. A program that runs in the cloud, such
+  as a connector of Claude or ChatGPT, reaches a team server on the internet
+  and never the local engine.
+
+As the programs' own guides describe it, Claude Code adds it with a command,
+VS Code in `.vscode/mcp.json` and Cursor in `~/.cursor/mcp.json`:
+
+```sh
+claude mcp add --transport http dataregium https://cde.example.org/mcp
+```
+
+```json
+{"servers": {"dataregium": {"type": "http", "url": "https://cde.example.org/mcp"}}}
+```
+
+```json
+{"mcpServers": {"dataregium": {"url": "https://cde.example.org/mcp"}}}
+```
+
+The first call opens the server's sign-in page in the browser; after the
+consent the program lists the tools. A good start is `list_models`, then
+`server_query` with `name` null for the queries a model answers. To propose,
+the program asks for `mcp:propose` at the first change-set tool, and the person
+is an editor or a manager of the project. Where the server registers no client
+by itself, an administrator registers the program with the redirect URI it
+names: `http://127.0.0.1` with any port is accepted, `http://localhost` only
+where `OPENCDE_ALLOW_LOCALHOST_REDIRECTS` is on, which production refuses.
+
 ## The protocol
 
 Streamable HTTP with one JSON answer per request and no SSE. Revision
