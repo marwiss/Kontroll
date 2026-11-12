@@ -19,11 +19,13 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from opencde.deps import GraphDep, SettingsDep
+from opencde.deps import GraphDep, PostgresDep, SettingsDep
 from opencde.errors import CODE_INSUFFICIENT_SCOPE, CODE_REAUTHENTICATION_REQUIRED, CODE_UNAUTHENTICATED, ApiError
 from opencde.graph.graph import Graph
+from opencde.postgres.database import Postgres
 from opencde.settings import Settings
-from opencde.store.oauth2.tokens import Principal, TokenRepository
+from opencde.store.oauth2.postgres import token_store
+from opencde.store.oauth2.tokens import Principal
 from opencde.store.protocols import TokenStore
 from opencde.timeutil import later_iso
 
@@ -38,18 +40,13 @@ BEARER_SCHEME = HTTPBearer(
 )
 
 
-def token_repository(graph: Graph, settings: Settings) -> TokenStore:
-    return TokenRepository(
-        graph,
-        code_ttl=settings.authorization_code_ttl_seconds,
-        access_ttl=settings.access_token_ttl_seconds,
-        refresh_ttl=settings.refresh_token_ttl_seconds,
-        refresh_idle=settings.refresh_token_idle_seconds,
-    )
+def token_repository(graph: Graph, settings: Settings, postgres: Postgres | None = None) -> TokenStore:
+    """The codes and tokens: in PostgreSQL when ``OPENCDE_STORE_URL`` names it (ADR 0029), in the graph otherwise."""
+    return token_store(graph, postgres, settings)
 
 
-def get_tokens(graph: GraphDep, settings: SettingsDep) -> TokenStore:
-    return token_repository(graph, settings)
+def get_tokens(graph: GraphDep, postgres: PostgresDep, settings: SettingsDep) -> TokenStore:
+    return token_repository(graph, settings, postgres)
 
 
 TokensDep = Annotated[TokenStore, Depends(get_tokens)]

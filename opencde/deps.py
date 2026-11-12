@@ -11,7 +11,7 @@ from opencde.graph.graph import Graph
 from opencde.postgres.database import Postgres
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
-from opencde.store.oauth2.clients import ClientRepository
+from opencde.store.oauth2.postgres import client_store
 from opencde.store.protocols import ClientStore, ProjectStore, UserStore
 
 
@@ -57,9 +57,11 @@ def get_projects(
 
 
 def get_clients(
-    graph: Annotated[Graph, Depends(get_graph)], settings: Annotated[Settings, Depends(get_settings)]
+    graph: Annotated[Graph, Depends(get_graph)],
+    postgres: Annotated[Postgres | None, Depends(get_postgres)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> ClientStore:
-    return ClientRepository(graph, allow_localhost_redirects=settings.registers_localhost)
+    return client_store(graph, postgres, settings)
 
 
 def client_ip(request: Request) -> str | None:

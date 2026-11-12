@@ -16,7 +16,8 @@ from fastapi.testclient import TestClient
 
 from opencde.accounts.roles import Role
 from opencde.auth import pkce
-from opencde.deps import get_projects, get_users
+from opencde.auth.dependencies import get_tokens
+from opencde.deps import get_clients, get_projects, get_users
 from opencde.ids import hash_secret
 from opencde.main import create_app
 from opencde.postgres import cleanup, database, schema
@@ -624,9 +625,9 @@ def test_the_graph_holds_oauth2_unless_postgresql_is_named(tmp_path: Path) -> No
     assert isinstance(client_store(graph, None, settings), ClientRepository)  # ty: ignore[invalid-argument-type]
     assert isinstance(token_store(graph, None, settings), TokenRepository)  # ty: ignore[invalid-argument-type]
     postgres = Postgres(URL, "", connect_timeout_seconds=1.0)
-    clients = client_store(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
+    clients = get_clients(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
     assert isinstance(clients, PostgresClientRepository) and clients.allow_localhost
-    tokens = token_store(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
+    tokens = get_tokens(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
     assert isinstance(tokens, PostgresTokenRepository) and tokens.code_ttl == settings.authorization_code_ttl_seconds
     assert tokens.refresh_idle == settings.refresh_token_idle_seconds
 

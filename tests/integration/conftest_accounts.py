@@ -19,6 +19,7 @@ from opencde.settings import Settings
 from opencde.store.accounts.projects import ProjectRepository
 from opencde.store.accounts.users import UserRepository
 from opencde.store.oauth2.clients import ClientRepository
+from opencde.store.protocols import ClientStore, ProjectStore, UserStore
 from tests.integration.helpers import Session, authorize, exchange, sign_in
 
 PASSWORD = "a-long-and-strong-passphrase"
@@ -43,40 +44,42 @@ class World:
         return REDIRECT
 
 
+async def populate(users: UserStore, projects: ProjectStore, clients: ClientStore) -> World:
+    """The users, projects and clients of the world, in whichever store the repositories are."""
+    ids = {}
+    for name, admin in (
+        ("admin", True),
+        ("manager", False),
+        ("editor", False),
+        ("contributor", False),
+        ("viewer", False),
+        ("outsider", False),
+    ):
+        ids[name] = (await users.create(name, PASSWORD, full_name=name.title(), is_admin=admin)).id
+    project = await projects.create("Building permit")
+    other = await projects.create("Demolition permit")
+    await projects.set_member(project.project_id, ids["manager"], Role.MANAGER)
+    await projects.set_member(project.project_id, ids["editor"], Role.EDITOR)
+    await projects.set_member(project.project_id, ids["contributor"], Role.CONTRIBUTOR)
+    await projects.set_member(project.project_id, ids["viewer"], Role.VIEWER)
+    await projects.set_member(other.project_id, ids["outsider"], Role.MANAGER)
+    public, _ = await clients.create("Native app", [REDIRECT, "http://127.0.0.1/other"], public=True)
+    confidential, secret = await clients.create("Server app", [REDIRECT], public=False)
+    return World(
+        project_id=project.project_id,
+        other_project_id=other.project_id,
+        public_client_id=public.client_id,
+        confidential_client_id=confidential.client_id,
+        confidential_secret=secret or "",
+        users=ids,
+    )
+
+
 async def _build(settings: Settings) -> World:
     graph = make_store(settings) or make_graph(settings)  # the server's own data (ADR 0027)
     try:
         await apply_schema(graph)
-        users = UserRepository(graph)
-        projects = ProjectRepository(graph)
-        clients = ClientRepository(graph)
-        ids = {}
-        for name, admin in (
-            ("admin", True),
-            ("manager", False),
-            ("editor", False),
-            ("contributor", False),
-            ("viewer", False),
-            ("outsider", False),
-        ):
-            ids[name] = (await users.create(name, PASSWORD, full_name=name.title(), is_admin=admin)).id
-        project = await projects.create("Building permit")
-        other = await projects.create("Demolition permit")
-        await projects.set_member(project.project_id, ids["manager"], Role.MANAGER)
-        await projects.set_member(project.project_id, ids["editor"], Role.EDITOR)
-        await projects.set_member(project.project_id, ids["contributor"], Role.CONTRIBUTOR)
-        await projects.set_member(project.project_id, ids["viewer"], Role.VIEWER)
-        await projects.set_member(other.project_id, ids["outsider"], Role.MANAGER)
-        public, _ = await clients.create("Native app", [REDIRECT, "http://127.0.0.1/other"], public=True)
-        confidential, secret = await clients.create("Server app", [REDIRECT], public=False)
-        return World(
-            project_id=project.project_id,
-            other_project_id=other.project_id,
-            public_client_id=public.client_id,
-            confidential_client_id=confidential.client_id,
-            confidential_secret=secret or "",
-            users=ids,
-        )
+        return await populate(UserRepository(graph), ProjectRepository(graph), ClientRepository(graph))
     finally:
         await graph.close()
 

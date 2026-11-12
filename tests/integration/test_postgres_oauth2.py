@@ -1,26 +1,33 @@
 # This file was generated with the assistance of an AI coding tool.
 """The OAuth2 area in PostgreSQL (ADR 0029) against a real database: the same tests on the graph's repositories and on
-PostgreSQL's, and PostgreSQL's own (the cleaner, the foreign keys, two requests with one code or token at once).
+PostgreSQL's, PostgreSQL's own (the cleaner, the foreign keys, two requests with one code or token at once), and the
+existing tests of the OAuth2 flow over HTTP with the app's OAuth2 and accounts in PostgreSQL.
 
 Each case runs once on the graph (on every graph the session has) and once on PostgreSQL, which needs no graph:
-``-k on_postgresql`` starts PostgreSQL alone.
+``-k on_postgresql`` starts PostgreSQL alone. The flow over HTTP needs both, since the audit log is still the graph's.
 """
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
+import inspect
+from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
 import pytest
 from asyncpg.exceptions import CheckViolationError
+from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from opencde.auth import pkce
 from opencde.graph.graph import Graph
+from opencde.main import create_app
 from opencde.postgres.cleanup import delete_expired
 from opencde.postgres.database import Postgres
+from opencde.settings import Settings
 from opencde.store.accounts.postgres import (
+    PostgresProjectRepository,
     PostgresUserRepository,
     PostgresWebSessionRepository,
 )
@@ -31,6 +38,10 @@ from opencde.store.oauth2.postgres import PostgresClientRepository, PostgresToke
 from opencde.store.oauth2.tokens import GrantError, TokenRepository
 from opencde.store.protocols import ClientStore, TokenStore, UserStore, WebSessionStore
 from opencde.timeutil import later_iso
+from tests.integration import test_oauth2 as flow
+from tests.integration import test_security_oauth2 as attacks
+from tests.integration.conftest import PostgresTarget, emptied_postgres
+from tests.integration.conftest_accounts import World, populate
 
 pytestmark = pytest.mark.integration
 
@@ -525,3 +536,59 @@ async def test_on_postgresql_two_requests_with_one_code_or_token_take_their_turn
     (rotated,) = [answer for answer in answers if not isinstance(answer, BaseException)]
     (reuse,) = [answer for answer in answers if isinstance(answer, GrantError)]
     assert "reuse detected" in reuse.description and await tokens.principal(rotated.access_token) is None
+
+
+# -- the flow over HTTP, with the OAuth2 and the accounts in PostgreSQL ------------------------------------------------
+
+#: The existing tests of the flow that reach the store through the app alone.
+FLOW = (
+    flow.test_public_client_flow_with_pkce,
+    flow.test_confidential_client_flow_with_basic_auth_and_scopes,
+    flow.test_token_response_is_never_cached_and_has_spec_fields,
+    flow.test_refresh_rotates_and_reuse_revokes_the_family,
+    flow.test_code_is_single_use_and_replay_revokes_tokens,
+    flow.test_revocation,
+    flow.test_wrong_password_shows_the_form_again_without_redirect,
+    attacks.test_unregistered_redirect_uri_is_shown_not_followed,
+    attacks.test_loopback_port_may_vary_but_host_may_not,
+    attacks.test_pkce_is_mandatory_and_plain_is_refused,
+    attacks.test_wrong_verifier_wrong_client_and_wrong_redirect_are_invalid_grant,
+    attacks.test_client_authentication_failures,
+    attacks.test_passwords_and_codes_never_reach_the_logs,
+)
+
+
+@pytest.fixture
+def pg_settings(settings: Settings, postgres_target: PostgresTarget) -> Settings:
+    return settings.model_copy(
+        update={"store_url": postgres_target.url, "store_password": SecretStr(postgres_target.password)}
+    )
+
+
+@pytest.fixture
+def pg_world(clean_database: None, postgres_target: PostgresTarget) -> World:
+    """The world in PostgreSQL alone: the graph has no user to issue a code for, so a flow that passes ran there."""
+
+    async def build() -> World:
+        postgres = await emptied_postgres(postgres_target)
+        try:
+            users, projects = PostgresUserRepository(postgres), PostgresProjectRepository(postgres)
+            return await populate(users, projects, PostgresClientRepository(postgres))
+        finally:
+            await postgres.close()
+
+    return asyncio.run(build())
+
+
+@pytest.fixture
+def pg_client(pg_settings: Settings, pg_world: World) -> Iterator[TestClient]:
+    with TestClient(create_app(pg_settings, startup_wait_seconds=30)) as client:
+        yield client
+
+
+@pytest.mark.parametrize("case", FLOW, ids=lambda case: case.__name__.removeprefix("test_"))
+def test_the_flow_with_postgresql(
+    case: Callable[..., None], pg_client: TestClient, pg_world: World, caplog: pytest.LogCaptureFixture
+) -> None:
+    given = {"client": pg_client, "world": pg_world, "caplog": caplog}
+    case(**{name: given[name] for name in inspect.signature(case).parameters})
