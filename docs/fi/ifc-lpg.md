@@ -80,7 +80,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -96,10 +96,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -153,6 +155,18 @@ kelvollisena. Sääntö, joka nosti poikkeuksen sen sijaan, että olisi löytän
 jotakin, jää ilman tulosta, ja se luetellaan tarkistuksensa kohdassa
 `rules_not_run`. Jos sääntöjä ei voida ajaa lainkaan, niiden tarkistus on
 `failed`, ja skeeman tarkistus jää ainoaksi.
+
+Löydöksellä, joka osoittaa instanssin, on myös sen luokka kentässä
+`ifc_class` ja kentässä `root_global_id` lähimmän instanssin tavoittavan
+juuriolion GlobalId: juurioliolla sen oma, ja seinän rungon ääriviivassa
+olevalla `IfcPolyline`-instanssilla, jonka GEM111 löytää, seinän. Juuriolio
+tavoittaa instanssin samoin kuin IFC-LPG:n polut: eteenpäin attribuuttien
+kautta ja taaksepäin käänteisten attribuuttien kautta. Työprosessi lukee
+molemmat tiedostosta, joten mallia ei tarvitse muuntaa, ja `global_id` pysyy
+instanssin omana. Version sivu näyttää luokan instanssin vieressä ja elementin
+GlobalId:n, kun instanssilla ei ole omaa, jotta myös asiakas voi osoittaa
+elementin. Löydös, joka ei osoita instanssia, pysyy ennallaan, ja löydöksellä,
+jonka instanssia mikään ei tavoita, on vain luokka.
 
 Säännöt vievät enemmän aikaa kuin skeematarkistus: kahdeksalla esimerkkimallilla
 5 sekunnista pienimmälle noin 5 minuuttiin suurimmalle, ja useimmille puolesta

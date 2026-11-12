@@ -77,7 +77,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -93,10 +93,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -145,6 +147,17 @@ practice only warn, and a file whose issues are all warnings gets the status
 rule that raised an exception, rather than finding something, has no verdict and
 is listed under `rules_not_run` of its check. If the rules cannot run at all,
 their check is `failed` and the schema's check stands alone.
+
+A finding that names an instance also has its class in `ifc_class` and, in
+`root_global_id`, the GlobalId of the nearest rooted entity that reaches it:
+its own for a rooted entity, and for an `IfcPolyline` in the outline of a
+wall's body, which GEM111 finds, the wall's. It reaches the instance as
+IFC-LPG's paths do, forward through attributes and backward through inverse
+ones. A worker reads both from the file, so the model need not be converted,
+while `global_id` stays the instance's own. The version's page shows the class
+beside the instance, and the element's GlobalId where the instance has none, so
+that a client too can point at the element. A finding that names no instance
+stays as it is, and one whose instance nothing reaches has only its class.
 
 The rules take longer than the schema check: on eight sample models from 5
 seconds for the smallest to about 5 minutes for the largest, and between half a

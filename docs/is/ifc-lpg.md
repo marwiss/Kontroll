@@ -74,7 +74,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -90,10 +90,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -145,6 +147,18 @@ skrá gilda. Regla sem kastaði undantekningu í stað þess að finna eitthvað
 enga niðurstöðu og er talin upp undir `rules_not_run` í prófun sinni. Ef
 reglurnar geta alls ekki keyrt verður prófun þeirra `failed`, og prófun
 skemans stendur ein.
+
+Það sem regla finnur og bendir á tilvik hefur líka flokk þess í `ifc_class`
+og, í `root_global_id`, GlobalId nálægustu rótfestu einingarinnar sem nær því:
+eigið GlobalId fyrir rótfesta einingu, og fyrir `IfcPolyline` í útlínu bols
+veggjar, sem GEM111 finnur, GlobalId veggjarins. Hún nær tilvikinu eins og
+slóðir IFC-LPG gera, áfram gegnum eigindi og aftur á bak gegnum andhverf
+eigindi. Vinnsluferli les hvort tveggja úr skránni, svo líkanið þarf ekki að
+vera umbreytt, en `global_id` er áfram eigið GlobalId tilviksins. Síða
+útgáfunnar sýnir flokkinn við hlið tilviksins, og GlobalId hlutarins þar sem
+tilvikið hefur ekkert, svo að biðlari geti líka bent á hlutinn. Það sem regla
+finnur án þess að benda á tilvik stendur eins og það er, og það sem bendir á
+tilvik sem ekkert nær hefur aðeins flokk þess.
 
 Reglurnar taka lengri tíma en skemaprófunin: á átta sýnilíkönum frá 5 sekúndum
 fyrir það minnsta til um 5 mínútna fyrir það stærsta, og frá hálfri mínútu upp í

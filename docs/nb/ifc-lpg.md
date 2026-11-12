@@ -80,7 +80,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -96,10 +96,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -148,6 +150,18 @@ statusen `warnings`, siden buildingSMARTs valideringstjeneste regner en slik fil
 som gyldig. En regel som kastet et unntak i stedet for å finne noe, har ikke noe
 utfall og står under `rules_not_run` i kontrollen sin. Kan reglene ikke kjøre i
 det hele tatt, blir kontrollen deres `failed`, og skjemaets kontroll står alene.
+
+Et funn som peker ut en instans, har også klassen dens i `ifc_class` og, i
+`root_global_id`, GlobalId-en til den nærmeste rotfestede entiteten som når
+den: dens egen for en rotfestet entitet, og for en `IfcPolyline` i omrisset av
+kroppen til en vegg, som GEM111 finner, veggens. Den når instansen slik
+IFC-LPGs stier gjør, framover gjennom attributter og bakover gjennom inverse
+attributter. En arbeidsprosess leser begge fra filen, så modellen trenger ikke
+være konvertert, mens `global_id` forblir instansens egen. Versjonens side
+viser klassen ved siden av instansen, og elementets GlobalId der instansen ikke
+har noen, slik at også en klient kan peke ut elementet. Et funn som ikke peker
+ut noen instans, står som det er, og et funn der ingenting når instansen, har
+bare klassen.
 
 Reglene tar lengre tid enn skjemakontrollen: på åtte eksempelmodeller fra 5
 sekunder for den minste til omkring 5 minutter for den største, og mellom et

@@ -80,7 +80,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -96,10 +96,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -148,6 +150,17 @@ advarer kun, og en fil, hvis anmærkninger alle er advarsler, får status
 gyldig. En regel, der kastede en undtagelse i stedet for at finde noget, har
 intet udfald og står under `rules_not_run` i sin kontrol. Kan reglerne slet ikke
 køre, bliver deres kontrol `failed`, og skemaets kontrol står alene.
+
+Et fund, der udpeger en instans, har også dens klasse i `ifc_class` og, i
+`root_global_id`, GlobalId for den nærmeste rodfæstede entitet, der når den:
+dens eget for en rodfæstet entitet, og for en `IfcPolyline` i omridset af en
+væggs krop, som GEM111 finder, væggens. Den når instansen, som IFC-LPG's stier
+gør, frem gennem attributter og tilbage gennem inverse attributter. En
+arbejdsproces læser begge fra filen, så modellen behøver ikke at være
+konverteret, mens `global_id` forbliver instansens eget. Versionens side viser
+klassen ved siden af instansen og elementets GlobalId, hvor instansen intet
+har, så også en klient kan udpege elementet. Et fund, der ikke udpeger nogen
+instans, står, som det er, og et, hvis instans intet når, har kun sin klasse.
 
 Reglerne tager længere tid end skemakontrollen: på otte eksempelmodeller fra 5
 sekunder for den mindste til omkring 5 minutter for den største og mellem et

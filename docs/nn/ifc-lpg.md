@@ -81,7 +81,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -97,10 +97,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -151,6 +153,18 @@ gyldig. Ein regel som kasta eit unntak i staden for å finne noko, har ikkje nok
 utfall og står under `rules_not_run` i kontrollen sin. Kan reglane ikkje køyre i
 det heile, blir kontrollen deira `failed`, og kontrollen til skjemaet står
 åleine.
+
+Eit funn som peikar ut ein instans, har òg klassen hans i `ifc_class` og, i
+`root_global_id`, GlobalId-en til den nærmaste rotfesta entiteten som når han:
+instansen sin eigen for ei rotfesta entitet, og for ei `IfcPolyline` i
+omrisset av kroppen til ein vegg, som GEM111 finn, GlobalId-en til veggen. Ho
+når instansen slik stiane til IFC-LPG gjer, framover gjennom attributt og
+bakover gjennom inverse attributt. Ein arbeidsprosess les begge frå fila, så
+modellen treng ikkje vere konvertert, medan `global_id` framleis er instansen
+sin eigen. Sida til versjonen viser klassen ved sida av instansen, og
+GlobalId-en til elementet der instansen ikkje har nokon, slik at òg ein klient
+kan peike ut elementet. Eit funn som ikkje peikar ut nokon instans, står som
+det er, og eit funn der ingenting når instansen, har berre klassen.
 
 Reglane tek lengre tid enn skjemakontrollen: på åtte eksempelmodellar frå 5
 sekund for den minste til om lag 5 minutt for den største, og mellom eit halvt

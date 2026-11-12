@@ -79,7 +79,7 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
   "checked_at": "2026-11-07T10:05:25.123Z",
   "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules; ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
   "issue_count": 2,
-  "error_count": 1,
+  "error_count": 2,
   "truncated": false,
   "checks": [
     {"name": "schema", "state": "done", "ruleset": "IfcOpenShell 0.9.0.post1: schema and EXPRESS rules", "issue_count": 1, "rules_not_run": [], "documents": [], "specifications": []},
@@ -95,10 +95,12 @@ GET /documents/1.0/documents/{document_id}/versions/{version_index}/ifc-validati
     },
     {
       "kind": "gherkin",
-      "rule": "IFC106",
-      "severity": "warning",
-      "message": "IFC106 - Resource entities should be referenced by rooted entity. ...",
-      "step_id": 99999
+      "rule": "GEM111",
+      "severity": "error",
+      "message": "GEM111 - No duplicated points within a polyloop or polyline. ...",
+      "step_id": 202,
+      "ifc_class": "IfcPolyline",
+      "root_global_id": "1Xezbq735AdBO_4DerG66G"
     }
   ]
 }
@@ -149,6 +151,17 @@ fil för giltig. En regel som kastade ett undantag i stället för att hitta nå
 saknar utslag och listas under `rules_not_run` i sin kontroll. Om reglerna inte
 går att köra alls blir deras kontroll `failed`, och schemats kontroll står för
 sig själv.
+
+Ett fynd som pekar ut en instans har också dess klass i `ifc_class` och, i
+`root_global_id`, GlobalId för den närmaste rotade entitet som når den: dess
+eget för en rotad entitet, och för en `IfcPolyline` i konturen till en väggs
+kropp, som GEM111 hittar, väggens. Den når instansen som IFC-LPG:s sökvägar
+gör, framåt genom attribut och bakåt genom inversa attribut. En arbetsprocess
+läser båda ur filen, så modellen behöver inte vara konverterad, medan
+`global_id` förblir instansens eget. Versionens sida visar klassen bredvid
+instansen, och elementets GlobalId där instansen saknar ett, så att också en
+klient kan peka ut elementet. Ett fynd som inte pekar ut någon instans står
+kvar som det är, och ett vars instans ingenting når har bara sin klass.
 
 Reglerna tar längre tid än schemakontrollen: på åtta exempelmodeller från 5
 sekunder för den minsta till omkring 5 minuter för den största, och mellan en

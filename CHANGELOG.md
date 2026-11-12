@@ -20,6 +20,12 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- A finding of buildingSMART's rules that names an instance carries its class in `ifc_class` and, in
+  `root_global_id`, the GlobalId of the nearest rooted entity that reaches it, forward through attributes and
+  backward through inverse ones as IFC-LPG's paths do: the instance's own, or for a polyline in a wall's outline
+  (GEM111) the wall's. A worker reads both from the file, so a precheck and a trial have them too. `global_id` stays
+  the instance's own and both fields are optional, so a report kept before reads as it did. The version's page shows
+  the class beside the instance, and the element's GlobalId where the instance has none.
 - The check `bsdd` also warns of a property whose `Specification` (IFC 4.3), or `Description` in an earlier schema,
   names a bSDD property that bSDD does not know, with the property in `step_id` and its set and name in `attribute`;
   and of a bSDD URI in a classification or property facet of one of the project's IDS documents that bSDD does not
