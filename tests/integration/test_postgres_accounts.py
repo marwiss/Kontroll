@@ -3,13 +3,13 @@
 on PostgreSQL's, the migrations and the cleaner, and the app signing a user in with the accounts in PostgreSQL.
 
 PostgreSQL runs in a container of its own (testcontainers' postgres module), one per test session; every test starts
-from empty tables with the migrations applied. The graph's side runs on every graph the session has; PostgreSQL's
-runs once, beside Neo4j."""
+from empty tables with the migrations applied. Each case runs once on the graph (on every graph the session has) and
+once on PostgreSQL, which needs no graph: ``-k on_postgresql`` starts PostgreSQL alone."""
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass
 
 import pytest
@@ -20,7 +20,6 @@ from pydantic import SecretStr
 from testcontainers.community.postgres import PostgresContainer
 
 from opencde.accounts.roles import Role
-from opencde.graph.dialect import GraphDialect
 from opencde.graph.graph import Graph
 from opencde.main import create_app
 from opencde.postgres.cleanup import delete_expired
@@ -87,31 +86,10 @@ class Accounts:
     sessions: WebSessionStore
 
 
-@pytest.fixture(params=["graph", "postgres"])
-def accounts(request: pytest.FixtureRequest, graph: Graph, graph_target: GraphTarget) -> Accounts:
-    """The accounts' four repositories over the graph or over PostgreSQL: one test, both stores."""
-    if request.param == "graph":
-        return Accounts(
-            UserRepository(graph),
-            ProjectRepository(graph),
-            TeamRepository(graph),
-            WebSessionRepository(graph, ttl_seconds=3600, idle_seconds=600),
-        )
-    if graph_target.dialect is not GraphDialect.NEO4J:
-        pytest.skip("PostgreSQL's side runs once, beside Neo4j")
-    postgres = request.getfixturevalue("pg")
-    return Accounts(
-        PostgresUserRepository(postgres),
-        PostgresProjectRepository(postgres),
-        PostgresTeamRepository(postgres),
-        PostgresWebSessionRepository(postgres, ttl_seconds=3600, idle_seconds=600),
-    )
-
-
 # -- the same on both ----------------------------------------------------------------------------------------------
 
 
-async def test_users_are_made_found_changed_and_deleted(accounts: Accounts) -> None:
+async def users_are_made_found_changed_and_deleted(accounts: Accounts) -> None:
     users = accounts.users
     bertil = await users.create("bertil", PASSWORD, email="Bertil@Example.org", full_name="Bertil Ek")
     await users.create("Adam", PASSWORD)
@@ -141,7 +119,7 @@ async def test_users_are_made_found_changed_and_deleted(accounts: Accounts) -> N
     assert await users.get(bertil.id) is None
 
 
-async def test_projects_and_their_members(accounts: Accounts) -> None:
+async def projects_and_their_members(accounts: Accounts) -> None:
     users, projects = accounts.users, accounts.projects
     editor, viewer = await users.create("editor", PASSWORD), await users.create("viewer", PASSWORD)
     first = await projects.create(" Building permit ", project_id=PROJECT_ID.upper())
@@ -186,7 +164,7 @@ async def test_projects_and_their_members(accounts: Accounts) -> None:
     assert await projects.members(second.project_id) == [], "a user goes from the projects too"
 
 
-async def test_teams_of_a_project(accounts: Accounts) -> None:
+async def teams_of_a_project(accounts: Accounts) -> None:
     users, projects, teams = accounts.users, accounts.projects, accounts.teams
     lead, member, outsider = [await users.create(name, PASSWORD) for name in ("lead", "member", "outsider")]
     project = await projects.create("Building permit")
@@ -238,7 +216,7 @@ async def test_teams_of_a_project(accounts: Accounts) -> None:
     assert await teams.delete(project.project_id, team_id) and not await teams.delete(project.project_id, team_id)
 
 
-async def test_browser_sessions(accounts: Accounts) -> None:
+async def browser_sessions(accounts: Accounts) -> None:
     users, sessions = accounts.users, accounts.sessions
     user = await users.create("editor", PASSWORD)
     token, other = await sessions.create(user.id, "127.0.0.1"), await sessions.create(user.id, None)
@@ -251,10 +229,37 @@ async def test_browser_sessions(accounts: Accounts) -> None:
     assert await sessions.delete_for_user(user.id) == 1
 
 
+CASES = (users_are_made_found_changed_and_deleted, projects_and_their_members, teams_of_a_project, browser_sessions)
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda case: case.__name__)
+async def test_on_the_graph(case: Callable[[Accounts], Awaitable[None]], graph: Graph) -> None:
+    await case(
+        Accounts(
+            UserRepository(graph),
+            ProjectRepository(graph),
+            TeamRepository(graph),
+            WebSessionRepository(graph, ttl_seconds=3600, idle_seconds=600),
+        )
+    )
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda case: case.__name__)
+async def test_on_postgresql(case: Callable[[Accounts], Awaitable[None]], pg: Postgres) -> None:
+    await case(
+        Accounts(
+            PostgresUserRepository(pg),
+            PostgresProjectRepository(pg),
+            PostgresTeamRepository(pg),
+            PostgresWebSessionRepository(pg, ttl_seconds=3600, idle_seconds=600),
+        )
+    )
+
+
 # -- PostgreSQL's own ----------------------------------------------------------------------------------------------
 
 
-async def test_the_migrations_run_once_and_refuse_a_newer_database(pg: Postgres) -> None:
+async def test_on_postgresql_the_migrations_run_once_and_refuse_a_newer_database(pg: Postgres) -> None:
     assert await migrate(pg) == 0, "already applied"
     await pg.execute("INSERT INTO schema_migrations (version, name, applied_at) VALUES (99, '0099_later', 'x')")
     try:
@@ -268,7 +273,7 @@ async def test_the_migrations_run_once_and_refuse_a_newer_database(pg: Postgres)
         )
 
 
-async def test_expired_sessions_are_deleted_and_the_others_kept(pg: Postgres) -> None:
+async def test_on_postgresql_expired_sessions_are_deleted_and_the_others_kept(pg: Postgres) -> None:
     user = await PostgresUserRepository(pg).create("editor", PASSWORD)
     await PostgresWebSessionRepository(pg, ttl_seconds=-60, idle_seconds=-60).create(user.id, None)
     kept = await PostgresWebSessionRepository(pg, ttl_seconds=3600, idle_seconds=600).create(user.id, None)
