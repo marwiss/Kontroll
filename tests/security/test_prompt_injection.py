@@ -1120,6 +1120,16 @@ def _deep(value: Any, depth: int) -> Any:
     return value
 
 
+def _deep_json_error() -> int:
+    """Python's JSON parser stops at its recursion limit before 3.14, which is a parse error, and parses any depth
+    from 3.14 on, which makes the body a request whose params is no object."""
+    try:
+        json.loads("[" * 100_000 + "]" * 100_000)
+    except RecursionError:
+        return protocol.PARSE_ERROR
+    return protocol.INVALID_PARAMS
+
+
 def _hostile_requests(text: str) -> list[tuple[str, dict[str, Any], int, int | None]]:
     """Requests that carry ``text`` wherever a client writes what it likes: the id, the method, ``params`` and its
     ``_meta``, a tool's name and arguments, nested deeper than any limit, and the headers; each with the status and
@@ -1207,7 +1217,7 @@ def _hostile_requests(text: str) -> list[tuple[str, dict[str, Any], int, int | N
             "nested past any limit",
             {"content": deep, "headers": listing | {"Content-Type": "application/json"}},
             400,
-            protocol.PARSE_ERROR,
+            _deep_json_error(),
         ),
     ]
     if all(" " <= char <= "~" for char in text):  # what a header carries as it is; else only as Mcp-Name's base64
