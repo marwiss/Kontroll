@@ -63,6 +63,26 @@ PUBLIC_FIELDS = (
 )
 
 
+def check_password(password: str, username: str, others: list[str]) -> None:
+    """Refuse a password the policy rejects; the same rule for every store."""
+    problems = password_problems(password, username, others)
+    if problems:
+        raise AccountError(
+            "password rejected: " + "; ".join(str(p) for p in problems),
+            key="error.password.rejected",
+            problems=problems,
+        )
+
+
+def checked_new_user(username: str, password: str, email: str | None, full_name: str | None) -> str:
+    """The user name of a new user, stripped, once it and the password pass; the same rules for every store."""
+    username = username.strip()
+    if not USERNAME.match(username):
+        raise AccountError("user name: 3-128 characters, letters, digits and . _ @ + -", key="error.user.name_invalid")
+    check_password(password, username, [email or "", full_name or ""])
+    return username
+
+
 class UserRepository:
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
@@ -77,18 +97,7 @@ class UserRepository:
         is_admin: bool = False,
         must_change_password: bool = False,
     ) -> User:
-        username = username.strip()
-        if not USERNAME.match(username):
-            raise AccountError(
-                "user name: 3-128 characters, letters, digits and . _ @ + -", key="error.user.name_invalid"
-            )
-        problems = password_problems(password, username, [email or "", full_name or ""])
-        if problems:
-            raise AccountError(
-                "password rejected: " + "; ".join(str(p) for p in problems),
-                key="error.password.rejected",
-                problems=problems,
-            )
+        username = checked_new_user(username, password, email, full_name)
         if await self.get_by_username(username):
             raise AccountError("user name already taken", key="error.user.name_taken")
         row = await self.graph.one(
@@ -164,13 +173,7 @@ class UserRepository:
         user = await self.get(user_id)
         if user is None:
             raise AccountError("no such user", key="error.user.not_found")
-        problems = password_problems(password, user.username, [user.email or "", user.full_name or ""])
-        if problems:
-            raise AccountError(
-                "password rejected: " + "; ".join(str(p) for p in problems),
-                key="error.password.rejected",
-                problems=problems,
-            )
+        check_password(password, user.username, [user.email or "", user.full_name or ""])
         await self.graph.run(
             "MATCH (u:User {id: $id}) SET u.password_hash = $hash, u.must_change_password = $must_change",
             id=user_id,
