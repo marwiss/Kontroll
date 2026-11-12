@@ -1,6 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The server's own data in PostgreSQL (ADR 0029), without a database: every statement a literal with numbered
-parameters, the migrations in order, the accounts' repositories over a fake, and the choice of store in the app."""
+parameters, the migrations in order, every expiring table in the cleaner's round, the areas' repositories over a fake,
+and the choice of store in the app."""
 
 from __future__ import annotations
 
@@ -14,7 +15,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from opencde.accounts.roles import Role
+from opencde.auth import pkce
 from opencde.deps import get_projects, get_users
+from opencde.ids import hash_secret
 from opencde.main import create_app
 from opencde.postgres import cleanup, database, schema
 from opencde.postgres.database import Postgres, _count
@@ -33,6 +36,11 @@ from opencde.store.accounts.projects import ProjectRepository
 from opencde.store.accounts.sessions import WebSessionRepository
 from opencde.store.accounts.teams import TeamRepository
 from opencde.store.accounts.users import AccountError, UserRepository
+from opencde.store.oauth2 import postgres as oauth2
+from opencde.store.oauth2.clients import ClientError, ClientRepository
+from opencde.store.oauth2.postgres import PostgresClientRepository, PostgresTokenRepository, client_store, token_store
+from opencde.store.oauth2.tokens import GrantError, TokenPair, TokenRepository
+from opencde.timeutil import later_iso, now_iso
 from tests.conftest import REPO_ROOT
 from tests.conftest import test_settings as make_settings
 
@@ -41,8 +49,9 @@ MODULES = sorted(
 )
 RUNNERS = {"run", "one", "execute", "fetch", "fetchrow", "fetchval", "executemany"}
 SQL = re.compile(r"\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN|VALUES|CREATE|DROP|ALTER|TRUNCATE)\b")
-#: The layer that runs the repositories' statements hands on the statement its caller gave.
-PASSED_ON = {"database.py": {"query", "text"}}
+#: The layer that runs the repositories' statements hands on the statement its caller gave, and the cleaner each of
+#: its module's statements in turn.
+PASSED_ON = {"database.py": {"query", "text"}, "cleanup.py": {"statement"}}
 URL = "postgresql://cde@127.0.0.1:9/cde"  # the discard port: refused at once
 WEAK = "x' OR '1'='1"
 LONG_ENOUGH = "a-long-and-strong-passphrase"
@@ -118,11 +127,25 @@ def test_a_members_read_joins_the_membership_on_the_users_id() -> None:
         assert "password_hash" not in statement.split("RETURNING")[-1].split("FROM")[0], "the hash stays inside"
 
 
+def test_a_token_answers_for_its_user_and_client_and_a_secret_stays_inside() -> None:
+    """``FOR`` and ``ISSUED_TO`` in PostgreSQL: a code or a token is read with its user and its client, and only the
+    client's sign-in reads its secret's hash."""
+    for statement in (oauth2.PRINCIPAL, oauth2.CODE_TO_REDEEM, oauth2.REFRESH_TO_USE):
+        assert "JOIN users u ON u.id = " in statement and "JOIN oauth_clients c ON c.client_id = " in statement
+    assert "NOT u.disabled AND NOT c.disabled" in oauth2.PRINCIPAL and "a.expires_at > $2" in oauth2.PRINCIPAL
+    for statement in (oauth2.CODE_TO_REDEEM, oauth2.REFRESH_TO_USE):
+        assert statement.rstrip().endswith("FOR UPDATE OF ac") or statement.rstrip().endswith("FOR UPDATE OF r")
+    for statement in (oauth2.CLIENT_INSERT, oauth2.CLIENT_BY_ID, oauth2.CLIENT_ALL, oauth2.CLIENT_UPDATE):
+        assert "secret_hash" not in statement.split("RETURNING")[-1].split("SELECT")[-1].split("FROM")[0]
+    assert "c.secret_hash" in oauth2.CLIENT_SIGN_IN
+
+
 # -- the migrations ------------------------------------------------------------------------------------------------
 
 
 def test_the_migrations_are_numbered_from_one_without_gaps(tmp_path: Path) -> None:
-    assert [(m.version, m.name) for m in schema.migrations()] == [(1, "0001_accounts")]
+    shipped = [(m.version, m.name) for m in schema.migrations()]
+    assert shipped[:2] == [(1, "0001_accounts"), (2, "0002_oauth2")]
     for names, words in ((["0001_a.sql", "0003_c.sql"], "without gaps"), (["1_a.sql"], "NNNN_name.sql")):
         folder = tmp_path / names[0]
         folder.mkdir()
@@ -140,6 +163,19 @@ def test_the_first_migration_keeps_time_canonical_and_owns_by_foreign_keys() -> 
     assert text.count("ON DELETE CASCADE") >= 6
     for view in ("project_files", "project_models", "document_heads"):
         assert f"CREATE VIEW {view}" in text, "the seams to the areas that have not followed"
+
+
+def test_the_oauth2_migration_keeps_hashes_alone_and_goes_with_the_user_and_the_client() -> None:
+    text = (schema.MIGRATIONS_DIR / "0002_oauth2.sql").read_text(encoding="utf-8")
+    assert text.startswith("-- This file was generated with the assistance of an AI coding tool.")
+    assert "timestamptz" not in text and "CREATE DOMAIN" not in text, "the accounts' domain serves"
+    for table in ("authorization_codes", "access_tokens", "refresh_tokens"):
+        body = text.split(f"CREATE TABLE {table} (")[1].split(");")[0]
+        assert "user_id text NOT NULL REFERENCES users (id) ON DELETE CASCADE" in body, table
+        assert "client_id text NOT NULL REFERENCES oauth_clients (client_id) ON DELETE CASCADE" in body, table
+        assert "expires_at iso_utc NOT NULL" in body and f"{table}_expires_at" in text, table
+        assert re.search(r"\b(code|token)_hash text PRIMARY KEY", body) and " code text" not in body, table
+    assert "secret_hash text," in text and "secret text" not in text
 
 
 class FakePostgres:
@@ -176,17 +212,21 @@ def _ledger(rows: list[dict[str, Any]]) -> Callable[[str, tuple[Any, ...]], Any]
 
 
 async def test_migrate_runs_what_is_missing_under_the_lock_and_refuses_a_newer_database() -> None:
+    shipped = [{"version": m.version, "name": m.name} for m in schema.migrations()]
     fresh = FakePostgres(_ledger([]))
-    assert await schema.migrate(fresh) == 1  # ty: ignore[invalid-argument-type]
+    assert await schema.migrate(fresh) == len(shipped)  # ty: ignore[invalid-argument-type]
     assert fresh.transactions == 1 and fresh.statements[0] == (schema.LOCK, (schema.LOCK_KEY,))
-    assert len(fresh.scripts) == 1 and "CREATE TABLE users" in fresh.scripts[0]
-    (record,) = [args for query, args in fresh.statements if query == schema.RECORD]
-    assert record[:2] == (1, "0001_accounts")
+    assert len(fresh.scripts) == len(shipped) and "CREATE TABLE users" in fresh.scripts[0]
+    records = [args[:2] for query, args in fresh.statements if query == schema.RECORD]
+    assert records == [(row["version"], row["name"]) for row in shipped], "in order"
 
-    done = FakePostgres(_ledger([{"version": 1, "name": "0001_accounts"}]))
+    behind = FakePostgres(_ledger(shipped[:1]))
+    assert await schema.migrate(behind) == len(shipped) - 1, "only what is missing"  # ty: ignore[invalid-argument-type]
+    done = FakePostgres(_ledger(shipped))
     assert await schema.migrate(done) == 0 and done.scripts == []  # ty: ignore[invalid-argument-type]
+    later = {"version": len(shipped) + 1, "name": f"{len(shipped) + 1:04d}_later"}
     for rows, words in (
-        ([{"version": 1, "name": "0001_accounts"}, {"version": 2, "name": "0002_later"}], "a newer release"),
+        ([*shipped, later], "a newer release"),
         ([{"version": 1, "name": "0001_other"}], "not the ones this server ships"),
     ):
         with pytest.raises(schema.MigrationError, match=words):
@@ -195,9 +235,28 @@ async def test_migrate_runs_what_is_missing_under_the_lock_and_refuses_a_newer_d
 
 async def test_expired_rows_go_in_batches() -> None:
     counts = iter([cleanup.BATCH, cleanup.BATCH, 3])
-    fake = FakePostgres(lambda query, args: next(counts))
-    assert await cleanup.delete_expired(fake, at="2026-11-12T00:00:00.000Z") == 2 * cleanup.BATCH + 3  # ty: ignore[invalid-argument-type]
-    assert [args for _, args in fake.statements] == [("2026-11-12T00:00:00.000Z", cleanup.BATCH)] * 3
+    first = cleanup.EXPIRING[0]
+    fake = FakePostgres(lambda query, args: next(counts) if query == first else 1)
+    expected = 2 * cleanup.BATCH + 3 + len(cleanup.EXPIRING) - 1
+    assert await cleanup.delete_expired(fake, at="2026-11-12T00:00:00.000Z") == expected  # ty: ignore[invalid-argument-type]
+    assert [query for query, _ in fake.statements] == [first] * 3 + list(cleanup.EXPIRING[1:]), "until a batch is short"
+    assert {args for _, args in fake.statements} == {("2026-11-12T00:00:00.000Z", cleanup.BATCH)}
+
+
+def test_every_expiring_table_is_in_the_cleaners_round() -> None:
+    """A table with ``expires_at`` in any migration has its statement, which deletes by it in batches."""
+    text = "\n".join(m.path.read_text(encoding="utf-8") for m in schema.migrations())
+    expiring = {
+        table for table, body in re.findall(r"CREATE TABLE (\w+) \((.*?)\n\);", text, re.DOTALL) if "expires_at" in body
+    }
+    assert {"web_sessions", "authorization_codes", "access_tokens", "refresh_tokens", "oauth_clients"} <= expiring
+    cleaned = {}
+    for statement in cleanup.EXPIRING:
+        deletes = re.match(r"\s*DELETE FROM (\w+)\s", statement)
+        reads = re.search(r"\(SELECT \w+ FROM (\w+) WHERE expires_at < \$1 LIMIT \$2\)", statement)
+        assert deletes and reads and deletes[1] == reads[1], statement
+        cleaned[deletes[1]] = statement
+    assert set(cleaned) == expiring and len(cleaned) == len(cleanup.EXPIRING), "each table once"
 
 
 def test_a_status_says_how_many_rows() -> None:
@@ -322,6 +381,225 @@ async def test_a_member_is_set_once_and_told_when_the_user_or_project_is_missing
         await projects.set_member("p-1", "u-1", Role.EDITOR)
 
 
+# -- OAuth2 over a fake --------------------------------------------------------------------------------------------
+
+REDIRECT = "http://127.0.0.1/callback"
+VERIFIER = "v" * 50
+NOW = "2026-11-12T00:00:00.000Z"
+TTLS = {"code_ttl": 60, "access_ttl": 3600, "refresh_ttl": 86400, "refresh_idle": 3600}
+CLIENT_ROW = {
+    "client_id": "c-1",
+    "name": "Server app",
+    "redirect_uris": [REDIRECT],
+    "is_public": False,
+    "disabled": False,
+    "created_at": NOW,
+}
+
+
+class Committing(FakePostgres):
+    """A fake that notes where each transaction commits."""
+
+    async def write(self, work: Callable[[Any], Awaitable[Any]]) -> Any:
+        done = await super().write(work)
+        self.statements.append(("COMMIT", ()))
+        return done
+
+
+def _code_row(**changes: Any) -> dict[str, Any]:
+    return {
+        "redirect_uri": REDIRECT,
+        "redirect_required": False,
+        "scope": "bcf",
+        "code_challenge": pkce.challenge_for(VERIFIER),
+        "resource": None,
+        "created_at": NOW,
+        "auth_time": NOW,
+        "expires_at": later_iso(60),
+        "spent": False,
+        "user_id": "u-1",
+        "user_disabled": False,
+        "client_id": "c-1",
+        "client_disabled": False,
+        "pkce_optional": False,
+    } | changes
+
+
+def _refresh_row(**changes: Any) -> dict[str, Any]:
+    return {
+        "family_id": "f-1",
+        "code_hash": "code-hash",
+        "scope": "mcp",
+        "resource": "http://testserver/mcp",
+        "created_at": now_iso(),
+        "auth_time": NOW,
+        "expires_at": later_iso(3600),
+        "spent": False,
+        "user_id": "u-1",
+        "user_disabled": False,
+        "client_id": "c-1",
+        "client_disabled": False,
+    } | changes
+
+
+def _tokens(fake: FakePostgres) -> PostgresTokenRepository:
+    return PostgresTokenRepository(fake, **TTLS)  # ty: ignore[invalid-argument-type]
+
+
+async def test_oauth2_takes_a_value_only_as_an_argument() -> None:
+    fake = FakePostgres()
+    clients, tokens = PostgresClientRepository(fake), _tokens(fake)  # ty: ignore[invalid-argument-type]
+    await clients.get(WEAK)
+    await clients.authenticate(WEAK, WEAK)
+    await tokens.principal(WEAK)
+    await tokens.revoke_family(WEAK, user_id=WEAK)
+    await tokens.sessions_for_user(WEAK)
+    for statement, _ in fake.statements:
+        assert WEAK not in statement
+    assert fake.statements[0] == (oauth2.CLIENT_BY_ID, (WEAK,))
+    assert fake.statements[3] == (oauth2.REVOKE_FAMILY_OF_USER, (WEAK, WEAK))
+
+
+async def test_a_client_is_made_by_the_rules_with_its_secrets_hash_alone() -> None:
+    fake = FakePostgres()
+    clients = PostgresClientRepository(fake)  # ty: ignore[invalid-argument-type]
+    for words, kwargs in (
+        ("client name", {"name": "  "}),
+        ("cannot do without PKCE", {"public": True, "pkce_optional": True}),
+        ("cannot upload headless", {"public": True, "headless_uploads": True}),
+        ("must be a UUID", {"client_id": "client-1"}),
+        ("loopback", {"redirect_uris": ["http://example.test/cb"]}),
+        ("at most 10", {"redirect_uris": [f"https://a.test/{n}" for n in range(11)]}),
+    ):
+        with pytest.raises(ClientError, match=words):
+            await clients.create(**({"name": "App", "redirect_uris": [REDIRECT], "public": False} | kwargs))
+    assert fake.statements == [], "nothing that is refused reaches the database"
+    with pytest.raises(ClientError, match="not created"):  # ON CONFLICT DO NOTHING: the id is taken
+        await clients.create("App", [REDIRECT], public=False)
+
+    def answer(query: str, args: tuple[Any, ...]) -> Any:
+        if query == oauth2.CLIENT_INSERT:
+            return {"client_id": args[0], "name": args[1], "redirect_uris": args[4], "created_at": args[8]}
+        return None
+
+    made = FakePostgres(answer)
+    client, secret = await PostgresClientRepository(made).create(" App ", [REDIRECT, REDIRECT], public=False)  # ty: ignore[invalid-argument-type]
+    (_, args) = made.statements[0]
+    assert secret and secret not in args and args[6] == hash_secret(secret), "the secret is stored as its hash"
+    assert client.name == "App" and client.redirect_uris == [REDIRECT] and args[7] is False
+    public = FakePostgres(answer)
+    _, none = await PostgresClientRepository(public).create("App", [REDIRECT], public=True, dynamic=True)  # ty: ignore[invalid-argument-type]
+    assert none is None and public.statements[0][1][6] is None, "a public client has no secret"
+
+
+async def test_a_client_authenticates_by_its_secrets_hash() -> None:
+    rows = {
+        "c-1": CLIENT_ROW | {"secret_hash": hash_secret("s3cret")},
+        "c-2": CLIENT_ROW | {"client_id": "c-2", "is_public": True, "secret_hash": None},
+        "c-3": CLIENT_ROW | {"client_id": "c-3", "disabled": True, "secret_hash": hash_secret("s3cret")},
+    }
+    clients = PostgresClientRepository(FakePostgres(lambda query, args: rows.get(args[0])))  # ty: ignore[invalid-argument-type]
+    assert await clients.authenticate("c-1", "s3cret") is not None
+    assert await clients.authenticate("c-1", "wrong") is None and await clients.authenticate("c-1", None) is None
+    assert await clients.authenticate("c-2", None) is not None and await clients.authenticate("c-2", "x") is None
+    assert await clients.authenticate("c-3", "s3cret") is None, "a disabled client does not sign in"
+    assert await clients.authenticate("c-9", "s3cret") is None
+
+
+async def test_a_code_is_stored_as_its_hash_and_redeemed_in_one_transaction() -> None:
+    fake = Committing(lambda query, args: _code_row() if query == oauth2.CODE_TO_REDEEM else None)
+    tokens = _tokens(fake)
+    code = await tokens.issue_code(
+        user_id="u-1", client_id="c-1", redirect_uri=REDIRECT, scope="bcf", code_challenge=pkce.challenge_for(VERIFIER)
+    )
+    (query, issued) = fake.statements[0]
+    assert query == oauth2.CODE_INSERT and issued[0] == hash_secret(code) and code not in issued
+    pair = await tokens.redeem_code(code=code, client_id="c-1", redirect_uri=REDIRECT, code_verifier=VERIFIER)
+    assert isinstance(pair, TokenPair) and pair.scope == "bcf" and fake.transactions == 1
+    assert [query for query, _ in fake.statements[1:]] == [
+        oauth2.CODE_TO_REDEEM,
+        "UPDATE authorization_codes SET spent = true WHERE code_hash = $1",
+        oauth2.ACCESS_INSERT,
+        oauth2.REFRESH_INSERT,
+        "COMMIT",
+    ]
+    access, refresh = fake.statements[3][1], fake.statements[4][1]
+    assert access[0] == hash_secret(pair.access_token) and refresh[0] == hash_secret(pair.refresh_token)
+    assert access[3] == refresh[3] and access[4] == refresh[4] == hash_secret(code), "one family, from its code"
+    assert access[8] == NOW, "the authentication of the code"
+    assert pair.access_token not in access + refresh and pair.refresh_token not in access + refresh
+
+
+async def test_a_refusal_commits_its_revocation_before_it_is_raised() -> None:
+    replayed = Committing(lambda query, args: _code_row(spent=True) if query == oauth2.CODE_TO_REDEEM else None)
+    with pytest.raises(GrantError, match="already used"):
+        await _tokens(replayed).redeem_code(code="c", client_id="c-1", redirect_uri=None, code_verifier=VERIFIER)
+    assert replayed.statements[1:] == [
+        ("COMMIT", ()),
+        (oauth2.REVOKE_CODE_TOKENS, (hash_secret("c"),)),
+        ("DELETE FROM authorization_codes WHERE code_hash = $1", (hash_secret("c"),)),
+    ], "what the first redemption produced goes, outside the transaction that found the replay"
+
+    reused = Committing(lambda query, args: _refresh_row(spent=True) if query == oauth2.REFRESH_TO_USE else None)
+    with pytest.raises(GrantError, match="reuse detected"):
+        await _tokens(reused).refresh(refresh_token="r", client_id="c-1")
+    assert reused.statements[1:] == [("COMMIT", ()), (oauth2.REVOKE_FAMILY, ("f-1",))]
+
+    elsewhere = Committing(lambda query, args: _refresh_row() if query == oauth2.REFRESH_TO_USE else None)
+    with pytest.raises(GrantError, match="another client") as refused:
+        await _tokens(elsewhere).refresh(refresh_token="r", client_id="c-2")
+    assert refused.value.error == "invalid_grant" and elsewhere.statements[1:] == [("COMMIT", ())], "nothing goes"
+    with pytest.raises(GrantError, match="resource does not match") as refused:
+        await _tokens(elsewhere).refresh(refresh_token="r", client_id="c-1", resource="https://evil.test/mcp")
+    assert refused.value.error == "invalid_target"
+
+
+async def test_a_refresh_rotates_within_its_family_and_keeps_its_lifetime() -> None:
+    row = _refresh_row()
+    fake = Committing(lambda query, args: row if query == oauth2.REFRESH_TO_USE else None)
+    pair = await _tokens(fake).refresh(refresh_token="r", client_id="c-1")
+    assert [query for query, _ in fake.statements] == [
+        oauth2.REFRESH_TO_USE,
+        "UPDATE refresh_tokens SET spent = true WHERE token_hash = $1",
+        "DELETE FROM access_tokens WHERE family_id = $1",
+        oauth2.ACCESS_INSERT,
+        oauth2.REFRESH_INSERT,
+        oauth2.FAMILY_LIFETIME,
+        "COMMIT",
+    ]
+    assert fake.statements[1][1] == (hash_secret("r"),) and fake.statements[2][1] == ("f-1",)
+    refresh = fake.statements[4][1]
+    assert refresh[0] == hash_secret(pair.refresh_token)
+    assert refresh[3:7] == ("f-1", "code-hash", "mcp", "http://testserver/mcp"), "its family, code, scope, binding"
+    assert refresh[8] == NOW, "a refresh is no new authentication"
+    assert fake.statements[5][1] == ("f-1", row["expires_at"]), "no longer than the token it replaces"
+
+
+async def test_a_principal_is_found_by_the_tokens_hash() -> None:
+    row = {"scope": "bcf documents", "user_id": "u-1", "username": "editor", "full_name": None, "is_admin": True}
+    row |= {"client_id": "c-1", "auth_time": NOW, "resource": None}
+    fake = FakePostgres(lambda query, args: row if args[0] == hash_secret("a") else None)
+    tokens = _tokens(fake)
+    caller = await tokens.principal("a")
+    assert caller is not None and caller.display_name == "editor" and caller.scopes == ("bcf", "documents")
+    assert caller.is_admin and caller.token_hash == hash_secret("a") and caller.auth_time == NOW
+    assert await tokens.principal("b") is None
+    assert fake.statements[0][0] == oauth2.PRINCIPAL and fake.statements[0][1][0] == hash_secret("a")
+
+
+async def test_a_revocation_takes_an_access_token_alone_and_a_refresh_token_with_its_family() -> None:
+    kinds = {hash_secret("r"): {"kind": "refresh", "family_id": "f-1"}, hash_secret("a"): {"kind": "access"}}
+    fake = FakePostgres(lambda query, args: kinds.get(args[0]) if query == oauth2.ISSUED_TO_CLIENT else None)
+    tokens = _tokens(fake)
+    assert await tokens.revoke("r", client_id="c-1") and fake.statements[-1] == (oauth2.REVOKE_FAMILY, ("f-1",))
+    assert await tokens.revoke("a", client_id="c-1")
+    assert fake.statements[-1] == ("DELETE FROM access_tokens WHERE token_hash = $1", (hash_secret("a"),))
+    assert not await tokens.revoke("x", client_id="c-1") and fake.statements[-1][0] == oauth2.ISSUED_TO_CLIENT
+    assert fake.transactions == 3 and fake.statements[0][1] == (hash_secret("r"), "c-1"), "by its own client"
+    counted = _tokens(FakePostgres(lambda query, args: {"n": 4}))
+    assert await counted.revoke_all_for_user("u-1") == 4 and await counted.revoke_all_for_client("c-1") == 4
+
+
 # -- the choice of store -------------------------------------------------------------------------------------------
 
 
@@ -339,6 +617,18 @@ def test_the_graph_holds_the_accounts_unless_postgresql_is_named(tmp_path: Path)
     assert (
         isinstance(sessions, PostgresWebSessionRepository) and sessions.ttl_seconds == settings.web_session_ttl_seconds
     )
+
+
+def test_the_graph_holds_oauth2_unless_postgresql_is_named(tmp_path: Path) -> None:
+    graph, settings = object(), make_settings(tmp_path, allow_localhost_redirects=True)
+    assert isinstance(client_store(graph, None, settings), ClientRepository)  # ty: ignore[invalid-argument-type]
+    assert isinstance(token_store(graph, None, settings), TokenRepository)  # ty: ignore[invalid-argument-type]
+    postgres = Postgres(URL, "", connect_timeout_seconds=1.0)
+    clients = client_store(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
+    assert isinstance(clients, PostgresClientRepository) and clients.allow_localhost
+    tokens = token_store(graph, postgres, settings)  # ty: ignore[invalid-argument-type]
+    assert isinstance(tokens, PostgresTokenRepository) and tokens.code_ttl == settings.authorization_code_ttl_seconds
+    assert tokens.refresh_idle == settings.refresh_token_idle_seconds
 
 
 def test_the_app_opens_postgresql_when_it_is_named_and_reports_it(tmp_path: Path) -> None:

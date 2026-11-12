@@ -35,6 +35,7 @@ from opencde.store.jobs.conversions import ConversionRepository
 from opencde.store.jobs.drafts import ChangeSetDraftRepository
 from opencde.store.jobs.proposals import ProposalRepository
 from opencde.store.oauth2.clients import ClientRepository
+from opencde.store.oauth2.postgres import PostgresClientRepository, PostgresTokenRepository
 from opencde.store.oauth2.tokens import TokenRepository
 from tests.conftest import test_settings as make_settings
 
@@ -60,6 +61,8 @@ REPOSITORIES = (
     PostgresProjectRepository,
     PostgresTeamRepository,
     PostgresWebSessionRepository,
+    PostgresClientRepository,
+    PostgresTokenRepository,
 )
 
 
