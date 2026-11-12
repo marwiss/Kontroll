@@ -20,8 +20,10 @@ from opencde.graph.schema import EXPIRING_LABELS, UNIQUE
 from opencde.ids import new_id
 from opencde.ifcgraph import merging
 from opencde.ifcgraph import service as service_module
+from opencde.ifcgraph.maintenance import delete_project, prune_models
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.storage import LocalStorage, make_key
+from opencde.store.accounts.projects import ProjectRepository
 from tests.conftest import test_settings as make_settings
 
 LIBRARY_LABELS = {label for label, _ in LIBRARY_UNIQUE}  # Model, Entity, StepBlock, Object
@@ -48,6 +50,13 @@ class Recording:
     async def one(self, query: str, /, **params: Any) -> dict[str, Any] | None:
         rows = await self.run(query, **params)
         return rows[0] if rows else None
+
+    async def write(self, work: Any) -> Any:
+        return await work(self)  # the transaction is the graph itself
+
+    async def counters(self, query: str, /, **params: Any) -> SimpleNamespace:
+        self.statements.append(query)
+        return SimpleNamespace(nodes_deleted=1)
 
     def labels(self) -> set[str]:
         return {label for statement in self.statements for label in _LABEL.findall(statement)}
@@ -362,6 +371,39 @@ async def test_the_resumption_after_a_stop_reads_the_store_and_tidies_the_ifc_gr
     written = "\n".join(store.statements)
     for asked in ("MATCH (p:Proposal)", "MATCH (r:Validation)", "MATCH (j:Merge)", "MATCH (c:Conversion)"):
         assert asked in written, asked
+    assert_apart(ifc, store)
+
+
+async def test_a_project_goes_with_its_models_from_the_ifc_graph_and_the_rest_from_the_store(tmp_path: Path) -> None:
+    ifc = Recording("ifc")
+    store = Recording("store", [("RETURN c.model_id AS id", [{"id": "model-1"}, {"id": "model-2"}])])
+    projects = ProjectRepository(store)  # type: ignore[arg-type]
+
+    assert await delete_project(projects, ifc, "project-1", LocalStorage(tmp_path))  # type: ignore[arg-type]
+
+    removed = [s for s in ifc.statements if s.startswith("MATCH (m:Model") and "DETACH DELETE m" in s]
+    assert len(removed) == 2, "both models leave the IFC graph"
+    assert any("DETACH DELETE p" in s for s in store.statements), "the project leaves the store"
+    assert_apart(ifc, store)
+
+
+async def test_the_project_repository_never_asks_the_ifc_graph(tmp_path: Path) -> None:
+    store = Recording("store", [("RETURN c.model_id AS id", [{"id": "model-1"}])])
+    projects = ProjectRepository(store)  # type: ignore[arg-type]
+    assert await projects.model_ids("project-1") == ["model-1"]
+    assert await projects.delete_with_files("project-1", LocalStorage(tmp_path))
+    assert not store.labels() & LIBRARY_LABELS, "the models are the caller's, in the other graph"
+
+
+async def test_pruning_deletes_the_models_on_the_ifc_graph_and_their_records_on_the_store() -> None:
+    ifc = Recording("ifc")
+    store = Recording("store", [("RETURN properties(c) AS c", [{"c": {"id": "model-1", "project_id": "p1"}}])])
+
+    done = await prune_models(ifc, store=store, project_id="p1", everything=True)  # type: ignore[arg-type]
+
+    assert done == {"models": 1, "entities": 0}
+    assert any(s.startswith("MATCH (m:Model") for s in ifc.statements)
+    assert any("Conversion" in s and "DELETE" in s for s in store.statements), "the record goes from the store"
     assert_apart(ifc, store)
 
 

@@ -20,8 +20,9 @@ from opencde.admin.access import (
     redirect_with_notice,
     text,
 )
-from opencde.deps import GraphDep, ProjectsDep, StorageDep, UsersDep
+from opencde.deps import GraphDep, ModelGraphDep, ProjectsDep, StorageDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
+from opencde.ifcgraph.maintenance import delete_project
 from opencde.store.accounts.projects import AI_POLICIES, EXTENSION_LISTS, AccountError, Project
 from opencde.store.protocols import ProjectStore
 from opencde.ui.i18n import tr_error
@@ -126,6 +127,7 @@ async def project_action(
     projects: ProjectsDep,
     users: UsersDep,
     graph: GraphDep,
+    models: ModelGraphDep,
     storage: StorageDep,
 ) -> Response:
     project = await projects.get(normalize_guid(project_id)) if is_uuid(project_id) else None
@@ -182,7 +184,7 @@ async def project_action(
         if action == "delete":
             if not await password_confirmed(users, admin, data.get("confirm_password")):
                 return redirect_with_notice(page, "wrong_password")
-            await projects.delete_with_files(project.project_id, storage)
+            await delete_project(projects, models, project.project_id, storage)
             await form.record(graph, "project.delete", project_id=project.project_id, name=project.name)
             return redirect_with_notice("/admin/projects", "deleted")
     except AccountError as exc:

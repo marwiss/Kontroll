@@ -13,8 +13,6 @@ import contextlib
 from dataclasses import dataclass
 from typing import Any, Literal, get_args
 
-from ifc_lpg.importer import delete_model
-
 from opencde.accounts.roles import Role
 from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, new_id, normalize_guid
@@ -218,18 +216,20 @@ class ProjectRepository:
             raise AccountError("no such project", key="error.project.not_found")
         return _project(row["project"])
 
-    async def delete(self, project_id: str) -> bool:
-        """Delete the project and what it owns (``OWNED_RELATIONSHIPS``): topics, documents and their metadata.
-
-        Its IFC models go first, in batches of their own: the entities of a model reach far beyond the few steps
-        the query below follows, and they are too many for one transaction.
-        """
-        models = await self.graph.run(
+    async def model_ids(self, project_id: str) -> list[str]:
+        """The ids of the project's IFC models, by its conversions. The models live in the IFC graph, apart from the
+        store (ADR 0027), so the caller that has both deletes them first (``ifcgraph.maintenance.delete_project``)."""
+        rows = await self.graph.run(
             "MATCH (:Project {project_id: $id})-[:HAS_CONVERSION]->(c:Conversion) RETURN c.model_id AS id",
             id=project_id,
         )
-        for model in models:
-            await delete_model(self.graph, model["id"])
+        return [str(row["id"]) for row in rows if row["id"]]
+
+    async def delete(self, project_id: str) -> bool:
+        """Delete the project and what it owns (``OWNED_RELATIONSHIPS``): topics, documents and their metadata.
+
+        Its IFC models are not here but in the IFC graph, and go before it (``model_ids``).
+        """
 
         async def work(tx: Any) -> int:
             counters = await tx.counters(
@@ -251,14 +251,11 @@ class ProjectRepository:
     async def delete_with_files(self, project_id: str, storage: LocalStorage) -> bool:
         """``delete``, and the stored files the project owned, so that deleting it frees the disk too."""
         keys = await self.storage_keys(project_id)
-        models = await self.graph.run(
-            "MATCH (:Project {project_id: $id})-[:HAS_CONVERSION]->(c:Conversion) RETURN c.model_id AS id",
-            id=project_id,
-        )
+        models = await self.model_ids(project_id)
         deleted = await self.delete(project_id)
-        for model in models:
+        for model_id in models:
             with contextlib.suppress(OSError):
-                delete_geometry(storage, model["id"])
+                delete_geometry(storage, model_id)
         for key in keys:
             with contextlib.suppress(ValueError):  # a key the storage refuses was never one it wrote
                 storage.delete(key)

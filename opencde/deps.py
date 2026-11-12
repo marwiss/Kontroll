@@ -25,6 +25,12 @@ def get_graph(request: Request) -> Graph:
     return request.app.state.store
 
 
+def get_model_graph(request: Request) -> Graph:
+    """The IFC graph, IFC-LPG's models apart from the server's own data (ADR 0027): for the models that go when a
+    project goes, which a route asks of it through the library alone."""
+    return request.app.state.graph
+
+
 def get_storage(request: Request) -> LocalStorage:
     return request.app.state.storage
 
@@ -49,6 +55,7 @@ def client_ip(request: Request) -> str | None:
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 GraphDep = Annotated[Graph, Depends(get_graph)]
+ModelGraphDep = Annotated[Graph, Depends(get_model_graph)]
 StorageDep = Annotated[LocalStorage, Depends(get_storage)]
 UsersDep = Annotated[UserStore, Depends(get_users)]
 ProjectsDep = Annotated[ProjectStore, Depends(get_projects)]

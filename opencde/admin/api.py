@@ -33,9 +33,19 @@ from opencde.admin import queries
 from opencde.admin.doctor import run_checks
 from opencde.admin.routes_overview import SAFE_SETTINGS
 from opencde.auth.dependencies import AdminPrincipal, FreshAdminPrincipal, TokensDep, fresh_admin_principal
-from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, StorageDep, UsersDep, client_ip
+from opencde.deps import (
+    ClientsDep,
+    GraphDep,
+    ModelGraphDep,
+    ProjectsDep,
+    SettingsDep,
+    StorageDep,
+    UsersDep,
+    client_ip,
+)
 from opencde.graph.driver import ping_within
 from opencde.graph.graph import Graph
+from opencde.ifcgraph import maintenance
 from opencde.settings import Settings, env_name
 from opencde.store.accounts.projects import AiPolicy, Project
 from opencde.store.accounts.sessions import WebSessionsDep
@@ -594,13 +604,14 @@ async def delete_project(
     project_id: IdPath,
     projects: ProjectsDep,
     graph: GraphDep,
+    models: ModelGraphDep,
     storage: StorageDep,
 ) -> Response:
-    """The project, what it owns and its stored files. Its members stay, and so do their other projects."""
+    """The project, what it owns, its models and its stored files. Its members stay, and so do their other projects."""
     project = await projects.get(project_id)
     if project is None:
         raise HTTPException(404, "No such project")
-    await projects.delete_with_files(project.project_id, storage)
+    await maintenance.delete_project(projects, models, project.project_id, storage)
     await _record(request, graph, principal, "project.delete", project_id=project.project_id, name=project.name)
     return NO_CONTENT
 

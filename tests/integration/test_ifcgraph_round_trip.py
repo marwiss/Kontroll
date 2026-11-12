@@ -22,6 +22,7 @@ from opencde.bootstrap import make_graph, make_storage
 from opencde.cli import app
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
+from opencde.ifcgraph.maintenance import delete_project
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.settings import Settings
 from opencde.store.accounts.projects import ProjectRepository
@@ -341,7 +342,7 @@ def test_deleting_a_project_leaves_nothing_of_its_models(
             loaded = await seeding.seed(graph, storage=storage)
             await seeding.build_sample_graph(graph, storage, settings, loaded)
             checks = await graph.run("MATCH (r:Validation) RETURN r.state AS state")
-            await ProjectRepository(graph).delete(loaded.projects["Building permit"])
+            await delete_project(ProjectRepository(graph), graph, loaded.projects["Building permit"], storage)
             rows = await graph.run(
                 """
                 MATCH (n) WHERE n:Entity OR n:Model OR n:StepBlock OR n:Validation
