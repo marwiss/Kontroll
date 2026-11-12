@@ -198,7 +198,7 @@ def test_a_report_gives_the_check_and_its_clashes_without_an_address(tmp_path: P
         "set_b": 3,
         "missing": 0,
         "seconds": 1.5,
-        "clashes": [pair()],
+        "clashes": [{key: value for key, value in pair().items() if key != "extent"}],  # as REST gives it
         "truncated": False,
     }
 

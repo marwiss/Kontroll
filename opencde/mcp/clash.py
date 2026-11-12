@@ -135,7 +135,7 @@ def _element(element: dict[str, Any]) -> dict[str, Any]:
 
 
 def _pair(pair: dict[str, Any]) -> dict[str, Any]:
-    found = IfcClashPair.model_validate(pair).model_dump()
+    found = IfcClashPair.model_validate(pair).model_dump(exclude={"extent"})  # a camera's, which a report lacks
     return found | {"a": _element(found["a"]), "b": _element(found["b"])}
 
 
