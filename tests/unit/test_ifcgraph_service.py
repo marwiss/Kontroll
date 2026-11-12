@@ -488,7 +488,10 @@ async def test_a_trial_applies_the_operations_and_says_what_they_created(
     assert fields["state"] == "clean" and unpack_report(fields["report"]) == []
     assert (fields["change_count"], fields["applied"]) == (3, 3), "two operations and one change"
     created = json.loads(fields["created"])
-    assert list(created) == ["new-1", "new-2"] and json.loads(fields["notes"]) == []
+    assert list(created) == ["new-1", "new-2"] and json.loads(fields["notes"]) == [
+        "IsExternal was left out on the walls of storey 1. etasje that the change set made or changed, and on their "
+        "doors and windows: 8 wall ends stand open, so the app cannot tell outside from inside"
+    ], "the new walls stand alone, so the topology tells no outside"
     assert set(created.values()) <= set(json.loads(fields["ops_objects"]))
     assert {"guid": created["new-1"]} in touching and rename in touching, "a team's part is touched by either"
     assert versions.asked == [1], "tried on the base it names"

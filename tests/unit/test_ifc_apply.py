@@ -286,7 +286,11 @@ def test_the_worker_applies_the_operations_and_names_the_proposer(tmp_path: Path
     )
     assert run.returncode == 0, run.stderr
     answer = json.loads(run.stdout)
-    assert answer["count"] == 0 and answer["ops"]["applied"] == 1 and answer["ops"]["notes"] == []
+    assert answer["count"] == 0 and answer["ops"]["applied"] == 1
+    assert answer["ops"]["notes"] == [
+        "IsExternal was left out on the walls of storey 1. etasje that the change set made or changed, and on their "
+        "doors and windows: 8 wall ends stand open, so the app cannot tell outside from inside"
+    ], "the new wall stands alone, so the topology tells no outside"
     model = ifcopenshell.open(str(out))
     wall = model.by_guid(answer["ops"]["created"]["new-1"])
     container = next(iter(wall.ContainedInStructure)).OwnerHistory

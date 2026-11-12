@@ -2,8 +2,12 @@
 """Dataspatium's write tools applied with the app's own code (``opencde/ifcgraph/ops.py``), on small files made here:
 storeys, a grid, walls, slabs, roofs and openings with their refs, elements named by GlobalId, properties, a
 classification with its system's facts, a storey and a material, a move, a deletion, the site with an EPSG code, the
-units of a millimetre file, the owner histories, and the classes and values the schema allows. The trial around it is
-proved against a database in ``tests/integration/test_ifc_proposal.py``."""
+units of a millimetre file, the owner histories, and the classes and values the schema allows; and, from
+Dataspatium's 437982f on IFC4 and IFC4X3, layered and door, window, column and covering types, the building
+elements and stairs of create_element, wall joins, base quantities and the common sets, a storey's description, a
+room's number and type, a material's category, the vertical datum, elements changed in place, the templates that hold
+a standard set, and a door moved with its opening while the site, the building and the storeys stay. The trial around
+it is proved against a database in ``tests/integration/test_ifc_proposal.py``."""
 
 from __future__ import annotations
 
@@ -107,7 +111,15 @@ def test_every_tool_of_the_schema_is_an_operation_of_the_copy() -> None:
 
 
 def test_the_tools_that_create_hand_out_the_refs() -> None:
-    assert _ChangeSet.CREATES == ("create_wall", "create_slab", "create_roof", "create_opening", "create_spaces")
+    assert _ChangeSet.CREATES == (
+        "create_wall",
+        "create_slab",
+        "create_roof",
+        "create_opening",
+        "create_spaces",
+        "define_type",
+        "create_element",
+    )
 
 
 @pytest.mark.parametrize(("schema", "prefix", "per_metre"), [("IFC4", None, 1), ("IFC2X3", "MILLI", 1000)])
@@ -398,8 +410,12 @@ def test_lengths_are_metres_in_a_file_of_millimetres() -> None:
     assert level_2.Elevation == pytest.approx(3_500)
     assert model.by_type("IfcSite")[0].RefElevation == pytest.approx(20_000)
     (conversion,) = model.by_type("IfcMapConversion")
-    assert (conversion.Eastings, conversion.OrthogonalHeight) == pytest.approx((600_000_000, 20_000))
-    assert model.by_type("IfcProjectedCRS")[0].MapZone == "UTM 32N"
+    assert (conversion.Eastings, conversion.OrthogonalHeight, conversion.Scale) == pytest.approx(
+        (600_000, 20, 0.001)
+    ), "in the map's metres, with the file's unit as the Scale (bSI rule GRF005)"
+    (crs,) = model.by_type("IfcProjectedCRS")
+    assert crs.MapZone == "UTM 32N" and (crs.MapUnit.Name, crs.MapUnit.Prefix) == ("METRE", None)
+    assert model.by_type("IfcBuilding")[0].ElevationOfRefHeight == pytest.approx(20_000), "the building's height"
 
 
 def test_the_existing_millimetre_model_gets_a_wall_and_a_window_in_its_wall() -> None:
@@ -560,7 +576,7 @@ def test_an_element_is_named_by_its_globalid_its_step_id_or_its_ref() -> None:
     change set created by its ref; the server's copy takes all three, as the app's does."""
     model = ifcopenshell.open(str(FIXTURE))
     door = {"tool": "create_opening", "wall_id": "1Xezbq735AdBO_4DerG66G", "offset": 1, "width": 0.9, "fill": "door"}
-    tagged = {"tool": "set_properties", "pset": "Pset_Test", "properties": {"Tagged": True}}
+    tagged = {"tool": "set_properties", "pset": "SE-DR-1_Test", "properties": {"Tagged": True}}
     answer = run(model, [door, {**tagged, "ids": ["3eT96F_cnDsOufCEsotwtp", 459, "new-1"]}], proposer="anna")
     assert answer["failed"] is None, answer
     (opening,) = model.by_type("IfcOpeningElement")
@@ -572,7 +588,7 @@ def test_an_element_is_named_by_its_globalid_its_step_id_or_its_ref() -> None:
         model.by_id(459),
         model.by_guid(answer["created"]["new-1"]),
     ):
-        assert ifcopenshell.util.element.get_psets(element)["Pset_Test"]["Tagged"] is True
+        assert ifcopenshell.util.element.get_psets(element)["SE-DR-1_Test"]["Tagged"] is True
     by_text = run(model, [{**tagged, "ids": ["373"]}], proposer="anna")
     assert by_text["failed"] is None and by_text["objects"] == ["3eT96F_cnDsOufCEsotwtp"], "a STEP id as digits"
     unknown = run(model, [{"tool": "create_opening", "wall_id": "0NotInTheModel00000000"}], proposer="anna")
@@ -653,3 +669,307 @@ def test_a_compound_angle_carries_its_sign_in_every_part() -> None:
     assert _cs_crs_facts("EPSG:3011") == ("SWEREF99", "Transverse Mercator", "18 00")
     assert _cs_crs_facts("EPSG:4326") == (None, None, None)
     assert math.isclose(sum(part / 60**i for i, part in enumerate(_cs_angle(59.5)[:3])), 59.5)
+
+
+# -- the operations and fields of Dataspatium's 437982f ------------------------------------------------------------
+
+
+def layer(material: str, thickness: float, category: str | None = None, role: str | None = None) -> dict[str, Any]:
+    return {"material": material, "thickness": thickness, "category": category, "role": role}
+
+
+#: A 0.3 m outer wall from the outside in, a floor and a roof from the top down, as define_type takes them.
+YV1 = {"tool": "define_type", "kind": "wall", "name": "YV1", "predefined_type": "SOLIDWALL",
+       "layers": [layer("Puts", 0.02, None, "outer_finish"), layer("Lättbetong", 0.25, "block", "load_bearing"),
+                  layer("Puts", 0.03, None, "inner_finish")]}  # fmt: skip
+BJ1 = {"tool": "define_type", "kind": "slab", "name": "BJ1", "predefined_type": None,
+       "layers": [layer("Parkett", 0.015, "wood"), layer("Betong", 0.2, "concrete", "load_bearing")]}  # fmt: skip
+TAK1 = {"tool": "define_type", "kind": "roof", "name": "TAK1", "predefined_type": None,
+        "layers": [layer("Takpannor", 0.05), layer("Takstol", 0.2, "wood", "load_bearing")]}  # fmt: skip
+#: Four outer walls of type new-1, counter-clockwise so that their right side is the outside, and a partition.
+TYPED_BOX = [
+    {"tool": "create_wall", "storey": "Level 1", "start": start, "end": end, "thickness": 0.3, "height": 3,
+     "name": name, "type": "new-1", "load_bearing": True, "status": "EXISTING"}
+    for name, start, end in (("S", [0, 0], [8, 0]), ("E", [8, 0], [8, 6]), ("N", [8, 6], [0, 6]), ("W", [0, 6], [0, 0]))
+]  # fmt: skip
+PARTITION = {"tool": "create_wall", "storey": "Level 1", "start": [4, 0], "end": [4, 6], "thickness": 0.1,
+             "height": 3, "name": "Mid", "partition": True, "load_bearing": False}  # fmt: skip
+STOREYS_437982F = {
+    "tool": "create_storeys_and_grid",
+    "storeys": [
+        {"name": "Level 1", "elevation": 0, "description": "Level 1 (Entrance)", "long_name": "Entrance level"},
+        {"name": "Level 2", "elevation": 3.5},
+    ],
+    "grid": None,
+}
+
+
+def made(model: ifcopenshell.file, answer: dict[str, Any], ref: str) -> Any:
+    return model.by_guid(answer["created"][ref])
+
+
+def layers_of(element: Any) -> list[tuple[str, float, str | None, str | None]]:
+    """A type's layers: material, thickness, the material's category and the layer's."""
+    found = ifcopenshell.util.element.get_material(element)
+    return [
+        (x.Material.Name, round(float(x.LayerThickness), 6), x.Material.Category, x.Category)
+        for x in found.MaterialLayers
+    ]
+
+
+@pytest.mark.parametrize(
+    ("schema", "finish"), [("IFC4", ("Finish", "Finish")), ("IFC4X3", ("Outer finish", "Inner finish"))]
+)
+def test_layered_types_give_walls_slabs_and_roofs_their_layers_joins_and_quantities(
+    schema: str, finish: tuple[str, str]
+) -> None:
+    """define_type makes a wall, slab and roof type with its material layers and a ref; a typed wall takes the type,
+    its thickness from the layers and an IfcMaterialLayerSetUsage, the walls whose axes meet are joined, what the
+    change set made gets its base quantities, and LoadBearing, Status and IsExternal land in the common sets."""
+    model = new_model(schema)
+    floor = {"tool": "create_slab", "storey": "Level 1", "outline": [[0, 0], [8, 0], [8, 6], [0, 6]],
+             "thickness": 0.215, "type": "new-2", "load_bearing": True, "status": "NEW"}  # fmt: skip
+    roof = {"tool": "create_roof", "storey": "Level 1", "shape": "gable", "pitch": 30, "thickness": 0.25,
+            "type": "new-3", "status": "NEW"}  # fmt: skip
+    answer = run(model, [STOREYS_437982F, YV1, BJ1, TAK1, *TYPED_BOX, PARTITION, floor, roof], proposer="anna")
+    assert answer["failed"] is None and answer["notes"] == [], answer
+    assert list(answer["created"]) == [f"new-{n}" for n in range(1, 11)], "types, walls, slab and roof, in order"
+    wall_type, slab_type, roof_type = (made(model, answer, ref) for ref in ("new-1", "new-2", "new-3"))
+    assert (wall_type.is_a(), wall_type.Name, wall_type.PredefinedType) == ("IfcWallType", "YV1", "SOLIDWALL")
+    assert (slab_type.PredefinedType, roof_type.is_a(), roof_type.PredefinedType) == ("FLOOR", "IfcSlabType", "ROOF")
+    assert layers_of(wall_type) == [
+        ("Puts", 0.02, None, finish[0]),
+        ("Lättbetong", 0.25, "block", "LoadBearing"),
+        ("Puts", 0.03, None, finish[1]),
+    ], "the material's category and the layer's role, as the schema spells it"
+    south = made(model, answer, "new-4")
+    usage = ifcopenshell.util.element.get_material(south, should_skip_usage=False)
+    assert ifcopenshell.util.element.get_type(south) == wall_type and south.PredefinedType is None
+    assert (usage.LayerSetDirection, usage.DirectionSense) == ("AXIS2", "POSITIVE")
+    assert usage.OffsetFromReferenceLine == pytest.approx(-0.15), "centred on the axis, the first layer outside"
+    assert extrusion(south).SweptArea.YDim == pytest.approx(0.3)
+    joins = {
+        (r.RelatingElement.Name, r.RelatingConnectionType, r.RelatedElement.Name, r.RelatedConnectionType)
+        for r in model.by_type("IfcRelConnectsPathElements")
+    }
+    assert ("S", "ATEND", "E", "ATSTART") in joins and ("Mid", "ATSTART", "S", "ATPATH") in joins and len(joins) == 6
+    quantities = ifcopenshell.util.element.get_psets(south, qtos_only=True)["Qto_WallBaseQuantities"]
+    assert quantities["Width"] == pytest.approx(0.3) and quantities["Height"] == pytest.approx(3)
+    common = ifcopenshell.util.element.get_psets(south)["Pset_WallCommon"]
+    assert (common["LoadBearing"], common["Status"], common["IsExternal"]) == (True, ["EXISTING"], True)
+    middle = ifcopenshell.util.element.get_psets(made(model, answer, "new-8"))["Pset_WallCommon"]
+    assert (middle["LoadBearing"], middle["IsExternal"]) == (False, False), "inside, from the topology"
+    slab = made(model, answer, "new-9")
+    assert ifcopenshell.util.element.get_type(slab) == slab_type
+    assert ifcopenshell.util.element.get_psets(slab)["Pset_SlabCommon"]["Status"] == ["NEW"]
+    typed_roof_slabs = {ifcopenshell.util.element.get_type(s) for s in roof_slabs(made(model, answer, "new-10"))}
+    assert typed_roof_slabs == {roof_type}
+    findings, errors = ServerChangeSet(model, "anna").findings()
+    assert errors == 0, findings
+
+
+def element(ifc_class: str, **fields: Any) -> dict[str, Any]:
+    """A create_element step on Level 1, standing at (2, 3)."""
+    return {"tool": "create_element", "storey": "Level 1", "ifc_class": ifc_class, "at": [2, 3], "z": 0,
+            "rotation": 0, **fields}  # fmt: skip
+
+
+def shape(profile: str, **fields: Any) -> dict[str, Any]:
+    return {"profile": profile, "x": None, "y": None, "radius": None, "outline": None, "depth": None, "along": "z",
+            **fields}  # fmt: skip
+
+
+@pytest.mark.parametrize("schema", ["IFC4", "IFC4X3"])
+def test_door_window_column_and_covering_types_and_the_elements_that_take_them(schema: str) -> None:
+    """define_type's kinds without layers: a door and a window type with IfcOpenShell's geometry as a mapped
+    representation, whose fillings take their size from them; a column type with its material; a layered covering
+    type. create_element makes a column, a beam, a covering over a slab, a straight stair with its flight and
+    landing, a railing as a part of the stair, and furniture of a kind of its own."""
+    model = new_model(schema)
+    door_type = {"tool": "define_type", "kind": "door", "name": "D1", "layers": None, "material": "Oak",
+                 "material_category": "wood", "operation": "SINGLE_SWING_RIGHT", "width": 1.0, "height": 2.1,
+                 "lining_depth": 0.05}  # fmt: skip
+    window_type = {"tool": "define_type", "kind": "window", "name": "F1", "layers": None,
+                   "partitioning": "DOUBLE_PANEL_VERTICAL", "width": 1.2, "height": 1.4, "lining_depth": 0.1}  # fmt: skip
+    column_type = {"tool": "define_type", "kind": "column", "name": "C1", "layers": None, "material": "Concrete",
+                   "material_category": "concrete"}  # fmt: skip
+    covering_type = {"tool": "define_type", "kind": "covering", "name": "K1", "predefined_type": "FLOORING",
+                     "layers": [layer("Tiles", 0.01, "stone"), layer("Glue", 0.005)]}  # fmt: skip
+    door = {"tool": "create_opening", "wall_id": "new-5", "offset": 1, "width": 1.0, "height": 2.1, "sill": 0,
+            "fill": "door", "type": "new-1", "side": "right"}  # fmt: skip
+    window = {"tool": "create_opening", "wall_id": "new-5", "offset": 5, "width": 1.2, "height": 1.4, "sill": 0.9,
+              "fill": "window", "type": "new-2", "side": "left"}  # fmt: skip
+    floor = {"tool": "create_slab", "storey": "Level 1", "outline": [[0, 0], [8, 0], [8, 6], [0, 6]],
+             "thickness": 0.2}  # fmt: skip
+    flight = {"risers": 16, "riser_height": 0.1875, "tread_length": 0.25, "width": 1.0, "thickness": 0.2,
+              "landing": 1.0}  # fmt: skip
+    elements = [
+        element("IfcColumn", name="P1", type="new-3", shape=shape("rectangle", x=0.3, y=0.3, depth=3)),
+        element("IfcBeam", name="B1", predefined_type="LINTEL", at=[0, 3], z=2.7,
+                shape=shape("rectangle", x=0.2, y=0.3, depth=4, along="x")),
+        element("IfcCovering", name="Tiles", type="new-4", at=None, host="new-8",
+                shape=shape("polygon", outline=[[0, 0], [4, 0], [4, 6], [0, 6]], depth=0.015)),
+        element("IfcStair", name="Stair", at=[5, 1], rotation=90, stair=flight),
+        element("IfcRailing", storey=None, name="Rail", predefined_type="HANDRAIL", at=[5.5, 1], z=0.9, rotation=90,
+                part_of="new-12", shape=shape("circle", radius=0.025, depth=3.75, along="x")),
+        element("IfcFurniture", predefined_type="USERDEFINED", object_type="Table", at=[6, 4],
+                shape=shape("circle", radius=0.5, depth=0.75)),
+    ]  # fmt: skip
+    ops = [STOREYS, door_type, window_type, column_type, covering_type, {**WALL, "end": [8, 0]}, door, window, floor]
+    answer = run(model, [*ops, *elements], proposer="anna")
+    assert answer["failed"] is None, answer
+    assert list(answer["created"]) == [f"new-{n}" for n in range(1, 15)]
+    d1, f1 = made(model, answer, "new-1"), made(model, answer, "new-2")
+    assert (d1.is_a(), d1.OperationType, d1.PredefinedType) == ("IfcDoorType", "SINGLE_SWING_RIGHT", "DOOR")
+    assert (f1.is_a(), f1.PartitioningType) == ("IfcWindowType", "DOUBLE_PANEL_VERTICAL")
+    assert [m.MappedRepresentation.RepresentationIdentifier for m in d1.RepresentationMaps] == ["Body"]
+    linings = [p.Name if p.is_a("IfcPropertySet") else p.is_a() for p in d1.HasPropertySets]
+    assert linings == (
+        ["Pset_DoorLiningProperties", "Pset_DoorPanelProperties"]
+        if schema == "IFC4X3"
+        else ["IfcDoorLiningProperties", "IfcDoorPanelProperties"]
+    ), "IFC4.3 deprecates the definitions for their standard sets"
+    oak = ifcopenshell.util.element.get_material(d1)
+    assert (oak.Name, oak.Category) == ("Oak", "wood")
+    filled_door, filled_window = made(model, answer, "new-6"), made(model, answer, "new-7")
+    assert ifcopenshell.util.element.get_type(filled_door) == d1 and filled_door.OverallWidth == pytest.approx(1.0)
+    assert [i.is_a() for r in filled_door.Representation.Representations for i in r.Items] == ["IfcMappedItem"]
+    assert ifcopenshell.util.element.get_type(filled_window) == f1
+    assert filled_window.OverallHeight == pytest.approx(1.4)
+    column, beam, covering, stair, railing, furniture = (made(model, answer, f"new-{n}") for n in range(9, 15))
+    assert ifcopenshell.util.element.get_type(column).Name == "C1"
+    assert ifcopenshell.util.element.get_material(column).Name == "Concrete", "from its type"
+    assert ifcopenshell.util.element.get_container(column).Name == "Level 1"
+    assert (beam.is_a(), beam.PredefinedType) == ("IfcBeam", "LINTEL")
+    assert ifcopenshell.util.element.get_type(covering).Name == "K1"
+    assert covering.Decomposes[0].RelatingObject == made(model, answer, "new-8"), (
+        "IFC4 deprecates IfcRelCoversBldgElements: the covering is a part of the slab it covers"
+    )
+    parts = sorted((p.is_a(), p.PredefinedType) for r in stair.IsDecomposedBy for p in r.RelatedObjects)
+    assert parts == [("IfcRailing", "HANDRAIL"), ("IfcSlab", "LANDING"), ("IfcStairFlight", "STRAIGHT")]
+    assert stair.PredefinedType == "STRAIGHT_RUN_STAIR" and railing.Decomposes[0].RelatingObject == stair
+    assert not railing.ContainedInStructure, "a part is in the storey through its whole"
+    (run_of_steps,) = [p for r in stair.IsDecomposedBy for p in r.RelatedObjects if p.is_a("IfcStairFlight")]
+    risers = ifcopenshell.util.element.get_psets(run_of_steps)["Pset_StairFlightCommon"]
+    assert risers["RiserHeight"] == pytest.approx(0.1875) and risers["NumberOfRiser"] == 16
+    assert (furniture.PredefinedType, furniture.ObjectType) == ("USERDEFINED", "Table")
+    findings, errors = ServerChangeSet(model, "anna").findings()
+    assert errors == 0, findings
+
+
+@pytest.mark.parametrize("schema", ["IFC4", "IFC4X3"])
+def test_storeys_rooms_materials_and_the_site_take_their_new_fields(schema: str) -> None:
+    """A storey's description and long name, a room's number and type, the material's category and the vertical
+    datum; IFC4.3 deprecates a storey's Elevation and a space's INTERNAL and EXTERNAL (bSI rule IFC102)."""
+    model = new_model(schema)
+    kitchen = {"at": [3, 3], "index": None, "name": "Kitchen", "long_name": "Kitchen to the west", "number": "101",
+               "room_type": "Kitchen"}  # fmt: skip
+    living = {"at": [7, 3], "index": None, "name": "Living room", "long_name": None}
+    rooms = {"tool": "create_spaces", "storey": "Level 1", "rooms": [kitchen, living], "height": None}
+    material = {"tool": "assign", "ids": ["new-1"], "storey": None, "material": "Concrete", "category": "concrete"}
+    site = {"tool": "set_site", "latitude": 59.33, "longitude": 18.07, "elevation": 12, "crs": "EPSG:3006",
+            "eastings": 674032, "northings": 6580822, "rotation": 0, "vertical_datum": "RH 2000"}  # fmt: skip
+    middle = {**PARTITION, "start": [5, 0], "end": [5, 6]}
+    answer = run(model, [STOREYS_437982F, *FOUR_WALLS, middle, rooms, material, site], proposer="anna")
+    assert answer["failed"] is None, answer
+    first = next(s for s in model.by_type("IfcBuildingStorey") if s.Name == "Level 1")
+    assert (first.Description, first.LongName) == ("Level 1 (Entrance)", "Entrance level")
+    assert first.Elevation == (None if schema == "IFC4X3" else 0), "the height in the placement alone in IFC4.3"
+    numbered, plain = made(model, answer, "new-6"), made(model, answer, "new-7")
+    assert (numbered.Name, numbered.LongName, numbered.Description) == ("101", "Kitchen", "Kitchen to the west")
+    assert (numbered.ObjectType, numbered.PredefinedType) == ("Kitchen", "USERDEFINED")
+    assert (plain.Name, plain.LongName) == ("Living room", None)
+    assert plain.PredefinedType == ("SPACE" if schema == "IFC4X3" else "INTERNAL")
+    concrete = ifcopenshell.util.element.get_material(made(model, answer, "new-1"))
+    assert (concrete.Name, concrete.Category) == ("Concrete", "concrete")
+    (crs,) = model.by_type("IfcProjectedCRS")
+    assert (crs.Name, crs.VerticalDatum, crs.Description) == ("EPSG:3006", "RH 2000", "SWEREF 99 TM + RH 2000")
+    findings, errors = ServerChangeSet(model, "anna").findings()
+    assert errors == 0, findings
+
+
+@pytest.mark.parametrize("schema", ["IFC4", "IFC4X3"])
+def test_edit_element_changes_elements_in_place_and_keeps_their_globalids(schema: str) -> None:
+    """edit_element: a name, a door's offset with its opening, a roof's pitch, a slab's outline and a wall's end, each
+    on the element itself; a field its kind does not take, and a door beyond its wall, are refused."""
+    model = new_model(schema)
+    floor = {"tool": "create_slab", "storey": "Level 1", "outline": [[0, 0], [10, 0], [10, 6], [0, 6]],
+             "thickness": 0.2}  # fmt: skip
+    gable = {"tool": "create_roof", "storey": "Level 1", "shape": "gable", "pitch": 30, "overhang": 0.5}
+    door = {**DOOR, "wall_id": "new-1"}
+    built = run(model, [STOREYS, *FOUR_WALLS, door, floor, gable], proposer="anna")
+    assert built["failed"] is None, built
+    guids = dict(built["created"])
+    edits = [
+        {"tool": "edit_element", "id": guids["new-1"], "name": "South"},
+        {"tool": "edit_element", "id": guids["new-5"], "offset": 3},
+        {"tool": "edit_element", "id": guids["new-7"], "pitch": 20},
+        {"tool": "edit_element", "id": guids["new-6"], "outline": [[0, 0], [10, 0], [10, 7], [0, 7]]},
+    ]
+    answer = run(model, edits, proposer="anna")
+    assert answer["failed"] is None and answer["created"] == {}, answer
+    south, filled, slab, roof = (model.by_guid(guids[ref]) for ref in ("new-1", "new-5", "new-6", "new-7"))
+    assert south.Name == "South" and {guids[f"new-{n}"] for n in (1, 5, 6, 7)} <= set(answer["objects"])
+    (opening,) = model.by_type("IfcOpeningElement")
+    assert placed_at(filled) == pytest.approx([3, 0, 0]) and placed_at(opening) == pytest.approx([3, 0, 0])
+    corners = [tuple(p.Coordinates) for p in extrusion(slab).SweptArea.OuterCurve.Points][:4]
+    assert corners == [(0, 0), (10, 0), (10, 7), (0, 7)]
+    assert len(roof_slabs(roof)) == 2
+    wrong = run(model, [{"tool": "edit_element", "id": guids["new-1"], "pitch": 20}], proposer="anna")
+    assert wrong["failed"]["error"].endswith("takes start, end, thickness, height, type or name, not pitch")
+    beyond = run(model, [{"tool": "edit_element", "id": guids["new-5"], "offset": 9.5}], proposer="anna")
+    assert "would reach beyond wall" in beyond["failed"]["error"]
+    longer = run(model, [{"tool": "edit_element", "id": guids["new-1"], "end": [11, 0]}], proposer="anna")
+    assert longer["failed"] is None and model.by_guid(guids["new-1"]) == south, longer
+    (axis,) = [r for r in south.Representation.Representations if r.RepresentationIdentifier == "Axis"]
+    assert [tuple(p.Coordinates) for p in axis.Items[0].Points] == [(0, 0), (11, 0)], "the centre line, as drawn"
+    assert placed_at(filled) == pytest.approx([3, 0, 0]), "the door keeps its place along the wall"
+
+
+@pytest.mark.parametrize("schema", ["IFC4", "IFC4X3"])
+def test_set_properties_holds_ifcs_own_sets_to_their_templates(schema: str) -> None:
+    """A set named Pset_ or Qto_ is checked against IfcOpenShell's template of the file's schema: an unknown set or
+    property, a value of the wrong type or outside an enumeration, and a number with its unit are refused; a set of
+    the model's own takes any property, but never a unit in a value."""
+    model = new_model(schema)
+    assert run(model, [STOREYS, WALL], proposer="anna")["failed"] is None
+    wall = model.by_type("IfcWall")[0].GlobalId
+
+    def refused(pset: str, properties: dict[str, Any]) -> str:
+        op = {"tool": "set_properties", "ids": [wall], "pset": pset, "properties": properties}
+        answer = run(model, [op], proposer="anna")
+        assert answer["failed"] is not None, (pset, properties)
+        return answer["failed"]["error"]
+
+    assert refused("Pset_WallCommon", {"Colour": "red"}).startswith("Pset_WallCommon has no property Colour")
+    assert refused("Pset_WallCommon", {"LoadBearing": "yes"}) == (
+        "Pset_WallCommon.LoadBearing is true or false, not 'yes'"
+    )
+    assert refused("Pset_WallCommon", {"ThermalTransmittance": "0.18 W/m2K"}) == (
+        "Pset_WallCommon.ThermalTransmittance: give the number only, without its unit (0.18, not '0.18 W/m2K'): IFC "
+        "gives the property its unit"
+    )
+    assert refused("Pset_WallCommon", {"Status": "PLANNED"}).startswith("Pset_WallCommon.Status takes one of ")
+    assert refused("Pset_MyOwn", {"A": 1}).startswith(f"Pset_MyOwn is not a property or quantity set of {schema};")
+    assert refused("SE-ACME-42_Acoustics", {"Rw": "52 dB"}).startswith("SE-ACME-42_Acoustics.Rw: give the number only")
+    fine = {"ThermalTransmittance": 0.18, "loadbearing": True, "Status": "NEW"}
+    op = {"tool": "set_properties", "ids": [wall], "pset": "Pset_WallCommon", "properties": fine}
+    assert run(model, [op], proposer="anna")["failed"] is None
+    common = ifcopenshell.util.element.get_psets(model.by_guid(wall))["Pset_WallCommon"]
+    assert (common["ThermalTransmittance"], common["LoadBearing"], common["Status"]) == (0.18, True, ["NEW"]), (
+        "the template's spelling of a name, and an enumeration as a list"
+    )
+
+
+@pytest.mark.parametrize("schema", ["IFC4", "IFC4X3"])
+def test_a_door_moves_with_its_opening_and_the_site_building_and_storeys_stay(schema: str) -> None:
+    model = new_model(schema)
+    built = run(model, [STOREYS, WALL, DOOR], proposer="anna")
+    door = made(model, built, "new-2")
+    step = {"tool": "transform_elements", "ids": [door.GlobalId], "dx": 1, "dy": 0, "dz": 0}
+    assert run(model, [step], proposer="anna")["failed"] is None
+    (opening,) = model.by_type("IfcOpeningElement")
+    assert placed_at(door) == pytest.approx([2, 0, 0]) and placed_at(opening) == pytest.approx([2, 0, 0])
+    for whole in (*model.by_type("IfcSite"), *model.by_type("IfcBuilding"), model.by_type("IfcBuildingStorey")[0]):
+        answer = run(model, [{**step, "ids": [whole.GlobalId]}], proposer="anna")
+        assert answer["failed"]["error"].startswith(f"{whole.is_a()} #{whole.id()} {whole.Name!r} is not moved: ")

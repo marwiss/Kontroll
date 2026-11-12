@@ -498,7 +498,11 @@ def test_a_change_set_with_operations_builds_a_wall_that_the_approval_keeps(
     assert put.status_code == 200, put.text
     report = tried(client, editor, proposal)
     assert report["state"] == "clean", report
-    assert report["change_count"] == 3 and report["applied"] == 3 and report["notes"] == []
+    assert report["change_count"] == 3 and report["applied"] == 3
+    assert report["notes"] == [
+        "IsExternal was left out on the walls of storey 1. etasje that the change set made or changed, and on their "
+        "doors and windows: 8 wall ends stand open, so the app cannot tell outside from inside"
+    ], "the new wall stands alone, so the topology tells no outside"
     assert list(report["created"]) == ["new-1", "new-2"], "the wall and the door, by their refs"
 
     approved = client.post(proposal + "/approve", headers=manager.headers)

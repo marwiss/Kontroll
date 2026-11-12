@@ -63,14 +63,17 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["ifc_changes"]["ops_form"] == "dataspatium-tools/1", "the write tools' operations, too"
     assert extensions["ifc_changes"]["ops_tools"] == [
         "create_storeys_and_grid",
+        "define_type",
         "create_wall",
         "create_slab",
         "create_roof",
         "create_opening",
+        "create_element",
         "create_spaces",
         "set_properties",
         "set_classification",
         "assign",
+        "edit_element",
         "transform_elements",
         "delete_elements",
         "set_site",

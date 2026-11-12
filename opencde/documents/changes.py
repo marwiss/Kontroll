@@ -43,14 +43,17 @@ KEY = rf"^(#[0-9]+|[0-9A-Za-z_$]{{22}}(/({PATH[1:-1]})?)?)\.[A-Z][A-Za-z0-9]*$"
 # The write tools whose operations a change set carries, as Dataspatium names them; ``manage_changeset`` is the app's.
 Tool = Literal[
     "create_storeys_and_grid",
+    "define_type",
     "create_wall",
     "create_slab",
     "create_roof",
     "create_opening",
+    "create_element",
     "create_spaces",
     "set_properties",
     "set_classification",
     "assign",
+    "edit_element",
     "transform_elements",
     "delete_elements",
     "set_site",
@@ -180,9 +183,10 @@ class Provenance(_Strict):
 class Op(BaseModel):
     """One operation of Dataspatium's write tools: the tool by its name, and its arguments beside it as the tool's
     JSON schema in the app has them, lengths in metres. The server gives what the operations create the refs `new-1`,
-    `new-2` … itself, in the order of the operations that create a wall, a slab, a roof or an opening, and of the rooms
-    that `create_spaces` lists, so an operation carries no ref. It names an element by its GlobalId, by its STEP id
-    only where no GlobalId reaches it, or a created one by its ref (F34 a), and a storey by its name."""
+    `new-2` … itself, in the order of the operations that create a wall, a slab, a roof, an opening, a type or a
+    building element, and of the rooms that `create_spaces` lists, so an operation carries no ref. It names an element
+    or a type by its GlobalId, by its STEP id only where no GlobalId reaches it, or a created one by its ref (F34 a),
+    and a storey by its name."""
 
     model_config = ConfigDict(extra="allow")
 
