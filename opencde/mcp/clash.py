@@ -21,6 +21,7 @@ from pydantic import Field, StringConstraints
 from opencde.documents.routes_clash import IfcClashPair, IfcClashRequest, check_report, clash_service, start_check
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.mcp.registry import MAX_ANSWER_BYTES, Arguments, Tool, ToolContext, member_project, refusing, text
+from opencde.store.jobs.clashes import ClashRepository
 from opencde.store.jobs.conversions import STATE_QUEUED, STATE_RUNNING
 
 MAX_CLASHES = 200
@@ -68,13 +69,6 @@ class GetClashCheckArguments(Arguments):
 #: The checks a user may have queued or running through the endpoint at once: the worker runs one job at a time, and
 #: an AI in a loop must not hold up the conversions and trials of a project behind its clash checks.
 MAX_OPEN_CHECKS = 2
-
-#: The user's queued or running clash checks in all their projects, from the user's node through MEMBER_OF.
-_OPEN_CHECKS = """
-MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_CLASH]->(c:Clash)
-WHERE c.author = $author AND c.state IN ['queued', 'running']
-RETURN count(c) AS n
-"""
 #: Starts one at a time in this process, which runs the jobs; a start takes two short statements.
 _STARTING = asyncio.Lock()
 
@@ -100,10 +94,9 @@ async def start_clash_check(context: ToolContext, arguments: StartClashCheckArgu
         }
     )
     async with _STARTING:  # the count and the queueing at once, so that calls side by side count each other
-        open_checks = await context.graph.run(
-            _OPEN_CHECKS, user_id=context.principal.user_id, author=context.principal.username
-        )
-        if open_checks and int(open_checks[0]["n"]) >= MAX_OPEN_CHECKS:
+        clashes = ClashRepository(context.graph)
+        started = await clashes.open_count(user_id=context.principal.user_id, author=context.principal.username)
+        if started >= MAX_OPEN_CHECKS:  # in all the user's projects
             await context.deny(
                 "limit",
                 f"You already have {MAX_OPEN_CHECKS} clash checks waiting or running; read them with "

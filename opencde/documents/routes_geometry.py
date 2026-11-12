@@ -19,7 +19,7 @@ from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 from fastapi.responses import FileResponse
 
 from opencde.auth.dependencies import DocumentsPrincipal
-from opencde.deps import GraphDep, SettingsDep
+from opencde.deps import SettingsDep
 from opencde.ids import is_uuid
 from opencde.ifcgraph.gltf import LODS
 from opencde.ifcgraph.service import STATE_DONE, STATE_FAILED, IfcGraphDep
@@ -70,7 +70,6 @@ async def ifc_geometry(
     principal: DocumentsPrincipal,
     document_id: DocumentId,
     version_index: VersionIndex,
-    graph: GraphDep,
     documents: DocumentsDep,
     ifcgraph: IfcGraphDep,
     settings: SettingsDep,
@@ -90,27 +89,18 @@ async def ifc_geometry(
     chosen = _classes(classes)
     if not is_uuid(document_id):
         raise HTTPException(404, "Document version not found")
-    rows = await graph.run(
-        """
-        MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project)-[:HAS_CONVERSION]->(m:Conversion)
-        WHERE m.document_id = $document_id AND m.version_index = $version_index
-        RETURN m.state AS state, m.id AS id, m.geometry_key AS geometry_key, m.spatial_pending AS pending
-        ORDER BY m.created_at DESC LIMIT 1
-        """,
-        user_id=principal.user_id,
-        document_id=document_id,
-        version_index=version_index,
+    model = await ifcgraph.conversions.for_member(
+        user_id=principal.user_id, document_id=document_id, version_index=version_index
     )
-    if not rows:
+    if model is None:
         if await documents.version(user_id=principal.user_id, document_id=document_id, version_index=version_index):
             raise HTTPException(404, "This version has no IFC graph: it is not an IFC file, or came before the module")
         raise HTTPException(404, "Document version not found")
-    model = rows[0]
     if model["state"] == STATE_FAILED:
         raise HTTPException(404, "This version has no geometry: its conversion failed")
-    if model["state"] != STATE_DONE or model["pending"]:
+    if model["state"] != STATE_DONE or model.get("spatial_pending"):
         raise HTTPException(409, "The version is still being converted; try again shortly")
-    if not model["geometry_key"]:
+    if not model.get("geometry_key"):
         raise HTTPException(404, "This version has no geometry: its geometry pass failed, or came before it")
     try:
         built = await ifcgraph.geometry(model_id=str(model["id"]), lod=lod, classes=chosen, storey=storey)

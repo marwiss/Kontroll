@@ -45,9 +45,12 @@ from opencde.store.documents.postgres import (
 )
 from opencde.store.documents.sessions import SelectionSessionRepository, UploadSessionRepository
 from opencde.store.documents.versions import DocumentRepository
+from opencde.store.jobs.clashes import ClashRepository
 from opencde.store.jobs.conversions import ConversionRepository
 from opencde.store.jobs.drafts import ChangeSetDraftRepository
+from opencde.store.jobs.merges import MergeRepository
 from opencde.store.jobs.proposals import ProposalRepository
+from opencde.store.jobs.validations import ValidationRepository
 from opencde.store.oauth2.clients import ClientRepository
 from opencde.store.oauth2.postgres import PostgresClientRepository, PostgresTokenRepository
 from opencde.store.oauth2.tokens import TokenRepository
@@ -72,6 +75,9 @@ REPOSITORIES = (
     ConversionRepository,
     ProposalRepository,
     ChangeSetDraftRepository,
+    ValidationRepository,
+    ClashRepository,
+    MergeRepository,
     PostgresUserRepository,
     PostgresProjectRepository,
     PostgresTeamRepository,

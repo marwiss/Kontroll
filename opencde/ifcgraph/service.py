@@ -58,6 +58,7 @@ from opencde.postgres.database import Postgres
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
 from opencde.store.accounts.postgres import team_store
+from opencde.store.jobs.clashes import ClashRepository
 from opencde.store.jobs.conversions import (
     FACTS,
     SPATIAL_FACTS,
@@ -67,7 +68,10 @@ from opencde.store.jobs.conversions import (
     STATE_RUNNING,
     ConversionRepository,
 )
-from opencde.store.protocols import ConversionStore
+from opencde.store.jobs.merges import MergeRepository
+from opencde.store.jobs.proposals import ProposalRepository
+from opencde.store.jobs.validations import ValidationRepository
+from opencde.store.protocols import ClashStore, ConversionStore, MergeStore, ProposalStore, ValidationStore
 from opencde.timeutil import later_iso, now_iso
 
 log = get_logger(__name__)
@@ -80,7 +84,6 @@ IDS_SUFFIX = ".ids"
 # The IDS documents of one project an upload is checked against, and the specifications its report keeps (ADR 0015).
 MAX_IDS_DOCUMENTS = 50
 MAX_RECHECKS = 500  # the IFC documents of a project checked again at once when its IDS changes (OB-43.1)
-PRECHECK_SECONDS = 24 * 3600  # a file checked without becoming a version is kept this long (ADR 0021)
 MAX_SPECIFICATIONS = 1_000
 ROOMS_SECONDS = 120  # the rooms only inform, so they never hold an upload or the jobs behind it longer
 MAX_IDS_READ = 1_000  # IDS versions whose bSDD URIs a server process keeps, each read once (OB-42)
@@ -189,6 +192,10 @@ class IfcGraphService:
         self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a): every statement
         self.postgres = postgres  # the areas of the server's own data that have followed to PostgreSQL (ADR 0029)
         self.conversions: ConversionStore = ConversionRepository(self.store)
+        self.validations: ValidationStore = ValidationRepository(self.store)
+        self.proposals: ProposalStore = ProposalRepository(self.store)
+        self.clashes: ClashStore = ClashRepository(self.store)
+        self.merges: MergeStore = MergeRepository(self.store)
         self.storage = storage
         self.settings = settings
         self.bsdd: BsddClient | None = None  # made on the first check against bSDD; its cache lives on (OB-42)
@@ -266,17 +273,7 @@ class IfcGraphService:
                 await self._set_state(row["id"], STATE_QUEUED)
             log.info("ifcgraph_resumed", model_id=row["id"])
             self._start(row["id"], row["storage_key"], row["file_name"])
-        rows = await self.store.run(
-            """
-            MATCH (p:Proposal)
-            WHERE p.state = $queued OR (p.state = $running AND p.running_at < $given_up)
-            RETURN p.id AS id, p.state AS state
-            """,
-            queued=STATE_QUEUED,
-            running=STATE_RUNNING,
-            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
-        )
-        for row in rows:
+        for row in await self.proposals.interrupted(given_up=given_up):
             if f"ifcproposal-{row['id']}" in waiting_here:
                 continue
             if row["state"] == STATE_RUNNING:
@@ -285,17 +282,7 @@ class IfcGraphService:
             self._start_proposal(row["id"])
         if not self.settings.ifcgraph_validate_uploads:
             return
-        rows = await self.store.run(
-            """
-            MATCH (r:Validation)
-            WHERE r.state = $queued OR (r.state = $running AND r.running_at < $given_up)
-            RETURN r.id AS id, r.storage_key AS storage_key, r.file_name AS file_name, r.state AS state
-            """,
-            queued=STATE_QUEUED,
-            running=STATE_RUNNING,
-            given_up=later_iso(-2 * self.settings.ifcgraph_timeout_seconds),
-        )
-        for row in rows:
+        for row in await self.validations.interrupted(given_up=given_up):
             if f"ifcvalidation-{row['id']}" in waiting_here:
                 continue
             if row["state"] == STATE_RUNNING:
@@ -528,22 +515,9 @@ class IfcGraphService:
 
     async def _queue_validation(self, version_id: str, storage_key: str, file_name: str) -> None:
         validation_id = new_id()
-        rows = await self.store.run(
-            """
-            MATCH (v:DocumentVersion {id: $version_id})
-            CREATE (v)-[:HAS_VALIDATION]->(r:Validation {
-                id: $id, storage_key: $storage_key, file_name: $file_name, state: $state, created_at: $now
-            })
-            RETURN r.id AS id
-            """,
-            version_id=version_id,
-            id=validation_id,
-            storage_key=storage_key,
-            file_name=file_name,
-            state=STATE_QUEUED,
-            now=now_iso(),
-        )
-        if rows:
+        if await self.validations.queue(
+            validation_id=validation_id, version_id=version_id, storage_key=storage_key, file_name=file_name
+        ):
             self._start_validation(validation_id, storage_key, file_name)
 
     def _start_validation(self, validation_id: str, storage_key: str, file_name: str) -> None:
@@ -554,28 +528,12 @@ class IfcGraphService:
         task.add_done_callback(self._tasks.discard)
 
     async def _set_validation(self, validation_id: str, state: str, **fields: Any) -> None:
-        await self.store.run(
-            "MATCH (r:Validation {id: $id}) SET r.state = $state, r += $fields",
-            id=validation_id,
-            state=state,
-            fields={**fields, f"{state}_at": now_iso()},
-        )
+        await self.validations.set_state(validation_id, state, **fields)
 
     async def _validate(self, validation_id: str, storage_key: str, file_name: str) -> None:
         """Check one upload; the issues may quote the file, so only their number is logged."""
         async with self._lock:
-            rows = await self.store.run(
-                """
-                MATCH (r:Validation {id: $id, state: $queued})
-                SET r.state = $running, r.running_at = $now
-                RETURN r.id AS id
-                """,
-                id=validation_id,
-                queued=STATE_QUEUED,
-                running=STATE_RUNNING,
-                now=now_iso(),
-            )
-            if not rows:
+            if not await self.validations.claim(validation_id):
                 return
             try:
                 fields = await self._run_checks(storage_key, file_name, await self._project_of(validation_id))
@@ -588,19 +546,7 @@ class IfcGraphService:
 
     async def _project_of(self, validation_id: str) -> str | None:
         """The project of a check: through the version for an upload, straight from the project for a precheck."""
-        row = await self.store.one(
-            """
-            MATCH (r:Validation {id: $id})
-            OPTIONAL MATCH (r)<-[:HAS_VALIDATION]-(:DocumentVersion)<-[:HAS_VERSION]-(:Document)
-                           <-[:HAS_DOCUMENT]-(p:Project)
-            OPTIONAL MATCH (r)<-[:HAS_PRECHECK]-(q:Project)
-            RETURN p.project_id AS of_version, q.project_id AS of_precheck
-            """,
-            id=validation_id,
-        )
-        if row is None:
-            return None
-        return row["of_version"] or row["of_precheck"]
+        return await self.validations.project_of(validation_id)
 
     async def _run_checks(
         self, storage_key: str, file_name: str, project_id: str | None, *, rooms: bool = True
@@ -683,18 +629,8 @@ class IfcGraphService:
         self, version_id: str, storage_key: str, file_name: str, checked: dict[str, Any]
     ) -> None:
         """A check made before the version existed (``check_now``) becomes the version's ``Validation`` node."""
-        now = now_iso()
-        await self.store.run(
-            """
-            MATCH (v:DocumentVersion {id: $version_id})
-            CREATE (v)-[:HAS_VALIDATION]->(r:Validation {id: $id, storage_key: $storage_key, file_name: $file_name})
-            SET r += $fields
-            """,
-            version_id=version_id,
-            id=new_id(),
-            storage_key=storage_key,
-            file_name=file_name,
-            fields={**checked, "created_at": now, f"{checked['state']}_at": now},
+        await self.validations.record(
+            version_id=version_id, storage_key=storage_key, file_name=file_name, checked=checked
         )
 
     # -- a file checked without becoming a version (ADR 0021) -----------------------------------------
@@ -702,26 +638,11 @@ class IfcGraphService:
     async def schedule_precheck(
         self, *, precheck_id: str, project_id: str, storage_key: str, file_name: str, author: str
     ) -> None:
-        """Queue the checks on a file a member sent to try; the node and the file live ``PRECHECK_SECONDS``."""
-        rows = await self.store.run(
-            """
-            MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_PRECHECK]->(r:Validation:Precheck {
-                id: $id, project_id: $project_id, storage_key: $storage_key, file_name: $file_name,
-                author: $author, state: $state, created_at: $now, expires_at: $expires_at
-            })
-            RETURN r.id AS id
-            """,
-            project_id=project_id,
-            id=precheck_id,
-            storage_key=storage_key,
-            file_name=file_name,
-            author=author,
-            state=STATE_QUEUED,
-            now=now_iso(),
-            expires_at=later_iso(PRECHECK_SECONDS),
-        )
-        if not rows:
+        """Queue the checks on a file a member sent to try; the record and the file live a day
+        (``store/jobs/validations.py``, ``PRECHECK_SECONDS``)."""
+        if not await self.validations.open_precheck(
+            precheck_id=precheck_id, project_id=project_id, storage_key=storage_key, file_name=file_name, author=author
+        ):
             raise ValueError("no such project")
         self._start_validation(precheck_id, storage_key, file_name)
 
@@ -730,42 +651,21 @@ class IfcGraphService:
     ) -> str:
         """A refused upload stays as a precheck, so that its report can be read; returns the precheck's id."""
         precheck_id = new_id()
-        now = now_iso()
-        await self.store.run(
-            """
-            MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_PRECHECK]->(r:Validation:Precheck {
-                id: $id, project_id: $project_id, storage_key: $storage_key, file_name: $file_name,
-                author: $author, created_at: $now, expires_at: $expires_at
-            })
-            SET r += $fields
-            """,
+        await self.validations.keep_precheck(
+            precheck_id=precheck_id,
             project_id=project_id,
-            id=precheck_id,
             storage_key=storage_key,
             file_name=file_name,
             author=author,
-            now=now,
-            expires_at=later_iso(PRECHECK_SECONDS),
-            fields={**checked, f"{checked['state']}_at": now},
+            checked=checked,
         )
         return precheck_id
 
     async def precheck(self, *, user_id: str, project_id: str, precheck_id: str) -> dict[str, Any] | None:
         """A precheck of a project the user is a member of, its issues unpacked; None when there is none."""
-        row = await self.store.one(
-            """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_PRECHECK]->(r:Precheck {id: $id})
-            RETURN properties(r) AS node
-            """,
-            user_id=user_id,
-            project_id=project_id,
-            id=precheck_id,
-        )
-        if row is None:
+        node = await self.validations.precheck(user_id=user_id, project_id=project_id, precheck_id=precheck_id)
+        if node is None:
             return None
-        node = dict(row["node"])
         node["issues"] = unpack_report(node.pop("report", None))
         node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
         node["rooms"] = json.loads(node["rooms"]) if node.get("rooms") else None
@@ -775,43 +675,21 @@ class IfcGraphService:
 
     async def schedule_proposal(self, *, project_id: str, topic_guid: str, snippet_key: str, author: str) -> str:
         """Queue the trial of a topic's change set; an earlier trial of the topic goes, with its file."""
-        gone = await self.store.run(
-            """
-            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:Proposal)
-            WITH p, p.storage_key AS key
-            DETACH DELETE p
-            RETURN key
-            """,
-            project_id=project_id,
-            guid=topic_guid,
-        )
-        for row in gone:
-            if row["key"]:
-                with contextlib.suppress(ValueError, OSError):
-                    self.storage.delete(row["key"])
         proposal_id = new_id()
         base = await asyncio.to_thread(self._base_of, snippet_key)
-        rows = await self.store.run(
-            """
-            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(t:Topic {guid: $guid})
-            CREATE (t)-[:HAS_PROPOSAL]->(p:Proposal {
-                id: $id, project_id: $project_id, topic_guid: $guid, snippet_key: $snippet_key, author: $author,
-                state: $state, created_at: $now,
-                base_document_id: $base_document_id, base_version_index: $base_version_index
-            })
-            RETURN p.id AS id
-            """,
+        made, gone = await self.proposals.create(
+            proposal_id=proposal_id,
             project_id=project_id,
-            guid=topic_guid,
-            id=proposal_id,
+            topic_guid=topic_guid,
             snippet_key=snippet_key,
             author=author,
-            state=STATE_QUEUED,
-            now=now_iso(),
             base_document_id=base.get("document_id"),
             base_version_index=base.get("version_index"),
         )
-        if not rows:
+        for key in gone:
+            with contextlib.suppress(ValueError, OSError):
+                self.storage.delete(key)
+        if not made:
             raise ValueError("no such topic")
         self._start_proposal(proposal_id)
         return proposal_id
@@ -833,27 +711,12 @@ class IfcGraphService:
         task.add_done_callback(self._tasks.discard)
 
     async def _set_proposal(self, proposal_id: str, state: str, **fields: Any) -> None:
-        await self.store.run(
-            "MATCH (p:Proposal {id: $id}) SET p.state = $state, p += $fields",
-            id=proposal_id,
-            state=state,
-            fields={**fields, f"{state}_at": now_iso()},
-        )
+        await self.proposals.set_state(proposal_id, state, **fields)
 
     async def _run_proposal(self, proposal_id: str) -> None:
         """Try one change set; the findings may quote the file, so only their number is logged."""
         async with self._lock:
-            row = await self.store.one(
-                """
-                MATCH (p:Proposal {id: $id, state: $queued})
-                SET p.state = $running, p.running_at = $now
-                RETURN p.project_id AS project_id, p.snippet_key AS snippet_key, p.author AS author
-                """,
-                id=proposal_id,
-                queued=STATE_QUEUED,
-                running=STATE_RUNNING,
-                now=now_iso(),
-            )
+            row = await self.proposals.claim(proposal_id)
             if row is None:
                 return
             try:
@@ -1034,13 +897,7 @@ class IfcGraphService:
         The approval does this on the latest version when the change set collides with nothing that came
         between its base and the latest (ADR 0021). The request waits for the trial.
         """
-        row = await self.store.one(
-            """
-            MATCH (p:Proposal {id: $id})
-            RETURN p.project_id AS project_id, p.snippet_key AS snippet_key, p.author AS author
-            """,
-            id=proposal_id,
-        )
+        row = await self.proposals.get(proposal_id)
         if row is None:
             raise ValueError("no such proposal")
         async with self._lock:
@@ -1136,19 +993,11 @@ class IfcGraphService:
 
     async def change_set_of(self, *, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The change set a topic carries, as uploaded; None when the topic has no trial any more."""
-        row = await self.store.one(
-            """
-            MATCH (:Project {project_id: $project_id})-[:HAS_TOPIC]->(:Topic {guid: $guid})
-                  -[:HAS_PROPOSAL]->(p:Proposal)
-            RETURN p.snippet_key AS snippet_key
-            """,
-            project_id=project_id,
-            guid=topic_guid,
-        )
-        if row is None:
+        snippet_key = await self.proposals.snippet_key(project_id=project_id, topic_guid=topic_guid)
+        if snippet_key is None:
             return None
         try:
-            with self.storage.open_read(str(row["snippet_key"])) as handle:
+            with self.storage.open_read(snippet_key) as handle:
                 return dict(json.loads(handle.read().decode("utf-8")))
         except (OSError, ValueError):
             return None
@@ -1180,19 +1029,9 @@ class IfcGraphService:
 
     async def proposal(self, *, user_id: str, project_id: str, topic_guid: str) -> dict[str, Any] | None:
         """The trial of a topic's change set, for a member of the project, its issues unpacked; None without one."""
-        row = await self.store.one(
-            """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_TOPIC]->(:Topic {guid: $guid})-[:HAS_PROPOSAL]->(p:Proposal)
-            RETURN properties(p) AS node
-            """,
-            user_id=user_id,
-            project_id=project_id,
-            guid=topic_guid,
-        )
-        if row is None:
+        node = await self.proposals.of_topic(user_id=user_id, project_id=project_id, topic_guid=topic_guid)
+        if node is None:
             return None
-        node = dict(row["node"])
         node["issues"] = unpack_report(node.pop("report", None))
         node["checks"] = json.loads(node["checks"]) if node.get("checks") else []
         node["teams"] = json.loads(node["teams"]) if node.get("teams") else []
@@ -1655,19 +1494,8 @@ class IfcGraphService:
     async def schedule_clash(self, *, project_id: str, author: str, request: dict[str, Any]) -> str:
         """Queue a clash check between two document versions of a project; returns the check's id."""
         clash_id = new_id()
-        await self.store.run(
-            """
-            MATCH (p:Project {project_id: $project_id})
-            CREATE (p)-[:HAS_CLASH]->(:Clash {
-                id: $id, project_id: $project_id, state: $state, request: $request, author: $author, created_at: $now
-            })
-            """,
-            project_id=project_id,
-            id=clash_id,
-            state=STATE_QUEUED,
-            request=json.dumps(request, separators=(",", ":")),
-            author=author,
-            now=now_iso(),
+        await self.clashes.create(
+            clash_id=clash_id, project_id=project_id, author=author, request=json.dumps(request, separators=(",", ":"))
         )
         task = asyncio.create_task(self._run_clash(clash_id), name=f"ifcclash-{clash_id}")
         self._tasks.add(task)
@@ -1699,20 +1527,10 @@ class IfcGraphService:
     async def _run_clash(self, clash_id: str) -> None:
         """Run one queued check in the worker process and store its report; the file names stay out of the log."""
         async with self._lock:
-            rows = await self.store.run(
-                """
-                MATCH (c:Clash {id: $id, state: $queued})
-                SET c.state = $running, c.running_at = $now
-                RETURN c.project_id AS project_id, c.request AS request
-                """,
-                id=clash_id,
-                queued=STATE_QUEUED,
-                running=STATE_RUNNING,
-                now=now_iso(),
-            )
-            if not rows:
+            claimed = await self.clashes.claim(clash_id)
+            if claimed is None:
                 return
-            project_id, request = str(rows[0]["project_id"]), json.loads(rows[0]["request"])
+            project_id, request = str(claimed["project_id"]), json.loads(claimed["request"])
             try:
                 with tempfile.TemporaryDirectory(prefix="ifcclash-") as tmp:
                     a = await self._clash_input(project_id, request["a"], Path(tmp) / "a")
@@ -1741,13 +1559,7 @@ class IfcGraphService:
                     report = json.loads(answer.strip().splitlines()[-1])
             except Exception as exc:
                 log.warning("ifc_clash_failed", clash_id=clash_id, error=type(exc).__name__)
-                await self.store.run(
-                    "MATCH (c:Clash {id: $id}) SET c.state = $state, c.failed_at = $now, c.error = $error",
-                    id=clash_id,
-                    state=STATE_FAILED,
-                    now=now_iso(),
-                    error=f"{type(exc).__name__}: {exc}"[:300],
-                )
+                await self.clashes.fail(clash_id, error=f"{type(exc).__name__}: {exc}"[:300])
                 return
             for clash in report["clashes"]:
                 for key in ("a", "b"):
@@ -1756,15 +1568,8 @@ class IfcGraphService:
                         "version_index": request[key]["version_index"],
                         **clash[key],
                     }
-            await self.store.run(
-                """
-                MATCH (c:Clash {id: $id})
-                SET c.state = $state, c.done_at = $now, c.count = $count, c.set_a = $set_a, c.set_b = $set_b,
-                    c.missing = $missing, c.seconds = $seconds, c.truncated = $truncated, c.report = $report
-                """,
-                id=clash_id,
-                state=STATE_DONE,
-                now=now_iso(),
+            await self.clashes.finish(
+                clash_id,
                 count=int(report["count"]),
                 set_a=int(report["set_a"]),
                 set_b=int(report["set_b"]),
@@ -1777,31 +1582,15 @@ class IfcGraphService:
 
     async def clash_reports(self, *, user_id: str, project_id: str) -> list[dict[str, Any]]:
         """The checks of a project the user is a member of, newest first, without their clashes."""
-        rows = await self.store.run(
-            """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:Clash)
-            RETURN properties(c) AS clash ORDER BY c.created_at DESC LIMIT 100
-            """,
-            user_id=user_id,
-            project_id=project_id,
-        )
-        return [self._clash_row(row["clash"], with_clashes=False) for row in rows]
+        nodes = await self.clashes.of_project(user_id=user_id, project_id=project_id)
+        return [self._clash_row(node, with_clashes=False) for node in nodes]
 
     async def clash_report(
         self, *, user_id: str, project_id: str, clash_id: str, with_clashes: bool
     ) -> dict[str, Any] | None:
         """One check, when the user is a member of its project."""
-        rows = await self.store.run(
-            """
-            MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})
-                  -[:HAS_CLASH]->(c:Clash {id: $clash_id})
-            RETURN properties(c) AS clash
-            """,
-            user_id=user_id,
-            project_id=project_id,
-            clash_id=clash_id,
-        )
-        return self._clash_row(rows[0]["clash"], with_clashes=with_clashes) if rows else None
+        node = await self.clashes.get(user_id=user_id, project_id=project_id, clash_id=clash_id)
+        return self._clash_row(node, with_clashes=with_clashes) if node else None
 
     @staticmethod
     def _clash_row(node: dict[str, Any], *, with_clashes: bool) -> dict[str, Any]:
