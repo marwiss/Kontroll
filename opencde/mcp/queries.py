@@ -160,8 +160,6 @@ def server_query_tool() -> Tool:
     async def run(context: ToolContext, given: Arguments) -> dict[str, Any]:
         values = given.model_dump()
         asked = {name: values[name] for name in parameters if values[name] is not None}
-        if not context.settings.ifcgraph_enabled:
-            raise ToolRefusal("The IFC-LPG module is off on this server")
         record = await member_version(context, values["document_id"], values["version_index"])
         documents = DocumentRepository(context.graph)
         where = {
@@ -199,6 +197,7 @@ def server_query_tool() -> Tool:
         description=_description(queries),
         arguments=arguments,
         run=run,
+        needs_ifcgraph=True,
     )
 
 

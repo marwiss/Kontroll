@@ -85,7 +85,7 @@ PROPOSER = Tool(
 def test_a_tool_that_proposes_needs_mcp_propose_and_names_both_scopes_for_the_step_up(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    names = [tool.name for tool in routes.TOOLS]
+    names = [tool.name for tool in routes.TOOLS if not tool.needs_ifcgraph]
     monkeypatch.setattr(routes, "TOOLS", (*routes.TOOLS, PROPOSER))
     monkeypatch.setitem(routes._BY_NAME, PROPOSER.name, PROPOSER)
     graph = FakeGraph()

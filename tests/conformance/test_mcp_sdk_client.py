@@ -43,7 +43,7 @@ async def test_the_sdks_client_discovers_lists_and_calls(tmp_path: Path, mode: s
         assert client.server_info is not None and client.server_info.name == "Dataregium OpenCDE server"
         assert client.server_capabilities.tools is not None
         listed = await client.list_tools()
-        assert [tool.name for tool in listed.tools] == [tool.name for tool in routes.TOOLS]
+        assert [tool.name for tool in listed.tools] == [tool.name for tool in routes.TOOLS if not tool.needs_ifcgraph]
         answer = await client.call_tool("list_models", {"project_id": None})
         assert answer.is_error is False
         assert answer.structured_content is not None and answer.structured_content["models"][0]["project_id"] == CLOUD

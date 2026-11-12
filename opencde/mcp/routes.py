@@ -24,15 +24,17 @@ from fastapi.responses import JSONResponse
 from neo4j.exceptions import ServiceUnavailable
 
 from opencde.auth.resources import MCP_PATH
-from opencde.deps import GraphDep, SettingsDep, client_ip
+from opencde.deps import GraphDep, SettingsDep, client_ip, get_storage
 from opencde.errors import CODE_FORBIDDEN, CODE_PAYLOAD_TOO_LARGE, ApiError, error_response
 from opencde.graph.graph import Graph
 from opencde.ifcgraph.service import ifcgraph_service
 from opencde.logging import get_logger
 from opencde.mcp import protocol, registry
 from opencde.mcp.auth import McpPrincipal, require_mcp_scope
+from opencde.mcp.change_sets import CHANGE_SET_TOOLS
 from opencde.mcp.clash import GET_CLASH_CHECK, START_CLASH_CHECK
 from opencde.mcp.ifc_models import LIST_MODELS
+from opencde.mcp.proposals import GET_PROPOSAL, LIST_PROPOSALS
 from opencde.mcp.protocol import (
     CLIENT_CAPABILITIES_KEY,
     HANDSHAKE_VERSIONS,
@@ -55,8 +57,18 @@ from opencde.store.oauth2.tokens import Principal
 TAG = "MCP (extension)"
 MAX_BODY_BYTES = 1_048_576
 
-#: The tools in the order ``tools/list`` gives them, which stays the same between releases but for what is added.
-TOOLS: tuple[registry.Tool, ...] = (LIST_MODELS, SERVER_QUERY, GET_PUBLICATION, START_CLASH_CHECK, GET_CLASH_CHECK)
+#: The tools in the order ``tools/list`` gives them, which stays the same between releases but for what is added:
+#: Dataspatium's order, with the tool that finds the models first.
+TOOLS: tuple[registry.Tool, ...] = (
+    LIST_MODELS,
+    *CHANGE_SET_TOOLS,
+    GET_PROPOSAL,
+    LIST_PROPOSALS,
+    SERVER_QUERY,
+    GET_PUBLICATION,
+    START_CLASH_CHECK,
+    GET_CLASH_CHECK,
+)
 _BY_NAME = {tool.name: tool for tool in TOOLS}
 _MODERN_METHODS = ("server/discover", "tools/list", "tools/call")
 _HANDSHAKE_METHODS = ("initialize", "ping", "tools/list", "tools/call")
@@ -226,7 +238,7 @@ async def _answer(
     if method == "tools/list":
         if params.get("cursor") is not None:
             raise McpError(INVALID_PARAMS, "There is one page of tools and no cursor")
-        tools = [tool.definition() for tool in TOOLS]
+        tools = [tool.definition() for tool in TOOLS if tool.offered(settings)]
         return protocol.complete({"tools": tools}, modern=modern, cacheable=True)
     if method == "tools/call":
         return protocol.complete(await _call(request, caller, settings, graph, params), modern=modern)
@@ -254,7 +266,7 @@ async def _call(
     if not isinstance(name, str):
         raise McpError(INVALID_PARAMS, "tools/call needs the tool's name")
     tool = _BY_NAME.get(name)
-    if tool is None:
+    if tool is None or not tool.offered(settings):
         raise McpError(INVALID_PARAMS, "Unknown tool: tools/list names the tools")
     if arguments is None:
         arguments = {}
@@ -267,6 +279,7 @@ async def _call(
         tool=tool.name,
         ip=client_ip(request),
         client_info=registry.client_info(params.get("_meta")),
+        storage=get_storage(request),
         ifcgraph=ifcgraph_service(request),
     )
     if not caller.has_scope(tool.scope):

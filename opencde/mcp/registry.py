@@ -2,8 +2,10 @@
 """The MCP endpoint's tools (ADR 0028): how a tool is defined, listed and called.
 
 A tool's arguments are a pydantic model, a flat object in which every field is required and ``null`` means "not
-given", as Dataspatium's strict schemas are; a field may hold an object of the same form, or a list of them, written
-out in place. ``tools/list`` gives the JSON Schema generated from it, in the order the tools are registered. A call validates the arguments, and a refusal (arguments the model does not take, a project
+given", as Dataspatium's strict schemas are; a field may hold an object of the same form, or a list of them,
+written out in place (the write tools' schemas are the app's own, as strict). ``tools/list`` gives the JSON
+Schema generated from it, in the order the tools are registered, and leaves out a tool whose module is off.
+A call validates the arguments, and a refusal (arguments the model does not take, a project
 that is not the caller's, a policy, a role) is a tool result with ``isError`` that the AI can read and act on, in
 fixed words that never quote the arguments or the files. An answer is ``structuredContent`` and the same JSON as
 text, at most 256 kB. ``mcp.*`` events go to the audit log through :meth:`ToolContext.record`, never with an argument
@@ -34,6 +36,7 @@ from opencde.store.oauth2.tokens import Principal
 
 if TYPE_CHECKING:
     from opencde.ifcgraph.service import IfcGraphService
+    from opencde.storage import LocalStorage
 
 #: The most an answer holds, as JSON; the client gets it twice, as ``structuredContent`` and as text.
 MAX_ANSWER_BYTES = 256 * 1024
@@ -66,8 +69,9 @@ def refusing() -> Generator[None, None, None]:
 
 @dataclass(frozen=True)
 class ToolContext:
-    """What a call knows: who calls, through which client, the server's own graph, and the IFC-LPG module's service
-    while the module is on (the IFC graph, the working copy and the clash checks)."""
+    """What a call knows: who calls, through which client, the server's own graph, the storage (the change
+    sets' snippets), and the IFC-LPG module's service while the module is on (the IFC graph, the working copy,
+    the trials and the clash checks)."""
 
     principal: Principal
     settings: Settings
@@ -75,6 +79,7 @@ class ToolContext:
     tool: str
     ip: str | None = None
     client_info: dict[str, str] = field(default_factory=dict)
+    storage: LocalStorage | None = None
     ifcgraph: IfcGraphService | None = None
 
     async def record(self, event: str, **details: Any) -> None:
@@ -104,6 +109,11 @@ class Tool:
     run: Callable[[ToolContext, Any], Awaitable[dict[str, Any]]]
     scope: str = MCP_READ
     read_only: bool = True
+    needs_ifcgraph: bool = False  # listed and called only while the IFC-LPG module is on, which tries change sets
+
+    def offered(self, settings: Settings) -> bool:
+        """Whether the tool is on this server: what is not on is not listed."""
+        return settings.ifcgraph_enabled or not self.needs_ifcgraph
 
     def definition(self) -> dict[str, Any]:
         return {
@@ -116,10 +126,14 @@ class Tool:
 
 
 def input_schema(model: type[Arguments]) -> dict[str, Any]:
-    """The arguments as JSON Schema 2020-12, generated from the model: a flat object without titles, and an object a
-    field holds written out in place, of the same form, as the strict modes of the AI providers take them."""
+    """The arguments as JSON Schema 2020-12, generated from the model: a flat object without titles, and an
+    object a field holds written out in place, of the same form, as the strict modes of the AI providers take
+    them; a schema a field states of its own (the app's) keeps its other keywords, such as a type that also
+    takes null."""
     generated = model.model_json_schema()
-    return _strict(generated, generated.get("$defs", {}), model.__name__)
+    schema = _strict(generated, generated.get("$defs", {}), model.__name__)
+    schema.pop("description", None)  # the tool's own description says what it does
+    return schema
 
 
 def _strict(schema: dict[str, Any], definitions: dict[str, Any], where: str) -> dict[str, Any]:
@@ -129,7 +143,12 @@ def _strict(schema: dict[str, Any], definitions: dict[str, Any], where: str) -> 
     }
     if sorted(schema.get("required", [])) != sorted(properties):
         raise ValueError(f"{where}: every argument is required, with null for what is not given")
-    return {"type": "object", "properties": properties, "required": list(properties), "additionalProperties": False}
+    kept = {key: value for key, value in schema.items() if key not in _REWRITTEN}
+    strict = {"properties": properties, "required": list(properties), "additionalProperties": False}
+    return {"type": schema.get("type", "object"), **strict, **kept}
+
+
+_REWRITTEN = ("title", "$defs", "type", "properties", "required", "additionalProperties")
 
 
 def _in_place(schema: Any, definitions: dict[str, Any], where: str) -> Any:
@@ -147,17 +166,6 @@ def _in_place(schema: Any, definitions: dict[str, Any], where: str) -> Any:
     if "properties" in schema:
         return _strict(schema, definitions, where)
     return {key: _in_place(value, definitions, where) for key, value in schema.items() if key != "title"}
-
-
-def _field_names(schema: Any) -> set[str]:
-    """The name of every argument a schema takes, at any depth."""
-    if isinstance(schema, list):
-        return set().union(*(_field_names(part) for part in schema))
-    if not isinstance(schema, dict):
-        return set()
-    properties = schema.get("properties", {})
-    found = set(properties).union(*(_field_names(part) for part in properties.values()))
-    return found.union(*(_field_names(value) for key, value in schema.items() if key != "properties"))
 
 
 def client_info(meta: Any) -> dict[str, str]:
@@ -179,18 +187,35 @@ def error_result(message: str) -> dict[str, Any]:
     return {"content": [{"type": "text", "text": message}], "isError": True}
 
 
+def _names(schema: Any) -> set[str]:
+    """Every property name a schema has, at any depth."""
+    if isinstance(schema, list):
+        return set().union(*(_names(item) for item in schema))
+    if not isinstance(schema, dict):
+        return set()
+    found = set(schema["properties"]) if isinstance(schema.get("properties"), dict) else set()
+    return found.union(*(_names(value) for value in schema.values()))
+
+
 def problems(exc: ValidationError, model: type[Arguments]) -> str:
-    """What is wrong with the arguments, naming the fields the tool takes (``a.version_index`` within an object, with
-    a list's positions) and never a value given, nor a name the tool does not take."""
-    known = _field_names(input_schema(model))
+    """What is wrong with the arguments, naming the fields the tool takes (``a.version_index`` within an
+    object, with a list's positions, as far as the schema names them) and never a value given, nor a name the
+    tool does not take."""
+    known = {field.alias or name for name, field in model.model_fields.items()}
+    nested = _names(input_schema(model))
     found: list[str] = []
     for error in exc.errors(include_input=False, include_url=False, include_context=False):
         location = error.get("loc", ())
-        named = bool(location) and error.get("type") != "extra_forbidden"
-        if named and all(isinstance(part, int) or part in known for part in location):
-            problem = ".".join(str(part) for part in location) + f": {error.get('msg', 'invalid')}"
-        else:
+        name = str(location[0]) if location else ""
+        if name not in known or error.get("type") == "extra_forbidden":
             problem = "an argument the tool does not take"
+        else:
+            where = [name]
+            for piece in location[1:]:  # past the names it knows are the types a value could have had
+                if not isinstance(piece, int) and piece not in nested:
+                    break
+                where.append(str(piece))
+            problem = f"{'.'.join(where)}: {error.get('msg', 'invalid')}"
         if problem not in found:
             found.append(problem)
     return "Invalid arguments: " + "; ".join(found[:5])

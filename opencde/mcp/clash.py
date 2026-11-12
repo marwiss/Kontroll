@@ -214,6 +214,7 @@ START_CLASH_CHECK = Tool(
     arguments=StartClashCheckArguments,
     run=start_clash_check,
     read_only=False,
+    needs_ifcgraph=True,
 )
 
 GET_CLASH_CHECK = Tool(
@@ -230,4 +231,5 @@ GET_CLASH_CHECK = Tool(
     ),
     arguments=GetClashCheckArguments,
     run=get_clash_check,
+    needs_ifcgraph=True,
 )

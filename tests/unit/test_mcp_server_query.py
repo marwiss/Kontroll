@@ -273,11 +273,10 @@ def test_a_version_without_a_model_or_a_module_that_is_off_is_refused(tmp_path: 
         no_model = ask(client, name="storeys")
         no_listing = ask(client)
     with tools(tmp_path, ifcgraph_enabled=False) as client:
-        off = ask(client)
-        off_changes = ask(client, name=CHANGED_SINCE, since=1)
+        off = call(client, "server_query", {"document_id": DOCUMENT, **NONE, "since": None})
     expected = "This version has no IFC graph: it is not an IFC file, or came before the module"
     assert refusal(no_model) == refusal(no_listing) == expected
-    assert refusal(off) == refusal(off_changes) == "The IFC-LPG module is off on this server"
+    assert off.status_code == 400 and off.json()["error"]["code"] == -32602, "a module that is off has no tools"
 
 
 def test_a_query_past_its_time_is_refused(tmp_path: Path) -> None:

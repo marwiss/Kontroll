@@ -43,7 +43,7 @@ def conforms(instance: Any, definition: str) -> None:
 
 @pytest.fixture
 def client(tmp_path: Path) -> TestClient:
-    with endpoint(tmp_path, FakeGraph()) as client:
+    with endpoint(tmp_path, FakeGraph(), ifcgraph_enabled=True) as client:  # every tool listed
         yield client
 
 
@@ -59,23 +59,31 @@ def test_the_discovery_conforms(client: TestClient) -> None:
 def test_the_list_of_tools_and_each_tool_conform(client: TestClient) -> None:
     body = rpc(client, "tools/list").json()
     conforms(body, "ListToolsResultResponse")
+    assert [tool["name"] for tool in body["result"]["tools"]] == [tool.name for tool in routes.TOOLS]
     for tool in body["result"]["tools"]:
         conforms(tool, "Tool")
         Draft202012Validator.check_schema(tool["inputSchema"])
 
 
 def least(schema: dict[str, Any]) -> Any:
-    """The least a schema takes: null where it may, else the smallest value of its type, an object filled in."""
+    """The least a schema takes: null where it may, else the smallest value of its first kind, an object filled
+    in."""
     options = schema.get("anyOf", [schema])
-    if {"type": "null"} in options:
+    kinds = [kind for option in options for kind in _kinds(option)]
+    if "null" in kinds:
         return None
     found = options[0]
     if "enum" in found:
         return found["enum"][0]
-    kind = found.get("type")
-    if kind == "object":
+    if kinds[0] == "object":
         return {name: least(part) for name, part in found["properties"].items()}
-    return {"array": [], "integer": found.get("minimum", 1), "number": found.get("minimum", 1.0)}.get(kind, "x")
+    smallest = {"array": [], "boolean": False, "integer": found.get("minimum", 1), "number": found.get("minimum", 1.0)}
+    return smallest.get(kinds[0], "Name")
+
+
+def _kinds(schema: dict[str, Any]) -> list[Any]:
+    kind = schema.get("type")
+    return kind if isinstance(kind, list) else [kind]
 
 
 @pytest.mark.parametrize("tool", routes.TOOLS, ids=lambda tool: tool.name)

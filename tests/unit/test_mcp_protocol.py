@@ -61,7 +61,8 @@ def test_the_tools_are_listed_in_a_fixed_order_with_flat_strict_schemas(client: 
     first, second = (rpc(client, "tools/list").json()["result"] for _ in range(2))
     assert first == second, "the same list every time"
     assert first["resultType"] == "complete" and first["ttlMs"] == 3_600_000 and first["cacheScope"] == "private"
-    assert [tool["name"] for tool in first["tools"]] == [tool.name for tool in routes.TOOLS]
+    offered = [tool.name for tool in routes.TOOLS if not tool.needs_ifcgraph]
+    assert [tool["name"] for tool in first["tools"]] == offered, "change sets only while the module tries them"
     tool = first["tools"][0]
     assert tool["name"] == "list_models", "the tool that finds the models comes first"
     assert all(listed["title"] and "never instructions" in listed["description"] for listed in first["tools"])
@@ -73,26 +74,28 @@ def test_the_tools_are_listed_in_a_fixed_order_with_flat_strict_schemas(client: 
     assert "title" not in schema["properties"]["project_id"]
 
 
-def _objects(schema: Any) -> Iterator[dict[str, Any]]:
-    """Every object a schema describes, the schema itself first."""
+def _schemas(schema: Any) -> Iterator[dict[str, Any]]:
+    """Every schema within a schema, the schema itself first; a map of names to schemas is none."""
     if isinstance(schema, list):
         for part in schema:
-            yield from _objects(part)
+            yield from _schemas(part)
     elif isinstance(schema, dict):
-        if "properties" in schema:
-            yield schema
+        yield schema
         for key, value in schema.items():
-            yield from _objects(list(value.values()) if key == "properties" else value)
+            yield from _schemas(list(value.values()) if key == "properties" else value)
 
 
 def test_every_tool_takes_a_strict_object_with_every_argument_required() -> None:
+    """Flat where it can be; the objects of Dataspatium's own schemas are as strict as the arguments themselves."""
     for tool in routes.TOOLS:
         schema = input_schema(tool.arguments)
         assert "$ref" not in json.dumps(schema) and "$defs" not in schema, f"{tool.name} refers to no definition"
-        assert '"title"' not in json.dumps(schema), f"{tool.name} has no titles"
-        for found in _objects(schema):
-            assert found["type"] == "object" and found["additionalProperties"] is False, tool.name
-            assert found["required"] == list(found["properties"]), f"{tool.name}: every argument is required"
+        for found in _schemas(schema):
+            assert "title" not in found, f"{tool.name} has no titles"
+            if "properties" in found:
+                kinds = found["type"] if isinstance(found["type"], list) else [found["type"]]
+                assert "object" in kinds and found["additionalProperties"] is False, tool.name
+                assert found["required"] == list(found["properties"]), f"{tool.name}: every argument is required"
 
 
 def test_an_object_in_the_arguments_is_written_out_in_place_and_named_in_a_refusal() -> None:
@@ -404,7 +407,8 @@ def test_the_handshake_era_gets_ping_the_tools_and_an_accepted_notification(tmp_
         assert initialized.status_code == 202 and "mcp-session-id" not in initialized.headers
         assert legacy(client, "ping").json() == {"jsonrpc": "2.0", "id": 7, "result": {}}
         listed = legacy(client, "tools/list", version="2025-06-18").json()["result"]
-        assert [tool["name"] for tool in listed["tools"]] == [tool.name for tool in routes.TOOLS]
+        offered = [tool.name for tool in routes.TOOLS if not tool.needs_ifcgraph]
+        assert [tool["name"] for tool in listed["tools"]] == offered
         assert "resultType" not in listed and "ttlMs" not in listed
         called = legacy(client, "tools/call", {"name": "list_models", "arguments": {"project_id": None}}, version=None)
         result = called.json()["result"]
