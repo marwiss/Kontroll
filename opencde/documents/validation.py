@@ -160,9 +160,10 @@ class IfcValidationIssue(_Report):
     kind: str = Field(
         description="What found it: `schema`, `entity_rule`, `simpletype_rule` or `global_rule` of the IFC schema, "
         "`gherkin` for one of buildingSMART's ifc-gherkin-rules, `ids` for a specification of one of the project's "
-        "IDS documents, `bsdd` for a classification reference that buildingSMART's Data Dictionary does not know, or "
-        "a set or a property that its IFC dictionary does not list, `reachability` for an instance that no GlobalId "
-        "reaches, or `geometry` for a product whose shape the geometry pass could not build."
+        "IDS documents, `bsdd` for a classification reference or a property URI that buildingSMART's Data Dictionary "
+        "does not know, a set or a property that its IFC dictionary does not list, or a bSDD URI of one of the "
+        "project's IDS documents that it does not know, `reachability` for an instance that no GlobalId reaches, or "
+        "`geometry` for a product whose shape the geometry pass could not build."
     )
     rule: str | None = Field(
         None,
@@ -174,7 +175,7 @@ class IfcValidationIssue(_Report):
     step_id: int | None = Field(
         None,
         description="The number of the instance in the file, as in `#123`; for `bsdd`, the classification "
-        "reference or the property set.",
+        "reference, the property or the property set.",
     )
     global_id: str | None = Field(
         None,
@@ -184,9 +185,14 @@ class IfcValidationIssue(_Report):
     attribute: str | None = Field(
         None,
         description="The attribute the issue is about, when the validator says; for `bsdd`, the reference's "
-        "attribute that names the URI, or the set and its property, as in `Pset_WallCommon.Colour`.",
+        "attribute that names the URI, or the set and its property, as in `Pset_WallCommon.Colour`, also for a "
+        "property whose URI bSDD does not know.",
     )
-    document_id: str | None = Field(None, description="For `ids`: the IDS document whose specification found it.")
+    document_id: str | None = Field(
+        None,
+        description="For `ids`: the IDS document whose specification found it; for `bsdd`, the IDS document that "
+        "names the URI bSDD does not know, whose specification the message names.",
+    )
 
 
 class IfcValidationRuleNotRun(_Report):

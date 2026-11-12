@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file was generated with the assistance of an AI coding tool. -->
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>Walls by bSDD</title>
+  </info>
+  <specifications>
+    <specification name="Walls are classified" identifier="W-1" ifcVersion="IFC4 IFC4X3_ADD2">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWALL</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <classification uri="https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall">
+          <value><simpleValue>IfcWall</simpleValue></value>
+          <system><simpleValue>IFC</simpleValue></system>
+        </classification>
+        <classification uri="https://identifier.buildingsmart.org/uri/example/nosuch/1.0/class/X">
+          <value><simpleValue>X</simpleValue></value>
+          <system><simpleValue>Nothing</simpleValue></system>
+        </classification>
+        <classification uri="https://example.org/dict/class/Y">
+          <system><simpleValue>Elsewhere</simpleValue></system>
+        </classification>
+      </requirements>
+    </specification>
+    <specification name="Walls have a fire rating" ifcVersion="IFC4 IFC4X3_ADD2">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWALL</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" uri="https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating">
+          <propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet>
+          <baseName><simpleValue>FireRating</simpleValue></baseName>
+        </property>
+        <property uri="https://identifier.buildingsmart.org/uri/example/nosuch/1.0/prop/Bogus">
+          <propertySet><simpleValue>Pset_Custom</simpleValue></propertySet>
+          <baseName><simpleValue>Bogus</simpleValue></baseName>
+        </property>
+        <property uri="https://identifier.buildingsmart.org/uri/example/nosuch/1.0/prop/Bogus">
+          <propertySet><simpleValue>Pset_Again</simpleValue></propertySet>
+          <baseName><simpleValue>Bogus</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Doors are classified" ifcVersion="IFC4 IFC4X3_ADD2">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCDOOR</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <classification uri="https://identifier.buildingsmart.org/uri/example/nosuch/1.0/class/X">
+          <system><simpleValue>Nothing</simpleValue></system>
+        </classification>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

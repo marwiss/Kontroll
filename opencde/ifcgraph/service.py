@@ -81,6 +81,7 @@ MAX_RECHECKS = 500  # the IFC documents of a project checked again at once when 
 PRECHECK_SECONDS = 24 * 3600  # a file checked without becoming a version is kept this long (ADR 0021)
 MAX_SPECIFICATIONS = 1_000
 ROOMS_SECONDS = 120  # the rooms only inform, so they never hold an upload or the jobs behind it longer
+MAX_IDS_READ = 1_000  # IDS versions whose bSDD URIs a server process keeps, each read once (OB-42)
 
 
 def _failure(exc: Exception) -> dict[str, Any]:
@@ -97,6 +98,12 @@ def _issue_key(issue: dict[str, Any]) -> tuple[Any, ...]:
         issue.get("attribute"),
         issue.get("global_id") or str(issue.get("message", ""))[:200],
     )
+
+
+def _of_an_ids(issue: dict[str, Any]) -> bool:
+    """Whether a finding of bSDD is about a URI of an IDS document, which says nothing of a change set: a trial never
+    counts it as new, also when the base was checked before the document named it (OB-42)."""
+    return issue.get("kind") == "bsdd" and issue.get("document_id") is not None
 
 
 def _made(checks: Any, name: str) -> bool:
@@ -181,6 +188,7 @@ class IfcGraphService:
         self.storage = storage
         self.settings = settings
         self.bsdd: BsddClient | None = None  # made on the first check against bSDD; its cache lives on (OB-42)
+        self._ids_bsdd: dict[str, dict[str, Any]] = {}  # the bSDD URIs of an IDS version, by its storage key
         self._tasks: set[asyncio.Task[None]] = set()
         self._lock = asyncio.Semaphore(1)
 
@@ -612,8 +620,9 @@ class IfcGraphService:
             ]
             report = json.loads(await self._in_a_process(command, "the validation", answers=(0, 1)))
             gherkin = await self._gherkin(source)
-            ids = await self._ids(source, await self._ids_documents(project_id) if project_id else [])
-            dictionary = await self._bsdd(source)
+            documents = await self._ids_documents(project_id) if project_id else []
+            ids = await self._ids(source, documents)
+            dictionary = await self._bsdd(source, documents)
             found = await self._rooms(source) if rooms else None
         checks: list[dict[str, Any]] = [
             {
@@ -952,7 +961,11 @@ class IfcGraphService:
         else:
             base_issues = unpack_report(version["base_report"]) + (base_bsdd["issues"] if base_bsdd else [])
         known = {_issue_key(issue) for issue in base_issues}
-        new = [issue for issue in unpack_report(checked["report"]) if _issue_key(issue) not in known]
+        new = [
+            issue
+            for issue in unpack_report(checked["report"])
+            if _issue_key(issue) not in known and not _of_an_ids(issue)
+        ]
         problems = [_problem_issue(problem) for problem in summary["problems"]]
         if made is not None and made["failed"] is not None:
             problems.insert(0, _op_issue(made["failed"]))
@@ -1340,11 +1353,53 @@ class IfcGraphService:
             )
         return self.bsdd
 
-    async def _bsdd(self, source: Path) -> dict[str, Any] | None:
-        """The file's references to buildingSMART's Data Dictionary and its Pset_ and Qto_ sets against bSDD, when
-        enabled (OB-42): a worker reads them out of the file, and the client asks bSDD about each URI. None when the
-        check is off. bSDD out of reach, or the lookups outrunning the time limit, fails this check and nothing else;
-        what the file says stays out of the log."""
+    async def _bsdd_of_ids(self, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """The bSDD URIs of the IDS documents a file is checked against (OB-42): a worker reads each version once, and
+        what it found is kept by the version's storage key. A document that cannot be read is left to the IDS check,
+        which reports it; when the worker itself fails, the documents it was to read are left out this once, with
+        the reason's class logged."""
+        read: dict[str, dict[str, Any]] = {}
+        for document in documents:
+            key = str(document["storage_key"])
+            if key in self._ids_bsdd:
+                read[key] = self._ids_bsdd[key]
+        unread = [document for document in documents if str(document["storage_key"]) not in read]
+        if unread:
+            paths = [str(self.storage.path(str(document["storage_key"]))) for document in unread]
+            memory = str(self.settings.ifcgraph_memory_mb)
+            command = [sys.executable, "-m", "opencde.ifcgraph.bsdd_refs", "--ids", "--memory-mb", memory, "--", *paths]
+            try:
+                answer = await self._in_a_process(command, "reading the bSDD URIs of the IDS documents")
+                entries = json.loads(answer.strip().splitlines()[-1])["ids"]
+                fresh = {str(d["storage_key"]): dict(e) for d, e in zip(unread, entries, strict=True)}
+            except Exception as exc:
+                log.warning("ifc_bsdd_ids_failed", error=type(exc).__name__)
+                fresh = {}
+            if len(self._ids_bsdd) + len(fresh) > MAX_IDS_READ:
+                self._ids_bsdd.clear()
+            self._ids_bsdd.update(fresh)
+            read.update(fresh)
+        listed = []
+        for document in documents:
+            entry = read.get(str(document["storage_key"]))
+            if entry is None or "error" in entry:
+                continue
+            listed.append(
+                {
+                    "document_id": str(document["document_id"]),
+                    "title": document.get("title") or entry.get("title"),
+                    "uris": list(entry.get("uris") or []),
+                    "cut": bool(entry.get("cut")),
+                }
+            )
+        return listed
+
+    async def _bsdd(self, source: Path, documents: list[dict[str, Any]] | None = None) -> dict[str, Any] | None:
+        """The file's references to buildingSMART's Data Dictionary, its properties that name one and its Pset_ and
+        Qto_ sets against bSDD, and the bSDD URIs of the IDS ``documents`` it is checked against, when enabled
+        (OB-42): workers read them out of the file and the documents, and the client asks bSDD about each URI. None
+        when the check is off. bSDD out of reach, or the lookups outrunning the time limit, fails this check and
+        nothing else; what the file says stays out of the log."""
         if not self.settings.bsdd_enabled:
             return None
         client = self._bsdd_client()
@@ -1354,8 +1409,9 @@ class IfcGraphService:
         try:
             answer = await self._in_a_process(command, "reading the bSDD references")
             found = json.loads(answer.strip().splitlines()[-1])
+            ids = await self._bsdd_of_ids(list(documents or []))
             async with asyncio.timeout(timeout):
-                return await check_bsdd(found, client)
+                return await check_bsdd(found, client, ids)
         except Exception as exc:
             if isinstance(exc, TimeoutError):
                 error = f"the lookups at bSDD exceeded {timeout} s"

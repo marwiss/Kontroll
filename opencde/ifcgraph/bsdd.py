@@ -3,16 +3,19 @@
 
 A model names a bSDD class with an ``IfcClassificationReference`` whose URI is
 ``https://identifier.buildingsmart.org/uri/<organisation>/<dictionary>/<version>/class/<code>``, or a property with
-``…/prop/<code>``; the worker ``bsdd_refs.py`` reads them out of the file, with the ``Pset_`` and ``Qto_`` sets. The
-client asks the configured bSDD API about each URI, with a time limit and a small retry, and keeps the answer in
-memory, so that a server process asks about a URI once a day however many uploads name it. Nothing a file names is
-fetched: a URI goes to bSDD's API as a parameter, and one on a host other than bSDD's identifier host is reported
-instead.
+``…/prop/<code>``, also in a property's ``Specification`` (IFC 4.3) or ``Description``; the worker ``bsdd_refs.py``
+reads them out of the file, with the ``Pset_`` and ``Qto_`` sets, and out of the project's IDS documents, whose
+classification and property facets may name theirs by such a URI. The client asks the configured bSDD API about each
+URI, with a time limit and a small retry, and keeps the answer in memory, so that a server process asks about a URI
+once a day however many uploads or IDS documents name it. Nothing a file names is fetched: a URI goes to bSDD's API as
+a parameter, and one on a host other than bSDD's identifier host is reported instead.
 
-Every finding is a warning: a reference bSDD does not know, since a model may use a dictionary bSDD has not
-published, and, in a file of IFC 4.3, a ``Pset_`` or ``Qto_`` set that bSDD's IFC dictionary does not have, or a
+Every finding is a warning: a reference or a property bSDD does not know, since a model may use a dictionary bSDD has
+not published, and, in a file of IFC 4.3, a ``Pset_`` or ``Qto_`` set that bSDD's IFC dictionary does not have, or a
 property it does not list in that set. bSDD publishes that one IFC dictionary, so the sets of an IFC4 or IFC2X3 file,
-whose schemas define them otherwise, are not checked. bSDD out of reach fails the check, never the file.
+whose schemas define them otherwise, are not checked. A URI of an IDS document that bSDD does not know is a warning in
+the report of every file checked against that document, with the document and its specification named. bSDD out of
+reach fails the check, never the file.
 """
 
 from __future__ import annotations
@@ -87,8 +90,8 @@ def ifc_dictionary(schema: str) -> str | None:
 
 
 def ruleset(host: str, dictionaries: list[str] | None = None) -> str:
-    """What the check asked: bSDD at its host and, once the check is made, the dictionaries the file was checked
-    against."""
+    """What the check asked: bSDD at its host and, once the check is made, the dictionaries that the file and its IDS
+    documents were checked against."""
     if dictionaries is None:
         return f"bSDD at {host}"
     return f"bSDD at {host}: " + (", ".join(dictionaries) or "no dictionary referenced")
@@ -312,6 +315,82 @@ async def _reference_issues(
     return issues
 
 
+async def _property_issues(
+    properties: list[dict[str, Any]], client: BsddClient, dictionaries: dict[str, None]
+) -> list[dict[str, Any]]:
+    """A warning for each property whose ``Specification`` or ``Description`` names a bSDD property that bSDD does not
+    know, with its set and name as the attribute, as the sets' own findings have them."""
+    issues = []
+    for entry in properties:
+        parsed = parse_uri(entry.get("uri"))
+        if parsed is None or parsed.kind != "prop":  # the worker lists only bSDD's properties
+            continue
+        dictionaries.setdefault(parsed.dictionary)
+        if await client.lookup(parsed.uri) is not None:
+            continue
+        name, in_set = _quoted(entry.get("name") or ""), _quoted(entry.get("set") or "")
+        message = (
+            f"bSDD does not know the property {_quoted(parsed.uri)} that the property '{name}' of the set "
+            f"'{in_set}' (#{entry.get('step_id')}) names in its {entry.get('attribute') or 'Specification'}; it is "
+            f"{_where(entry)}."
+        )
+        issues.append(_issue(entry, message, rule=parsed.dictionary, attribute=f"{in_set}.{name}"))
+    return issues
+
+
+def _facet_words(entry: dict[str, Any]) -> str:
+    """What an IDS facet names beside its URI, for a message: the property and its set, or the class and its system."""
+    named, within = ("name", "set") if entry.get("facet") == "property" else ("value", "system")
+    what = f"the {'property' if named == 'name' else 'value'} '{_quoted(entry[named])}'" if entry.get(named) else ""
+    where = f"in the {within} '{_quoted(entry[within])}'" if entry.get(within) else ""
+    if what:
+        return f", for {what}" + (f" {where}" if where else "")
+    return f", {where}" if where else ""
+
+
+async def _ids_issues(
+    documents: list[dict[str, Any]], client: BsddClient, dictionaries: dict[str, None]
+) -> list[dict[str, Any]]:
+    """A warning for each bSDD URI of an IDS document of the project that bSDD does not know, once a specification,
+    with the document's id; it says nothing of the file, which is checked against the document all the same."""
+    issues = []
+    for document in documents:
+        document_id = str(document["document_id"])
+        title = _quoted(document.get("title") or document_id)
+        for entry in document.get("uris") or []:
+            parsed = parse_uri(entry.get("uri"))
+            if parsed is None or parsed.kind is None:  # the worker lists only bSDD's classes and properties
+                continue
+            dictionaries.setdefault(parsed.dictionary)
+            if await client.lookup(parsed.uri) is not None:
+                continue
+            kind = "property" if parsed.kind == "prop" else "class"
+            specification = f"'{_quoted(entry.get('specification') or '')}'"
+            if entry.get("identifier"):
+                specification += f" ({_quoted(entry['identifier'])})"
+            message = (
+                f"bSDD does not know the {kind} {_quoted(parsed.uri)} that the IDS document '{title}' names in a "
+                f"{entry.get('facet') or 'classification'} facet of the {entry.get('clause') or 'requirements'} of "
+                f"its specification {specification}{_facet_words(entry)}."
+            )
+            issues.append(
+                {
+                    "kind": "bsdd",
+                    "severity": "warning",
+                    "message": message[:MAX_MESSAGE],
+                    "rule": parsed.dictionary,
+                    "document_id": document_id,
+                }
+            )
+        if document.get("cut"):
+            message = (
+                f"The IDS document '{title}' names more bSDD URIs than the check reads, so only the first were looked "
+                "up."
+            )
+            issues.append({"kind": "bsdd", "severity": "warning", "message": message, "document_id": document_id})
+    return issues
+
+
 async def _set_issues(sets: dict[str, dict[str, Any]], dictionary: str, client: BsddClient) -> list[dict[str, Any]]:
     """A warning for each set that bSDD's IFC dictionary does not have, and each property it does not list in its set."""
     issues = []
@@ -339,11 +418,14 @@ async def _set_issues(sets: dict[str, dict[str, Any]], dictionary: str, client: 
     return issues
 
 
-async def check(found: dict[str, Any], client: BsddClient) -> dict[str, Any]:
-    """The check ``bsdd`` on what the worker found, in the form the other checks give: ``{"check", "issues",
-    "error_count", "truncated"}``. Every issue is a warning. Raises ``BsddUnavailable`` when bSDD could not be asked."""
-    dictionaries: dict[str, None] = {}  # in the order the file names them
+async def check(found: dict[str, Any], client: BsddClient, ids: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """The check ``bsdd`` on what the worker found in the file and in the IDS documents it is checked against (``ids``:
+    each with its ``document_id``, ``title``, ``uris`` and ``cut``), in the form the other checks give: ``{"check",
+    "issues", "error_count", "truncated"}``. Every issue is a warning. Raises ``BsddUnavailable`` when bSDD could not
+    be asked."""
+    dictionaries: dict[str, None] = {}  # in the order the file and then the IDS documents name them
     issues = await _reference_issues(list(found.get("references") or []), client, dictionaries)
+    issues += await _property_issues(list(found.get("properties") or []), client, dictionaries)
     dictionary = ifc_dictionary(str(found.get("schema") or ""))
     sets = dict(found.get("property_sets") or {})
     if dictionary is not None and sets:
@@ -351,10 +433,11 @@ async def check(found: dict[str, Any], client: BsddClient) -> dict[str, Any]:
         issues += await _set_issues(sets, dictionary, client)
     if found.get("cut"):
         message = (
-            "The file has more classification references or property sets than the check reads, so only the "
-            "first were looked up."
+            "The file has more classification references, properties naming bSDD or property sets than the check "
+            "reads, so only the first were looked up."
         )
         issues.append({"kind": "bsdd", "severity": "warning", "message": message})
+    issues += await _ids_issues(list(ids or []), client, dictionaries)
     return {
         "check": {
             "name": "bsdd",

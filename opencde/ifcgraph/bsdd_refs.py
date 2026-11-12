@@ -1,14 +1,22 @@
 # This file was generated with the assistance of an AI coding tool.
-"""The references of an IFC file to buildingSMART's Data Dictionary, read in a worker process (OB-42).
+"""The references of an IFC file or of IDS documents to buildingSMART's Data Dictionary, read in a worker (OB-42).
 
     python -m opencde.ifcgraph.bsdd_refs FILE [--memory-mb N]
+    python -m opencde.ifcgraph.bsdd_refs --ids [--memory-mb N] -- IDS [IDS ...]
 
-Answers with one JSON document on stdout: the file's schema; every ``IfcClassificationReference`` whose URI is
-bSDD's, in its ``Location`` or made of its identification under the dictionary URI of its ``Location`` or its
-classification, with the objects it is associated with; and every property set or quantity set named ``Pset_…`` or
-``Qto_…`` with the names of its properties and the objects it is on, so that they can be checked against bSDD's IFC
-dictionary. The answer is bounded: at most ``MAX_REFERENCES`` references, ``MAX_SETS`` sets and ``MAX_PROPERTIES``
-names a set, with ``cut`` saying when there were more, and ``MAX_OBJECTS`` objects an entry beside their number.
+For an IFC file, answers with one JSON document on stdout: the file's schema; every ``IfcClassificationReference``
+whose URI is bSDD's, in its ``Location`` or made of its identification under the dictionary URI of its ``Location``
+or its classification, with the objects it is associated with; every property of a property set whose
+``Specification`` (IFC 4.3), or ``Description`` in an earlier schema, is the URI of a bSDD property, with the objects
+its set is on; and every property set or quantity set named ``Pset_…`` or ``Qto_…`` with the names of its properties
+and the objects it is on, so that they can be checked against bSDD's IFC dictionary. The answer is bounded: at most
+``MAX_REFERENCES`` references, ``MAX_PROPERTY_URIS`` properties, ``MAX_SETS`` sets and ``MAX_PROPERTIES`` names a
+set, with ``cut`` saying when there were more, and ``MAX_OBJECTS`` objects an entry beside their number.
+
+With ``--ids``, answers with ``{"ids": [...]}``, an entry for each IDS document in the order given: the bSDD URIs of
+its classification and property facets, by specification, read as the IDS check reads the document, at most
+``MAX_IDS_URIS``; or ``error`` for a document that cannot be read, which the IDS check reports.
+
 Exit code 0 is an answer, 2 an error with a JSON line on stderr. The caller sets the memory and time limits.
 """
 
@@ -26,6 +34,8 @@ from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
 from opencde.ifcgraph.bsdd import parse_uri
 
 MAX_REFERENCES = 1_000  # each is a question to bSDD the first time
+MAX_PROPERTY_URIS = 1_000  # properties, once for each set name, property name and URI
+MAX_IDS_URIS = 1_000  # of an IDS document
 MAX_SETS = 500
 MAX_PROPERTIES = 500  # names a set
 MAX_OBJECTS = 20  # an entry, beside the count of all of them
@@ -34,6 +44,7 @@ MAX_ERROR = 300
 SOURCE_DEPTH = 8  # how far a reference's ReferencedSource is followed to its classification
 SET_PREFIXES = ("Pset_", "Qto_")
 IDENTIFICATION = ("Identification", "ItemReference")  # IFC4 and later, IFC2X3
+PROPERTY_URI = ("Specification", "Description")  # IFC 4.3, and where a file of an earlier schema keeps it
 
 
 def _text(value: Any) -> str | None:
@@ -160,9 +171,8 @@ def _definitions(value: Any) -> tuple[Any, ...]:
     return (value,)
 
 
-def property_sets_of(model: Any) -> tuple[dict[str, dict[str, Any]], bool]:
-    """Every ``Pset_`` and ``Qto_`` set by name, with its property names and the objects it is on; and whether there
-    were more sets or names than are listed."""
+def objects_of_definitions(model: Any) -> dict[int, list[Any]]:
+    """The objects and types that each property definition is on, by its STEP id."""
     objects_of: dict[int, list[Any]] = {}
     for rel in model.by_type("IfcRelDefinesByProperties"):
         for definition in _definitions(rel.RelatingPropertyDefinition):
@@ -170,6 +180,54 @@ def property_sets_of(model: Any) -> tuple[dict[str, dict[str, Any]], bool]:
     for type_object in model.by_type("IfcTypeObject"):
         for definition in type_object.HasPropertySets or ():
             objects_of.setdefault(definition.id(), []).append(type_object)
+    return objects_of
+
+
+def property_uri_of(prop: Any) -> tuple[str, str] | None:
+    """The bSDD property URI a property names, and the attribute that names it: ``Specification`` in IFC 4.3, or
+    ``Description`` in an earlier schema, where some files keep it. None for anything else, such as a description."""
+    for attribute in PROPERTY_URI:
+        parsed = parse_uri(getattr(prop, attribute, None))
+        if parsed is not None and parsed.kind == "prop":
+            return parsed.uri, attribute
+    return None
+
+
+def property_uris_of(model: Any, objects_of: dict[int, list[Any]]) -> tuple[list[dict[str, Any]], bool]:
+    """Every property of a property set that names a bSDD property, once for each set name, property name and URI,
+    with the objects its sets are on; and whether there were more than are listed."""
+    found: dict[tuple[str, str, str], dict[str, Any]] = {}
+    cut = False
+    for definition in model.by_type("IfcPropertySet"):
+        set_name = _text(definition.Name) or ""
+        for prop in definition.HasProperties or ():
+            named = property_uri_of(prop)
+            if named is None:
+                continue
+            key = (named[0], set_name, _text(getattr(prop, "Name", None)) or "")
+            if key not in found:
+                if len(found) >= MAX_PROPERTY_URIS:
+                    cut = True
+                    continue
+                found[key] = {
+                    "step_id": prop.id(),
+                    "uri": named[0],
+                    "attribute": named[1],
+                    "set": set_name,
+                    "name": key[2],
+                    "objects": [],
+                    "object_count": 0,
+                }
+            entry = found[key]
+            objects, count = _objects(objects_of.get(definition.id(), ()))
+            entry["object_count"] = int(entry["object_count"]) + count
+            entry["objects"] = [*entry["objects"], *objects][:MAX_OBJECTS]
+    return list(found.values()), cut
+
+
+def property_sets_of(model: Any, objects_of: dict[int, list[Any]]) -> tuple[dict[str, dict[str, Any]], bool]:
+    """Every ``Pset_`` and ``Qto_`` set by name, with its property names and the objects it is on; and whether there
+    were more sets or names than are listed."""
     sets: dict[str, dict[str, Any]] = {}
     cut = False
     for ifc_class, attribute in (("IfcPropertySet", "HasProperties"), ("IfcElementQuantity", "Quantities")):
@@ -205,24 +263,72 @@ def answer(path: Path) -> dict[str, Any]:
 
     model = ifcopenshell.open(str(path))
     references, references_cut = references_of(model)
-    sets, sets_cut = property_sets_of(model)
+    objects_of = objects_of_definitions(model)
+    properties, properties_cut = property_uris_of(model, objects_of)
+    sets, sets_cut = property_sets_of(model, objects_of)
     return {
         "schema": str(model.schema),
         "references": references,
+        "properties": properties,
         "property_sets": sets,
-        "cut": references_cut or sets_cut,
+        "cut": references_cut or properties_cut or sets_cut,
     }
+
+
+def ids_uris(path: Path) -> dict[str, Any]:
+    """The bSDD URIs that one IDS document names in its classification and property facets, once a specification,
+    read safely as the IDS check reads it; or ``error`` for a document that cannot be read."""
+    from ifc_lpg.ids import InvalidIds, read_ids
+    from ifctester.facet import Classification, Property
+
+    try:
+        requirements = read_ids(path.read_bytes())
+    except (InvalidIds, OSError) as exc:
+        return {"error": str(exc)[:MAX_ERROR]}
+    uris: list[dict[str, Any]] = []
+    cut = False
+    for specification in requirements.specifications:
+        seen: set[tuple[str, str]] = set()
+        clauses = (("applicability", specification.applicability), ("requirements", specification.requirements))
+        for clause, facets in clauses:
+            for facet in facets or ():
+                if not isinstance(facet, (Classification, Property)):
+                    continue
+                kind = "property" if isinstance(facet, Property) else "classification"
+                parsed = parse_uri(getattr(facet, "uri", None))
+                if parsed is None or parsed.kind is None or (parsed.uri, kind) in seen:
+                    continue
+                if len(uris) >= MAX_IDS_URIS:
+                    cut = True
+                    continue
+                seen.add((parsed.uri, kind))
+                entry = {
+                    "uri": parsed.uri,
+                    "facet": kind,
+                    "clause": clause,
+                    "specification": _text(specification.name),
+                    "identifier": _text(specification.identifier),
+                }
+                if isinstance(facet, Property):  # a restriction names no one set or property, so it is left out
+                    entry.update(set=_text(facet.propertySet), name=_text(facet.baseName))
+                else:
+                    entry.update(system=_text(facet.system), value=_text(facet.value))
+                uris.append(entry)
+    return {"title": _text(requirements.info.get("title")), "uris": uris, "cut": cut}
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="opencde-bsdd-refs")
-    parser.add_argument("ifc", type=Path)
+    parser.add_argument("files", type=Path, nargs="+")
+    parser.add_argument("--ids", action="store_true", help="the files are IDS documents")
     parser.add_argument("--memory-mb", type=int, default=0)
     args = parser.parse_args(argv)
+    if not args.ids and len(args.files) != 1:
+        parser.error("one IFC file at a time")
     if args.memory_mb:
         limit_memory(args.memory_mb)
     try:
-        result = answer(args.ifc)
+        result = {"ids": [ids_uris(path) for path in args.files]} if args.ids else answer(args.files[0])
     except Exception as exc:
         sys.stderr.write(json.dumps({"error": f"{type(exc).__name__}: {exc}"[:MAX_ERROR]}) + "\n")
         return 2

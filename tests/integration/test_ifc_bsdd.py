@@ -18,7 +18,13 @@ from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import build_world, login_as
 from tests.integration.test_ifc_validation import checked, settings_for, upload
 from tests.integration.test_web_signin import web_sign_in
-from tests.unit.test_bsdd_refs import NOWHERE, model_with_references  # skips this module without IfcOpenShell
+from tests.unit.test_bsdd_refs import (  # skips this module without IfcOpenShell
+    BSDD_IDS,
+    FIRE_RATING,
+    NOWHERE,
+    model_with_property_uris,
+    model_with_references,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -103,3 +109,50 @@ def test_when_bsdd_is_out_of_reach_the_check_fails_and_the_file_stands(
     assert (check["state"], check["issue_count"], check["ruleset"]) == ("failed", 0, "bSDD at bsdd.test")
     assert check["error"] == "bSDD at bsdd.test could not be reached: ConnectError"
     assert "bSDD at bsdd.test could not check the file." in found["page"]
+
+
+def bsdd_knowing_fire_rating(request: httpx.Request) -> httpx.Response:
+    """bSDD as ``bsdd_answers``, which also knows the IFC dictionary's FireRating."""
+    if request.url.params.get("uri") == FIRE_RATING:
+        return httpx.Response(200, json={"uri": FIRE_RATING, "code": "FireRating", "name": "Fire rating"})
+    return bsdd_answers(request)
+
+
+def test_the_properties_and_the_projects_ids_documents_are_checked_against_bsdd(
+    graph_target: GraphTarget, clean_database: None, tmp_path: Path
+) -> None:
+    """A property's Specification that bSDD does not know warns with the property; a URI of the project's IDS
+    document that it does not know warns with the document and its specification, in the report of the file."""
+    settings = settings_for(graph_target, tmp_path, bsdd_enabled=True, bsdd_api_url="https://bsdd.test")
+    world = build_world(settings)
+    file = tmp_path / "props.ifc"
+    ids = model_with_property_uris(file)
+    with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
+        transport = httpx.MockTransport(bsdd_knowing_fire_rating)
+        client.app.state.ifcgraph.bsdd = BsddClient("https://bsdd.test", transport=transport)  # type: ignore[attr-defined]
+        editor = login_as(client, world, "editor")
+        web_sign_in(client, world, "editor")
+        document = upload(client, world, editor, "bsdd.ids", BSDD_IDS.read_bytes())
+        version = upload(client, world, editor, "props.ifc", file.read_bytes())
+        entries = checked(client, editor, version)
+        body = client.get(entries["ifc_validation_report"][0], headers=editor.headers).json()
+    assert any(check["name"] == "ids" and check["state"] == "done" for check in body["checks"])
+    (made,) = [check for check in body["checks"] if check["name"] == "bsdd"]
+    warnings = [issue for issue in body["issues"] if issue["kind"] == "bsdd"]
+    assert made["state"] == "done" and made["issue_count"] == len(warnings) == 6
+    assert all(issue["severity"] == "warning" for issue in warnings)
+    of_the_file = {issue["attribute"]: issue for issue in warnings if "document_id" not in issue}
+    assert set(of_the_file) == {"Custom.Bogus", "Pset_WallCommon.Note", "Pset_WallCommon.Class"}
+    bogus = of_the_file["Custom.Bogus"]
+    assert (bogus["rule"], bogus["step_id"], bogus["global_id"]) == ("example/nosuch/1.0", ids["bogus"], ids["door"])
+    assert "names in its Specification" in bogus["message"] and "IfcDoor" in bogus["message"]
+    of_the_ids = [issue for issue in warnings if "document_id" in issue]
+    assert {issue["document_id"] for issue in of_the_ids} == {document["document_id"]}
+    assert all("the IDS document 'bsdd.ids'" in issue["message"] for issue in of_the_ids)
+    assert sorted(issue["message"].split("its specification ")[1].split("'")[1] for issue in of_the_ids) == [
+        "Doors are classified",
+        "Walls are classified",
+        "Walls have a fire rating",
+    ]
+    assert all("step_id" not in issue and "global_id" not in issue for issue in of_the_ids), "nothing of the file"
+    assert NOWHERE in of_the_ids[0]["message"]

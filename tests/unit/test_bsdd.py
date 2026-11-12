@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,7 @@ from opencde.ifcgraph.bsdd import (
     BsddClient,
     BsddUnavailable,
     NotBsdd,
+    _facet_words,
     check,
     class_uri,
     ifc_dictionary,
@@ -40,6 +42,7 @@ WALL = f"{IFC}/class/IfcWall"
 FIRE_RATING = f"{IFC}/prop/FireRating"
 WALL_COMMON = f"{IFC}/class/Pset_WallCommon"
 NOWHERE = "https://identifier.buildingsmart.org/uri/example/nosuch/1.0/class/X"
+BOGUS = "https://identifier.buildingsmart.org/uri/example/nosuch/1.0/prop/Bogus"
 ELSEWHERE = "https://example.org/uri/example/nosuch/1.0/class/X"
 DOOR = "2Ox9REZJX8xQXPdFCabqZL"
 WALL_GUID = "3QaE2jy_91GAUd5Fq8oVjm"
@@ -322,6 +325,98 @@ async def test_bsdd_out_of_reach_stops_the_check() -> None:
     await client.aclose()
 
 
+def prop(step_id: int, uri: str, set_name: str, name: str, **more: Any) -> dict[str, Any]:
+    """A property that names a bSDD property, as the worker lists it."""
+    return {
+        "step_id": step_id,
+        "uri": uri,
+        "attribute": "Specification",
+        "set": set_name,
+        "name": name,
+        "objects": [],
+        "object_count": 0,
+        **more,
+    }
+
+
+def ids_uri(uri: str, facet: str, specification: str, **more: Any) -> dict[str, Any]:
+    """A bSDD URI of an IDS document, as the worker lists it."""
+    return {"uri": uri, "facet": facet, "clause": "requirements", "specification": specification, **more}
+
+
+IDS_URIS = [
+    ids_uri(WALL, "classification", "Walls are classified", identifier="W-1", system="IFC", value="IfcWall"),
+    ids_uri(NOWHERE, "classification", "Walls are classified", identifier="W-1", system="Nothing", value="X"),
+    ids_uri(FIRE_RATING, "property", "Walls have a fire rating", set="Pset_WallCommon", name="FireRating"),
+    ids_uri(BOGUS, "property", "Walls have a fire rating", identifier=None, set="Pset_Custom", name="Bogus"),
+]
+NOTHING_FOUND = {"schema": "IFC4", "references": [], "properties": [], "property_sets": {}}
+
+
+async def test_the_check_warns_of_properties_and_of_ids_uris_that_bsdd_does_not_know() -> None:
+    bsdd = known_to_bsdd()
+    client, _ = client_for(bsdd)
+    wall = {"objects": [{"global_id": WALL_GUID, "ifc_class": "IfcWall"}], "object_count": 2}
+    door = {"objects": [{"global_id": DOOR, "ifc_class": "IfcDoor"}], "object_count": 1}
+    found = {
+        **NOTHING_FOUND,
+        "properties": [
+            prop(30, FIRE_RATING, "Pset_WallCommon", "FireRating", **wall),
+            prop(31, BOGUS, "Custom", "Bogus", attribute="Description", **door),
+        ],
+    }
+    ids = [{"document_id": "ids-a", "title": "Walls by bSDD", "uris": IDS_URIS, "cut": True}]
+    result = await check(found, client, ids)
+    await client.aclose()
+    issues = result["issues"]
+    assert result["check"]["issue_count"] == len(issues) == 4 and result["error_count"] == 0
+    assert result["check"]["ruleset"] == "bSDD at bsdd.test: buildingsmart/ifc/4.3, example/nosuch/1.0"
+    assert issues[0] == {
+        "kind": "bsdd",
+        "severity": "warning",
+        "message": f"bSDD does not know the property {BOGUS} that the property 'Bogus' of the set 'Custom' (#31) names "
+        f"in its Description; it is on the IfcDoor {DOOR}.",
+        "rule": "example/nosuch/1.0",
+        "step_id": 31,
+        "global_id": DOOR,
+        "attribute": "Custom.Bogus",
+    }
+    assert issues[1] == {
+        "kind": "bsdd",
+        "severity": "warning",
+        "message": f"bSDD does not know the class {NOWHERE} that the IDS document 'Walls by bSDD' names in a "
+        "classification facet of the requirements of its specification 'Walls are classified' (W-1), for the value "
+        "'X' in the system 'Nothing'.",
+        "rule": "example/nosuch/1.0",
+        "document_id": "ids-a",
+    }, "the IDS document and its specification named, and no instance of the file"
+    assert issues[2]["message"].startswith(f"bSDD does not know the property {BOGUS} that the IDS document")
+    assert issues[2]["message"].endswith(
+        "of its specification 'Walls have a fire rating', for the property 'Bogus' in the set 'Pset_Custom'."
+    )
+    assert issues[3] == {
+        "kind": "bsdd",
+        "severity": "warning",
+        "message": "The IDS document 'Walls by bSDD' names more bSDD URIs than the check reads, so only the first "
+        "were looked up.",
+        "document_id": "ids-a",
+    }
+    asked = [(request.url.path, request.url.params["uri"]) for request in bsdd.requests]
+    assert asked == [
+        ("/api/Property/v5", FIRE_RATING),
+        ("/api/Property/v5", BOGUS),
+        ("/api/Class/v1", WALL),
+        ("/api/Class/v1", NOWHERE),
+    ], "a URI that the file and an IDS document both name is asked about once"
+
+
+def test_a_message_names_what_an_ids_facet_names_as_far_as_it_does() -> None:
+    assert _facet_words({"facet": "classification", "system": "CCI"}) == ", in the system 'CCI'"
+    assert _facet_words({"facet": "classification", "value": "L-BD"}) == ", for the value 'L-BD'"
+    assert _facet_words({"facet": "property", "name": "FireRating"}) == ", for the property 'FireRating'"
+    assert _facet_words({"facet": "property", "set": None, "name": None}) == "", "a restriction names nothing"
+
+
 def test_a_finding_is_the_same_in_the_base_and_the_trial_by_its_set_and_property() -> None:
     bogus = {"kind": "bsdd", "rule": IFC_DICTIONARY, "global_id": WALL_GUID, "attribute": "Pset_WallCommon.Bogus"}
     other = {**bogus, "attribute": "Pset_WallCommon.Other", "message": "another property"}
@@ -421,6 +516,115 @@ async def test_off_by_default_no_worker_reads_the_references(
     assert [check["name"] for check in json.loads(graph.writes[-1][1]["fields"]["checks"])] == ["schema"]
 
 
+IDS_DOCUMENTS = [
+    {"document_id": "ids-a", "version_index": 2, "title": "Walls by bSDD", "storage_key": "documents/ids-a-2"},
+    {"document_id": "ids-b", "version_index": 1, "title": "Broken", "storage_key": "documents/ids-b-1"},
+]
+IDS_REPORT = {
+    "ruleset": "IfcTester 0.9.0: IDS 1.0",
+    "issue_count": 0,
+    "error_count": 0,
+    "truncated": False,
+    "issues": [],
+    "rules_not_run": [],
+    "specifications": [],
+}
+
+
+def answering_with_ids(commands: list[list[str]], read: dict[str, dict[str, Any]], *, fail: bool = False) -> Any:
+    """The workers, with the IDS documents: the IDS check, and their bSDD URIs as the worker reads them from the
+    files ``read`` names, any other being an IDS that cannot be read."""
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        commands.append(command)
+        if command[2] == "ifc_lpg.ids":
+            return json.dumps(IDS_REPORT)
+        if command[2:4] == ["opencde.ifcgraph.bsdd_refs", "--ids"]:
+            if fail:
+                raise RuntimeError(f"could not read {LINE}")
+            paths = command[command.index("--") + 1 :]
+            return json.dumps({"ids": [read.get(Path(path).name, {"error": "it has a DTD"}) for path in paths]})
+        if command[2] == "opencde.ifcgraph.bsdd_refs":
+            return json.dumps(NOTHING_FOUND)
+        return json.dumps(SCHEMA_ANSWER)
+
+    return answer
+
+
+def reports(graph: Graph) -> list[dict[str, Any]]:
+    """The fields of every check that was made."""
+    return [params["fields"] for _, params in graph.writes if params.get("state") == "done" and "fields" in params]
+
+
+async def test_an_ids_version_is_read_once_and_its_unknown_uris_warn_in_every_report(
+    checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    bsdd = known_to_bsdd()
+    service.bsdd = client_for(bsdd)[0]
+    documents = [dict(document) for document in IDS_DOCUMENTS]
+
+    async def listed(project_id: str) -> list[dict[str, Any]]:
+        return documents
+
+    monkeypatch.setattr(service, "_ids_documents", listed)
+    commands: list[list[str]] = []
+    read = {"ids-a-2": {"title": "the IDS's own title", "uris": IDS_URIS, "cut": False}}
+    monkeypatch.setattr(service, "_in_a_process", answering_with_ids(commands, read))
+    await service._validate("check-1", "documents/x", "model.ifc")
+    await service._validate("check-2", "documents/y", "other.ifc")
+
+    readings = [command for command in commands if command[2:4] == ["opencde.ifcgraph.bsdd_refs", "--ids"]]
+    paths = [str(service.storage.path(str(document["storage_key"]))) for document in IDS_DOCUMENTS]
+    assert readings == [
+        [sys.executable, "-m", "opencde.ifcgraph.bsdd_refs", "--ids", "--memory-mb", "4096", "--", *paths]
+    ], "every IDS version read once, the one that cannot be read too"
+    assert len(bsdd.requests) == 4, "and every URI asked about once, however many reports name it"
+    for fields in reports(graph):
+        (made,) = [check for check in json.loads(fields["checks"]) if check["name"] == "bsdd"]
+        assert made["state"] == "done" and made["issue_count"] == 2
+        assert made["ruleset"] == "bSDD at bsdd.test: buildingsmart/ifc/4.3, example/nosuch/1.0"
+        warnings = [issue for issue in unpack_report(fields["report"]) if issue["kind"] == "bsdd"]
+        assert [(issue["severity"], issue["document_id"], issue["rule"]) for issue in warnings] == [
+            ("warning", "ids-a", "example/nosuch/1.0")
+        ] * 2
+        assert all("the IDS document 'Walls by bSDD'" in issue["message"] for issue in warnings), "its title"
+        assert fields["error_count"] == 1, "the schema's error alone: bSDD only warns"
+
+    documents[0] = {**documents[0], "version_index": 3, "storage_key": "documents/ids-a-3"}
+    read["ids-a-3"] = {"title": None, "uris": [], "cut": False}
+    await service._validate("check-3", "documents/x", "model.ifc")
+    await service.shutdown()
+    readings = [command for command in commands if command[2:4] == ["opencde.ifcgraph.bsdd_refs", "--ids"]]
+    assert readings[-1][-1:] == [str(service.storage.path("documents/ids-a-3"))], "only the new version is read"
+    assert not [issue for issue in unpack_report(reports(graph)[-1]["report"]) if issue.get("document_id")]
+    assert not any(event == "ifc_bsdd_ids_failed" for event, _ in log.events)
+
+
+async def test_ids_documents_the_worker_could_not_read_are_left_out_this_once(
+    checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    service.bsdd = client_for(known_to_bsdd())[0]
+
+    async def listed(project_id: str) -> list[dict[str, Any]]:
+        return IDS_DOCUMENTS[:1]
+
+    monkeypatch.setattr(service, "_ids_documents", listed)
+    commands: list[list[str]] = []
+    read = {"ids-a-2": {"title": None, "uris": IDS_URIS, "cut": False}}
+    monkeypatch.setattr(service, "_in_a_process", answering_with_ids(commands, read, fail=True))
+    await service._validate("check-1", "documents/x", "model.ifc")
+    fields = reports(graph)[-1]
+    (made,) = [check for check in json.loads(fields["checks"]) if check["name"] == "bsdd"]
+    assert (made["state"], made["issue_count"]) == ("done", 0), "the file's own check stands"
+    assert ("ifc_bsdd_ids_failed", {"error": "RuntimeError"}) in log.events, "what the worker said stays out"
+    monkeypatch.setattr(service, "_in_a_process", answering_with_ids(commands, read))
+    await service._validate("check-2", "documents/x", "model.ifc")
+    await service.shutdown()
+    assert json.loads(reports(graph)[-1]["checks"])[-1]["issue_count"] == 2, "read the next time"
+
+
 def test_bsdd_is_asked_over_https_in_production_and_only_at_an_http_address(tmp_path: Path) -> None:
     def settings(**values: Any) -> Settings:
         return Settings(_env_file=None, data_dir=tmp_path / "data", **values)  # type: ignore[call-arg]
@@ -483,3 +687,37 @@ async def test_a_trial_keeps_only_the_findings_its_change_set_brings(
     await service.shutdown()
     assert fields["state"] == state and fields["issue_count"] == (0 if state == "clean" else 5)
     assert len(readings) == (2 if state == "clean" else 1), "the base is read only when it was not checked"
+
+
+async def test_a_trial_never_counts_the_ids_documents_findings_of_bsdd_as_its_own(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A URI of an IDS document says nothing of the change set: the base, checked before the document named it, lacks
+    the finding, and the trial is clean all the same."""
+    storage = LocalStorage(tmp_path / "storage")
+    snippet = make_key("snippets", new_id(), "json")
+    storage.write_bytes(snippet, json.dumps({"base": {"document_id": "doc-1", "version_index": 1}}).encode())
+    settings = make_settings(tmp_path, ifcgraph_enabled=True, bsdd_enabled=True, bsdd_api_url="https://bsdd.test")
+    service = IfcGraphService(TrialGraph(["schema", "bsdd"]), storage, settings)  # type: ignore[arg-type]
+    service.bsdd = client_for(known_to_bsdd())[0]
+    monkeypatch.setattr(service, "_prepare_input", lambda key, name, workdir: tmp_path / "model.ifc")
+
+    async def listed(project_id: str) -> list[dict[str, Any]]:
+        return IDS_DOCUMENTS[:1]
+
+    monkeypatch.setattr(service, "_ids_documents", listed)
+    read = {"ids-a-2": {"title": None, "uris": IDS_URIS, "cut": False}}
+    workers = answering_with_ids([], read)
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        if command[2] == "opencde.ifcgraph.apply":
+            await asyncio.to_thread(Path(command[5]).write_bytes, b"ISO-10303-21;")  # the changed file
+            return json.dumps({"count": 1, "applied": 1, "problems": []})
+        return await workers(command, what, answers)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    fields = await service._try_proposal(new_id(), "project-1", snippet)
+    await service.shutdown()
+    (made,) = [check for check in json.loads(fields["checks"]) if check["name"] == "bsdd"]
+    assert made["issue_count"] == 2, "the trial's file was checked against the IDS document's URIs"
+    assert fields["state"] == "clean" and fields["issue_count"] == 0 and unpack_report(fields["report"]) == []
