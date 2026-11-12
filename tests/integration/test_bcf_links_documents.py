@@ -86,7 +86,8 @@ def test_documents_and_files_information(client: TestClient, world: World) -> No
     assert too_big.status_code == 413
 
     listed = client.get(base, headers=viewer.headers)
-    assert listed.status_code == 200 and [d["filename"] for d in listed.json()] == ["Väggar.ifc", "passwd", "document"]
+    names = ["Väggar.ifc", "passwd", "document", "document"]  # the last the contributor's
+    assert listed.status_code == 200 and [d["filename"] for d in listed.json()] == names
     for item in listed.json():
         validate(item, f"{SCHEMAS}/Document/document_GET.json")
     assert client.get(base, headers=outsider.headers).status_code == 404
@@ -106,7 +107,7 @@ def test_documents_and_files_information(client: TestClient, world: World) -> No
     assert information.status_code == 200
     validate(information.json(), f"{SCHEMAS}/File/project_files_information_GET.json")
     entries = information.json()
-    assert len(entries) == 3
+    assert len(entries) == 4
     assert {tuple(field["field_display_name"] for field in e["display_information"]) for e in entries} == {
         ("File name", "Uploaded", "Uploaded by", "Source", "Document id", "Version index")
     }, "consistent display fields (BCF 3.3.1)"
