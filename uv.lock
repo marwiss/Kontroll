@@ -1816,10 +1816,12 @@ dependencies = [
 ifc-lpg = [
     { name = "ifc-lpg", extra = ["ifcopenshell"] },
     { name = "ifcclash" },
+    { name = "shapely" },
 ]
 ifcgraph = [
     { name = "ifc-lpg", extra = ["ifcopenshell"] },
     { name = "ifcclash" },
+    { name = "shapely" },
 ]
 redis = [
     { name = "redis" },
@@ -1868,6 +1870,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0" },
+    { name = "shapely", marker = "extra == 'ifc-lpg'", specifier = ">=2.0" },
     { name = "slowapi", specifier = ">=0.1.10" },
     { name = "structlog", specifier = ">=26.1" },
     { name = "typer", specifier = ">=0.27" },

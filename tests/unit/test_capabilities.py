@@ -67,6 +67,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "create_slab",
         "create_roof",
         "create_opening",
+        "create_spaces",
         "set_properties",
         "set_classification",
         "assign",

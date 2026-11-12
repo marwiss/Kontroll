@@ -47,6 +47,7 @@ Tool = Literal[
     "create_slab",
     "create_roof",
     "create_opening",
+    "create_spaces",
     "set_properties",
     "set_classification",
     "assign",
@@ -179,9 +180,9 @@ class Provenance(_Strict):
 class Op(BaseModel):
     """One operation of Dataspatium's write tools: the tool by its name, and its arguments beside it as the tool's
     JSON schema in the app has them, lengths in metres. The server gives what the operations create the refs `new-1`,
-    `new-2` … itself, in the order of the operations that create a wall, a slab, a roof or an opening, so an operation
-    carries no ref. It names an element by its GlobalId, by its STEP id only where no GlobalId reaches it, or a
-    created one by its ref (F34 a), and a storey by its name."""
+    `new-2` … itself, in the order of the operations that create a wall, a slab, a roof or an opening, and of the rooms
+    that `create_spaces` lists, so an operation carries no ref. It names an element by its GlobalId, by its STEP id
+    only where no GlobalId reaches it, or a created one by its ref (F34 a), and a storey by its name."""
 
     model_config = ConfigDict(extra="allow")
 

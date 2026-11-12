@@ -94,7 +94,8 @@ def placed_at(element: Any) -> list[float]:
 
 
 def extrusion(element: Any) -> Any:
-    (representation,) = element.Representation.Representations
+    """The solid of an element's body; a wall has its Axis beside it."""
+    (representation,) = [r for r in element.Representation.Representations if r.RepresentationIdentifier == "Body"]
     (solid,) = representation.Items
     return solid
 
@@ -106,7 +107,52 @@ def test_every_tool_of_the_schema_is_an_operation_of_the_copy() -> None:
 
 
 def test_the_tools_that_create_hand_out_the_refs() -> None:
-    assert _ChangeSet.CREATES == ("create_wall", "create_slab", "create_roof", "create_opening")
+    assert _ChangeSet.CREATES == ("create_wall", "create_slab", "create_roof", "create_opening", "create_spaces")
+
+
+@pytest.mark.parametrize(("schema", "prefix", "per_metre"), [("IFC4", None, 1), ("IFC2X3", "MILLI", 1000)])
+def test_a_wall_carries_its_centre_line_as_its_axis_after_its_body(
+    schema: str, prefix: str | None, per_metre: int
+) -> None:
+    """The topology reads a wall's centre line without the geometry kernel: create_wall writes it as the Axis, a
+    polyline from (0, 0) to (length, 0) in the wall's own placement and the file's unit, in a sub-context
+    Model/Axis/GRAPH_VIEW that the file's walls share."""
+    model = new_model(schema, prefix)
+    answer = run(model, [STOREYS, WALL, {**WALL, "start": [10, 0], "end": [10, 6]}], proposer="anna")
+    assert answer["failed"] is None, answer
+    first, second = (model.by_guid(answer["created"][ref]) for ref in ("new-1", "new-2"))
+    body, axis = first.Representation.Representations
+    assert (body.RepresentationIdentifier, axis.RepresentationIdentifier, axis.RepresentationType) == (
+        "Body",
+        "Axis",
+        "Curve2D",
+    )
+    (line,) = axis.Items
+    assert line.is_a("IfcPolyline")
+    assert [list(p.Coordinates) for p in line.Points] == [[0, 0], pytest.approx([10 * per_metre, 0])]
+    (context,) = [c for c in model.by_type("IfcGeometricRepresentationSubContext") if c.ContextIdentifier == "Axis"]
+    assert (context.ContextType, context.TargetView, context.ParentContext.ContextType) == (
+        "Model",
+        "GRAPH_VIEW",
+        "Model",
+    )
+    assert axis.ContextOfItems == context == second.Representation.Representations[1].ContextOfItems, "one shared"
+    (other,) = second.Representation.Representations[1].Items
+    assert [list(p.Coordinates) for p in other.Points] == [[0, 0], pytest.approx([6 * per_metre, 0])], "its own way"
+    findings, errors = ServerChangeSet(model, "anna").findings()
+    assert errors == 0, findings
+
+
+def test_a_file_with_an_axis_context_keeps_it_for_its_new_walls() -> None:
+    model = new_model()
+    (parent,) = model.by_type("IfcGeometricRepresentationContext")
+    own = ifcopenshell.api.context.add_context(
+        model, context_type="Model", context_identifier="Axis", target_view="GRAPH_VIEW", parent=parent
+    )
+    answer = run(model, [STOREYS, WALL], proposer="anna")
+    wall = model.by_guid(answer["created"]["new-1"])
+    assert wall.Representation.Representations[1].ContextOfItems == own
+    assert [c.ContextIdentifier for c in model.by_type("IfcGeometricRepresentationSubContext")].count("Axis") == 1
 
 
 def test_storeys_a_grid_a_wall_a_slab_and_a_door_get_their_refs_in_order() -> None:
@@ -304,6 +350,70 @@ FOUR_WALLS = [
 
 def roof_slabs(roof: Any) -> list[Any]:
     return [part for rel in roof.IsDecomposedBy for part in rel.RelatedObjects]
+
+
+def boundaries(space: Any) -> dict[str, tuple[str, str]]:
+    """What bounds a space, by GlobalId: whether inside or outside, and that it is physical."""
+    return {
+        rel.RelatedBuildingElement.GlobalId: (rel.InternalOrExternalBoundary, rel.PhysicalOrVirtualBoundary)
+        for rel in space.BoundedBy
+    }
+
+
+def quantities(space: Any) -> dict[str, float]:
+    return ifcopenshell.util.element.get_psets(space, qtos_only=True)["Qto_SpaceBaseQuantities"]
+
+
+@pytest.mark.parametrize(("schema", "prefix", "per_metre"), [("IFC4", None, 1), ("IFC2X3", "MILLI", 1000)])
+def test_create_spaces_makes_a_closed_room_with_a_door_a_space_bounded_by_its_walls_and_the_door(
+    schema: str, prefix: str | None, per_metre: int
+) -> None:
+    """F37 a, the rooms become IfcSpace through a proposal: a listed room, found by a point inside it, is an IfcSpace in
+    its storey with the next ref, the room's outline extruded up to the next storey, its quantities, and a physical
+    boundary to each of the four walls along its edge and to the door in one of them, external as the walls are."""
+    model = new_model(schema, prefix)
+    kitchen = {"at": [5, 3], "name": "Kitchen", "long_name": "Kök"}
+    spaces = {"tool": "create_spaces", "storey": "Level 1", "rooms": [kitchen], "height": None}
+    answer = run(model, [STOREYS, *FOUR_WALLS, DOOR, spaces], proposer="anna")
+    assert answer["failed"] is None, answer
+    assert list(answer["created"]) == ["new-1", "new-2", "new-3", "new-4", "new-5", "new-6"], "walls, door, room"
+    space = model.by_guid(answer["created"]["new-6"])
+    assert (space.is_a(), space.Name, space.LongName) == ("IfcSpace", "Kitchen", "Kök")
+    assert (space.InteriorOrExteriorSpace if schema == "IFC2X3" else space.PredefinedType) == "INTERNAL"
+    (aggregate,) = space.Decomposes
+    assert aggregate.RelatingObject.Name == "Level 1" and space.GlobalId in answer["objects"]
+    walls = [answer["created"][ref] for ref in ("new-1", "new-2", "new-3", "new-4")]
+    assert boundaries(space) == {guid: ("EXTERNAL", "PHYSICAL") for guid in [*walls, answer["created"]["new-5"]]}
+    assert extrusion(space).Depth == pytest.approx(3.5 * per_metre), "up to the next storey"
+    found = quantities(space)
+    assert found["GrossFloorArea"] == pytest.approx(60) and found["GrossPerimeter"] == pytest.approx(32 * per_metre)
+    assert found["NetFloorArea"] == pytest.approx(9.8 * 5.8), "inside the walls' faces"
+    assert found["Height"] == pytest.approx(3.5 * per_metre)
+    findings, errors = ServerChangeSet(model, "anna").findings()
+    assert errors == 0, findings
+
+
+def test_a_window_made_later_bounds_the_space_its_wall_bounds_and_every_room_gets_a_space() -> None:
+    """rooms null makes every room the walls enclose, named by default_name, without refs; a window cut afterwards in
+    a wall that bounds a space bounds it too, as create_spaces would have made it."""
+    model = new_model()
+    every = {"tool": "create_spaces", "storey": None, "rooms": None, "default_name": "Rum {n}"}
+    built = run(model, [STOREYS, *FOUR_WALLS, every], proposer="anna")
+    assert built["failed"] is None and list(built["created"]) == ["new-1", "new-2", "new-3", "new-4"], "no ref"
+    (space,) = model.by_type("IfcSpace")
+    assert space.Name == "Rum 1" and len(boundaries(space)) == 4
+    window = {"tool": "create_opening", "wall_id": built["created"]["new-2"], "offset": 2, "width": 1.2,
+              "height": 1.2, "sill": 0.9, "fill": "window"}  # fmt: skip
+    answer = run(model, [window], proposer="anna")
+    assert answer["failed"] is None
+    assert boundaries(space)[answer["created"]["new-1"]] == ("EXTERNAL", "PHYSICAL"), "the new window joins them"
+    again = run(model, [every], proposer="anna")
+    assert again["failed"]["error"] == "every room the walls enclose has a space already"
+    listed = {"tool": "create_spaces", "storey": "Level 1", "rooms": [{"index": 1, "name": "Hall"}]}
+    taken = run(model, [listed], proposer="anna")
+    assert taken["failed"]["error"] == "room 1 on storey 'Level 1' lies in the space 'Rum 1' already"
+    nowhere = run(model, [{**listed, "storey": "Level 2"}], proposer="anna")
+    assert nowhere["failed"]["error"].startswith("the walls enclose no room on storey 'Level 2'")
 
 
 def test_a_gable_roof_on_a_storey_is_an_ifcroof_of_two_roof_slabs() -> None:

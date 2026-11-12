@@ -1,18 +1,25 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Dataspatium's write tools on an IFC model, with Dataspatium's own code (ADR 0021).
+"""Dataspatium's write tools on an IFC model and its topology of the walls, with Dataspatium's own code (ADR 0021).
 
-A copy of Dataspatium's class ``_ChangeSet`` (``python/dataspatium.py``, branch f43, commit 2173d22 of 2026-11-11)
-and the module-level helpers it calls, kept in step by hand, so that one list of operations gives the same model in
-the app and on the server. A change set that carries the operations as ``ops`` (``documents/changes.py``) is tried by
-the apply worker (``apply.py``), which runs them with :func:`run` on the base version's file before its changes. The
-operations are the AI's write tools in the app: ``create_storeys_and_grid``, ``create_wall``, ``create_slab``,
-``create_roof``, ``create_opening``, ``set_properties``, ``set_classification``, ``assign``, ``transform_elements``,
-``delete_elements`` and ``set_site``, each a JSON object with its tool's name as ``tool`` and its arguments beside it.
-Lengths are metres, scaled to the file's unit. A wall, a slab, a roof or an opening (or the door or window that fills
-it) gets the ref ``new-1``, ``new-2`` … in the order of the operations that create them (``_ChangeSet.CREATES``). An
-operation names an element by its GlobalId, by its STEP id only where no GlobalId reaches it, or by such a ref (the
-owner's decision F34 a, elements named by GlobalId, which the app's copy has too), and a storey by its name. Geometry
-is raw entities, never ``ifcopenshell.geom``; nothing depends on Pyodide.
+A copy of Dataspatium's class ``_ChangeSet`` and of its topology (``_ifc_topology``), with the module-level helpers
+they call (``python/dataspatium.py``, branch f43, commit ac82a13 of 2026-11-12), kept in step by hand, so that one
+list of operations gives the same model in the app and on the server, and the server finds the rooms the app finds.
+A change set that carries the operations as ``ops`` (``documents/changes.py``) is tried by the apply worker
+(``apply.py``), which runs them with :func:`run` on the base version's file before its changes; the topology worker
+(``topology.py``) finds the rooms of a file (the owner's decision F36 a: the server makes the client's room check).
+The operations are the AI's write tools in the app: ``create_storeys_and_grid``, ``create_wall``, ``create_slab``,
+``create_roof``, ``create_opening``, ``create_spaces``, ``set_properties``, ``set_classification``, ``assign``,
+``transform_elements``, ``delete_elements`` and ``set_site``, each a JSON object with its tool's name as ``tool`` and
+its arguments beside it. Lengths are metres, scaled to the file's unit. A wall, a slab, a roof or an opening (or the
+door or window that fills it) gets the ref ``new-1``, ``new-2`` … in the order of the operations that create them
+(``_ChangeSet.CREATES``), and so does each room that ``create_spaces`` lists, in its order; the spaces of ``rooms``
+null get none. An operation names an element by its GlobalId, by its STEP id only where no GlobalId reaches it, or by
+such a ref (the owner's decision F34 a, elements named by GlobalId, which the app's copy has too), and a storey by its
+name. ``create_wall`` gives a wall its centre line as an ``Axis`` representation, which the topology reads, and
+``create_spaces`` makes the rooms of the topology spaces (F37 a: rooms become IfcSpace through a proposal), each with
+its quantities and its boundaries to the walls, doors and windows along its edge; a door or window made later in a
+wall that bounds a space bounds it too. The change set's geometry is raw entities: only the topology builds a body,
+with ``ifcopenshell.geom``, for a wall without an ``Axis``. Nothing depends on Pyodide.
 
 Against the original only this differs, so that the next copy is a diff away:
 
@@ -22,9 +29,11 @@ Against the original only this differs, so that the next copy is a diff away:
   changes with the app's ``_Proposal``, which is not copied, since the server applies the operations themselves;
 - the owner settings: :class:`ServerChangeSet`, below the copy, overrides ``owner_settings``, so that the owner
   histories IfcOpenShell's API makes name the proposer and this server instead of the file's own owner;
-- ruff formats the copy in lines of 120 characters and lets its idioms be (``pyproject.toml``), and seven comments
-  quiet bandit (``# nosec B110`` and ``B112``, five) and ty (``# ty: ignore[invalid-assignment]``, two); no statement
-  changed.
+- ``_ifc_topology`` also gives each storey the GlobalIds of the walls it could not read (``unread_walls``), and
+  ``_topo_plan`` those of the walls with an open end (``dangling``), for the report's rooms, which name elements by
+  GlobalId; the lines that do so are marked ``# Dataregium``;
+- ruff formats the copy in lines of 120 characters and lets its idioms be (``pyproject.toml``), and ten comments quiet
+  bandit (``# nosec B110`` and ``B112``, seven) and ty (``# ty: ignore``, three); no other statement changed.
 """
 
 from __future__ import annotations
@@ -336,7 +345,7 @@ def _cs_roof_faces(shape, length, width, overhang, ridge):
 class _ChangeSet:
     """Applies a change set to an IfcOpenShell model and reports what it created, changed and deleted."""
 
-    CREATES = ("create_wall", "create_slab", "create_roof", "create_opening")
+    CREATES = ("create_wall", "create_slab", "create_roof", "create_opening", "create_spaces")
     ROOF_TYPES = {"gable": "GABLE_ROOF", "hip": "HIP_ROOF", "shed": "SHED_ROOF", "flat": "FLAT_ROOF"}
 
     def __init__(self, model):
@@ -356,6 +365,7 @@ class _ChangeSet:
         owners = model.by_type("IfcOwnerHistory")
         self.owner = owners[0] if owners else None
         self._body = None
+        self._axis = None
 
     # -- units, lookups and bookkeeping
     def u(self, metres):
@@ -549,6 +559,27 @@ class _ChangeSet:
         )
         return self._body
 
+    def axis_context(self):
+        """The sub-context of the walls' 'Axis' representations (Model/Axis/GRAPH_VIEW), made when the file has none."""
+        if self._axis is not None:
+            return self._axis
+        subs = [
+            c for c in self.m.by_type("IfcGeometricRepresentationSubContext") if (c.ContextIdentifier or "") == "Axis"
+        ]
+        if subs:
+            self._axis = subs[0]
+            return subs[0]
+        import ifcopenshell.api.context
+
+        self._axis = ifcopenshell.api.context.add_context(
+            self.m,
+            context_type="Model",
+            context_identifier="Axis",
+            target_view="GRAPH_VIEW",
+            parent=self.model_context(),
+        )
+        return self._axis
+
     def contain(self, e, storey):
         import ifcopenshell.api.spatial
 
@@ -722,6 +753,11 @@ class _ChangeSet:
         wall.Representation = self.box(
             self.u(length), self.u(thickness), self.u(height), 0, -self.u(thickness) / 2.0, 0
         )
+        # The centreline as the wall's 'Axis' (Curve2D), after the body, so that the topology reads it without the geometry kernel.
+        axis = self.m.createIfcPolyline([self.point(0, 0), self.point(self.u(length), 0)])
+        wall.Representation.Representations = list(wall.Representation.Representations) + [
+            self.m.createIfcShapeRepresentation(self.axis_context(), "Axis", "Curve2D", [axis])
+        ]
         self.predefined(wall, "STANDARD")
         self.contain(wall, storey)
         self.register(wall, storey)
@@ -871,6 +907,283 @@ class _ChangeSet:
         if storey is not None:
             self.contain(e, storey)
         self.register(e, storey)
+        # A door or window in a wall that already bounds spaces bounds the one whose edge it stands on, as create_spaces would have.
+        mid = self.plan_point(e, self.u(width) / 2.0)
+        for b in list(getattr(wall, "ProvidesBoundaries", None) or ()):
+            outline = self.space_outline(b.RelatingSpace) if b.RelatingSpace.is_a("IfcSpace") else None
+            if (
+                mid is not None
+                and outline is not None
+                and outline.boundary.distance(_topo_point(mid)) <= thickness * self.scale / 2.0 + 0.05
+            ):
+                self.bound(b.RelatingSpace, e, b.InternalOrExternalBoundary == "EXTERNAL")
+
+    # -- spaces and their boundaries
+    def bound(self, space, element, external):
+        """A physical IfcRelSpaceBoundary of a space against a wall, door or window, without connection geometry for now."""
+        import ifcopenshell.guid
+
+        rel = self.m.create_entity(
+            "IfcRelSpaceBoundary",
+            GlobalId=ifcopenshell.guid.new(),
+            RelatingSpace=space,
+            RelatedBuildingElement=element,
+            PhysicalOrVirtualBoundary="PHYSICAL",
+            InternalOrExternalBoundary="EXTERNAL" if external else "INTERNAL",
+        )
+        if self.owner is not None:
+            rel.OwnerHistory = self.owner
+        return rel
+
+    @staticmethod
+    def fillings(wall):
+        """The doors and windows in a wall's openings."""
+        return [
+            f.RelatedBuildingElement
+            for v in (getattr(wall, "HasOpenings", None) or ())
+            for f in (getattr(v.RelatedOpeningElement, "HasFillings", None) or ())
+        ]
+
+    def plan_point(self, e, along=0.0):
+        """Where an element's placement stands in the world's plan, `along` file units along its x axis, in metres; None if unknown."""
+        m = _cs_placement(getattr(e, "ObjectPlacement", None))
+        if m is None:
+            return None
+        p = _cs_at(m, (along, 0.0, 0.0))
+        return p[0] * self.scale, p[1] * self.scale
+
+    def space_outline(self, space):
+        """A space's footprint in the world's plan in metres (shapely): the profile of an extruded body, else the hull of its body's
+        corners; None without a body the app can read."""
+        from shapely.geometry import MultiPoint, Polygon
+
+        m = _cs_placement(space.ObjectPlacement)
+        rep = space.Representation
+        pts = []
+        for r in rep.Representations if rep is not None and m is not None else ():
+            if (r.RepresentationIdentifier or "Body") != "Body":
+                continue
+            for item in r.Items or ():
+                corners = [_cs_at(m, p) for p in _cs_item_points(item)]
+                if item.is_a("IfcExtrudedAreaSolid") and len(corners) >= 6:
+                    return Polygon([(q[0] * self.scale, q[1] * self.scale) for q in corners[::2]])
+                pts += corners
+        hull = MultiPoint([(q[0] * self.scale, q[1] * self.scale) for q in pts]).convex_hull if len(pts) >= 3 else None
+        return hull if hull is not None and hull.geom_type == "Polygon" else None
+
+    def storey_height(self, storey):
+        """The default height of a storey's spaces in metres: up to the next storey, else to the top of its walls, else 3."""
+        z = _topo_elevation(storey, self.scale)
+        above = sorted(
+            e for e in (_topo_elevation(s, self.scale) for s in self.m.by_type("IfcBuildingStorey")) if e > z + 1e-6
+        )
+        if above:
+            return above[0] - z
+        top = self.wall_extent(storey)[1]
+        return top if top and top > 0 else 3.0
+
+    def pick_rooms(self, topo, rooms, frame):
+        """The listed rooms of one storey's topology, as (room, name, long name): each by a point inside it in the storey's plane, or by
+        its index in get_topology. A point that hits no room, an index that does not exist and a room named twice are errors."""
+        storey = _ifc_text(topo["_storey"].Name)
+        back = _cs_invert(frame)
+
+        def where(r):
+            p = r["polygon"].representative_point()
+            q = _cs_at(back, (p.x / self.scale, p.y / self.scale, frame[3][2]))
+            return "%d at (%.2f, %.2f)" % (r["index"], q[0] * self.scale, q[1] * self.scale)
+
+        out, seen = [], {}
+        for i, entry in enumerate(rooms):
+            if not isinstance(entry, dict) or not str(entry.get("name") or "").strip():
+                raise DataspatiumError("room %d needs a name" % (i + 1))
+            if entry.get("at") is not None:
+                x, y = _cs_xy(entry.get("at"), "at")
+                w = _cs_at(frame, (x / self.scale, y / self.scale, 0.0))
+                hit = [
+                    r
+                    for r in topo["rooms"]
+                    if r["polygon"].contains(_topo_point((w[0] * self.scale, w[1] * self.scale)))
+                ]
+                if not hit:
+                    raise DataspatiumError(
+                        "room %d: no closed room on storey %r has (%g, %g) inside; its rooms are %s"
+                        % (i + 1, storey, x, y, "; ".join(where(r) for r in topo["rooms"]))
+                    )
+                room = hit[0]
+            else:
+                index = entry.get("index")
+                if (
+                    isinstance(index, bool)
+                    or not isinstance(index, (int, float))
+                    or int(index) != index
+                    or not 1 <= int(index) <= len(topo["rooms"])
+                ):
+                    raise DataspatiumError(
+                        "room %d: storey %r has rooms 1 to %d, not %r" % (i + 1, storey, len(topo["rooms"]), index)
+                    )
+                room = topo["rooms"][int(index) - 1]
+            if room["index"] in seen:
+                raise DataspatiumError(
+                    "rooms %d and %d are the same room (%s)" % (seen[room["index"]], i + 1, where(room))
+                )
+            seen[room["index"]] = i + 1
+            out.append(
+                (room, str(entry["name"]).strip()[:255], str(entry.get("long_name") or "").strip()[:255] or None)
+            )
+        return out
+
+    def make_space(self, storey, frame, room, name, long_name, height):
+        """An IfcSpace with the room's outline (holes as voids) in the storey's plane, extruded height metres up from the storey."""
+        back = _cs_invert(frame)
+
+        def curve(ring):
+            pts = [_cs_at(back, (c[0] / self.scale, c[1] / self.scale, frame[3][2])) for c in ring.coords]
+            return self.m.createIfcPolyline([self.point(p[0], p[1]) for p in pts])
+
+        poly = room["polygon"]
+        if poly.interiors:
+            profile = self.m.createIfcArbitraryProfileDefWithVoids(
+                "AREA", None, curve(poly.exterior), [curve(r) for r in poly.interiors]
+            )
+        else:
+            profile = self.m.createIfcArbitraryClosedProfileDef("AREA", None, curve(poly.exterior))
+        space = self.root("IfcSpace", name)
+        space.LongName = long_name
+        space.CompositionType = "ELEMENT"
+        if self.m.schema == "IFC2X3":
+            space.InteriorOrExteriorSpace = "INTERNAL"
+        else:
+            self.predefined(space, "INTERNAL")
+        space.ObjectPlacement = self.placement(storey.ObjectPlacement, 0, 0, 0)
+        space.Representation = self.shape(
+            self.m.createIfcExtrudedAreaSolid(profile, self.axis3(0, 0, 0), self.direction(0, 0, 1), self.u(height))
+        )
+        return space
+
+    def space_quantities(self, space, room, height):
+        """Qto_SpaceBaseQuantities in the file's units: the outline's area and perimeter, the area inside the walls' faces, the volumes."""
+        import ifcopenshell.api.pset
+        import ifcopenshell.util.unit
+
+        def per(kind):
+            try:
+                return float(ifcopenshell.util.unit.calculate_unit_scale(self.m, kind) or 1.0)
+            except Exception:
+                return 1.0
+
+        area, volume = per("AREAUNIT"), per("VOLUMEUNIT")
+        gross, net = room["polygon"].area, room["net_area"]
+        qto = ifcopenshell.api.pset.add_qto(self.m, product=space, name="Qto_SpaceBaseQuantities")
+        ifcopenshell.api.pset.edit_qto(
+            self.m,
+            qto=qto,
+            properties={
+                "Height": self.u(height),
+                "GrossPerimeter": self.u(room["polygon"].length),
+                "GrossFloorArea": gross / area,
+                "NetFloorArea": net / area,
+                "GrossVolume": gross * height / volume,
+                "NetVolume": net * height / volume,
+            },
+        )
+
+    def op_create_spaces(self, op):
+        """The rooms the walls enclose as spaces, from the topology of the file as it stands at this step, so that walls made earlier
+        in the change set count: per room an IfcSpace aggregated in its storey, with the room's outline extruded to the height (by
+        default up to the next storey, or to the top of the walls), Qto_SpaceBaseQuantities, and physical space boundaries to the walls
+        along its edge (external where the topology finds the wall external) and to the doors and windows in them that stand on that
+        edge. Listed rooms need the storey and get a ref each, in their order; without a list every room on the storey (or on every
+        storey with rooms) is made, named by default_name with its index for {n}, and none gets a ref."""
+        import ifcopenshell.api.aggregate
+
+        rooms = op.get("rooms")
+        listed = rooms is not None
+        if listed and (not isinstance(rooms, list) or not rooms):
+            raise DataspatiumError("rooms must be a list of {at or index, name, long_name}, or null for every room")
+        named = str(op.get("storey") or "").strip()
+        if listed and not named:
+            raise DataspatiumError("name the storey the rooms are on; storey null goes with rooms null")
+        storey = self.storey(named) if named else None
+        height = None if op.get("height") is None else _cs_num(op, "height", positive=True)
+        found = [
+            x
+            for x in _ifc_topology(
+                self.m, storeys={_ifc_text(storey.Name)} if storey is not None else None, shapes=True
+            )
+            if x["rooms"] and (storey is None or x["_storey"].id() == storey.id())
+        ]
+        if not found:
+            raise DataspatiumError(
+                "the walls enclose no room on %s; close the walls first (the preview's topology shows the open ends)"
+                % ("storey %r" % _ifc_text(storey.Name) if storey is not None else "any storey")
+            )
+        template = str(op.get("default_name") or "Room {n}")
+        made = 0
+        for topo in found:
+            s = topo["_storey"]
+            frame = _cs_placement(s.ObjectPlacement)
+            if frame is None:
+                raise DataspatiumError("the placement of storey %r cannot be followed" % _ifc_text(s.Name))
+            chosen = (
+                self.pick_rooms(topo, rooms, frame)
+                if listed
+                else [(r, template.replace("{n}", str(r["index"])), None) for r in topo["rooms"]]
+            )
+            # The storey's spaces so far: a room one of them covers is not made twice, and a name is not given twice.
+            others = [
+                (p, self.space_outline(p))
+                for rel in (getattr(s, "IsDecomposedBy", None) or ())
+                for p in rel.RelatedObjects
+                if p.is_a("IfcSpace")
+            ]
+            covered = [
+                (
+                    room,
+                    name,
+                    next(
+                        (p for p, o in others if o is not None and o.contains(room["polygon"].representative_point())),
+                        None,
+                    ),
+                )
+                for room, name, _ in chosen
+            ]
+            for room, name, space in covered:
+                if space is not None and listed:
+                    raise DataspatiumError(
+                        "room %d on storey %r lies in the space %r already"
+                        % (room["index"], _ifc_text(s.Name), _ifc_text(space.Name))
+                    )
+                if space is not None:
+                    self.notes.append(
+                        "room %d on storey %s was left out: the space %s covers it already"
+                        % (room["index"], _ifc_text(s.Name), _ifc_text(space.Name))
+                    )
+            chosen = [c for c, (_, _, space) in zip(chosen, covered) if space is None]
+            twice = [n for _, n, _ in chosen if n in {str(p.Name or "") for p, _ in others}]
+            if twice:
+                raise DataspatiumError("storey %r has a space named %r already" % (_ifc_text(s.Name), twice[0]))
+            if not chosen:
+                continue
+            made += len(chosen)
+            h = height or self.storey_height(s)
+            external = {e["wall"] for e in topo["external"]}
+            spaces = []
+            for room, name, long_name in chosen:
+                space = self.make_space(s, frame, room, name, long_name, h)
+                spaces.append(space)
+                for wall in (self.m.by_id(i) for i in room["walls"]):
+                    self.bound(space, wall, wall.id() in external)
+                    for f in self.fillings(wall):
+                        mid = self.plan_point(f, float(getattr(f, "OverallWidth", None) or 0.0) / 2.0)
+                        if mid is not None and room["polygon"].boundary.distance(_topo_point(mid)) <= topo["tolerance"]:
+                            self.bound(space, f, wall.id() in external)
+            ifcopenshell.api.aggregate.assign_object(self.m, products=spaces, relating_object=s)
+            for space, (room, _, _) in zip(spaces, chosen):
+                self.space_quantities(space, room, h)
+                self.register(space, s, ref=listed)
+        if not made:
+            raise DataspatiumError("every room the walls enclose has a space already")
 
     def op_set_properties(self, op):
         import ifcopenshell.api.pset
@@ -1129,6 +1442,515 @@ class _ChangeSet:
                     }
                 )
         return out, errors
+
+
+# ---- the building's topology (decision F46 a) -------------------------------------------------------
+# The walls' centrelines per storey become rooms with shapely (which comes with IfcOpenShell): the line ends are snapped to each
+# other within a tolerance, the lines noded and polygonized. Rooms that share a stretch of boundary border each other, the walls
+# along the rooms' union are the external walls with the compass sector they face, and the lines' free ends are the open ends
+# that a closed storey cannot have. Lengths are metres, coordinates the model's plan.
+
+TOPOLOGY_MAX_WALLS = 2000
+TOPOLOGY_MIN_ROOM = 0.5  # m²; smaller polygons are slivers between lines, not rooms
+TOPOLOGY_MIN_WIDTH = 0.5  # m; so are narrower ones, such as the gap between the layers of a wall
+_FACINGS = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+
+
+def _topo_north(model):
+    """(a, b, source): the model's plan turned to the map, east = a*dx - b*dy and north = b*dx + a*dy. From IfcMapConversion's
+    XAxisAbscissa and XAxisOrdinate when the file has one (it takes precedence over TrueNorth, as IFC 4.3 says), else from the
+    model context's TrueNorth, else the model's +y is north."""
+    contexts = [
+        c
+        for c in model.by_type("IfcGeometricRepresentationContext")
+        if not c.is_a("IfcGeometricRepresentationSubContext")
+    ]
+    context = next((c for c in contexts if (c.ContextType or "Model") == "Model"), contexts[0] if contexts else None)
+    try:
+        conversions = model.by_type("IfcMapConversion")
+    except Exception:  # IFC2X3 has no IfcMapConversion
+        conversions = []
+    own = [
+        c for c in conversions if context is not None and c.SourceCRS is not None and c.SourceCRS.id() == context.id()
+    ]
+    conversion = own[0] if own else (conversions[0] if len(conversions) == 1 else None)
+    if conversion is not None:
+        a = 1.0 if conversion.XAxisAbscissa is None else float(conversion.XAxisAbscissa)
+        b = 0.0 if conversion.XAxisOrdinate is None else float(conversion.XAxisOrdinate)
+        if math.hypot(a, b) > 0:
+            return a / math.hypot(a, b), b / math.hypot(a, b), "map"
+    north = getattr(context, "TrueNorth", None) if context is not None else None
+    if north is not None:
+        r = [float(v) for v in north.DirectionRatios] + [0.0, 0.0]
+        if math.hypot(r[0], r[1]) > 0:
+            return r[1] / math.hypot(r[0], r[1]), r[0] / math.hypot(r[0], r[1]), "true_north"
+    return 1.0, 0.0, "model"
+
+
+def _topo_point(p):
+    """A shapely point of (x, y)."""
+    from shapely.geometry import Point
+
+    return Point(float(p[0]), float(p[1]))
+
+
+def _topo_facing(dx, dy, north):
+    """The compass sector (N, NE, ... NW) a direction in the plan points to."""
+    a, b = north[0], north[1]
+    bearing = math.degrees(math.atan2(a * dx - b * dy, b * dx + a * dy)) % 360.0
+    return _FACINGS[int((bearing + 22.5) // 45.0) % 8]
+
+
+def _topo_curve(item):
+    """The (x, y) points of an axis curve in its own coordinates: an IfcPolyline, an IfcIndexedPolyCurve or an IfcTrimmedCurve of an
+    IfcLine; None for another curve."""
+    if item.is_a("IfcPolyline"):
+        return [(float(p.Coordinates[0]), float(p.Coordinates[1])) for p in item.Points]
+    if item.is_a("IfcIndexedPolyCurve"):
+        coords = [(float(c[0]), float(c[1])) for c in item.Points.CoordList]
+        if not getattr(item, "Segments", None):
+            return coords
+        out = []
+        for segment in item.Segments:
+            for i in segment.wrappedValue:
+                if not out or out[-1] != coords[int(i) - 1]:
+                    out.append(coords[int(i) - 1])
+        return out
+    if item.is_a("IfcTrimmedCurve") and item.BasisCurve.is_a("IfcLine"):
+        line = item.BasisCurve
+        p0 = [float(v) for v in line.Pnt.Coordinates]
+        o = [float(v) for v in line.Dir.Orientation.DirectionRatios]
+        step = float(line.Dir.Magnitude) / (math.sqrt(sum(v * v for v in o)) or 1.0)
+
+        def at(trim):
+            for t in trim:
+                if hasattr(t, "is_a") and t.is_a("IfcCartesianPoint"):
+                    return float(t.Coordinates[0]), float(t.Coordinates[1])
+            for t in trim:
+                u = float(getattr(t, "wrappedValue", t))  # an IfcParameterValue along the line
+                return p0[0] + u * step * o[0], p0[1] + u * step * o[1]
+            return None
+
+        ends = at(item.Trim1), at(item.Trim2)
+        return list(ends) if ends[0] and ends[1] else None
+    return None
+
+
+def _topo_axis(wall, scale):
+    """The wall's 'Axis' representation in plan, in metres in world coordinates through its placement; None without one."""
+    import ifcopenshell.util.placement as placement
+
+    rep = getattr(wall, "Representation", None)
+    for r in rep.Representations if rep is not None else ():
+        if (r.RepresentationIdentifier or "") != "Axis":
+            continue
+        for item in r.Items or ():
+            pts = _topo_curve(item)
+            if pts and len(pts) >= 2:
+                m = placement.get_local_placement(wall.ObjectPlacement)
+                return [
+                    ((m[0][0] * x + m[0][1] * y + m[0][3]) * scale, (m[1][0] * x + m[1][1] * y + m[1][3]) * scale)
+                    for x, y in pts
+                ]
+    return None
+
+
+def _topo_thickness(wall, scale):
+    """The wall's thickness in metres: the narrow side of an extruded rectangle, else its material layers; None when unknown."""
+    rep = getattr(wall, "Representation", None)
+    for r in rep.Representations if rep is not None else ():
+        for item in r.Items or ():
+            if item.is_a("IfcExtrudedAreaSolid") and item.SweptArea.is_a("IfcRectangleProfileDef"):
+                return min(float(item.SweptArea.XDim), float(item.SweptArea.YDim)) * scale
+    try:
+        import ifcopenshell.util.element as el
+
+        mat = el.get_material(wall)
+        layers = mat.ForLayerSet if mat is not None and mat.is_a("IfcMaterialLayerSetUsage") else mat
+        if layers is not None and layers.is_a("IfcMaterialLayerSet"):
+            return sum(float(x.LayerThickness or 0) for x in layers.MaterialLayers) * scale or None
+    except Exception:  # nosec B110
+        pass
+    return None
+
+
+def _topo_settings():
+    import ifcopenshell.geom
+
+    settings = ifcopenshell.geom.settings()
+    settings.set("use-world-coords", True)
+    try:
+        settings.set("disable-opening-subtractions", True)  # the footprint needs no openings, and the booleans are slow
+    except Exception:  # nosec B110
+        pass
+    return settings
+
+
+def _topo_footprint(wall, settings):
+    """(centreline, width) from the body's footprint: its vertices (world coordinates, metres) projected to the plan, their minimum
+    rotated rectangle and its long axis."""
+    import ifcopenshell.geom
+    import ifcopenshell.util.shape as shape_util
+    import shapely
+
+    verts = shape_util.get_vertices(ifcopenshell.geom.create_shape(settings, wall).geometry)  # ty: ignore[invalid-argument-type, unresolved-attribute]
+    if len(verts) < 2:
+        return None, None
+    rect = shapely.oriented_envelope(shapely.MultiPoint([(float(v[0]), float(v[1])) for v in verts]))
+    if rect.geom_type == "LineString":
+        return [rect.coords[0], rect.coords[-1]], 0.0
+    if rect.geom_type != "Polygon" or rect.is_empty:
+        return None, None
+    c = list(rect.exterior.coords)
+
+    def mid(p, q):
+        return (p[0] + q[0]) / 2.0, (p[1] + q[1]) / 2.0
+
+    if math.dist(c[0], c[1]) >= math.dist(c[1], c[2]):
+        return [mid(c[0], c[3]), mid(c[1], c[2])], math.dist(c[1], c[2])
+    return [mid(c[0], c[1]), mid(c[3], c[2])], math.dist(c[0], c[1])
+
+
+def _topo_cross(p, d, a, b):
+    """(t, x): where the line through p along the unit vector d crosses the line through a and b, p + t * d; None when parallel."""
+    rx, ry = b[0] - a[0], b[1] - a[1]
+    den = d[0] * ry - d[1] * rx
+    if abs(den) < 1e-9 * (math.hypot(rx, ry) or 1.0):
+        return None
+    t = ((a[0] - p[0]) * ry - (a[1] - p[1]) * rx) / den
+    return t, (round(p[0] + t * d[0], 6), round(p[1] + t * d[1], 6))
+
+
+def _topo_pairs(pts, radius):
+    """The pairs (distance, a, b) of points at most radius apart, closest first, found on a grid of cells radius wide."""
+    cells = {}
+    size = max(radius, 1e-6)
+    out = []
+    for n, p in enumerate(pts):
+        cx, cy = math.floor(p[0] / size), math.floor(p[1] / size)
+        for cell in [(cx + dx, cy + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)]:
+            out.extend((math.dist(pts[m], p), m, n) for m in cells.get(cell, ()) if math.dist(pts[m], p) <= radius)
+        cells.setdefault((cx, cy), []).append(n)
+    return sorted(out)
+
+
+def _topo_snap(lines, tol, widths=None):
+    """The lines with their ends snapped, in three steps. Ends that coincide within a centimetre meet at their mean. Another end goes
+    along its own line, extended or trimmed, to the nearest crossing with a line near it (a T junction; or a corner, where that
+    line's free end goes there too, as when both walls of a corner stop at the other's face), moving at most half the thickness of
+    the wall it meets plus 0.05 m, and never more than tol. Ends still free pair up within tol, closest first, unless their walls run
+    side by side as the layers of a wall do. A point that lands inside a line is inserted in it, so that noding joins the two exactly."""
+    from shapely.geometry import LineString, Point
+    from shapely.strtree import STRtree
+
+    out = [[(round(float(c[0]), 6), round(float(c[1]), 6)) for c in line] for line in lines]
+    reach = [min(tol, float(w or 0.2) / 2.0 + 0.05) for w in (widths or [None] * len(out))]
+    ends = [(i, k) for i in range(len(out)) for k in (0, -1)]
+
+    def end(m):
+        return out[ends[m][0]][ends[m][1]]
+
+    def direction(m):
+        """The unit vector along the line out of its end m, or None."""
+        i, k = ends[m]
+        p, q = out[i][k], (out[i][1] if k == 0 else out[i][-2])
+        n = math.dist(p, q)
+        return ((p[0] - q[0]) / n, (p[1] - q[1]) / n) if n > 0 else None
+
+    def meet(group):
+        mean = (
+            round(sum(end(m)[0] for m in group) / len(group), 6),
+            round(sum(end(m)[1] for m in group) / len(group), 6),
+        )
+        for m in group:
+            out[ends[m][0]][ends[m][1]] = mean
+
+    parent = list(range(len(ends)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    for _, a, b in _topo_pairs([end(m) for m in range(len(ends))], 0.01):
+        parent[find(a)] = find(b)
+    groups = {}
+    for m in range(len(ends)):
+        groups.setdefault(find(m), []).append(m)
+    free = {g[0] for g in groups.values() if len(g) == 1}
+    for g in groups.values():
+        if len(g) > 1:
+            meet(g)
+    geoms = [LineString(c) for c in out]
+    tree = STRtree(geoms)
+    inserted = {}
+    for m in sorted(free):
+        d = direction(m)
+        if m not in free or d is None:
+            continue  # taken to a corner by the other wall's end, or a line without length
+        i, k = ends[m]
+        p = end(m)
+        best = None
+        for j in (int(x) for x in tree.query(Point(p).buffer(2.0 * tol)) if int(x) != i):
+            for a, b in zip(out[j], out[j][1:]):
+                hit = _topo_cross(p, d, a, b)
+                if hit is None or abs(hit[0]) > reach[j] or (best is not None and abs(hit[0]) >= best[0]):
+                    continue
+                corner = None
+                off = LineString([a, b]).distance(Point(hit[1]))
+                if off > 1e-6:  # beyond the other line's end: a corner, when that end is free and near enough
+                    corner = 2 * j + (0 if math.dist(hit[1], out[j][0]) < math.dist(hit[1], out[j][-1]) else 1)
+                    if off > reach[i] or corner not in free:
+                        continue
+                best = (abs(hit[0]), j, hit[1], corner)
+        if best is None:
+            continue
+        _, j, x, corner = best
+        free.discard(m)
+        out[i][k] = x
+        if corner is None:
+            inserted.setdefault(j, []).append(x)
+        else:
+            free.discard(corner)
+            out[j][ends[corner][1]] = x
+    left = sorted(free)
+    for _, a, b in _topo_pairs([end(m) for m in left], tol):
+        ma, mb = left[a], left[b]
+        if ma not in free or mb not in free:
+            continue
+        da, db = direction(ma), direction(mb)
+        pa, pb = end(ma), end(mb)
+        if (
+            da
+            and db
+            and abs(da[0] * db[1] - da[1] * db[0]) < 0.17
+            and abs((pb[0] - pa[0]) * da[1] - (pb[1] - pa[1]) * da[0]) > 0.05
+        ):
+            continue  # parallel within 10 degrees and side by side
+        free.difference_update((ma, mb))
+        meet([ma, mb])
+    for j, points in inserted.items():
+        first, last = out[j][0], out[j][-1]
+        inner = sorted(set(out[j][1:-1]) | set(points), key=lambda c: geoms[j].project(Point(c)))
+        out[j] = [first] + [c for c in inner if c != first and c != last] + [last]
+    return out
+
+
+def _topo_outward(union, part, tol, north):
+    """The compass sector a wall along the rooms' union faces: the normal of its longest piece there that points out of the rooms."""
+    from shapely.geometry import Point
+
+    pieces = [g for g in getattr(part, "geoms", [part]) if g.geom_type == "LineString" and g.length > 0]
+    if not pieces:
+        return None
+    piece = max(pieces, key=lambda g: g.length)
+    (x0, y0), (x1, y1) = piece.coords[0][:2], piece.coords[-1][:2]
+    n = math.hypot(x1 - x0, y1 - y0)
+    if n == 0:
+        return None
+    nx, ny = -(y1 - y0) / n, (x1 - x0) / n
+    mid = piece.interpolate(0.5, normalized=True)
+    for eps in (0.05, tol + 0.05):
+        left = union.covers(Point(mid.x + nx * eps, mid.y + ny * eps))
+        right = union.covers(Point(mid.x - nx * eps, mid.y - ny * eps))
+        if left != right:
+            return _topo_facing(-nx, -ny, north) if left else _topo_facing(nx, ny, north)
+    return None
+
+
+def _topo_plan(walls, tol, north=(1.0, 0.0, "model"), shapes=False):
+    """One storey's plan from its walls' centrelines, with shapely alone: `walls` are dicts {"id", "guid", "name", "line": [(x, y),
+    ...], "width"} in metres (width may be None). Rooms are the polygons over TOPOLOGY_MIN_ROOM and TOPOLOGY_MIN_WIDTH. A wall
+    belongs to a room, and is external, when it runs along the room's boundary (or the union's) for longer than one that only meets
+    it there; two rooms are neighbours when their boundaries share such a stretch. With shapes, every room also has its "polygon"
+    (shapely, counter-clockwise) and its "net_area" inside the walls' faces, for create_spaces; neither goes into JSON."""
+    from shapely.geometry import LineString
+    from shapely.geometry.polygon import orient
+    from shapely.ops import polygonize_full, unary_union
+    from shapely.strtree import STRtree
+
+    snapped = _topo_snap([w["line"] for w in walls], tol, [w.get("width") for w in walls])
+    keep = [i for i, c in enumerate(snapped) if LineString(c).length > 1e-6]
+    if not keep:
+        return {"rooms": [], "external": [], "dangles": [], "closed": False, "dangling": []}  # Dataregium
+    walls = [walls[i] for i in keep]
+    geoms = [LineString(snapped[i]) for i in keep]
+    noded = unary_union(geoms)
+    edges = [g for g in getattr(noded, "geoms", [noded]) if g.geom_type == "LineString"]
+    degree = {}
+    for e in edges:
+        for c in (e.coords[0], e.coords[-1]):
+            key = (round(c[0], 6), round(c[1], 6))
+            degree[key] = degree.get(key, 0) + 1
+    dangles = sorted([round(x, 3), round(y, 3)] for (x, y), n in degree.items() if n == 1)
+    # Dataregium: the walls whose line ends where an end dangles, by GlobalId.
+    loose = {key for key, n in degree.items() if n == 1}
+    dangling = sorted(
+        {
+            walls[i].get("guid")
+            for i, g in enumerate(geoms)
+            for c in (g.coords[0], g.coords[-1])
+            if (round(c[0], 6), round(c[1], 6)) in loose
+        }
+        - {None}
+    )
+    polygons = list(polygonize_full(edges)[0].geoms)
+    rooms = sorted(
+        (p for p in polygons if p.area > TOPOLOGY_MIN_ROOM and not p.buffer(-TOPOLOGY_MIN_WIDTH / 2.0).is_empty),
+        key=lambda p: (round(p.centroid.y), round(p.centroid.x, 6), -round(p.area, 6)),
+    )  # a room around another comes first
+    tree = STRtree(geoms)
+    meets = 2.0 * tol + 0.01  # a wall that only meets a boundary runs at most 2 * tol inside its buffer
+
+    def along(zone):
+        out = []
+        for j in tree.query(zone):
+            part = geoms[int(j)].intersection(zone)
+            if part.length > meets:
+                out.append((int(j), part))
+        return out
+
+    neighbours = [set() for _ in rooms]
+    room_tree = STRtree(rooms)
+    for i, r in enumerate(rooms):
+        for k in (int(x) for x in room_tree.query(r)):
+            if k > i and r.boundary.intersection(rooms[k].boundary).length > meets:
+                neighbours[i].add(k)
+                neighbours[k].add(i)
+    out_rooms = []
+    for i, r in enumerate(rooms):
+        members = along(r.boundary.buffer(tol))
+        rec = {
+            "index": i + 1,
+            "area": round(r.area, 2),
+            "perimeter": round(r.length, 2),
+            "walls": sorted({walls[j]["id"] for j, _ in members}),
+            "neighbours": sorted(k + 1 for k in neighbours[i]),
+        }
+        if shapes:
+            # inside the faces: the outline less a band of half each wall's thickness along it
+            bands = unary_union(
+                [geoms[j].buffer(float(walls[j].get("width") or 0.2) / 2.0, cap_style="flat") for j, _ in members]
+            )
+            rec["polygon"], rec["net_area"] = orient(r, sign=1.0), r.difference(bands).area
+        out_rooms.append(rec)
+    external = []
+    if rooms:
+        union = unary_union(polygons)  # with the slivers between the layers of a wall, which are inside too
+        for j, part in along(union.boundary.buffer(tol)):
+            facing = _topo_outward(union, part, tol, north)
+            if facing:
+                external.append(
+                    {
+                        "wall": walls[j]["id"],
+                        "guid": walls[j].get("guid"),
+                        "name": walls[j].get("name"),
+                        "facing": facing,
+                        "length": round(part.length, 2),
+                    }
+                )
+        external.sort(key=lambda e: (_FACINGS.index(e["facing"]), e["wall"]))
+    return {
+        "rooms": out_rooms,
+        "external": external,
+        "dangles": dangles,
+        "closed": bool(rooms) and not dangles,
+        "dangling": dangling,  # Dataregium
+    }
+
+
+def _topo_elevation(storey, scale):
+    if storey.Elevation is not None:
+        return float(storey.Elevation) * scale
+    try:
+        import ifcopenshell.util.placement as placement
+
+        return float(placement.get_local_placement(storey.ObjectPlacement)[2][3]) * scale
+    except Exception:
+        return 0.0
+
+
+def _ifc_topology(model, tolerance=None, storeys=None, shapes=False):
+    """The building's topology per storey (decision F46 a), as a list in the storeys' order of elevation:
+
+        {"storey", "elevation" (m), "rooms": [{"index" (from 1), "area" (m²), "perimeter" (m), "walls": [wall ids], "neighbours":
+         [room indices]}], "external": [{"wall", "guid", "name", "facing" (N, NE, E, SE, S, SW, W, NW), "length" (m)}], "dangles":
+         [[x, y], ...] (open wall ends, metres), "closed" (at least one room and nothing dangles), "walls" (on the storey), "unread"
+         (walls whose centreline could not be read), "tolerance" (m), "north" (map, true_north or model)}
+
+    A wall's centreline is its 'Axis' representation through its placement, else the long axis of its body's footprint
+    (ifcopenshell.geom). The ends are snapped within `tolerance` metres (by default half the storey's thickest wall plus 0.05 m).
+    `storeys` (names) limits the storeys read. At most TOPOLOGY_MAX_WALLS walls. With shapes (for create_spaces, never for JSON) the
+    rooms carry their polygons and net areas (_topo_plan) and every storey its entity as "_storey".
+    """
+    import ifcopenshell.util.unit
+
+    try:
+        scale = float(ifcopenshell.util.unit.calculate_unit_scale(model) or 1.0)  # metres per file unit
+    except Exception:
+        scale = 1.0
+    north = _topo_north(model)
+    chosen = []
+    for s in model.by_type("IfcBuildingStorey"):
+        if storeys is not None and _ifc_text(s.Name) not in storeys:
+            continue
+        chosen.append(
+            (
+                s,
+                [
+                    e
+                    for rel in (getattr(s, "ContainsElements", None) or ())
+                    for e in (rel.RelatedElements or ())
+                    if e.is_a("IfcWall")
+                ],
+            )
+        )
+    total = sum(len(walls) for _, walls in chosen)
+    if total > TOPOLOGY_MAX_WALLS:
+        raise DataspatiumError("the topology reads at most %d walls; there are %d" % (TOPOLOGY_MAX_WALLS, total))
+    settings = None
+    out = []
+    for s, walls in sorted(chosen, key=lambda x: _topo_elevation(x[0], scale)):
+        read, widths, unread = [], [], 0
+        missed = []  # Dataregium
+        for w in walls:
+            try:
+                line = _topo_axis(w, scale)
+                width = _topo_thickness(w, scale) if line else None
+            except Exception:
+                line = None
+            if not line:
+                try:
+                    if settings is None:
+                        settings = _topo_settings()
+                    line, width = _topo_footprint(w, settings)
+                except Exception:
+                    line = None
+            if not line or math.dist(line[0], line[-1]) <= 1e-6:
+                unread += 1
+                missed.append(getattr(w, "GlobalId", None))  # Dataregium
+                continue
+            read.append(
+                {
+                    "id": w.id(),
+                    "guid": getattr(w, "GlobalId", None),
+                    "name": _ifc_text(getattr(w, "Name", None)),
+                    "line": line,
+                    "width": width,
+                }
+            )
+            if width:
+                widths.append(width)
+        tol = float(tolerance) if tolerance else max([x for x in widths if x <= 1.0] or [0.2]) / 2.0 + 0.05
+        rec = {"storey": _ifc_text(s.Name), "elevation": round(_topo_elevation(s, scale), 3)}
+        rec.update(_topo_plan(read, tol, north, shapes))
+        rec.update({"walls": len(walls), "unread": unread, "tolerance": round(tol, 3), "north": north[2]})
+        rec["unread_walls"] = missed  # Dataregium
+        if shapes:
+            rec["_storey"] = s
+        out.append(rec)
+    return out
 
 
 # ---- the server's own, below the copy -----------------------------------------------------------------------------
