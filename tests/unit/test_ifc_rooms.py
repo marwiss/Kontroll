@@ -20,7 +20,7 @@ from opencde.documents.routes_precheck import _report as precheck_report
 from opencde.documents.validation import Validation, report
 from opencde.ids import new_id
 from opencde.ifcgraph import service as service_module
-from opencde.ifcgraph.service import IfcGraphService
+from opencde.ifcgraph.service import ROOMS_SECONDS, IfcGraphService
 from opencde.storage import LocalStorage, make_key
 from opencde.ui.templating import render
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
@@ -81,10 +81,13 @@ def checking(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[IfcGraphS
 def answering(rooms: Any, commands: list[list[str]]) -> Any:
     """The workers: the schema's check, and the topology answering ``rooms``, or raising it."""
 
-    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+    async def answer(
+        command: list[str], what: str, answers: tuple[int, ...] = (0,), seconds: float | None = None
+    ) -> str:
         commands.append(command)
         if command[2] == "opencde.ifcgraph.topology":
             assert answers == (0,) and command[-2:] == ["--memory-mb", "4096"], "the limits of every worker"
+            assert seconds == ROOMS_SECONDS, "and a short time, also inside an upload's own check"
             if isinstance(rooms, Exception):
                 raise rooms
             return json.dumps(rooms) + "\n"
@@ -183,7 +186,9 @@ async def test_a_trial_keeps_the_rooms_of_the_applied_file_and_its_state_never_d
     monkeypatch.setattr(service, "_prepare_input", lambda key, name, workdir: tmp_path / name)
     read: list[str] = []
 
-    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+    async def answer(
+        command: list[str], what: str, answers: tuple[int, ...] = (0,), seconds: float | None = None
+    ) -> str:
         if command[2] == "opencde.ifcgraph.apply":
             await asyncio.to_thread(Path(command[5]).write_bytes, b"ISO-10303-21;")  # the changed file
             return json.dumps({"count": 1, "applied": 1, "problems": []})

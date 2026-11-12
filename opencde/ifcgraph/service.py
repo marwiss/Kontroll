@@ -80,6 +80,7 @@ MAX_IDS_DOCUMENTS = 50
 MAX_RECHECKS = 500  # the IFC documents of a project checked again at once when its IDS changes (OB-43.1)
 PRECHECK_SECONDS = 24 * 3600  # a file checked without becoming a version is kept this long (ADR 0021)
 MAX_SPECIFICATIONS = 1_000
+ROOMS_SECONDS = 120  # the rooms only inform, so they never hold an upload or the jobs behind it longer
 
 
 def _failure(exc: Exception) -> dict[str, Any]:
@@ -1373,8 +1374,10 @@ class IfcGraphService:
             return None
         memory = str(self.settings.ifcgraph_memory_mb)
         command = [sys.executable, "-m", "opencde.ifcgraph.topology", str(source), "--memory-mb", memory]
+        seconds = min(ROOMS_SECONDS, self.settings.ifcgraph_timeout_seconds)  # also inside an upload's own check
         try:
-            found = json.loads((await self._in_a_process(command, "finding the rooms")).strip().splitlines()[-1])
+            answer = await self._in_a_process(command, "finding the rooms", seconds=seconds)
+            found = json.loads(answer.strip().splitlines()[-1])
             if isinstance(found, dict) and "error" in found:
                 log.warning("ifc_rooms_failed", error=str(found["error"])[:300])
                 return None
@@ -1424,19 +1427,21 @@ class IfcGraphService:
             command.append("--lossless")
         return json.loads((await self._in_a_process(command, "conversion")).strip().splitlines()[-1])
 
-    async def _in_a_process(self, command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        """Run a worker with the time limit. Returns what it wrote to stdout, for an exit code that is an answer."""
+    async def _in_a_process(
+        self, command: list[str], what: str, answers: tuple[int, ...] = (0,), seconds: float | None = None
+    ) -> str:
+        """Run a worker with the time limit, the module's or a shorter one. Returns what it wrote to stdout, for an
+        exit code that is an answer."""
+        limit = self.settings.ifcgraph_timeout_seconds if seconds is None else seconds
         process = await asyncio.create_subprocess_exec(
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=self.settings.ifcgraph_timeout_seconds
-            )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=limit)
         except TimeoutError:
             process.kill()
             await process.wait()
-            raise RuntimeError(f"{what} exceeded {self.settings.ifcgraph_timeout_seconds} s") from None
+            raise RuntimeError(f"{what} exceeded {limit} s") from None
         if process.returncode not in answers:
             message = stderr.decode("utf-8", "replace").strip().splitlines()
             detail = message[-1] if message else f"exit code {process.returncode}"
