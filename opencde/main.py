@@ -27,7 +27,7 @@ from opencde.admin.access import install_page_handlers
 from opencde.auth import metadata as oauth2_metadata
 from opencde.auth import routes as oauth2_routes
 from opencde.bcf import router as bcf_router
-from opencde.bootstrap import make_graph, make_storage, make_store, make_workcopy, wait_for_graph
+from opencde.bootstrap import make_graph, make_postgres, make_storage, make_store, make_workcopy, wait_for_graph
 from opencde.documents import routes_ai_policy as documents_ai_policy
 from opencde.documents import routes_api as documents_api
 from opencde.documents import routes_changes as documents_changes
@@ -60,6 +60,9 @@ from opencde.middleware import (
     SecurityHeadersMiddleware,
     UnhandledErrorMiddleware,
 )
+from opencde.postgres.cleanup import delete_expired as delete_expired_rows
+from opencde.postgres.database import wait_for_postgres
+from opencde.postgres.schema import migrate
 from opencde.ratelimit import PathRateLimitMiddleware, install_rate_limiting
 from opencde.requestlog import RequestLogMiddleware, RequestLogWriter
 from opencde.settings import LOOPBACK_HOSTS, Settings
@@ -122,19 +125,29 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
         app.state.graph = make_graph(settings)
         app.state.workcopy = make_workcopy(settings)
         app.state.store = make_store(settings) or app.state.graph  # the server's own data (F24 a)
+        app.state.postgres = make_postgres(settings)  # the areas of it that have followed to PostgreSQL (ADR 0029)
         app.state.storage = make_storage(settings)
         app.state.ifcgraph = (
             IfcGraphService(
-                app.state.graph, app.state.storage, settings, workcopy=app.state.workcopy, store=app.state.store
+                app.state.graph,
+                app.state.storage,
+                settings,
+                workcopy=app.state.workcopy,
+                store=app.state.store,
+                postgres=app.state.postgres,
             )
             if settings.ifcgraph_enabled
             else None
         )
+
+        async def each_round() -> None:
+            if app.state.postgres is not None:
+                await delete_expired_rows(app.state.postgres)
+            if app.state.ifcgraph is not None:
+                await app.state.ifcgraph.resume_interrupted()
+
         cleaner = ExpiryCleaner(
-            app.state.store,
-            settings.cleanup_interval_seconds,
-            app.state.storage,
-            each_round=app.state.ifcgraph.resume_interrupted if app.state.ifcgraph else None,
+            app.state.store, settings.cleanup_interval_seconds, app.state.storage, each_round=each_round
         )
         app.state.requestlog = (
             RequestLogWriter(app.state.store, settings.request_log_retention_hours)
@@ -160,6 +173,9 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
             if app.state.workcopy is not None:
                 await wait_for_graph(app.state.workcopy, startup_wait_seconds)
                 await apply_schema(app.state.workcopy)
+            if app.state.postgres is not None:
+                await wait_for_postgres(app.state.postgres, startup_wait_seconds)
+                await migrate(app.state.postgres)
             cleaner.start()
         try:
             yield
@@ -173,6 +189,8 @@ def create_app(settings: Settings | None = None, *, startup_wait_seconds: float 
                 await app.state.requestlog.close()
             if app.state.store is not app.state.graph:
                 await app.state.store.close()
+            if app.state.postgres is not None:
+                await app.state.postgres.close()
             await app.state.graph.close()
             log.info("server_stopped")
 

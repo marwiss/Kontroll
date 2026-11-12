@@ -8,10 +8,9 @@ from typing import Annotated
 from fastapi import Depends, Request
 
 from opencde.graph.graph import Graph
+from opencde.postgres.database import Postgres
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
-from opencde.store.accounts.projects import ProjectRepository
-from opencde.store.accounts.users import UserRepository
 from opencde.store.oauth2.clients import ClientRepository
 from opencde.store.protocols import ClientStore, ProjectStore, UserStore
 
@@ -31,16 +30,30 @@ def get_model_graph(request: Request) -> Graph:
     return request.app.state.graph
 
 
+def get_postgres(request: Request) -> Postgres | None:
+    """The server's own data in PostgreSQL, when ``OPENCDE_STORE_URL`` names it (ADR 0029): the areas that have
+    followed are read there, the others in the graph of ``get_graph``."""
+    return getattr(request.app.state, "postgres", None)
+
+
 def get_storage(request: Request) -> LocalStorage:
     return request.app.state.storage
 
 
-def get_users(graph: Annotated[Graph, Depends(get_graph)]) -> UserStore:
-    return UserRepository(graph)
+def get_users(
+    graph: Annotated[Graph, Depends(get_graph)], postgres: Annotated[Postgres | None, Depends(get_postgres)]
+) -> UserStore:
+    from opencde.store.accounts.postgres import user_store  # it imports the modules that import this one
+
+    return user_store(graph, postgres)
 
 
-def get_projects(graph: Annotated[Graph, Depends(get_graph)]) -> ProjectStore:
-    return ProjectRepository(graph)
+def get_projects(
+    graph: Annotated[Graph, Depends(get_graph)], postgres: Annotated[Postgres | None, Depends(get_postgres)]
+) -> ProjectStore:
+    from opencde.store.accounts.postgres import project_store  # it imports the modules that import this one
+
+    return project_store(graph, postgres)
 
 
 def get_clients(
@@ -55,6 +68,7 @@ def client_ip(request: Request) -> str | None:
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 GraphDep = Annotated[Graph, Depends(get_graph)]
+PostgresDep = Annotated[Postgres | None, Depends(get_postgres)]
 ModelGraphDep = Annotated[Graph, Depends(get_model_graph)]
 StorageDep = Annotated[LocalStorage, Depends(get_storage)]
 UsersDep = Annotated[UserStore, Depends(get_users)]

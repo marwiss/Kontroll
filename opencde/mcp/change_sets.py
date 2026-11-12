@@ -38,7 +38,7 @@ from opencde.ids import is_uuid, normalize_guid
 from opencde.ifcgraph.service import IfcGraphService
 from opencde.mcp import write_tools
 from opencde.mcp.registry import Arguments, Tool, ToolContext, ToolRefusal, member_project
-from opencde.store.accounts.projects import ProjectRepository
+from opencde.store.accounts.postgres import project_store
 from opencde.store.bcf.topic_links import TopicLinkRepository
 from opencde.store.bcf.topics import TopicRepository
 from opencde.store.documents.versions import DocumentRepository
@@ -454,7 +454,7 @@ async def propose_changes(context: ToolContext, arguments: ProposeChangesArgumen
     proposing = Proposing(
         topics=topics,
         links=TopicLinkRepository(context.graph, topics),
-        projects=ProjectRepository(context.graph),
+        projects=project_store(context.graph, context.postgres),
         storage=context.storage,
         ifcgraph=context.ifcgraph,
         public_url=public_url,

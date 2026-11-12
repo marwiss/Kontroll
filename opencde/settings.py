@@ -83,6 +83,7 @@ RATE_LIMIT_STORES = ("memory://", "redis://", "rediss://")
 GRAPH_URI_SCHEMES = ("bolt://", "bolt+s://", "bolt+ssc://", "neo4j://", "neo4j+s://", "neo4j+ssc://")
 # A published Bolt address must be encrypted with a certificate clients can verify ("+ssc" trusts anything).
 SECURE_GRAPH_URI_SCHEMES = ("bolt+s://", "neo4j+s://")
+POSTGRES_URL_SCHEMES = ("postgresql://", "postgres://")
 
 #: What the local engine answers to as Host and public URL (ADR 0023).
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
@@ -227,6 +228,13 @@ class Settings(BaseSettings):
     store_graph_user: str = ""
     store_graph_password: SecretStr = SecretStr("")
     store_graph_database: str | None = Field(None, description="The server's own graph's database name; by dialect.")
+    store_url: str | None = Field(
+        None,
+        description="PostgreSQL for the server's own data instead of a graph (ADR 0029), as "
+        "postgresql://user@host:5432/database without the password. Only the accounts have followed so far, so it is "
+        "accepted in the test environment alone; it excludes OPENCDE_STORE_GRAPH_URI.",
+    )
+    store_password: SecretStr = SecretStr("")
     cleanup_interval_seconds: int = Field(
         60, ge=5, description="How often expired codes, tokens and sessions are deleted."
     )
@@ -496,6 +504,32 @@ class Settings(BaseSettings):
         if value is not None and not value.startswith(GRAPH_URI_SCHEMES):
             raise ValueError(f"OPENCDE_STORE_GRAPH_URI must use one of {', '.join(GRAPH_URI_SCHEMES)}")
         return value
+
+    @field_validator("store_url")
+    @classmethod
+    def _store_url(cls, value: str | None) -> str | None:
+        value = (value or "").strip() or None
+        if value is None:
+            return None
+        if not value.startswith(POSTGRES_URL_SCHEMES):
+            raise ValueError(f"OPENCDE_STORE_URL must use one of {', '.join(POSTGRES_URL_SCHEMES)}")
+        parts = urlsplit(value)
+        if parts.password is not None or "password" in parts.query.lower():
+            # The URL is logged and shown; the password has a setting of its own, which a secret file can give.
+            raise ValueError("OPENCDE_STORE_URL must not hold the password: set OPENCDE_STORE_PASSWORD")
+        return value
+
+    @model_validator(mode="after")
+    def _store_in_postgres(self) -> Self:
+        """The server's own data in PostgreSQL is one store: not beside a graph of its own, and not outside the tests
+        until every area has followed, since a server with its data in two places cannot answer (ADR 0029)."""
+        if self.store_url is None:
+            return self
+        if self.store_graph_uri is not None:
+            raise ValueError("OPENCDE_STORE_URL and OPENCDE_STORE_GRAPH_URI exclude each other: one store holds it all")
+        if self.environment != "test":
+            raise ValueError("OPENCDE_STORE_URL is not supported yet: only the accounts have followed to PostgreSQL")
+        return self
 
     @field_validator("workcopy_graph_uri")
     @classmethod

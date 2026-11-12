@@ -30,12 +30,14 @@ from opencde.graph.graph import Graph
 from opencde.ids import is_uuid, normalize_guid
 from opencde.mcp.protocol import CLIENT_INFO_KEY
 from opencde.settings import Settings
-from opencde.store.accounts.projects import Project, ProjectRepository
+from opencde.store.accounts.postgres import project_store
+from opencde.store.accounts.projects import Project
 from opencde.store.documents.versions import DocumentRepository, VersionRecord
 from opencde.store.oauth2.tokens import Principal
 
 if TYPE_CHECKING:
     from opencde.ifcgraph.service import IfcGraphService
+    from opencde.postgres.database import Postgres
     from opencde.storage import LocalStorage
 
 #: The most an answer holds, as JSON; the client gets it twice, as ``structuredContent`` and as text.
@@ -81,6 +83,7 @@ class ToolContext:
     client_info: dict[str, str] = field(default_factory=dict)
     storage: LocalStorage | None = None
     ifcgraph: IfcGraphService | None = None
+    postgres: Postgres | None = None  # the areas of the server's own data that have followed there (ADR 0029)
 
     async def record(self, event: str, **details: Any) -> None:
         """An ``mcp.*`` event in the audit log: who, through which client and tool; identifiers, never texts."""
@@ -271,7 +274,9 @@ async def member_project(context: ToolContext, project_id: str) -> tuple[Project
     """One of the caller's projects, reached from the user through ``MEMBER_OF``, that this server may give to AI
     tools; a refusal otherwise, and ``mcp.denied`` when the policy is why."""
     pid = normalize_guid(project_id) if is_uuid(project_id) else None
-    memberships = await ProjectRepository(context.graph).list_for_user(context.principal.user_id) if pid else []
+    memberships = (
+        await project_store(context.graph, context.postgres).list_for_user(context.principal.user_id) if pid else []
+    )
     found = next(((project, role) for project, role in memberships if project.project_id == pid), None)
     if found is None:
         raise ToolRefusal("There is no project with this id among your projects")

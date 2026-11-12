@@ -23,8 +23,11 @@ async def readyz(request: Request) -> JSONResponse:
     graph = request.app.state.graph
     reachable = await ping_within(graph.driver, graph.database, settings.graph_connect_timeout_seconds)
     store = getattr(request.app.state, "store", graph)
+    postgres = getattr(request.app.state, "postgres", None)
     store_state = "shared"  # the server's own data in the IFC graph's connection, unless it has its own (ADR 0027)
-    if store is not graph:
+    if postgres is not None:  # or PostgreSQL (ADR 0029)
+        store_state = "ok" if await postgres.ping(settings.graph_connect_timeout_seconds) else "unavailable"
+    elif store is not graph:
         answers = await ping_within(store.driver, store.database, settings.graph_connect_timeout_seconds)
         store_state = "ok" if answers else "unavailable"
     workcopy = getattr(request.app.state, "workcopy", None)
@@ -44,6 +47,7 @@ async def readyz(request: Request) -> JSONResponse:
                 "dialect": graph.dialect.name.value,
                 "workcopy": copy_state,
             }
+            | ({"store_dialect": "postgres"} if postgres is not None else {})
         )
     return JSONResponse(
         {"status": "not_ready", "graph": "ok" if reachable else "unavailable", "store": store_state}, status_code=503

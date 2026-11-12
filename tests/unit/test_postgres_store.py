@@ -11,8 +11,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
 from opencde.accounts.roles import Role
+from opencde.deps import get_projects, get_users
+from opencde.main import create_app
 from opencde.postgres import cleanup, database, schema
 from opencde.postgres.database import Postgres, _count
 from opencde.store.accounts import postgres as accounts
@@ -336,6 +339,19 @@ def test_the_graph_holds_the_accounts_unless_postgresql_is_named(tmp_path: Path)
     assert (
         isinstance(sessions, PostgresWebSessionRepository) and sessions.ttl_seconds == settings.web_session_ttl_seconds
     )
+
+
+def test_the_app_opens_postgresql_when_it_is_named_and_reports_it(tmp_path: Path) -> None:
+    settings = make_settings(tmp_path, store_url=URL)
+    with TestClient(create_app(settings, startup_wait_seconds=0)) as client:
+        postgres = client.app.state.postgres  # ty: ignore[unresolved-attribute]
+        assert isinstance(postgres, Postgres) and postgres.url == URL
+        assert isinstance(get_users(client.app.state.store, postgres), PostgresUserRepository)  # ty: ignore[unresolved-attribute]
+        assert isinstance(get_projects(client.app.state.store, postgres), PostgresProjectRepository)  # ty: ignore[unresolved-attribute]
+        answer = client.get("/readyz")
+        assert answer.status_code == 503 and answer.json()["store"] == "unavailable"
+    with TestClient(create_app(make_settings(tmp_path), startup_wait_seconds=0)) as client:
+        assert client.app.state.postgres is None  # ty: ignore[unresolved-attribute]
 
 
 def test_postgresql_wants_its_extra(monkeypatch: pytest.MonkeyPatch) -> None:

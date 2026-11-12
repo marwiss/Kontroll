@@ -17,6 +17,7 @@ from opencde.graph.driver import create_driver, create_store_driver, create_work
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
 from opencde.logging import get_logger
+from opencde.postgres.database import Postgres
 from opencde.settings import Settings
 from opencde.storage import LocalStorage
 
@@ -58,6 +59,17 @@ def make_store(settings: Settings) -> Graph | None:
     if not settings.has_store:
         return None
     return Graph(create_store_driver(settings), settings.store_database_name, get_dialect(settings.store_graph_dialect))
+
+
+def make_postgres(settings: Settings) -> Postgres | None:
+    """The server's own data in PostgreSQL (ADR 0029), when ``OPENCDE_STORE_URL`` names it; nothing connects yet."""
+    if settings.store_url is None:
+        return None
+    return Postgres(
+        settings.store_url,
+        settings.store_password.get_secret_value(),
+        connect_timeout_seconds=settings.graph_connect_timeout_seconds,
+    )
 
 
 def make_storage(settings: Settings) -> LocalStorage:

@@ -14,7 +14,7 @@ from typing import Annotated, Any
 
 from fastapi import Depends
 
-from opencde.deps import GraphDep
+from opencde.deps import GraphDep, PostgresDep
 from opencde.graph.graph import Graph, Tx
 from opencde.ids import new_id
 from opencde.store.protocols import TeamStore
@@ -149,8 +149,10 @@ class TeamRepository:
         )
 
 
-def team_repository(graph: GraphDep) -> TeamStore:
-    return TeamRepository(graph)
+def team_repository(graph: GraphDep, postgres: PostgresDep) -> TeamStore:
+    from opencde.store.accounts.postgres import team_store  # it imports this module
+
+    return team_store(graph, postgres)
 
 
 TeamsDep = Annotated[TeamStore, Depends(team_repository)]

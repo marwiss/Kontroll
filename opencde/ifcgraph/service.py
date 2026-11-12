@@ -54,9 +54,10 @@ from opencde.ifcgraph.bsdd import check as check_bsdd
 from opencde.ifcgraph.bsdd import ruleset as bsdd_ruleset
 from opencde.ifcgraph.gltf import LODS, build_glb
 from opencde.logging import get_logger
+from opencde.postgres.database import Postgres
 from opencde.settings import Settings
 from opencde.storage import LocalStorage, make_key
-from opencde.store.accounts.teams import TeamRepository
+from opencde.store.accounts.postgres import team_store
 from opencde.store.jobs.conversions import (
     FACTS,
     SPATIAL_FACTS,
@@ -181,10 +182,12 @@ class IfcGraphService:
         *,
         workcopy: Graph | None = None,
         store: Graph | None = None,
+        postgres: Postgres | None = None,
     ) -> None:
         self.workcopy = workcopy  # the second graph that holds the head model of every document (ADR 0024)
         self.graph = graph  # IFC-DB's models: the library's calls alone run here (ADR 0027)
         self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a): every statement
+        self.postgres = postgres  # the areas of the server's own data that have followed to PostgreSQL (ADR 0029)
         self.conversions: ConversionStore = ConversionRepository(self.store)
         self.storage = storage
         self.settings = settings
@@ -1002,7 +1005,7 @@ class IfcGraphService:
     ) -> tuple[list[dict[str, Any]], str | None]:
         """The teams whose part of the model the change set touches (F11 b, F19 a), and why that is unknown when it
         is: then a ``manager`` approves."""
-        parts = [part for part in await TeamRepository(self.store).parts(project_id) if part["storage_key"]]
+        parts = [part for part in await team_store(self.store, self.postgres).parts(project_id) if part["storage_key"]]
         if not parts:
             return [], None
         command = [sys.executable, "-m", "opencde.ifcgraph.parts", "--memory-mb", str(self.settings.ifcgraph_memory_mb)]

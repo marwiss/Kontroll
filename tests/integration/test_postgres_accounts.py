@@ -8,19 +8,25 @@ runs once, beside Neo4j."""
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 
 import pytest
 from asyncpg.exceptions import CheckViolationError
+from fastapi.testclient import TestClient
+from neo4j import GraphDatabase
+from pydantic import SecretStr
 from testcontainers.community.postgres import PostgresContainer
 
 from opencde.accounts.roles import Role
 from opencde.graph.dialect import GraphDialect
 from opencde.graph.graph import Graph
+from opencde.main import create_app
 from opencde.postgres.cleanup import delete_expired
 from opencde.postgres.database import Postgres
 from opencde.postgres.schema import MigrationError, migrate
+from opencde.settings import Settings
 from opencde.store.accounts.postgres import (
     PostgresProjectRepository,
     PostgresTeamRepository,
@@ -33,6 +39,7 @@ from opencde.store.accounts.teams import TeamRepository
 from opencde.store.accounts.users import AccountError, UserRepository
 from opencde.store.protocols import ProjectStore, TeamStore, UserStore, WebSessionStore
 from tests.integration.conftest import GraphTarget
+from tests.integration.test_web_signin import form_token
 
 pytestmark = pytest.mark.integration
 
@@ -268,3 +275,48 @@ async def test_expired_sessions_are_deleted_and_the_others_kept(pg: Postgres) ->
     assert await delete_expired(pg) == 1
     assert await pg.one("SELECT count(*) AS n FROM web_sessions") == {"n": 1}
     assert await PostgresWebSessionRepository(pg, ttl_seconds=3600, idle_seconds=600).resolve(kept) is not None
+
+
+def test_the_app_signs_in_with_the_accounts_in_postgresql(
+    settings: Settings, clean_database: None, graph_target: GraphTarget, postgres_target: PostgresTarget
+) -> None:
+    """The routes choose PostgreSQL's repositories when ``OPENCDE_STORE_URL`` names it: the user signs in from there,
+    the session lives there, and the graph holds no user."""
+
+    async def seed() -> None:
+        postgres = await _emptied(postgres_target)
+        try:
+            await PostgresUserRepository(postgres).create("editor", PASSWORD)
+        finally:
+            await postgres.close()
+
+    async def stored() -> tuple[int, str | None]:
+        postgres = Postgres(postgres_target.url, postgres_target.password, connect_timeout_seconds=10.0)
+        try:
+            sessions = await postgres.one("SELECT count(*) AS n FROM web_sessions")
+            user = await postgres.one("SELECT last_sign_in_at FROM users WHERE username = 'editor'")
+            return (sessions or {}).get("n", 0), (user or {}).get("last_sign_in_at")
+        finally:
+            await postgres.close()
+
+    asyncio.run(seed())
+    apart = settings.model_copy(
+        update={"store_url": postgres_target.url, "store_password": SecretStr(postgres_target.password)}
+    )
+    with TestClient(create_app(apart, startup_wait_seconds=30)) as client:
+        ready = client.get("/readyz").json()
+        assert ready["store"] == "ok" and ready["store_dialect"] == "postgres"
+        page = client.get("/signin")
+        answer = client.post(
+            "/signin",
+            data={"form_token": form_token(page.text), "username": "editor", "password": PASSWORD},
+            follow_redirects=False,
+        )
+        assert answer.status_code == 302, answer.text
+        account = client.get("/account")
+        assert account.status_code == 200 and "editor" in account.text
+    sessions, signed_in = asyncio.run(stored())
+    assert sessions == 1 and signed_in is not None
+    with GraphDatabase.driver(graph_target.uri, auth=(graph_target.user, graph_target.password)) as driver:
+        records, _, _ = driver.execute_query("MATCH (u:User) RETURN count(u) AS n", database_=settings.database_name)
+    assert records[0]["n"] == 0, "the graph holds no user"

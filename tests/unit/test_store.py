@@ -98,3 +98,23 @@ def test_a_protocol_names_every_public_method_of_its_repository_as_it_is(reposit
     for name, fn in public.items():
         assert list(inspect.signature(fn).parameters) == list(inspect.signature(declared[name]).parameters), name
         assert inspect.iscoroutinefunction(fn) == inspect.iscoroutinefunction(declared[name]), name
+
+
+def test_the_store_can_be_postgresql_alone_and_only_in_the_tests_for_now(tmp_path: Path) -> None:
+    """``OPENCDE_STORE_URL`` (ADR 0029): a PostgreSQL URL without the password, not beside a graph of its own, and
+    refused outside the tests until every area has followed."""
+    settings = make_settings(tmp_path, store_url=" postgresql://cde@db:5432/cde ", store_password="p" * 20)
+    assert settings.store_url == "postgresql://cde@db:5432/cde" and not settings.has_store
+    assert make_settings(tmp_path, store_url="  ").store_url is None, "an empty value is none"
+    for url, words in (
+        ("mysql://cde@db/cde", "OPENCDE_STORE_URL must use one of"),
+        ("postgresql://cde:secret@db/cde", "must not hold the password"),
+        ("postgres://cde@db/cde?password=secret", "must not hold the password"),
+    ):
+        with pytest.raises(ValidationError, match=words) as refused:
+            make_settings(tmp_path, store_url=url)
+        assert "secret" not in str(refused.value), "a refused value is never repeated"
+    with pytest.raises(ValidationError, match="exclude each other"):
+        make_settings(tmp_path, store_url="postgresql://cde@db/cde", store_graph_uri="bolt://store:7687")
+    with pytest.raises(ValidationError, match="not supported yet"):
+        make_settings(tmp_path, store_url="postgresql://cde@db/cde", environment="development")

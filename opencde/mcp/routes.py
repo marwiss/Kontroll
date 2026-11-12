@@ -24,7 +24,7 @@ from fastapi.responses import JSONResponse
 from neo4j.exceptions import ServiceUnavailable
 
 from opencde.auth.resources import MCP_PATH
-from opencde.deps import GraphDep, SettingsDep, client_ip, get_storage
+from opencde.deps import GraphDep, SettingsDep, client_ip, get_postgres, get_storage
 from opencde.errors import CODE_FORBIDDEN, CODE_PAYLOAD_TOO_LARGE, ApiError, error_response
 from opencde.graph.graph import Graph
 from opencde.ifcgraph.service import ifcgraph_service
@@ -281,6 +281,7 @@ async def _call(
         client_info=registry.client_info(params.get("_meta")),
         storage=get_storage(request),
         ifcgraph=ifcgraph_service(request),
+        postgres=get_postgres(request),
     )
     if not caller.has_scope(tool.scope):
         await context.record("mcp.denied", reason="scope", scope=tool.scope)
