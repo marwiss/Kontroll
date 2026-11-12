@@ -147,24 +147,86 @@ def redirect_uri_matches(registered: str, requested: str) -> bool:
     return reg.path == req.path and reg.query == req.query and not req.fragment
 
 
+def clean_redirects(uris: list[str], *, allow_localhost: bool) -> list[str]:
+    """The redirect URIs to register: each checked and once, at most ``MAX_REDIRECTS``."""
+    if not uris:
+        raise ClientError("at least one redirect URI is required", key="error.redirect_uri.required")
+    if len(uris) > MAX_REDIRECTS:
+        raise ClientError(
+            f"at most {MAX_REDIRECTS} redirect URIs", key="error.redirect_uri.too_many", max=MAX_REDIRECTS
+        )
+    cleaned: list[str] = []
+    for uri in uris:
+        value = validate_redirect_uri(uri, allow_localhost=allow_localhost)
+        if value not in cleaned:
+            cleaned.append(value)
+    return cleaned
+
+
+def check_flags(*, public: bool, pkce_optional: bool | None, headless_uploads: bool | None) -> None:
+    """A public client always uses PKCE and never uploads without the browser page."""
+    if pkce_optional and public:
+        raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
+    if headless_uploads and public:
+        raise ClientError("a public client cannot upload headless", key="error.client.public_no_headless")
+
+
+def new_client_fields(
+    name: str,
+    redirect_uris: list[str],
+    *,
+    public: bool,
+    description: str | None,
+    url: str | None,
+    dynamic: bool,
+    client_id: str | None,
+    expires_at: str | None,
+    software_id: str | None,
+    software_version: str | None,
+    pkce_optional: bool,
+    headless_uploads: bool,
+    allow_localhost: bool,
+) -> dict[str, Any]:
+    """The checked and trimmed fields of a new client, by the rules every store keeps; raises :class:`ClientError`."""
+    name = name.strip()
+    if not name or len(name) > 200:
+        raise ClientError("client name: 1-200 characters", key="error.client.name_length", max=200)
+    check_flags(public=public, pkce_optional=pkce_optional, headless_uploads=headless_uploads)
+    if client_id is not None:
+        if not is_uuid(client_id):
+            raise ClientError("client_id must be a UUID", key="error.client.id_uuid")
+        client_id = normalize_guid(client_id)
+    return {
+        "client_id": client_id or new_id(),
+        "name": name,
+        "description": (description or "").strip()[:MAX_DESCRIPTION] or None,
+        "url": (url or "").strip()[:2000] or None,
+        "redirect_uris": clean_redirects(redirect_uris, allow_localhost=allow_localhost),
+        "expires_at": expires_at if dynamic else None,
+        "software_id": (software_id or "").strip()[:100] or None,
+        "software_version": (software_version or "").strip()[:50] or None,
+    }
+
+
+def authenticated(client: Client | None, secret_hash: str | None, secret: str | None) -> Client | None:
+    """The client if it may authenticate with ``secret``: a confidential client presents its secret, a public one
+    none, and a disabled one never authenticates. An unknown client costs the same comparison."""
+    if client is None:
+        secrets_equal(hash_secret(secret or ""), hash_secret("no-such-client"))  # constant time
+        return None
+    if client.disabled:
+        return None
+    if client.is_public:
+        return client if not secret else None
+    if not secret or not secrets_equal(hash_secret(secret), secret_hash or ""):
+        return None
+    return client
+
+
 class ClientRepository:
     def __init__(self, graph: Graph, *, allow_localhost_redirects: bool = False) -> None:
         self.graph = graph
         self.allow_localhost = allow_localhost_redirects
-
-    def _clean_redirects(self, uris: list[str]) -> list[str]:
-        if not uris:
-            raise ClientError("at least one redirect URI is required", key="error.redirect_uri.required")
-        if len(uris) > MAX_REDIRECTS:
-            raise ClientError(
-                f"at most {MAX_REDIRECTS} redirect URIs", key="error.redirect_uri.too_many", max=MAX_REDIRECTS
-            )
-        cleaned: list[str] = []
-        for uri in uris:
-            value = validate_redirect_uri(uri, allow_localhost=self.allow_localhost)
-            if value not in cleaned:
-                cleaned.append(value)
-        return cleaned
 
     async def create(
         self,
@@ -189,17 +251,21 @@ class ClientRepository:
         ``expires_at`` is set for self-registered clients: the cleaner deletes them once it has passed, and
         every token issuance moves it forward (:meth:`touch`), so only unused registrations disappear.
         """
-        name = name.strip()
-        if not name or len(name) > 200:
-            raise ClientError("client name: 1-200 characters", key="error.client.name_length", max=200)
-        if pkce_optional and public:
-            raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
-        if headless_uploads and public:
-            raise ClientError("a public client cannot upload headless", key="error.client.public_no_headless")
-        if client_id is not None:
-            if not is_uuid(client_id):
-                raise ClientError("client_id must be a UUID", key="error.client.id_uuid")
-            client_id = normalize_guid(client_id)
+        fields = new_client_fields(
+            name,
+            redirect_uris,
+            public=public,
+            description=description,
+            url=url,
+            dynamic=dynamic,
+            client_id=client_id,
+            expires_at=expires_at,
+            software_id=software_id,
+            software_version=software_version,
+            pkce_optional=pkce_optional,
+            headless_uploads=headless_uploads,
+            allow_localhost=self.allow_localhost,
+        )
         secret = None if public else new_secret()
         row = await self.graph.one(
             f"""
@@ -213,19 +279,12 @@ class ClientRepository:
             }})
             RETURN {FIELDS} AS client
             """,
-            client_id=client_id or new_id(),
-            name=name,
-            description=(description or "").strip()[:MAX_DESCRIPTION] or None,
-            url=(url or "").strip()[:2000] or None,
-            redirect_uris=self._clean_redirects(redirect_uris),
+            **fields,
             public=public,
             secret_hash=hash_secret(secret) if secret else None,
             now=now_iso(),
             created_by=created_by,
             dynamic=dynamic,
-            expires_at=expires_at if dynamic else None,
-            software_id=(software_id or "").strip()[:100] or None,
-            software_version=(software_version or "").strip()[:50] or None,
             pending=pending,
             pkce_optional=pkce_optional,
             headless_uploads=headless_uploads,
@@ -248,16 +307,8 @@ class ClientRepository:
             f"MATCH (c:Client {{client_id: $id}}) RETURN {FIELDS} AS client, c.secret_hash AS secret_hash", id=client_id
         )
         if row is None:
-            secrets_equal(hash_secret(secret or ""), hash_secret("no-such-client"))  # constant time
-            return None
-        client = _client(row["client"])
-        if client.disabled:
-            return None
-        if client.is_public:
-            return client if not secret else None
-        if not secret or not secrets_equal(hash_secret(secret), row["secret_hash"] or ""):
-            return None
-        return client
+            return authenticated(None, None, secret)
+        return authenticated(_client(row["client"]), row["secret_hash"], secret)
 
     async def rotate_secret(self, client_id: str) -> str:
         client = await self.get(client_id)
@@ -285,10 +336,8 @@ class ClientRepository:
     ) -> Client:
         if pkce_optional or headless_uploads:
             client = await self.get(client_id)
-            if client is not None and client.is_public:
-                if pkce_optional:
-                    raise ClientError("a public client cannot do without PKCE", key="error.client.public_needs_pkce")
-                raise ClientError("a public client cannot upload headless", key="error.client.public_no_headless")
+            if client is not None:
+                check_flags(public=client.is_public, pkce_optional=pkce_optional, headless_uploads=headless_uploads)
         row = await self.graph.one(
             f"""
             MATCH (c:Client {{client_id: $id}})
@@ -306,7 +355,9 @@ class ClientRepository:
             name=name.strip()[:200] if name else None,
             description=description,
             url=url,
-            redirect_uris=self._clean_redirects(redirect_uris) if redirect_uris is not None else None,
+            redirect_uris=clean_redirects(redirect_uris, allow_localhost=self.allow_localhost)
+            if redirect_uris is not None
+            else None,
             disabled=disabled,
             pkce_optional=pkce_optional,
             headless_uploads=headless_uploads,

@@ -24,6 +24,7 @@ is rolled back, which would undo the very revocation that protects the user.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from opencde.auth import pkce
 from opencde.graph.graph import Graph, Tx
@@ -75,6 +76,88 @@ class _Refusal:
     revoke_code_hash: str | None = None
     revoke_family_id: str | None = None
     delete_code_hash: str | None = None
+
+
+def code_refusal(
+    stored: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    code_hash: str,
+    client_id: str,
+    redirect_uri: str | None,
+    code_verifier: str | None,
+    resource: str | None,
+) -> _Refusal | None:
+    """Why a found code cannot be redeemed, or None when it can: the rules of :meth:`TokenRepository.redeem_code`,
+    which every store keeps. ``stored`` is the code; ``row`` names its user and client (``client_id``,
+    ``user_disabled``, ``client_disabled`` and ``pkce_optional``)."""
+    if stored.get("spent"):
+        # A replayed code: everything the first redemption produced must go.
+        return _Refusal(
+            GrantError("invalid_grant", "authorization code already used"),
+            revoke_code_hash=code_hash,
+            delete_code_hash=code_hash,
+        )
+    if stored["expires_at"] <= now_iso():
+        return _Refusal(GrantError("invalid_grant", "authorization code expired"), delete_code_hash=code_hash)
+    if row["client_id"] != client_id:
+        return _Refusal(GrantError("invalid_grant", "authorization code was issued to another client"))
+    if redirect_uri is not None and stored["redirect_uri"] != redirect_uri:
+        return _Refusal(GrantError("invalid_grant", "redirect_uri does not match the authorization request"))
+    if redirect_uri is None and stored.get("redirect_required"):
+        return _Refusal(GrantError("invalid_grant", "redirect_uri is required for this code"))
+    challenge = stored.get("code_challenge")
+    if challenge:
+        if not code_verifier:
+            return _Refusal(GrantError("invalid_request", "code_verifier is required"))
+        if not pkce.verify(code_verifier, challenge):
+            return _Refusal(GrantError("invalid_grant", "PKCE code_verifier does not match"))
+    elif code_verifier or not row["pkce_optional"]:
+        return _Refusal(GrantError("invalid_grant", "this code was issued without PKCE"))
+    if resource is not None and resource != stored.get("resource"):  # told only to the code's own client
+        return _Refusal(GrantError("invalid_target", "resource does not match the authorization request"))
+    if row["user_disabled"] or row["client_disabled"]:
+        return _Refusal(GrantError("invalid_grant", "account or client is disabled"))
+    return None
+
+
+def refresh_refusal(
+    stored: dict[str, Any], row: dict[str, Any], *, client_id: str, resource: str | None, refresh_idle: int
+) -> _Refusal | None:
+    """Why a found refresh token cannot be used, or None when it can: the rules of :meth:`TokenRepository.refresh`,
+    which every store keeps. ``stored`` is the token; ``row`` names its user and client as for :func:`code_refusal`."""
+    if stored.get("spent"):
+        return _Refusal(
+            GrantError("invalid_grant", "refresh token reuse detected; all tokens of this session are revoked"),
+            revoke_family_id=stored["family_id"],
+        )
+    if row["client_id"] != client_id:
+        return _Refusal(GrantError("invalid_grant", "refresh token was issued to another client"))
+    if resource is not None and resource != stored.get("resource"):
+        return _Refusal(GrantError("invalid_target", "resource does not match the refresh token"))
+    # Every use rotates the token, so its age is the time since the session was last used.
+    idle = stored["created_at"] <= later_iso(-refresh_idle)
+    if idle or stored["expires_at"] <= now_iso() or row["user_disabled"] or row["client_disabled"]:
+        return _Refusal(
+            GrantError("invalid_grant", "refresh token expired or account disabled"),
+            revoke_family_id=stored["family_id"],
+        )
+    return None
+
+
+def principal_of(row: dict[str, Any], access_token: str) -> Principal:
+    """The caller of a valid access token, from its scope, user and client."""
+    return Principal(
+        user_id=row["user_id"],
+        username=row["username"],
+        display_name=row["full_name"] or row["username"],
+        is_admin=bool(row["is_admin"]),
+        client_id=row["client_id"],
+        scopes=tuple((row["scope"] or "").split()),
+        token_hash=hash_secret(access_token),
+        auth_time=row.get("auth_time"),
+        resource=row.get("resource"),
+    )
 
 
 class TokenRepository:
@@ -160,33 +243,17 @@ class TokenRepository:
             if row is None:
                 return _Refusal(GrantError("invalid_grant", "unknown authorization code"))
             stored = row["code"]
-            if stored.get("spent"):
-                # A replayed code: everything the first redemption produced must go.
-                return _Refusal(
-                    GrantError("invalid_grant", "authorization code already used"),
-                    revoke_code_hash=code_hash,
-                    delete_code_hash=code_hash,
-                )
-            if stored["expires_at"] <= now_iso():
-                return _Refusal(GrantError("invalid_grant", "authorization code expired"), delete_code_hash=code_hash)
-            if row["client_id"] != client_id:
-                return _Refusal(GrantError("invalid_grant", "authorization code was issued to another client"))
-            if redirect_uri is not None and stored["redirect_uri"] != redirect_uri:
-                return _Refusal(GrantError("invalid_grant", "redirect_uri does not match the authorization request"))
-            if redirect_uri is None and stored.get("redirect_required"):
-                return _Refusal(GrantError("invalid_grant", "redirect_uri is required for this code"))
-            challenge = stored.get("code_challenge")
-            if challenge:
-                if not code_verifier:
-                    return _Refusal(GrantError("invalid_request", "code_verifier is required"))
-                if not pkce.verify(code_verifier, challenge):
-                    return _Refusal(GrantError("invalid_grant", "PKCE code_verifier does not match"))
-            elif code_verifier or not row["pkce_optional"]:
-                return _Refusal(GrantError("invalid_grant", "this code was issued without PKCE"))
-            if resource is not None and resource != stored.get("resource"):  # told only to the code's own client
-                return _Refusal(GrantError("invalid_target", "resource does not match the authorization request"))
-            if row["user_disabled"] or row["client_disabled"]:
-                return _Refusal(GrantError("invalid_grant", "account or client is disabled"))
+            refusal = code_refusal(
+                stored,
+                row,
+                code_hash=code_hash,
+                client_id=client_id,
+                redirect_uri=redirect_uri,
+                code_verifier=code_verifier,
+                resource=resource,
+            )
+            if refusal is not None:
+                return refusal
             await tx.run(
                 "MATCH (ac:AuthorizationCode {code_hash: $code_hash}) SET ac.spent = true", code_hash=code_hash
             )
@@ -268,22 +335,11 @@ class TokenRepository:
             if row is None:
                 return _Refusal(GrantError("invalid_grant", "unknown refresh token"))
             stored = row["token"]
-            if stored.get("spent"):
-                return _Refusal(
-                    GrantError("invalid_grant", "refresh token reuse detected; all tokens of this session are revoked"),
-                    revoke_family_id=stored["family_id"],
-                )
-            if row["client_id"] != client_id:
-                return _Refusal(GrantError("invalid_grant", "refresh token was issued to another client"))
-            if resource is not None and resource != stored.get("resource"):
-                return _Refusal(GrantError("invalid_target", "resource does not match the refresh token"))
-            # Every use rotates the token, so its age is the time since the session was last used.
-            idle = stored["created_at"] <= later_iso(-self.refresh_idle)
-            if idle or stored["expires_at"] <= now_iso() or row["user_disabled"] or row["client_disabled"]:
-                return _Refusal(
-                    GrantError("invalid_grant", "refresh token expired or account disabled"),
-                    revoke_family_id=stored["family_id"],
-                )
+            refusal = refresh_refusal(
+                stored, row, client_id=client_id, resource=resource, refresh_idle=self.refresh_idle
+            )
+            if refusal is not None:
+                return refusal
             await tx.run("MATCH (rt:RefreshToken {token_hash: $token_hash}) SET rt.spent = true", token_hash=token_hash)
             # The previous access tokens of the family are no longer needed.
             await tx.run(
@@ -347,19 +403,7 @@ class TokenRepository:
             token_hash=hash_secret(access_token),
             now=now_iso(),
         )
-        if row is None:
-            return None
-        return Principal(
-            user_id=row["user_id"],
-            username=row["username"],
-            display_name=row["full_name"] or row["username"],
-            is_admin=bool(row["is_admin"]),
-            client_id=row["client_id"],
-            scopes=tuple((row["scope"] or "").split()),
-            token_hash=hash_secret(access_token),
-            auth_time=row.get("auth_time"),
-            resource=row.get("resource"),
-        )
+        return principal_of(row, access_token) if row else None
 
     async def revoke(self, token: str, *, client_id: str) -> bool:
         """Revoke an access token, or a refresh token with its whole family (RFC 7009)."""
