@@ -508,7 +508,15 @@ def _validation(text: str) -> Validation:
     issues = [
         {"kind": "schema", "severity": "error", "message": text, "step_id": 242, "global_id": text, "attribute": None},
         {"kind": "ids", "severity": "error", "message": text, "rule": text, "document_id": "doc"},
-        {"kind": "gherkin", "severity": "warning", "message": text, "rule": text, "step_id": 7},
+        {
+            "kind": "gherkin",
+            "severity": "warning",
+            "message": text,
+            "rule": text,
+            "step_id": 7,
+            "ifc_class": text,  # read from the file, as the GlobalId of the element is
+            "root_global_id": text,
+        },
     ]
     checks = [
         {"name": "schema", "state": "done", "ruleset": text, "issue_count": 1},

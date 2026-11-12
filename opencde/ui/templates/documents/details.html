@@ -53,8 +53,8 @@
         <tr>
           <td>{% if issue.kind == "gherkin" and issue.rule %}<code>{{ issue.rule }}</code>{% elif issue.kind == "ids" %}{{ t("docs.details.ids_rule", rule=issue.rule) }}{% elif issue.kind == "bsdd" %}{% if issue.rule %}{{ t("docs.details.bsdd_rule", rule=issue.rule) }}{% else %}{{ t("docs.details.bsdd") }}{% endif %}{% else %}{{ t("docs.details.validation_schema") }}{% endif %}</td>
           <td>{% if issue.severity == "warning" %}{{ t("docs.details.validation_warning") }}{% else %}{{ t("docs.details.validation_error") }}{% endif %}</td>
-          <td>{% if issue.step_id %}<code>#{{ issue.step_id }}</code>{% endif %}</td>
-          <td>{% if issue.global_id %}<code>{{ issue.global_id }}</code>{% endif %}</td>
+          <td>{% if issue.step_id %}<code>#{{ issue.step_id }}</code>{% endif %}{% if issue.ifc_class %} {{ issue.ifc_class }}{% endif %}</td>
+          <td>{% if issue.global_id %}<code>{{ issue.global_id }}</code>{% elif issue.root_global_id %}<code>{{ issue.root_global_id }}</code><br><span class="muted">{{ t("docs.details.validation_reached") }}</span>{% endif %}</td>
           <td><pre>{{ issue.message }}</pre></td>
         </tr>
         {% endfor %}

@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "Filen er gemt, som den blev uploadet, og fundene stopper den ikke.",
   "docs.details.validation_shown": "Her vises de første {shown} af {count}.",
   "docs.details.validation_instance": "Instans",
+  "docs.details.validation_reached": "Nærmeste element, der når instansen",
   "docs.details.validation_rule": "Regel",
   "docs.details.validation_severity": "Alvor",
   "docs.details.validation_error": "Fejl",

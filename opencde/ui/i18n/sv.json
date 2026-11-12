@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "Filen är sparad som den laddades upp, och fynden stoppar den inte.",
   "docs.details.validation_shown": "Här visas de första {shown} av {count}.",
   "docs.details.validation_instance": "Instans",
+  "docs.details.validation_reached": "Närmaste element som når instansen",
   "docs.details.validation_rule": "Regel",
   "docs.details.validation_severity": "Allvarlighet",
   "docs.details.validation_error": "Fel",

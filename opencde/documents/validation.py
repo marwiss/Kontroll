@@ -4,8 +4,9 @@
 The IFC module checks every IFC file uploaded as a document version against the IFC schema, in the background, and
 keeps the result on an ``Validation`` node below the version (``IfcGraphService``, ADR 0011). The upload is never
 held back by it. The metadata of the version, which any Documents API client can read, carries a summary and the address
-of the report; the report lists the issues, each with the GlobalId of its element where it has one, and, where the
-server finds them, the rooms of each storey as a section of their own, which never counts as an issue (F38 a).
+of the report; the report lists the issues, each with the GlobalId of its element where it has one (for a finding of
+buildingSMART's rules, also the class of its instance and the GlobalId of the rooted entity that reaches it), and,
+where the server finds them, the rooms of each storey as a section of their own, which never counts as an issue (F38 a).
 """
 
 from __future__ import annotations
@@ -181,6 +182,16 @@ class IfcValidationIssue(_Report):
         None,
         description="The GlobalId of the instance, when it is a rooted entity; for `bsdd`, of an object the "
         "reference or set is on, whose class the message names.",
+    )
+    ifc_class: str | None = Field(
+        None, description="For `gherkin`: the class of the instance, as `IfcPolyline`, read from the file."
+    )
+    root_global_id: str | None = Field(
+        None,
+        description="For `gherkin`: the GlobalId of the nearest rooted entity that reaches the instance, the "
+        "instance's own when it is one, so that a model view can point at the element where `global_id` is empty. "
+        "It reaches the instance as IFC-LPG's paths do: forward through attributes and backward through inverse "
+        "ones. Left out when none does.",
     )
     attribute: str | None = Field(
         None,

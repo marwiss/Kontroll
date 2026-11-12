@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "The file is stored as it was uploaded; the findings do not stop it.",
   "docs.details.validation_shown": "The first {shown} of {count} are shown here.",
   "docs.details.validation_instance": "Instance",
+  "docs.details.validation_reached": "Nearest element that reaches the instance",
   "docs.details.validation_rule": "Rule",
   "docs.details.validation_severity": "Severity",
   "docs.details.validation_error": "Error",

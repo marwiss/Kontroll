@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "Fila er lagra slik ho vart lasta opp, og funna stoppar henne ikkje.",
   "docs.details.validation_shown": "Her blir dei første {shown} av {count} viste.",
   "docs.details.validation_instance": "Instans",
+  "docs.details.validation_reached": "Nærmaste element som når instansen",
   "docs.details.validation_rule": "Regel",
   "docs.details.validation_severity": "Alvor",
   "docs.details.validation_error": "Feil",

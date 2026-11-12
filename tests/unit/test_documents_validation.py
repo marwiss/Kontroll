@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from opencde.documents.validation import Validation, metadata_entries, report
@@ -104,6 +106,50 @@ def test_the_report_tells_each_check_apart_with_the_rules_it_could_not_run() -> 
     assert body["checks"][1]["rules_not_run"] == [{**not_run[0], "document_id": None}]
     assert body["checks"][0]["rules_not_run"] == [] and body["checks"][0]["specifications"] == []
     assert body["issues"][0]["rule"] == "IFC106"
+    assert body["issues"][0]["ifc_class"] is None and body["issues"][0]["root_global_id"] is None, (
+        "a report kept before the findings named their elements reads as it did"
+    )
+
+
+def test_a_rules_finding_carries_the_class_of_its_instance_and_the_element_it_is_in() -> None:
+    issue = {
+        "kind": "gherkin",
+        "rule": "GEM111",
+        "severity": "error",
+        "message": "GEM111 - No duplicated points within a polyloop or polyline.",
+        "step_id": 202,
+        "global_id": None,
+        "attribute": None,
+        "ifc_class": "IfcPolyline",
+        "root_global_id": "1Xezbq735AdBO_4DerG66G",
+    }
+    checked = Validation(state="done", issue_count=1, error_count=1, ruleset=RULES, issues=[issue])
+    body = report(checked).model_dump(mode="json", exclude_none=True)
+    assert body["issues"] == [{key: value for key, value in issue.items() if value is not None}]
+
+
+def test_the_versions_page_shows_the_class_and_the_element_a_finding_is_in(tmp_path: Path) -> None:
+    from opencde.ui.templating import render
+    from tests.conftest import test_settings as make_settings
+    from tests.security.test_prompt_injection import _contexts, _request
+
+    reached = {"kind": "gherkin", "rule": "GEM111", "severity": "error", "message": "m", "step_id": 202}
+    reached |= {"ifc_class": "IfcPolyline", "root_global_id": "1Xezbq735AdBO_4DerG66G"}
+    own = {"kind": "gherkin", "rule": "GEM004", "severity": "error", "message": "m", "step_id": 242}
+    own |= {"global_id": "3eT96F_cnDsOufCEsotwtp", "ifc_class": "IfcWallStandardCase"}
+    own["root_global_id"] = own["global_id"]
+    validation = Validation(state="done", issue_count=2, error_count=2, ruleset=RULES, issues=[reached, own])
+    context = {
+        **_contexts("x")["documents/details.html"],
+        "validation": validation,
+        "validation_issues": [reached, own],
+    }
+    html = render(_request(make_settings(tmp_path)), "documents/details.html", context).body.decode("utf-8")
+    first, second = html.split("<td><code>GEM111</code></td>", 1)[1].split("<td><code>GEM004</code></td>", 1)
+    assert "<code>#202</code> IfcPolyline" in first and "<code>1Xezbq735AdBO_4DerG66G</code>" in first
+    assert "Nearest element that reaches the instance" in first
+    assert "<code>#242</code> IfcWallStandardCase" in second and "<code>3eT96F_cnDsOufCEsotwtp</code>" in second
+    assert "Nearest element" not in second, "a rooted instance is its own element"
 
 
 IDS_CHECK = {

@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "Skráin er vistuð eins og henni var hlaðið upp, og niðurstöðurnar stöðva hana ekki.",
   "docs.details.validation_shown": "Hér eru sýndar fyrstu {shown} af {count}.",
   "docs.details.validation_instance": "Tilvik",
+  "docs.details.validation_reached": "Nálægasti hlutur sem nær tilvikinu",
   "docs.details.validation_rule": "Regla",
   "docs.details.validation_severity": "Alvarleiki",
   "docs.details.validation_error": "Villa",

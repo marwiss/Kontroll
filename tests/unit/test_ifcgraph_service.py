@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +20,8 @@ from opencde.ifcgraph.service import IfcGraphService
 from opencde.storage import LocalStorage, make_key
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 
+# An environment made with `python -m ifc_lpg.gherkin_install`, for the test with buildingSMART's rules.
+GHERKIN_ENV = os.environ.get("OPENCDE_TEST_GHERKIN_ENV", "")
 # What an issue may carry: a line of the uploaded file, which the log is not to have.
 LINE = "#9=IFCWALL('0KhR8hr7H8eewFRKm6V1bJ',#5,'what an owner history may hold',$,$,$,$,$,.NOSUCHWALL.);"
 
@@ -124,6 +128,10 @@ async def test_the_rules_findings_join_the_schemas_in_one_report(
             ruleset = "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"
             reply = {"ruleset": ruleset, "issue_count": 1, "error_count": 0, "truncated": False, "issues": [found]}
             return json.dumps({**reply, "rules_not_run": not_run})
+        if command[2] == "opencde.ifcgraph.elements":
+            asked = await asyncio.to_thread(Path(command[4]).read_text, encoding="utf-8")
+            assert json.loads(asked) == [99], "only the rules' instances"
+            return json.dumps({"elements": {"99": {"ifc_class": "IfcCartesianPoint", "root_global_id": None}}})
         return json.dumps(SCHEMA_ANSWER)
 
     monkeypatch.setattr(service, "_in_a_process", answer)
@@ -134,8 +142,108 @@ async def test_the_rules_findings_join_the_schemas_in_one_report(
     assert fields["ruleset"] == "IfcOpenShell 0.9.0 (IFC4); ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"
     assert [check["name"] for check in json.loads(fields["checks"])] == ["schema", "gherkin"]
     assert json.loads(fields["checks"])[1]["rules_not_run"] == not_run
-    assert unpack_report(fields["report"]) == [SCHEMA_ANSWER["issues"][0], found]
+    assert unpack_report(fields["report"]) == [SCHEMA_ANSWER["issues"][0], {**found, "ifc_class": "IfcCartesianPoint"}]
     assert log.events == [("ifc_validation_done", {"validation_id": "check-4", "issues": 2})]
+
+
+# What `python -m ifc_lpg.gherkin` answered on the file of `test_ifcgraph_elements.broken`, recorded on 2026-11-12 with
+# ifc-gherkin-rules 893f827 and IfcOpenShell 0.8.6, as `gherkin_install` makes them: GEM111 names the polyline, which has
+# no GlobalId, and GEM004 could not run (its tables are looked for where this environment does not keep them).
+GEM111_ANSWER = {
+    "ruleset": "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6",
+    "issue_count": 1,
+    "error_count": 1,
+    "truncated": False,
+    "issues": [
+        {
+            "kind": "gherkin",
+            "rule": "GEM111",
+            "severity": "error",
+            "message": "GEM111 - No duplicated points within a polyloop or polyline. Agreement on no duplicated points "
+            'within a polyline. It must have no duplicate points excluding first and last point. Expected: "It must '
+            'have no duplicate points excluding first and last point". Observed: {"value": [[8599.33565217, -300.0], '
+            "[8599.33565217, -300.0]]}",
+            "step_id": 202,
+            "global_id": None,
+            "attribute": None,
+        }
+    ],
+    "rules_not_run": [{"rule": "GEM004", "error": "FileNotFoundError"}],
+}
+
+
+def gem111(tmp_path: Path, service: IfcGraphService, monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    from tests.unit.test_ifcgraph_elements import broken
+
+    path = broken(tmp_path)
+    monkeypatch.setattr(service, "_prepare_input", lambda key, name, workdir: path)
+
+
+async def test_a_rules_finding_names_the_element_its_instance_is_in(
+    tmp_path: Path, checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    with_rules(tmp_path, service)
+    gem111(tmp_path, service, monkeypatch)
+    workers: list[str] = []
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        workers.append(command[2])
+        if command[2] == "ifc_lpg.gherkin":
+            return json.dumps(GEM111_ANSWER)
+        if command[2] == "opencde.ifcgraph.elements":  # the real worker, on the file
+            done = await asyncio.to_thread(subprocess.run, command, capture_output=True, text=True, check=False)
+            assert done.returncode == 0, done.stderr
+            return done.stdout
+        return json.dumps({**SCHEMA_ANSWER, "issue_count": 0, "error_count": 0, "issues": []})
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-9", "documents/x", "gem111.ifc")
+
+    assert workers == ["ifc_lpg.validation", "ifc_lpg.gherkin", "opencde.ifcgraph.elements"]
+    [finding] = unpack_report(graph.writes[-1][1]["fields"]["report"])
+    assert finding == {
+        **GEM111_ANSWER["issues"][0],
+        "ifc_class": "IfcPolyline",
+        "root_global_id": "1Xezbq735AdBO_4DerG66G",  # the wall whose body's outline it is
+    }
+    assert finding["global_id"] is None, "global_id stays the instance's own, so that a trial's base still matches"
+    assert log.events == [("ifc_validation_done", {"validation_id": "check-9", "issues": 1})]
+
+
+async def test_when_the_elements_cannot_be_read_the_findings_stay_as_the_rules_gave_them(
+    tmp_path: Path, checking: tuple[IfcGraphService, Graph, Log], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, graph, log = checking
+    with_rules(tmp_path, service)
+
+    async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
+        if command[2] == "ifc_lpg.gherkin":
+            return json.dumps(GEM111_ANSWER)
+        if command[2] == "opencde.ifcgraph.elements":
+            raise RuntimeError(f"could not read {LINE}")
+        return json.dumps(SCHEMA_ANSWER)
+
+    monkeypatch.setattr(service, "_in_a_process", answer)
+    await service._validate("check-10", "documents/x", "model.ifc")
+
+    assert unpack_report(graph.writes[-1][1]["fields"]["report"])[1] == GEM111_ANSWER["issues"][0]
+    assert log.events == [
+        ("ifc_elements_failed", {"error": "RuntimeError"}),
+        ("ifc_validation_done", {"validation_id": "check-10", "issues": 2}),
+    ]
+
+
+@pytest.mark.skipif(not GHERKIN_ENV, reason="OPENCDE_TEST_GHERKIN_ENV names no environment for ifc-gherkin-rules")
+async def test_the_installed_rules_give_the_recorded_answer(tmp_path: Path) -> None:
+    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    from tests.unit.test_ifcgraph_elements import broken
+
+    command = [sys.executable, "-m", "ifc_lpg.gherkin", str(broken(tmp_path)), "--env", GHERKIN_ENV]
+    done = await asyncio.to_thread(subprocess.run, command, capture_output=True, text=True, check=False)
+    assert done.returncode == 1, done.stderr
+    assert json.loads(done.stdout.strip().splitlines()[-1]) == GEM111_ANSWER
 
 
 async def test_when_the_rules_cannot_run_the_schemas_check_stands(

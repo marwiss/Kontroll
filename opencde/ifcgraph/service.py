@@ -8,7 +8,8 @@ imported, and the record ends in state ``done`` or ``failed`` with counts or an
 error. A file uploaded as a document version is also checked against the IFC
 schema (``validation.py``), with the result on a ``Validation`` node below
 the version, which the Documents API shows (ADR 0011), against buildingSMART's
-rules where they are installed (ADR 0012), against the IDS documents of its
+rules where they are installed (ADR 0012), each finding with the element it is
+in (``elements.py``), against the IDS documents of its
 project (ADR 0015), and against buildingSMART's Data Dictionary when enabled
 (OB-42, ``bsdd.py``); when enabled, the report also gets the rooms of each
 storey as a section of its own, which warns and stops nothing (F36 a and F38 a,
@@ -1232,6 +1233,7 @@ class IfcGraphService:
                 "error_count": 0,
                 "truncated": False,
             }
+        await self._elements(source, report["issues"])
         return {
             "check": {
                 "name": "gherkin",
@@ -1244,6 +1246,38 @@ class IfcGraphService:
             "error_count": int(report["error_count"]),
             "truncated": bool(report["truncated"]),
         }
+
+    async def _elements(self, source: Path, issues: list[dict[str, Any]]) -> None:
+        """Each finding that names an instance gets its class and the GlobalId of the nearest rooted entity that
+        reaches it, read from the file by a worker (``elements.py``). Where they cannot be read, the findings stay as
+        the rules gave them."""
+        steps = sorted({issue["step_id"] for issue in issues if isinstance(issue.get("step_id"), int)})
+        if not steps:
+            return
+        with tempfile.TemporaryDirectory(prefix="ifcelements-") as tmp:
+            wanted = Path(tmp) / "steps.json"
+            wanted.write_text(json.dumps(steps), encoding="utf-8")
+            memory = str(self.settings.ifcgraph_memory_mb)
+            command = [
+                sys.executable,
+                "-m",
+                "opencde.ifcgraph.elements",
+                str(source),
+                str(wanted),
+                "--memory-mb",
+                memory,
+            ]
+            try:
+                answer = await self._in_a_process(command, "finding the elements")
+                found = dict(json.loads(answer.strip().splitlines()[-1])["elements"])
+            except Exception as exc:
+                log.warning("ifc_elements_failed", error=type(exc).__name__)
+                return
+        for issue in issues:
+            element = found.get(str(issue.get("step_id"))) or {}
+            for name in ("ifc_class", "root_global_id"):
+                if isinstance(element.get(name), str):
+                    issue[name] = element[name]
 
     async def recheck_after_ids(self, project_id: str) -> int:
         """A new version of an IDS document: the latest version of every IFC document in the project is checked again,

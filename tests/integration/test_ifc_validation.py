@@ -227,6 +227,29 @@ def test_the_gherkin_rules_add_their_findings(graph_target: GraphTarget, clean_d
         assert "Findings: 1, only warnings" in page and "IFC106" in page and "ifc-gherkin-rules " in page
 
 
+@pytest.mark.skipif(not GHERKIN_ENV, reason="OPENCDE_TEST_GHERKIN_ENV names no environment for ifc-gherkin-rules")
+def test_a_rules_finding_names_the_element_it_is_in(
+    graph_target: GraphTarget, clean_database: None, tmp_path: Any
+) -> None:
+    from tests.unit.test_ifcgraph_elements import broken
+
+    settings = settings_for(graph_target, tmp_path, ifcgraph_gherkin_env=GHERKIN_ENV)
+    world = build_world(settings)
+    with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
+        editor = login_as(client, world, "editor")
+        web_sign_in(client, world, "editor")
+        version = upload(client, world, editor, "gem111.ifc", broken(tmp_path).read_bytes())
+        entries = checked(client, editor, version)
+        body = client.get(entries["ifc_validation_report"][0], headers=editor.headers).json()
+        [finding] = [issue for issue in body["issues"] if issue["kind"] == "gherkin"]
+        assert (finding["rule"], finding["step_id"], finding["ifc_class"]) == ("GEM111", 202, "IfcPolyline")
+        assert finding["root_global_id"] == WALLS[0], "the wall whose body's outline the polyline is"
+        assert finding.get("global_id") is None, "the polyline has no GlobalId of its own"
+        page = client.get(version["links"]["document_details"]["url"], headers={"Accept-Language": "en"}).text
+        assert "<code>#202</code> IfcPolyline" in page and f"<code>{WALLS[0]}</code>" in page
+        assert "Nearest element that reaches the instance" in page
+
+
 def test_a_text_file_is_not_checked(ifc_client: tuple[TestClient, World]) -> None:
     client, world = ifc_client
     editor = login_as(client, world, "editor")

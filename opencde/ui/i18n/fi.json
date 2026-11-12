@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "Tiedosto on tallennettu sellaisena kuin se ladattiin, eivätkä löydökset estä sitä.",
   "docs.details.validation_shown": "Tässä näytetään ensimmäiset {shown}, yhteensä {count}.",
   "docs.details.validation_instance": "Instanssi",
+  "docs.details.validation_reached": "Lähin elementti, joka tavoittaa instanssin",
   "docs.details.validation_rule": "Sääntö",
   "docs.details.validation_severity": "Vakavuus",
   "docs.details.validation_error": "Virhe",

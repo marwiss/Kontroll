@@ -195,6 +195,7 @@
   "docs.details.validation_kept": "Filen er lagret slik den ble lastet opp, og funnene stopper den ikke.",
   "docs.details.validation_shown": "Her vises de første {shown} av {count}.",
   "docs.details.validation_instance": "Instans",
+  "docs.details.validation_reached": "Nærmeste element som når instansen",
   "docs.details.validation_rule": "Regel",
   "docs.details.validation_severity": "Alvorlighet",
   "docs.details.validation_error": "Feil",
