@@ -29,6 +29,11 @@ from opencde.store.bcf.documents import BcfDocumentRepository
 from opencde.store.bcf.topic_links import TopicLinkRepository
 from opencde.store.bcf.topics import TopicRepository
 from opencde.store.bcf.viewpoints import ViewpointRepository
+from opencde.store.documents.postgres import (
+    PostgresDocumentRepository,
+    PostgresSelectionSessionRepository,
+    PostgresUploadSessionRepository,
+)
 from opencde.store.documents.sessions import SelectionSessionRepository, UploadSessionRepository
 from opencde.store.documents.versions import DocumentRepository
 from opencde.store.jobs.conversions import ConversionRepository
@@ -63,6 +68,9 @@ REPOSITORIES = (
     PostgresWebSessionRepository,
     PostgresClientRepository,
     PostgresTokenRepository,
+    PostgresDocumentRepository,
+    PostgresUploadSessionRepository,
+    PostgresSelectionSessionRepository,
 )
 
 

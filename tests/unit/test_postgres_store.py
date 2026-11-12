@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from ifc_db.validation import pack_report
 
 from opencde.accounts.roles import Role
 from opencde.auth import pkce
@@ -37,6 +39,13 @@ from opencde.store.accounts.projects import ProjectRepository
 from opencde.store.accounts.sessions import WebSessionRepository
 from opencde.store.accounts.teams import TeamRepository
 from opencde.store.accounts.users import AccountError, UserRepository
+from opencde.store.documents import postgres as documents
+from opencde.store.documents.postgres import (
+    PostgresDocumentRepository,
+    PostgresSelectionSessionRepository,
+    PostgresUploadSessionRepository,
+)
+from opencde.store.documents.versions import default_metadata
 from opencde.store.oauth2 import postgres as oauth2
 from opencde.store.oauth2.clients import ClientError, ClientRepository
 from opencde.store.oauth2.postgres import PostgresClientRepository, PostgresTokenRepository, client_store, token_store
@@ -146,7 +155,7 @@ def test_a_token_answers_for_its_user_and_client_and_a_secret_stays_inside() -> 
 
 def test_the_migrations_are_numbered_from_one_without_gaps(tmp_path: Path) -> None:
     shipped = [(m.version, m.name) for m in schema.migrations()]
-    assert shipped[:2] == [(1, "0001_accounts"), (2, "0002_oauth2")]
+    assert shipped == [(1, "0001_accounts"), (2, "0002_oauth2"), (3, "0003_documents")]
     for names, words in ((["0001_a.sql", "0003_c.sql"], "without gaps"), (["1_a.sql"], "NNNN_name.sql")):
         folder = tmp_path / names[0]
         folder.mkdir()
@@ -237,27 +246,44 @@ async def test_migrate_runs_what_is_missing_under_the_lock_and_refuses_a_newer_d
 async def test_expired_rows_go_in_batches() -> None:
     counts = iter([cleanup.BATCH, cleanup.BATCH, 3])
     first = cleanup.EXPIRING[0]
-    fake = FakePostgres(lambda query, args: next(counts) if query == first else 1)
+    fake = FakePostgres(
+        lambda query, args: next(counts) if query == first else 1 if query in cleanup.EXPIRING else None
+    )
     expected = 2 * cleanup.BATCH + 3 + len(cleanup.EXPIRING) - 1
     assert await cleanup.delete_expired(fake, at="2026-11-12T00:00:00.000Z") == expected  # ty: ignore[invalid-argument-type]
-    assert [query for query, _ in fake.statements] == [first] * 3 + list(cleanup.EXPIRING[1:]), "until a batch is short"
+    queries = [query for query, _ in fake.statements]
+    assert queries == [*cleanup.EXPIRING_WITH_FILES, first, first, first, *cleanup.EXPIRING[1:]], (
+        "the rows with files first, each until a batch is short"
+    )
     assert {args for _, args in fake.statements} == {("2026-11-12T00:00:00.000Z", cleanup.BATCH)}
 
 
 def test_every_expiring_table_is_in_the_cleaners_round() -> None:
-    """A table with ``expires_at`` in any migration has its statement, which deletes by it in batches."""
+    """A table with ``expires_at`` in any migration has its statement, which deletes by it in batches; a row that
+    owns a file gives back its key."""
     text = "\n".join(m.path.read_text(encoding="utf-8") for m in schema.migrations())
     expiring = {
         table for table, body in re.findall(r"CREATE TABLE (\w+) \((.*?)\n\);", text, re.DOTALL) if "expires_at" in body
     }
-    assert {"web_sessions", "authorization_codes", "access_tokens", "refresh_tokens", "oauth_clients"} <= expiring
+    assert {
+        "web_sessions",
+        "authorization_codes",
+        "access_tokens",
+        "refresh_tokens",
+        "oauth_clients",
+        "selection_sessions",
+        "upload_sessions",
+        "upload_parts",
+    } <= expiring
+    statements = (*cleanup.EXPIRING_WITH_FILES, *cleanup.EXPIRING)
     cleaned = {}
-    for statement in cleanup.EXPIRING:
+    for statement in statements:
         deletes = re.match(r"\s*DELETE FROM (\w+)\s", statement)
-        reads = re.search(r"\(SELECT \w+ FROM (\w+) WHERE expires_at < \$1 LIMIT \$2\)", statement)
+        reads = re.search(r"\(\s*SELECT [\w.]+ FROM (\w+)\b[^()]*?\bexpires_at < \$1[^()]*?LIMIT \$2\s*\)", statement)
         assert deletes and reads and deletes[1] == reads[1], statement
+        assert statement.rstrip().endswith("RETURNING storage_key") == (statement in cleanup.EXPIRING_WITH_FILES)
         cleaned[deletes[1]] = statement
-    assert set(cleaned) == expiring and len(cleaned) == len(cleanup.EXPIRING), "each table once"
+    assert set(cleaned) == expiring and len(cleaned) == len(statements), "each table once"
 
 
 def test_a_status_says_how_many_rows() -> None:
@@ -649,3 +675,291 @@ def test_postgresql_wants_its_extra(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(database.importlib.util, "find_spec", lambda name: None)
     with pytest.raises(RuntimeError, match=r"opencde-server\[postgres\]"):
         Postgres(URL, "", connect_timeout_seconds=1.0)
+
+
+# -- the documents -------------------------------------------------------------------------------------------------
+
+MEMBER_READS = (
+    "LATEST",
+    "VERSION",
+    "VERSIONS",
+    "LATEST_MANY",
+    "LATEST_IN_PROJECTS",
+    "VALIDATION",
+    "VERSIONS_SINCE",
+    "CHANGE_SET",
+    "PUBLICATION",
+    "PUBLISH",
+)
+VERSION_ROW = {
+    "document_id": "d-1",
+    "project_id": "p-1",
+    "project_name": "Building permit",
+    "id": "v-1",
+    "version_index": 1,
+    "version_number": "1",
+    "creation_date": "2026-11-12T00:00:00.000Z",
+    "title": "Plan",
+    "file_name": "plan.ifc",
+    "size_in_bytes": 3,
+    "sha256": "0" * 64,
+    "storage_key": "documents/v-1",
+    "author": "editor",
+    "metadata": [{"name": "file_name", "value": ["plan.ifc"], "data_type": "string"}],
+}
+PUBLISHED = {
+    "id": "pub-1",
+    "storage_key": "published/pub-1.ifczip",
+    "file_name": "plan.ifczip",
+    "size_in_bytes": 7,
+    "sha256": "1" * 64,
+    "published_at": "2026-11-12T00:00:00.000Z",
+    "published_by": "manager",
+}
+VERSION_FIELDS: dict[str, Any] = {
+    "project_id": "p-1",
+    "title": "Plan",
+    "version_number": "",
+    "file_name": "plan.ifc",
+    "size_in_bytes": 3,
+    "sha256": "0" * 64,
+    "storage_key": "documents/x",
+    "author": "editor",
+    "metadata": [],
+}
+
+
+def test_a_members_read_of_a_document_joins_the_membership_on_the_users_id() -> None:
+    """Every read of a document for a user, and the publication a member makes, reach the document through
+    ``memberships``; a new version is held to the project it was given. The sessions are the caller's by their user,
+    which the routes hold to the principal."""
+    for name in MEMBER_READS:
+        assert "JOIN memberships m ON m.project_id = d.project_id AND m.user_id = $1" in getattr(documents, name), name
+    assert "FROM projects p WHERE p.project_id = $2" in documents.DOCUMENT_INSERT
+    for statement in (documents.DOCUMENT_NEXT, documents.VERSION_INSERT):
+        assert "WHERE d.project_id = $1 AND d.document_id = $2" in statement
+
+
+def test_the_documents_migration_owns_by_foreign_keys_and_fills_the_seams() -> None:
+    text = (schema.MIGRATIONS_DIR / "0003_documents.sql").read_text(encoding="utf-8")
+    assert text.startswith("-- This file was generated with the assistance of an AI coding tool.")
+    assert "timestamptz" not in text and "creation_date iso_utc NOT NULL" in text
+    for owned in (
+        "project_id text NOT NULL REFERENCES projects (project_id) ON DELETE CASCADE",
+        "document_id text NOT NULL REFERENCES documents (document_id) ON DELETE CASCADE",
+        "version_id text NOT NULL UNIQUE REFERENCES document_versions (id) ON DELETE CASCADE",
+        "session_id text NOT NULL REFERENCES upload_sessions (id) ON DELETE CASCADE",
+    ):
+        assert owned in text, owned
+    for table in ("upload_sessions", "upload_parts", "selection_sessions"):
+        assert f"CREATE INDEX {table}_expires_at ON {table} (expires_at)" in text, "the cleaner's round"
+    for view in ("document_heads", "project_files"):
+        assert f"CREATE OR REPLACE VIEW {view}" in text, "the seams of 0001 that are this area's"
+    for view in ("document_files", "version_validations", "version_graph_checks"):
+        assert f"CREATE VIEW {view}" in text
+
+
+async def test_a_documents_value_is_only_ever_an_argument() -> None:
+    fake = FakePostgres()
+    repository = PostgresDocumentRepository(fake)  # ty: ignore[invalid-argument-type]
+    assert await repository.latest(user_id=WEAK, document_id=WEAK) is None
+    assert await repository.version(user_id=WEAK, document_id=WEAK, version_index=2) is None
+    assert await repository.latest_many(user_id=WEAK, document_ids=[WEAK]) == []
+    assert await repository.validation(user_id=WEAK, document_id=WEAK, version_index=2, with_issues=True) is None
+    assert await repository.change_set(user_id=WEAK, document_id=WEAK, version_index=2) is None
+    assert await repository.publication(user_id=WEAK, document_id=WEAK, version_index=2) is None
+    for statement, args in fake.statements:
+        assert WEAK not in statement and args[0] == WEAK
+    assert fake.statements[2] == (documents.LATEST_MANY, (WEAK, [WEAK]))
+    assert fake.statements[3] == (documents.VALIDATION, (WEAK, WEAK, 2, True))
+
+
+def _created(query: str, args: tuple[Any, ...]) -> Any:
+    if query in (documents.DOCUMENT_INSERT, documents.DOCUMENT_NEXT):
+        return {"index": 4 if query == documents.DOCUMENT_NEXT else 1}
+    if query == documents.VERSION_INSERT:
+        return {**VERSION_ROW, "document_id": args[1], "id": args[2], "version_index": args[4], "metadata": args[12]}
+    return None
+
+
+async def test_a_version_is_made_in_one_transaction_with_the_next_index_and_its_lineage() -> None:
+    fake = FakePostgres(_created)
+    repository = PostgresDocumentRepository(fake)  # ty: ignore[invalid-argument-type]
+    metadata = default_metadata(
+        file_name="plan.ifc", size_in_bytes=3, sha256="0" * 64, author="editor", project_name="Building permit"
+    )
+    fields = {**VERSION_FIELDS, "metadata": metadata}
+    record = await repository.create_version(
+        document_id=None, requested_document_id="d-9", approved_by="manager", **fields
+    )
+    assert fake.transactions == 1 and [query for query, _ in fake.statements] == [
+        documents.DOCUMENT_INSERT,
+        documents.VERSION_INSERT,
+    ]
+    assert record.document_id == "d-9" and record.version_index == 1 and record.metadata[0]["name"] == "file_name"
+    made = fake.statements[1][1]
+    assert made[3] == "editor" and made[5] == "1", "the author joins users by name; the number is the index"
+    assert made[13:] == (None, None, None, None), "no lineage without a version it was built on"
+
+    fake.statements.clear()
+    record = await repository.create_version(
+        document_id="d-9", parent_version_index=3, approved_by="manager", change_set_id="t-1", change_set="x", **fields
+    )
+    assert [query for query, _ in fake.statements] == [documents.DOCUMENT_NEXT, documents.VERSION_INSERT]
+    assert fake.statements[0][1] == ("p-1", "d-9", "Plan") and record.version_index == 4
+    assert fake.statements[1][1][13:] == (3, "manager", "t-1", "x")
+
+
+async def test_a_version_is_refused_as_the_graph_refuses_it() -> None:
+    with pytest.raises(HTTPException, match="Document not found"):  # another project's document, or none
+        await PostgresDocumentRepository(FakePostgres()).create_version(document_id="d-1", **VERSION_FIELDS)  # ty: ignore[invalid-argument-type]
+    no_author = FakePostgres(lambda query, args: {"index": 1} if query == documents.DOCUMENT_INSERT else None)
+    with pytest.raises(HTTPException, match="Project not found"):  # the author is no user
+        await PostgresDocumentRepository(no_author).create_version(document_id=None, **VERSION_FIELDS)  # ty: ignore[invalid-argument-type]
+
+
+class FakeAuditGraph:
+    def __init__(self) -> None:
+        self.events: list[dict[str, Any]] = []
+
+    async def run(self, query: str, **parameters: Any) -> list[dict[str, Any]]:
+        self.events.append(parameters)
+        return []
+
+
+async def test_a_version_is_published_once_and_audited_when_it_is() -> None:
+    event = {"type": "documents.publish", "actor": "u-1", "client_id": "c-1", "ip": None, "details": {"x": 1}}
+    graph = FakeAuditGraph()
+    taken = PostgresDocumentRepository(FakePostgres(), audit_graph=graph)  # ty: ignore[invalid-argument-type]
+    assert not await taken.publish(
+        user_id="u-1", document_id="d-1", version_index=1, publication=PUBLISHED, audit_event=event
+    ), "ON CONFLICT DO NOTHING: published already, or by another meanwhile"
+    assert graph.events == []
+    fake = FakePostgres(lambda query, args: {"version_id": "v-1"} if query == documents.PUBLISH else None)
+    published = PostgresDocumentRepository(fake, audit_graph=graph)  # ty: ignore[invalid-argument-type]
+    assert await published.publish(
+        user_id="u-1", document_id="d-1", version_index=1, publication=PUBLISHED, audit_event=event
+    )
+    assert fake.statements == [(documents.PUBLISH, ("u-1", "d-1", 1, *PUBLISHED.values()))]
+    assert [(e["type"], e["actor"]) for e in graph.events] == [("documents.publish", "u-1")]
+
+
+async def test_a_versions_change_set_and_check_are_read_as_the_graph_reads_them() -> None:
+    changes = [{"op": "set", "guid": "g"}]
+
+    def answer(query: str, args: tuple[Any, ...]) -> Any:
+        if query == documents.CHANGE_SET:
+            return {
+                "change_set": pack_report(changes),
+                "change_set_id": "t-1",
+                "parent": 2,
+                "approved_by": "m",
+                "author": "a",
+            }
+        if query == documents.VERSIONS_SINCE:
+            return [{"version_index": 3, "author": "a", "approved_by": None, "change_set_id": None, "change_set": None}]
+        if query == documents.VALIDATION:
+            return {
+                "state": "done",
+                "issue_count": 1,
+                "error_count": 0,
+                "truncated": False,
+                "checked_at": "2026-11-12T00:00:00.000Z",
+                "ruleset": "IFC4",
+                "checks": None,
+                "report": pack_report([{"message": "m"}]),
+                "rooms": None,
+                "graph_issue_count": None,
+                "graph_error_count": None,
+                "graph_ruleset": None,
+                "graph_report": None,
+            }
+        return None
+
+    repository = PostgresDocumentRepository(FakePostgres(answer))  # ty: ignore[invalid-argument-type]
+    found = await repository.change_set(user_id="u", document_id="d-1", version_index=3)
+    assert found == {
+        "change_set_id": "t-1",
+        "base": {"document_id": "d-1", "version_index": 2},
+        "proposed_by": "a",
+        "approved_by": "m",
+        "changes": changes,
+    }
+    assert await repository.versions_since(user_id="u", document_id="d-1", since=2, until=3) == [
+        {"version_index": 3, "author": "a", "approved_by": None, "change_set_id": None, "changes": None}
+    ], "a whole file has no changes"
+    validation = await repository.validation(user_id="u", document_id="d-1", version_index=3, with_issues=True)
+    assert validation is not None and validation.issue_count == 1 and validation.issues == [{"message": "m"}]
+
+
+async def test_an_upload_session_keeps_the_tokens_hash_and_its_parts_in_order() -> None:
+    def answer(query: str, args: tuple[Any, ...]) -> Any:
+        if query == documents.PARTS_DELETE:
+            return [{"storage_key": "parts/a"}, {"storage_key": None}]
+        return None
+
+    fake = FakePostgres(answer)
+    sessions = PostgresUploadSessionRepository(fake, ui_ttl_seconds=600, upload_ttl_seconds=3600)  # ty: ignore[invalid-argument-type]
+    files = [{"session_file_id": "f", "file_name": "plan.ifc"}]
+    session_id, token = await sessions.create(
+        user_id="u-1",
+        username="editor",
+        callback_url="http://localhost/cb",
+        callback_expires_in=60,
+        server_context=None,
+        files=files,
+    )
+    (_, made) = fake.statements[0]
+    assert token not in made and made[0] == session_id and made[-1] == files, "the token is stored as its hash"
+    assert await sessions.by_token("x" * 200) is None and await sessions.by_token("") is None
+    assert len(fake.statements) == 1, "too long or empty to be one: nothing is asked"
+    assert await sessions.by_token(token) is None
+    assert fake.statements[-1][0] == documents.UPLOAD_BY_HASH and token not in fake.statements[-1][1]
+
+    ids = await sessions.create_parts(session_id, 2, [(0, 9), (10, 14)])
+    (_, parts) = fake.statements[-1]
+    assert parts[0:2] == (session_id, 2) and parts[3:] == (ids, [0, 1], [0, 10], [9, 14])
+    assert await sessions.delete_parts(session_id, 2) == ["parts/a"], "only the parts that were received"
+    await sessions.update(session_id, state="uploading", files=files, extend=True)
+    (_, changed) = fake.statements[-1]
+    assert changed[:5] == (session_id, "uploading", None, files, True)
+
+
+async def test_a_selection_session_is_finished_with_what_was_selected() -> None:
+    fake = FakePostgres()
+    sessions = PostgresSelectionSessionRepository(fake, ui_ttl_seconds=600)  # ty: ignore[invalid-argument-type]
+    session_id, token = await sessions.create(
+        user_id="u-1",
+        callback_url="http://localhost/cb",
+        callback_expires_in=60,
+        server_context="s",
+        extensions=[".ifc"],
+    )
+    (_, made) = fake.statements[0]
+    assert token not in made and made[8] == [".ifc"] and made[9] == "new"
+    await sessions.finish(session_id, state="selected", selected=["d-1:2"])
+    assert fake.statements[-1] == (documents.SELECTION_FINISH, (session_id, "selected", ["d-1:2"]))
+    assert await sessions.by_token("x" * 129) is None and len(fake.statements) == 2
+
+
+class FakeStorage:
+    def __init__(self) -> None:
+        self.deleted: list[str] = []
+
+    def delete(self, key: str) -> None:
+        if key.startswith(".."):
+            raise ValueError("outside the storage")
+        self.deleted.append(key)
+
+
+async def test_expired_upload_parts_go_with_their_files_before_their_sessions() -> None:
+    def answer(query: str, args: tuple[Any, ...]) -> Any:
+        if query == cleanup.EXPIRED_UPLOAD_PARTS:
+            return [{"storage_key": "parts/a"}, {"storage_key": None}, {"storage_key": "../x"}]
+        return 1 if query == cleanup.EXPIRED_UPLOAD_SESSIONS else 0
+
+    fake, storage = FakePostgres(answer), FakeStorage()
+    assert await cleanup.delete_expired(fake, storage=storage) == 4  # ty: ignore[invalid-argument-type]
+    assert storage.deleted == ["parts/a"], "a key the storage refuses is no file of its own"
+    order = [query for query, _ in fake.statements]
+    assert order.index(cleanup.EXPIRED_UPLOAD_PARTS) < order.index(cleanup.EXPIRED_UPLOAD_SESSIONS)
