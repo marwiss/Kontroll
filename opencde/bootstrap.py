@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import NamedTuple
 
 from opencde.graph.dialect import get_dialect
 from opencde.graph.driver import create_driver, create_store_driver, create_workcopy_driver, ping_within
@@ -63,12 +64,20 @@ def make_storage(settings: Settings) -> LocalStorage:
     return LocalStorage(settings.data_dir)
 
 
+class Graphs(NamedTuple):
+    """The two graphs of a command: IFC-LPG's models, and the server's own data, which is the same graph unless
+    ``OPENCDE_STORE_GRAPH_URI`` names another (F24 a, ADR 0027)."""
+
+    graph: Graph
+    store: Graph
+
+    def distinct(self) -> tuple[Graph, ...]:
+        """Each graph once: one when the store shares the IFC graph's connection."""
+        return (self.graph,) if self.store is self.graph else (self.graph, self.store)
+
+
 @asynccontextmanager
-async def graph_session(
-    settings: Settings, *, wait_seconds: float = 30.0, schema: bool = True
-) -> AsyncGenerator[Graph, None]:
-    """Connected graph for command-line use: waits for the database and applies the schema."""
-    graph = make_graph(settings)
+async def _connected(graph: Graph, wait_seconds: float, schema: bool) -> AsyncGenerator[Graph, None]:
     try:
         await wait_for_graph(graph, wait_seconds)
         if schema:
@@ -76,3 +85,27 @@ async def graph_session(
         yield graph
     finally:
         await graph.close()
+
+
+@asynccontextmanager
+async def store_session(
+    settings: Settings, *, wait_seconds: float = 30.0, schema: bool = True
+) -> AsyncGenerator[Graph, None]:
+    """The server's own graph for command-line use: the store when one is configured, else the IFC graph's
+    connection; waits for the database and applies the schema."""
+    async with _connected(make_store(settings) or make_graph(settings), wait_seconds, schema) as store:
+        yield store
+
+
+@asynccontextmanager
+async def graph_session(
+    settings: Settings, *, wait_seconds: float = 30.0, schema: bool = True
+) -> AsyncGenerator[Graphs, None]:
+    """Both graphs for command-line use, for what touches the models: each connected and with the schema applied."""
+    async with _connected(make_graph(settings), wait_seconds, schema) as graph:
+        store = make_store(settings)
+        if store is None:
+            yield Graphs(graph, graph)
+            return
+        async with _connected(store, wait_seconds, schema) as own:
+            yield Graphs(graph, own)

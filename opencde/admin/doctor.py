@@ -94,15 +94,28 @@ async def clock_check(server: str) -> Check:
     )
 
 
-async def schema_check(graph: Graph) -> Check:
-    """The unique constraints the server relies on; it creates them when it starts."""
+async def schema_check(graph: Graph, key: str = "schema") -> Check:
+    """The unique constraints the server relies on; it creates them when it starts, in each of its graphs."""
     try:
         rows = await graph.schema_rows(graph.dialect.list_constraints)
     except Neo4jError as exc:
-        return Check("schema", False, "schema_unlisted", {"code": exc.code})
+        return Check(key, False, "schema_unlisted", {"code": exc.code})
     counts = {"found": len(rows), "expected": len(KEYED)}
     complete = len(rows) >= len(KEYED)
-    return Check("schema", complete, "schema_count" if complete else "schema_short", counts)
+    return Check(key, complete, "schema_count" if complete else "schema_short", counts)
+
+
+async def store_checks(settings: Settings, graph: Graph, store: Graph | None) -> list[Check]:
+    """The graph of the server's own data, when it is not the IFC graph's connection (ADR 0027): whether it answers,
+    and its constraints."""
+    if store is None or store is graph:
+        return [Check("store", True, "store_shared")]
+    reachable = await ping_within(store.driver, store.database, settings.graph_connect_timeout_seconds)
+    where = {"dialect": store.dialect.name.value, "uri": settings.store_graph_uri, "database": store.database}
+    return [
+        Check("store", reachable, "graph_ok" if reachable else "graph_silent", where),
+        await schema_check(store, "store_schema") if reachable else Check("store_schema", False, "schema_no_database"),
+    ]
 
 
 async def headers_check(settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> Check:
@@ -124,7 +137,10 @@ async def headers_check(settings: Settings, transport: httpx.AsyncBaseTransport 
     return Check("headers", True, "headers_present", {"url": url})
 
 
-async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) -> list[Check]:
+async def run_checks(
+    settings: Settings, graph: Graph, storage: LocalStorage, *, store: Graph | None = None
+) -> list[Check]:
+    """Every check, of the IFC graph ``graph`` and of the ``store`` of the server's own data beside it."""
     checks = [Check("version", True, value=__version__), Check("environment", True, value=settings.environment)]
     checks.append(Check("apis", True, value=", ".join(settings.apis)))
     https = settings.public_url.startswith("https://")
@@ -138,6 +154,7 @@ async def run_checks(settings: Settings, graph: Graph, storage: LocalStorage) ->
     where = {"dialect": graph.dialect.name.value, "uri": settings.graph_uri, "database": settings.database_name}
     checks.append(Check("graph", reachable, "graph_ok" if reachable else "graph_silent", where))
     checks.append(await schema_check(graph) if reachable else Check("schema", False, "schema_no_database"))
+    checks += await store_checks(settings, graph, store)
     probe = storage.root / ".write-probe"
     try:
         probe.write_bytes(b"ok")

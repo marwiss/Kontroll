@@ -16,7 +16,7 @@ from opencde.admin import queries
 from opencde.admin.access import AdminDep, AdminForm, admin_context, redirect_with_notice, text
 from opencde.admin.doctor import run_checks
 from opencde.auth.dependencies import TokensDep
-from opencde.deps import GraphDep, SettingsDep, StorageDep
+from opencde.deps import GraphDep, ModelGraphDep, SettingsDep, StorageDep
 from opencde.graph.driver import ping_within
 from opencde.settings import env_name
 from opencde.ui.templating import render
@@ -202,12 +202,16 @@ async def audit_csv(
 
 @router.get("/settings")
 async def settings_page(
-    request: Request, admin: AdminDep, graph: GraphDep, settings: SettingsDep, storage: StorageDep
+    request: Request,
+    admin: AdminDep,
+    graph: GraphDep,
+    models: ModelGraphDep,
+    settings: SettingsDep,
+    storage: StorageDep,
 ) -> Response:
     values = [(env_name(name), getattr(settings, name)) for name in SAFE_SETTINGS]
     shown = [(name, value.value if hasattr(value, "value") else value) for name, value in values]
+    checks = await run_checks(settings, models, storage, store=graph)
     return render(
-        request,
-        "admin/settings.html",
-        admin_context(request, admin, "settings", values=shown, checks=await run_checks(settings, graph, storage)),
+        request, "admin/settings.html", admin_context(request, admin, "settings", values=shown, checks=checks)
     )

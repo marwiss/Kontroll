@@ -373,9 +373,10 @@ async def get_settings(principal: AdminPrincipal, settings: SettingsDep) -> dict
 
 @router.get("/health", summary="Administration (extension): the health checks of the settings page")
 async def get_health(
-    principal: AdminPrincipal, settings: SettingsDep, graph: GraphDep, storage: StorageDep
+    principal: AdminPrincipal, settings: SettingsDep, graph: GraphDep, models: ModelGraphDep, storage: StorageDep
 ) -> dict[str, Any]:
-    checks = [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in await run_checks(settings, graph, storage)]
+    found = await run_checks(settings, models, storage, store=graph)
+    checks = [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in found]
     return {"ok": all(check["ok"] for check in checks), "checks": checks, "total": len(checks)}
 
 

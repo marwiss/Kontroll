@@ -116,6 +116,7 @@ def test_readyz_reports_dialect(client: TestClient, graph_target: GraphTarget) -
     assert response.json() == {
         "status": "ready",
         "graph": "ok",
+        "store": "shared",
         "dialect": graph_target.dialect.value,
         "workcopy": "none",
     }

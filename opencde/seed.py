@@ -194,14 +194,17 @@ async def seed(
     return result
 
 
-async def build_sample_graph(graph: Graph, storage: LocalStorage, settings: Settings, result: SeedResult) -> dict:
-    """The sample model as a graph, and checked against the IFC schema, as if it had been uploaded.
+async def build_sample_graph(
+    graph: Graph, storage: LocalStorage, settings: Settings, result: SeedResult, *, store: Graph | None = None
+) -> dict:
+    """The sample model in the IFC graph ``graph``, and checked against the IFC schema, as if it had been uploaded;
+    the seed is in the ``store``, the IFC graph itself when none is given.
 
     Returns its ``Conversion``'s properties.
     """
-    service = IfcGraphService(graph, storage, settings)
+    service = IfcGraphService(graph, storage, settings, store=store)
     project_id = result.projects["Building permit"]
-    version = await graph.one(
+    version = await service.store.one(
         "MATCH (:Document {document_id: $id})-[:HAS_VERSION]->(v:DocumentVersion {version_index: 1}) RETURN v.id AS id",
         id=SEED_DOCUMENT_ID,
     )

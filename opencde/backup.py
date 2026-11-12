@@ -6,6 +6,11 @@ its own snapshot format, so the server exports its own data: every node and
 relationship as JSON lines (identified by the unique keys of the schema, never
 by database-internal ids) plus a tar archive of the storage directory. The
 result restores into either database. See ADR 0006.
+
+When the server's own data has a graph of its own (``OPENCDE_STORE_GRAPH_URI``,
+ADR 0027), one backup holds both graphs: the store's nodes and IFC-LPG's from
+the IFC graph, in the same files. A restore puts each node where it belongs by
+its label, so a backup of one database restores into two and the other way round.
 """
 
 from __future__ import annotations
@@ -19,6 +24,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ifc_lpg.graph import UNIQUE as LIBRARY_UNIQUE
+
 from opencde import __version__
 from opencde.graph.graph import Graph
 from opencde.graph.schema import KEYED
@@ -31,6 +38,13 @@ MAX_BATCH_BYTES = 16 * 1024 * 1024
 _NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _KEY_PROPS = sorted({prop for _, prop in KEYED})
 _KEY_PROJECTION = "{" + ", ".join(f".{prop}" for prop in _KEY_PROPS) + "}"
+#: The labels of IFC-LPG's nodes, which live in the IFC graph; every other node is the server's own (ADR 0027).
+MODEL_LABELS = frozenset(label for label, _ in LIBRARY_UNIQUE)
+
+
+def of_the_models(labels: list[str] | tuple[str, ...]) -> bool:
+    """Whether a node with these labels belongs in the IFC graph rather than the store."""
+    return any(label in MODEL_LABELS for label in labels)
 
 
 class BackupError(RuntimeError):
@@ -47,9 +61,11 @@ class Manifest:
     skipped_nodes: int
     files: int
     checksums: dict[str, str]
+    store_dialect: str | None = None  # the store's, when the server's own data had a graph of its own
 
     def to_json(self) -> dict[str, Any]:
-        return {"format": FORMAT, **self.__dict__}
+        fields = {key: value for key, value in self.__dict__.items() if key != "store_dialect" or value is not None}
+        return {"format": FORMAT, **fields}
 
 
 def node_key(labels: list[str], props: dict[str, Any]) -> tuple[str, str, Any] | None:
@@ -82,78 +98,27 @@ async def _present_labels(graph: Graph) -> set[str]:
     return {row["label"] for row in rows}
 
 
-async def export(graph: Graph, storage: LocalStorage, target_dir: Path) -> Manifest:
-    """Write ``nodes.jsonl.gz``, ``relationships.jsonl.gz``, ``storage.tar.gz`` and ``manifest.json``."""
+async def export(graph: Graph, storage: LocalStorage, target_dir: Path, *, store: Graph | None = None) -> Manifest:
+    """Write ``nodes.jsonl.gz``, ``relationships.jsonl.gz``, ``storage.tar.gz`` and ``manifest.json``: from the IFC
+    graph ``graph``, and from the ``store`` when it is another graph, IFC-LPG's nodes from the one and the server's
+    own from the other."""
     # A command-line operation: nothing else runs on this event loop, so blocking file work is fine here.
     target_dir.mkdir(parents=True, exist_ok=False)  # noqa: ASYNC240
-    present = await _present_labels(graph)
-    primary = [(label, prop) for label, prop in KEYED if label in present]
-    covered = {label for label, _ in primary}
+    apart = store is not None and store is not graph
+    parts = [(graph, list(KEYED))]
+    if apart and store is not None:  # each graph its own kind of node, so that nothing is written twice
+        parts = [
+            (store, [k for k in KEYED if k[0] not in MODEL_LABELS]),
+            (graph, [k for k in KEYED if k[0] in MODEL_LABELS]),
+        ]
     nodes = relationships = skipped = 0
-    seen: set[tuple[str, str, Any]] = set()
-
-    with gzip.open(target_dir / "nodes.jsonl.gz", "wt", encoding="utf-8") as out:
-        for label, prop in primary:
-            skip = 0
-            while True:
-                rows = await graph.run(
-                    f"MATCH (n:{_safe(label)}) WHERE n.{_safe(prop)} IS NOT NULL "
-                    f"RETURN labels(n) AS labels, properties(n) AS props ORDER BY n.{_safe(prop)} SKIP $skip LIMIT $batch",
-                    skip=skip,
-                    batch=BATCH,
-                )
-                for row in rows:
-                    key = node_key(row["labels"], row["props"])
-                    if key is None or key in seen:
-                        continue  # a node with two unique labels is exported once, under the first
-                    seen.add(key)
-                    out.write(json.dumps({"labels": sorted(row["labels"]), "props": row["props"]}) + "\n")
-                    nodes += 1
-                if len(rows) < BATCH:
-                    break
-                skip += BATCH
-        uncovered = present - covered
-        if uncovered:
-            row = await graph.one(
-                "MATCH (n) WHERE NOT any(label IN labels(n) WHERE label IN $covered) RETURN count(n) AS n",
-                covered=sorted(covered),
-            )
-            skipped = int(row["n"]) if row else 0
-
-    with gzip.open(target_dir / "relationships.jsonl.gz", "wt", encoding="utf-8") as out:
-        for label, prop in primary:
-            skip = 0
-            while True:
-                rows = await graph.run(
-                    f"MATCH (a:{_safe(label)})-[r]->(b) WHERE a.{_safe(prop)} IS NOT NULL "
-                    f"RETURN a.{_safe(prop)} AS a_key, type(r) AS type, properties(r) AS props, "
-                    f"labels(b) AS b_labels, b {_KEY_PROJECTION} AS b_keys "
-                    f"ORDER BY a.{_safe(prop)} SKIP $skip LIMIT $batch",
-                    skip=skip,
-                    batch=BATCH,
-                )
-                for row in rows:
-                    b_key = node_key(row["b_labels"], row["b_keys"])
-                    if b_key is None:
-                        continue
-                    a_key = (label, prop, row["a_key"])
-                    if node_key([label], {prop: row["a_key"]}) != a_key:
-                        continue  # the start node is exported under another label; it appears there
-                    out.write(
-                        json.dumps(
-                            {
-                                "a": [label, prop, row["a_key"]],
-                                "type": row["type"],
-                                "props": row["props"] or {},
-                                "b": list(b_key),
-                            }
-                        )
-                        + "\n"
-                    )
-                    relationships += 1
-                if len(rows) < BATCH:
-                    break
-                skip += BATCH
+    with (
+        gzip.open(target_dir / "nodes.jsonl.gz", "wt", encoding="utf-8") as nodes_out,
+        gzip.open(target_dir / "relationships.jsonl.gz", "wt", encoding="utf-8") as relationships_out,
+    ):
+        for source, keyed in parts:
+            counted = await _export_graph(source, keyed, nodes_out, relationships_out)
+            nodes, relationships, skipped = nodes + counted[0], relationships + counted[1], skipped + counted[2]
 
     files = 0
     with tarfile.open(target_dir / "storage.tar.gz", "w:gz") as archive:
@@ -174,9 +139,87 @@ async def export(graph: Graph, storage: LocalStorage, target_dir: Path) -> Manif
         skipped_nodes=skipped,
         files=files,
         checksums=checksums,
+        store_dialect=store.dialect.name.value if apart and store is not None else None,
     )
     (target_dir / "manifest.json").write_text(json.dumps(manifest.to_json(), indent=2), encoding="utf-8")
     return manifest
+
+
+async def _export_graph(
+    graph: Graph, keyed: list[tuple[str, str]], nodes_out: Any, relationships_out: Any
+) -> tuple[int, int, int]:
+    """The nodes of the ``keyed`` labels that ``graph`` has and the relationships that start at them; returns how many
+    nodes and relationships were written, and how many nodes of the graph no keyed label covers."""
+    present = await _present_labels(graph)
+    primary = [(label, prop) for label, prop in keyed if label in present]
+    covered = {label for label, _ in primary}
+    nodes = relationships = skipped = 0
+    seen: set[tuple[str, str, Any]] = set()
+
+    for label, prop in primary:
+        skip = 0
+        while True:
+            rows = await graph.run(
+                f"MATCH (n:{_safe(label)}) WHERE n.{_safe(prop)} IS NOT NULL "
+                f"RETURN labels(n) AS labels, properties(n) AS props ORDER BY n.{_safe(prop)} SKIP $skip LIMIT $batch",
+                skip=skip,
+                batch=BATCH,
+            )
+            for row in rows:
+                key = node_key(row["labels"], row["props"])
+                if key is None or key in seen:
+                    continue  # a node with two unique labels is exported once, under the first
+                seen.add(key)
+                nodes_out.write(json.dumps({"labels": sorted(row["labels"]), "props": row["props"]}) + "\n")
+                nodes += 1
+            if len(rows) < BATCH:
+                break
+            skip += BATCH
+    uncovered = present - covered
+    if uncovered:
+        row = await graph.one(
+            "MATCH (n) WHERE NOT any(label IN labels(n) WHERE label IN $covered) RETURN count(n) AS n",
+            covered=sorted(covered),
+        )
+        skipped = int(row["n"]) if row else 0
+
+    first: dict[str, str] = {}  # a label's first key names its nodes; a second (a user's username) would repeat them
+    for label, prop in primary:
+        first.setdefault(label, prop)
+    for label, prop in first.items():
+        skip = 0
+        while True:
+            rows = await graph.run(
+                f"MATCH (a:{_safe(label)})-[r]->(b) WHERE a.{_safe(prop)} IS NOT NULL "
+                f"RETURN a.{_safe(prop)} AS a_key, type(r) AS type, properties(r) AS props, "
+                f"labels(b) AS b_labels, b {_KEY_PROJECTION} AS b_keys "
+                f"ORDER BY a.{_safe(prop)} SKIP $skip LIMIT $batch",
+                skip=skip,
+                batch=BATCH,
+            )
+            for row in rows:
+                b_key = node_key(row["b_labels"], row["b_keys"])
+                if b_key is None:
+                    continue
+                a_key = (label, prop, row["a_key"])
+                if node_key([label], {prop: row["a_key"]}) != a_key:
+                    continue  # the start node is exported under another label; it appears there
+                relationships_out.write(
+                    json.dumps(
+                        {
+                            "a": [label, prop, row["a_key"]],
+                            "type": row["type"],
+                            "props": row["props"] or {},
+                            "b": list(b_key),
+                        }
+                    )
+                    + "\n"
+                )
+                relationships += 1
+            if len(rows) < BATCH:
+                break
+            skip += BATCH
+    return nodes, relationships, skipped
 
 
 # ---------------------------------------------------------------------------- restore
@@ -197,36 +240,51 @@ def read_manifest(source_dir: Path) -> Manifest:
     return Manifest(**data)
 
 
-async def restore(graph: Graph, storage: LocalStorage, source_dir: Path) -> Manifest:
-    """Load a backup into an empty database and storage; the caller wipes first when needed."""
+async def restore(graph: Graph, storage: LocalStorage, source_dir: Path, *, store: Graph | None = None) -> Manifest:
+    """Load a backup into an empty database and storage; the caller wipes first when needed. With a ``store`` apart
+    from the IFC graph ``graph``, IFC-LPG's nodes go to the IFC graph and every other node to the store, whichever
+    graphs the backup was taken from; a relationship between the two, which no database can hold, is left out."""
     manifest = read_manifest(source_dir)
+    store = store or graph
+    targets = {True: graph, False: store}  # of the models, or the server's own
 
-    groups: dict[tuple[str, ...], list[dict[str, Any]]] = {}
-    pending_bytes = 0
+    groups: dict[bool, dict[tuple[str, ...], list[dict[str, Any]]]] = {True: {}, False: {}}
+    pending = pending_bytes = 0
     with gzip.open(source_dir / "nodes.jsonl.gz", "rt", encoding="utf-8") as handle:
         for line in handle:
             record = json.loads(line)
             labels = tuple(_safe(label) for label in record["labels"])
-            groups.setdefault(labels, []).append(record["props"])
+            groups[of_the_models(labels)].setdefault(labels, []).append(record["props"])
+            pending += 1
             pending_bytes += len(line)  # a block of an IFC model's geometry is a lot of text in one node
-            if sum(len(rows) for rows in groups.values()) >= BATCH or pending_bytes >= MAX_BATCH_BYTES:
-                await _create_nodes(graph, groups)
-                groups = {}
-                pending_bytes = 0
-    await _create_nodes(graph, groups)
+            if pending >= BATCH or pending_bytes >= MAX_BATCH_BYTES:
+                for side, grouped in groups.items():
+                    await _create_nodes(targets[side], grouped)
+                groups = {True: {}, False: {}}
+                pending = pending_bytes = 0
+    for side, grouped in groups.items():
+        await _create_nodes(targets[side], grouped)
 
-    rel_groups: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = {}
+    rel_groups: dict[bool, dict[tuple[str, str, str, str, str], list[dict[str, Any]]]] = {True: {}, False: {}}
+    pending = 0
     with gzip.open(source_dir / "relationships.jsonl.gz", "rt", encoding="utf-8") as handle:
         for line in handle:
             record = json.loads(line)
             a_label, a_prop, a_value = record["a"]
             b_label, b_prop, b_value = record["b"]
+            side = of_the_models([a_label])
+            if store is not graph and of_the_models([b_label]) != side:
+                continue  # across the two graphs: the two kinds of data meet by values only
             key = (_safe(a_label), _safe(a_prop), _safe(record["type"]), _safe(b_label), _safe(b_prop))
-            rel_groups.setdefault(key, []).append({"a": a_value, "b": b_value, "props": record["props"]})
-            if sum(len(rows) for rows in rel_groups.values()) >= BATCH:
-                await _create_relationships(graph, rel_groups)
-                rel_groups = {}
-    await _create_relationships(graph, rel_groups)
+            rel_groups[side].setdefault(key, []).append({"a": a_value, "b": b_value, "props": record["props"]})
+            pending += 1
+            if pending >= BATCH:
+                for each, grouped in rel_groups.items():
+                    await _create_relationships(targets[each], grouped)
+                rel_groups = {True: {}, False: {}}
+                pending = 0
+    for each, grouped in rel_groups.items():
+        await _create_relationships(targets[each], grouped)
 
     with tarfile.open(source_dir / "storage.tar.gz", "r:gz") as archive:
         for member in archive.getmembers():

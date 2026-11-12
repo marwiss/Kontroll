@@ -16,9 +16,9 @@ from __future__ import annotations
 import asyncio
 import secrets
 import sys
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Coroutine
 from pathlib import Path
-from typing import Annotated, TypeVar
+from typing import Annotated, Any, TypeVar
 from urllib.parse import urlsplit
 
 import typer
@@ -54,17 +54,38 @@ def _settings():
 
 
 def _run(work: Callable[..., Awaitable[T]]) -> T:
-    """Run ``work(graph, settings)`` against the configured database."""
-    from opencde.bootstrap import GraphUnavailable, graph_session
+    """Run ``work(store, settings)`` against the server's own data: the store, or the IFC graph's connection when no
+    store of its own is configured (ADR 0027)."""
+    from opencde.bootstrap import store_session
 
     settings = _settings()
 
     async def main() -> T:
-        async with graph_session(settings) as graph:
-            return await work(graph, settings)
+        async with store_session(settings) as store:
+            return await work(store, settings)
+
+    return _until_done(main())
+
+
+def _run_both(work: Callable[..., Awaitable[T]]) -> T:
+    """Run ``work(graphs, settings)`` with the IFC graph and the store (``bootstrap.Graphs``), for what touches the
+    models too."""
+    from opencde.bootstrap import graph_session
+
+    settings = _settings()
+
+    async def main() -> T:
+        async with graph_session(settings) as graphs:
+            return await work(graphs, settings)
+
+    return _until_done(main())
+
+
+def _until_done(main: Coroutine[Any, Any, T]) -> T:
+    from opencde.bootstrap import GraphUnavailable
 
     try:
-        return asyncio.run(main())
+        return asyncio.run(main)
     except GraphUnavailable as exc:
         typer.secho(f"FAIL    {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from None
@@ -273,15 +294,18 @@ def _write_local_env(path: Path) -> None:
 def doctor() -> None:
     """Check the configuration, the database and its schema, the storage, the clock and the server's headers."""
     from opencde.admin.doctor import run_checks
-    from opencde.bootstrap import make_graph, make_storage
+    from opencde.bootstrap import make_graph, make_storage, make_store
 
     settings = _settings()
 
     async def work():
         graph = make_graph(settings)
+        store = make_store(settings) or graph
         try:
-            return await run_checks(settings, graph, make_storage(settings))
+            return await run_checks(settings, graph, make_storage(settings), store=store)
         finally:
+            if store is not graph:
+                await store.close()
             await graph.close()
 
     checks = asyncio.run(work())
@@ -306,17 +330,18 @@ def cleanup() -> None:
 def backup(
     target: Annotated[Path, typer.Argument(help="Directory that receives a new, timestamped backup folder.")],
 ) -> None:
-    """Export the whole graph and all stored files to a folder (restorable into Neo4j or Memgraph)."""
+    """Export the IFC graph, the server's own graph when it has one, and all stored files to a folder (restorable
+    into Neo4j or Memgraph)."""
     from opencde import backup as backups
     from opencde.bootstrap import make_storage
     from opencde.timeutil import now
 
     folder = target / ("opencde-backup-" + now().strftime("%Y%m%dT%H%M%SZ"))
 
-    async def work(graph, settings):
-        return await backups.export(graph, make_storage(settings), folder)
+    async def work(graphs, settings):
+        return await backups.export(graphs.graph, make_storage(settings), folder, store=graphs.store)
 
-    manifest = _run(work)
+    manifest = _run_both(work)
     print(f"OK      {folder}")
     print(f"        {manifest.nodes} nodes, {manifest.relationships} relationships, {manifest.files} files")
     if manifest.skipped_nodes:
@@ -338,15 +363,16 @@ def restore(
     except backups.BackupError as exc:
         raise _fail(str(exc)) from None
 
-    async def work(graph, settings):
-        if not await is_empty(graph):
-            if not force:
-                raise backups.BackupError("the database is not empty; use --force to replace its contents")
-            await wipe(graph)
-        return await backups.restore(graph, make_storage(settings), source)
+    async def work(graphs, settings):
+        for graph in graphs.distinct():
+            if not await is_empty(graph):
+                if not force:
+                    raise backups.BackupError("the database is not empty; use --force to replace its contents")
+                await wipe(graph)
+        return await backups.restore(graphs.graph, make_storage(settings), source, store=graphs.store)
 
     try:
-        _run(work)
+        _run_both(work)
     except backups.BackupError as exc:
         raise _fail(str(exc)) from None
     print(f"OK      restored backup from {manifest.created_at} ({manifest.dialect}, server {manifest.server_version})")
@@ -398,17 +424,18 @@ def seed(
     from opencde import seed as seeding
     from opencde.storage import LocalStorage
 
-    async def work(graph, settings):
+    async def work(graphs, settings):
         if reset:
             if settings.is_production:
                 raise _fail("--reset is not available in production")
             if not yes and not typer.confirm("This deletes ALL data in the database. Continue?"):
                 raise typer.Exit(code=1)
-            await seeding.wipe(graph)
+            for graph in graphs.distinct():
+                await seeding.wipe(graph)
         storage = LocalStorage(settings.data_dir)
         try:
             loaded = await seeding.seed(
-                graph,
+                graphs.store,
                 storage=storage,
                 shared_password=password,
                 public_redirects=["http://127.0.0.1/callback", "http://127.0.0.1:8080/callback"]
@@ -421,11 +448,13 @@ def seed(
         except seeding.SeedError as exc:
             raise _fail(str(exc)) from None
         model = (
-            await seeding.build_sample_graph(graph, storage, settings, loaded) if settings.ifcgraph_enabled else None
+            await seeding.build_sample_graph(graphs.graph, storage, settings, loaded, store=graphs.store)
+            if settings.ifcgraph_enabled
+            else None
         )
         return loaded, model
 
-    result, model = _run(work)
+    result, model = _run_both(work)
     typer.secho("Demonstration data loaded. Passwords are shown once; store them now.", fg=typer.colors.GREEN)
     for username, pw in result.passwords.items():
         print(f"  user      {username:20} password {pw}")
@@ -699,7 +728,7 @@ def ifcgraph_list(project_id: Annotated[str | None, typer.Option("--project")] =
     """List imported models with their state."""
     from opencde.ifcgraph.maintenance import list_models
 
-    for model in _run(lambda graph, _settings: list_models(graph, project_id=project_id)):
+    for model in _run(lambda store, _settings: list_models(store, project_id=project_id)):  # the server's records
         document = model.get("document_id") or model.get("bcf_document_guid") or "-"
         version = model.get("version_index")
         moment = model.get("done_at") or model.get("failed_at") or model.get("created_at") or ""
@@ -723,9 +752,13 @@ def ifcgraph_prune(
 
     if everything and not project_id:
         raise _fail("--all needs --project")
-    result = _run(
-        lambda graph, settings: prune_models(
-            graph, project_id=project_id, everything=everything, storage=make_storage(settings)
+    result = _run_both(
+        lambda graphs, settings: prune_models(
+            graphs.graph,
+            store=graphs.store,
+            project_id=project_id,
+            everything=everything,
+            storage=make_storage(settings),
         )
     )
     print(f"OK      deleted {result['models']} model(s) and {result['entities']} entities")
@@ -750,15 +783,15 @@ def ifcgraph_export(
     from opencde.bootstrap import make_storage
     from opencde.ifcgraph.service import IfcGraphService
 
-    async def work(graph, settings):
-        service = IfcGraphService(graph, make_storage(settings), settings)
+    async def work(graphs, settings):
+        service = IfcGraphService(graphs.graph, make_storage(settings), settings, store=graphs.store)
         instances = await service.export(model_id, target)
         found = await service.validate_against_upload(model_id, target) if validate else None
         answer = await service.compare_with_upload(model_id, target, geometry=geometry) if verify else None
         return instances, found, answer
 
     try:
-        instances, found, answer = _run(work)
+        instances, found, answer = _run_both(work)
     except typer.Exit:
         raise
     except (NotExportable, RuntimeError, ValueError, OSError) as exc:

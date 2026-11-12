@@ -13,7 +13,7 @@ def test_healthz_reports_version(client: TestClient) -> None:
 def test_readyz_is_503_without_database(client: TestClient) -> None:
     response = client.get("/readyz")
     assert response.status_code == 503
-    assert response.json() == {"status": "not_ready", "graph": "unavailable"}
+    assert response.json() == {"status": "not_ready", "graph": "unavailable", "store": "shared"}
 
 
 def test_index_points_to_docs_and_versions(client: TestClient) -> None:
