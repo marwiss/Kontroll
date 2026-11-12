@@ -2,14 +2,14 @@
 """The accounts area in PostgreSQL (ADR 0029) against a real database: the same tests on the graph's repositories and
 on PostgreSQL's, the migrations and the cleaner, and the app signing a user in with the accounts in PostgreSQL.
 
-PostgreSQL runs in a container of its own (testcontainers' postgres module), one per test session; every test starts
-from empty tables with the migrations applied. Each case runs once on the graph (on every graph the session has) and
+PostgreSQL runs in a container of its own (``postgres_target`` and ``pg`` in the conftest), one per test session;
+every test starts from empty tables with the migrations applied. Each case runs once on the graph (on every graph the session has) and
 once on PostgreSQL, which needs no graph: ``-k on_postgresql`` starts PostgreSQL alone."""
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
 import pytest
@@ -17,7 +17,6 @@ from asyncpg.exceptions import CheckViolationError
 from fastapi.testclient import TestClient
 from neo4j import GraphDatabase
 from pydantic import SecretStr
-from testcontainers.community.postgres import PostgresContainer
 
 from opencde.accounts.roles import Role
 from opencde.graph.graph import Graph
@@ -37,45 +36,13 @@ from opencde.store.accounts.sessions import WebSessionRepository
 from opencde.store.accounts.teams import TeamRepository
 from opencde.store.accounts.users import AccountError, UserRepository
 from opencde.store.protocols import ProjectStore, TeamStore, UserStore, WebSessionStore
-from tests.integration.conftest import GraphTarget
+from tests.integration.conftest import GraphTarget, PostgresTarget, emptied_postgres
 from tests.integration.test_web_signin import form_token
 
 pytestmark = pytest.mark.integration
 
-POSTGRES_IMAGE = "postgres:17.6-alpine"
 PASSWORD = "a-long-and-strong-passphrase"
-EMPTY = "TRUNCATE users, projects, memberships, teams, team_members, web_sessions CASCADE"
 PROJECT_ID = "6f3c2b5e-8d1a-4c2e-9f7b-1a2b3c4d5e6f"
-
-
-@dataclass(frozen=True)
-class PostgresTarget:
-    url: str  # without the password, as OPENCDE_STORE_URL wants it
-    password: str
-
-
-@pytest.fixture(scope="session")
-def postgres_target() -> Iterator[PostgresTarget]:
-    with PostgresContainer(POSTGRES_IMAGE, driver=None) as container:
-        host, port = container.get_container_host_ip(), container.get_exposed_port(5432)
-        yield PostgresTarget(f"postgresql://{container.username}@{host}:{port}/{container.dbname}", container.password)
-
-
-async def _emptied(target: PostgresTarget) -> Postgres:
-    postgres = Postgres(target.url, target.password, connect_timeout_seconds=10.0)
-    await migrate(postgres)
-    await postgres.execute(EMPTY)
-    return postgres
-
-
-@pytest.fixture
-async def pg(postgres_target: PostgresTarget) -> AsyncIterator[Postgres]:
-    """A migrated PostgreSQL with empty tables, for async tests."""
-    postgres = await _emptied(postgres_target)
-    try:
-        yield postgres
-    finally:
-        await postgres.close()
 
 
 @dataclass(frozen=True)
@@ -289,7 +256,7 @@ def test_the_app_signs_in_with_the_accounts_in_postgresql(
     the session lives there, and the graph holds no user."""
 
     async def seed() -> None:
-        postgres = await _emptied(postgres_target)
+        postgres = await emptied_postgres(postgres_target)
         try:
             await PostgresUserRepository(postgres).create("editor", PASSWORD)
         finally:

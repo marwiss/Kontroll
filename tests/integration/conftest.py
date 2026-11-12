@@ -1,9 +1,12 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Integration fixtures: a real graph database in a container.
+"""Integration fixtures: a real graph database in a container, and PostgreSQL in one when a test asks for it.
 
 Neo4j always; Memgraph too when ``OPENCDE_TEST_MEMGRAPH=1`` (nightly CI),
 which is how the dialect-neutral Cypher of ADR 0003 is proven. One container
-per test session; every test starts from an empty graph.
+per test session; every test starts from an empty graph. PostgreSQL (ADR 0029)
+starts with the first test that asks for ``postgres_target`` or ``pg``, once
+for the session; every such test starts from empty tables with the migrations
+applied.
 
 Two ways to reach the database from a test:
 
@@ -24,6 +27,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from neo4j import GraphDatabase
+from testcontainers.community.postgres import PostgresContainer
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
 
@@ -31,6 +35,8 @@ from opencde.bootstrap import make_graph
 from opencde.graph.graph import Graph
 from opencde.graph.schema import apply_schema
 from opencde.main import create_app
+from opencde.postgres.database import Postgres
+from opencde.postgres.schema import migrate
 from opencde.seed import wipe
 from opencde.settings import GraphDialect, Settings
 from tests.conftest import test_settings
@@ -38,6 +44,20 @@ from tests.conftest import test_settings
 NEO4J_IMAGE = "neo4j:5.26.32-community"
 MEMGRAPH_IMAGE = "memgraph/memgraph:3.14.0"
 NEO4J_PASSWORD = "integration-test-password"
+POSTGRES_IMAGE = "postgres:17.6-alpine"
+#: Every table of the store but the ledger of the migrations, whichever areas have theirs, emptied at once.
+EMPTY_POSTGRES = """
+DO $$
+DECLARE tables text;
+BEGIN
+    SELECT string_agg(format('%I', tablename), ', ') INTO tables
+    FROM pg_tables WHERE schemaname = current_schema() AND tablename <> 'schema_migrations';
+    IF tables IS NOT NULL THEN
+        EXECUTE 'TRUNCATE ' || tables || ' CASCADE';
+    END IF;
+END
+$$
+"""
 
 pytestmark = pytest.mark.integration
 
@@ -127,3 +147,34 @@ def client(settings: Settings, clean_database: None) -> Iterator[TestClient]:
     """The application connected to the test database, for sync API tests."""
     with TestClient(create_app(settings, startup_wait_seconds=30)) as test_client:
         yield test_client
+
+
+@dataclass(frozen=True)
+class PostgresTarget:
+    url: str  # without the password, as OPENCDE_STORE_URL wants it
+    password: str
+
+
+@pytest.fixture(scope="session")
+def postgres_target() -> Iterator[PostgresTarget]:
+    with PostgresContainer(POSTGRES_IMAGE, driver=None) as container:
+        host, port = container.get_container_host_ip(), container.get_exposed_port(5432)
+        yield PostgresTarget(f"postgresql://{container.username}@{host}:{port}/{container.dbname}", container.password)
+
+
+async def emptied_postgres(target: PostgresTarget) -> Postgres:
+    """A connection to the migrated database with every table emptied; the caller closes it."""
+    postgres = Postgres(target.url, target.password, connect_timeout_seconds=10.0)
+    await migrate(postgres)
+    await postgres.execute(EMPTY_POSTGRES)
+    return postgres
+
+
+@pytest.fixture
+async def pg(postgres_target: PostgresTarget) -> AsyncIterator[Postgres]:
+    """A migrated PostgreSQL with empty tables, for async tests."""
+    postgres = await emptied_postgres(postgres_target)
+    try:
+        yield postgres
+    finally:
+        await postgres.close()
