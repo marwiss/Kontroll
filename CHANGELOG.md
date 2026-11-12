@@ -8,17 +8,19 @@ before it is withdrawn (its commits remain) and its notes are folded into the
 new one. Every release lists what a client can see; internal changes are in
 the commit history.
 
-## 3.0.0 — 2026-11-11
+## 3.0.0 — 2026-11-12
 
-Released again on 2026-11-11 (the twelfth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
-2026-11-10 and earlier on 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+Released again on 2026-11-12 (the thirteenth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
+2026-11-10 and 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
 upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
 the merge, the version nodes and the diff between two versions, the local engine, the working copy, headless
 uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per element in the graph, the merge by
-instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
-cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
+instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, a server in a
+cloud region of one's own or beside an nginx, the operations of Dataspatium's write tools in a change set, an MCP
+endpoint through which AI tools read the models and propose change sets that a person approves, the rooms of each
+storey, the check against bSDD, and the element of each rules finding. Works with Dataspatium 3.0.0.
 
 - A finding of buildingSMART's rules that names an instance carries its class in `ifc_class` and, in
   `root_global_id`, the GlobalId of the nearest rooted entity that reaches it, forward through attributes and
