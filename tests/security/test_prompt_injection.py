@@ -229,8 +229,8 @@ def test_the_generated_model_holds_the_text_and_checks_like_the_original(tmp_pat
     """IfcOpenShell and IFC-LPG's reader both give the text back as it was put in, and the file is as valid as the
     fixture it came from."""
     ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
-    from ifc_lpg.step import StepFile, string_of_atom
-    from ifc_lpg.validation import report_of
+    from ifc_db.step import StepFile, string_of_atom
+    from ifc_db.validation import report_of
 
     path = tmp_path / "injected.ifc"
     path.write_bytes(injected_model())
@@ -833,8 +833,8 @@ def test_the_ids_text_is_read_as_data_and_quoted_in_the_report(tmp_path: Path) -
     """IFC-LPG's check reads the specifications' names and identifiers as text, and every finding quotes its
     specification by that text; the long name is cut where the report has its limits."""
     pytest.importorskip("ifctester", reason="the ifc-lpg extra is not installed")
-    from ifc_lpg.ids import MAX_RULE, read_ids, report_of
-    from ifc_lpg.validation import MAX_MESSAGE
+    from ifc_db.ids import MAX_RULE, read_ids, report_of
+    from ifc_db.validation import MAX_MESSAGE
 
     ids = tmp_path / "rules.ids"
     ids.write_bytes(injected_ids())

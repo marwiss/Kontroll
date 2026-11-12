@@ -47,7 +47,7 @@ def test_a_version_that_is_not_published_says_so_with_every_field_null(tmp_path:
     }
 
 
-def test_the_publication_is_read_without_the_ifc_lpg_module(tmp_path: Path) -> None:
+def test_the_publication_is_read_without_the_ifc_db_module(tmp_path: Path) -> None:
     with tools(tmp_path, DocumentsGraph(publications={3: PUBLISHED}), ifcgraph_enabled=False) as client:
         assert publication(client)["structuredContent"]["published"] is True
 

@@ -15,7 +15,7 @@ from opencde.main import create_app
 from tests.conftest import FIXTURES_DIR
 from tests.unit.test_capabilities import make_settings
 
-RECORDS = FIXTURES_DIR / "three_walls_geometry.jsonl"  # python -m ifc_lpg.spatial three_walls_gtin.ifc
+RECORDS = FIXTURES_DIR / "three_walls_geometry.jsonl"  # python -m ifc_db.spatial three_walls_gtin.ifc
 WALLS = ("1Xezbq735AdBO_4DerG66G", "3eT96F_cnDsOufCEsotwtp", "3k3LbXmTfDWODxdSuyCGYE")
 
 

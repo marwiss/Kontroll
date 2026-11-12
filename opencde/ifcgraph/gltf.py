@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """glTF from IFC-LPG's geometry records (OB-37): one binary glTF per version, built on request and cached.
 
-IFC-LPG's worker (``python -m ifc_lpg.spatial``) runs IfcOpenShell's iterator once per conversion and writes JSON
+IFC-LPG's worker (``python -m ifc_db.spatial``) runs IfcOpenShell's iterator once per conversion and writes JSON
 Lines: a header, each mesh once before the first product that uses it, each product with its mesh, its matrix to
 project coordinates (16 numbers, column by column, as glTF's ``node.matrix``), its box and its storey, and an end
 with the counts. This module turns such a file into a ``.glb``: every shared mesh becomes one glTF mesh and every

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from ifc_lpg.validation import pack_report, unpack_report
+from ifc_db.validation import pack_report, unpack_report
 
 from opencde.bcf.routes_proposals import proposal_report
 from opencde.documents.routes_precheck import _report as precheck_report
@@ -152,7 +152,7 @@ async def test_off_by_default_no_worker_finds_the_rooms(
     commands: list[list[str]] = []
     monkeypatch.setattr(service, "_in_a_process", answering(ROOMS, commands))
     await service._validate("check-3", "documents/x", "model.ifc")
-    assert [command[2] for command in commands] == ["ifc_lpg.validation"]
+    assert [command[2] for command in commands] == ["ifc_db.validation"]
     assert "rooms" not in graph.writes[-1][1]["fields"]
 
 

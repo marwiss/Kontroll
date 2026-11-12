@@ -34,14 +34,14 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, Request
-from ifc_lpg.exporter import NotExportable, export_records
-from ifc_lpg.gherkin_install import MANIFEST
-from ifc_lpg.graph import rebuild_point_indexes
-from ifc_lpg.importer import delete_model, import_records, model_facts, models
-from ifc_lpg.paths import PathError, canonical_path, resolve, unreachable
-from ifc_lpg.queries import MAX_GLOBAL_IDS, property_values
-from ifc_lpg.spatial import geometry_issues, import_spatial
-from ifc_lpg.validation import MAX_REPORTED, pack_report, unpack_report
+from ifc_db.exporter import NotExportable, export_records
+from ifc_db.gherkin_install import MANIFEST
+from ifc_db.graph import rebuild_point_indexes
+from ifc_db.importer import delete_model, import_records, model_facts, models
+from ifc_db.paths import PathError, canonical_path, resolve, unreachable
+from ifc_db.queries import MAX_GLOBAL_IDS, property_values
+from ifc_db.spatial import geometry_issues, import_spatial
+from ifc_db.validation import MAX_REPORTED, pack_report, unpack_report
 
 from opencde.admin.graph_query import ReadingGraph
 from opencde.documents.validation import IfcRooms
@@ -372,7 +372,7 @@ class IfcGraphService:
         command = [
             sys.executable,
             "-m",
-            "ifc_lpg.spatial",
+            "ifc_db.spatial",
             str(source),
             str(records),
             "--memory-mb",
@@ -613,7 +613,7 @@ class IfcGraphService:
             command = [
                 sys.executable,
                 "-m",
-                "ifc_lpg.validation",
+                "ifc_db.validation",
                 str(source),
                 "--report",
                 "--memory-mb",
@@ -1214,7 +1214,7 @@ class IfcGraphService:
         command = [
             sys.executable,
             "-m",
-            "ifc_lpg.gherkin",
+            "ifc_db.gherkin",
             str(source),
             "--env",
             str(env),
@@ -1336,7 +1336,7 @@ class IfcGraphService:
         ]
         paths = [str(self.storage.path(document["storage_key"])) for document in documents]
         memory = str(self.settings.ifcgraph_memory_mb)
-        command = [sys.executable, "-m", "ifc_lpg.ids", "--memory-mb", memory, "--", str(source), *paths]
+        command = [sys.executable, "-m", "ifc_db.ids", "--memory-mb", memory, "--", str(source), *paths]
         try:
             report = json.loads(await self._in_a_process(command, "the IDS check", answers=(0, 1)))
         except Exception as exc:
@@ -1503,7 +1503,7 @@ class IfcGraphService:
         command = [
             sys.executable,
             "-m",
-            "ifc_lpg.worker",
+            "ifc_db.worker",
             str(source),
             str(records),
             "--memory-mb",
@@ -1562,7 +1562,7 @@ class IfcGraphService:
                 [
                     sys.executable,
                     "-m",
-                    "ifc_lpg.writer",
+                    "ifc_db.writer",
                     str(records),
                     str(target),
                     "--memory-mb",
@@ -1578,7 +1578,7 @@ class IfcGraphService:
         return await self._with_upload(
             model_id,
             "the comparison",
-            lambda source: ["ifc_lpg.equivalence", str(source), str(written), *extra],
+            lambda source: ["ifc_db.equivalence", str(source), str(written), *extra],
         )
 
     async def validate_against_upload(self, model_id: str, written: Path) -> dict[str, Any]:
@@ -1586,7 +1586,7 @@ class IfcGraphService:
         return await self._with_upload(
             model_id,
             "the validation",
-            lambda source: ["ifc_lpg.validation", str(written), "--against", str(source)],
+            lambda source: ["ifc_db.validation", str(written), "--against", str(source)],
         )
 
     async def _with_upload(self, model_id: str, what: str, command: Callable[[Path], list[str]]) -> dict[str, Any]:

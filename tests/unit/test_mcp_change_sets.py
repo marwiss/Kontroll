@@ -105,7 +105,7 @@ def test_the_change_sets_follow_list_models_in_dataspatiums_order(client: TestCl
     assert not any(word in name for name in by_name for word in ("approve", "publish", "upload", "merge"))
 
 
-def test_without_the_ifc_lpg_module_there_are_no_change_sets(tmp_path: Path) -> None:
+def test_without_the_ifc_db_module_there_are_no_change_sets(tmp_path: Path) -> None:
     with endpoint(tmp_path, DraftGraph(), PROPOSER) as client:
         listed = [tool["name"] for tool in rpc(client, "tools/list").json()["result"]["tools"]]
         unknown = call(client, "open_changeset", {"document_id": DOCUMENT, "version_index": None})

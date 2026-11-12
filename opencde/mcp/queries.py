@@ -2,7 +2,7 @@
 """``server_query``, the named queries of an IFC document version's model (ADR 0028, the design's §2), Dataspatium's
 name for them and its arguments.
 
-The tool is built when the server starts, from the catalogue (``ifc_lpg.queries`` and ``changed-since``): ``name`` is
+The tool is built when the server starts, from the catalogue (``ifc_db.queries`` and ``changed-since``): ``name`` is
 an enumeration of the catalogue's names, the parameters are a nullable field each, the union of the queries' own, and
 the description lists every query with the library's description and parameters. A query that IFC-LPG adds appears
 when the server is updated, without code here. The membership, the model's state, the working copy and the server's

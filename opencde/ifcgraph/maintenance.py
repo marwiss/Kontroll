@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ifc_lpg.importer import delete_model
+from ifc_db.importer import delete_model
 
 from opencde.graph.graph import Graph
 from opencde.storage import LocalStorage

@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException
-from ifc_lpg.validation import unpack_report
+from ifc_db.validation import unpack_report
 
 from opencde import audit
 from opencde.deps import GraphDep

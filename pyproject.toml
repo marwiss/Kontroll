@@ -42,18 +42,20 @@ dependencies = [
     "httpx>=0.28",
     # The IFC graph's own side of the round trip, which needs nothing more: importing and exporting records, deleting a
     # model, the packed reports (ADR 0014).
-    "ifc-lpg>=1.0.0",
+    "ifc-db>=1.0.0",
 ]
 
 [project.optional-dependencies]
-# The IFC-LPG module (stage 9): the workers that convert, write and check files, with IfcOpenShell, which is large; off
-# by default. IFC-LPG's extra brings what they need, among it the pytest its EXPRESS rules import (ADR 0011, 0014).
-ifc-lpg = [
-    "ifc-lpg[ifcopenshell]>=1.0.0",
+# The IFC-DB module (stage 9): the workers that convert, write and check files, with IfcOpenShell, which is large; off
+# by default. IFC-DB's extra brings what they need, among it the pytest its EXPRESS rules import (ADR 0011, 0014).
+ifc-db = [
+    "ifc-db[ifcopenshell]>=1.0.0",
     "ifcclash>=0.9.0",
     "shapely>=2.0",  # the rooms of the walls (ifcgraph/ops.py); IfcOpenShell brings it too, without a floor
 ]
-ifcgraph = ["opencde-server[ifc-lpg]"]  # the extra's old name, so that builds that name it keep working
+# The extra's old names, so that builds that name them keep working.
+ifc-lpg = ["opencde-server[ifc-db]"]
+ifcgraph = ["opencde-server[ifc-db]"]
 # A shared store for the rate limits when several server processes run (ADR 0007).
 redis = ["redis>=5.0"]
 
@@ -110,7 +112,7 @@ members = ["client"]
 [tool.uv.sources]
 opencde-client = { workspace = true }
 # From its repository, at a fixed commit, until it is on PyPI (ADR 0014).
-ifc-lpg = { git = "https://github.com/marwiss/IFC-LPG", rev = "d3ccc5f" }
+ifc-db = { git = "https://github.com/marwiss/IFC-DB", rev = "34d7d45" }
 
 # ---------------------------------------------------------------------------
 # Tooling. Line length 120 and ruff format follow IfcOpenShell's conventions so
@@ -182,9 +184,9 @@ ui = "pytest -m ui"  # needs `uv sync --group ui` and `uv run playwright install
 security = ["lint", "_bandit", "_audit", "audit-gherkin"]
 _bandit = "bandit -q -r opencde client/opencde_client -c pyproject.toml"
 _audit = "pip-audit --skip-editable"  # our own workspace packages are not on PyPI
-# The rules' own environment, from the requirements that come with IFC-LPG.
+# The rules' own environment, from the requirements that come with IFC-DB.
 audit-gherkin = { help = "pip-audit the environment of buildingSMART's rules", cmd = "pip-audit -r \"${GHERKIN_REQUIREMENTS}\" --disable-pip", uses = { GHERKIN_REQUIREMENTS = "_gherkin_requirements" } }
-_gherkin_requirements = { expr = "(ifc_lpg.gherkin_install.HERE / 'gherkin-requirements.txt').as_posix()", imports = ["ifc_lpg", "ifc_lpg.gherkin_install"] }
+_gherkin_requirements = { expr = "(ifc_db.gherkin_install.HERE / 'gherkin-requirements.txt').as_posix()", imports = ["ifc_db", "ifc_db.gherkin_install"] }
 
 [tool.bandit]
 exclude_dirs = ["tests", "client/tests"]

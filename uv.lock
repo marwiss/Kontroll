@@ -1033,9 +1033,9 @@ wheels = [
 ]
 
 [[package]]
-name = "ifc-lpg"
+name = "ifc-db"
 version = "1.0.0"
-source = { git = "https://github.com/marwiss/IFC-LPG?rev=d3ccc5f#d3ccc5f2f1d2c12247b6f277a7ce930717d4b6d4" }
+source = { git = "https://github.com/marwiss/IFC-DB?rev=34d7d45#34d7d4550ce72b44f92e3620ff6fcf6b1e190e2f" }
 
 [package.optional-dependencies]
 ifcopenshell = [
@@ -1902,7 +1902,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "ifc-lpg" },
+    { name = "ifc-db" },
     { name = "itsdangerous" },
     { name = "jinja2" },
     { name = "limits" },
@@ -1920,13 +1920,18 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+ifc-db = [
+    { name = "ifc-db", extra = ["ifcopenshell"] },
+    { name = "ifcclash" },
+    { name = "shapely" },
+]
 ifc-lpg = [
-    { name = "ifc-lpg", extra = ["ifcopenshell"] },
+    { name = "ifc-db", extra = ["ifcopenshell"] },
     { name = "ifcclash" },
     { name = "shapely" },
 ]
 ifcgraph = [
-    { name = "ifc-lpg", extra = ["ifcopenshell"] },
+    { name = "ifc-db", extra = ["ifcopenshell"] },
     { name = "ifcclash" },
     { name = "shapely" },
 ]
@@ -1964,28 +1969,29 @@ ui = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.160" },
     { name = "httpx", specifier = ">=0.28" },
-    { name = "ifc-lpg", git = "https://github.com/marwiss/IFC-LPG?rev=d3ccc5f" },
-    { name = "ifc-lpg", extras = ["ifcopenshell"], marker = "extra == 'ifc-lpg'", git = "https://github.com/marwiss/IFC-LPG?rev=d3ccc5f" },
-    { name = "ifcclash", marker = "extra == 'ifc-lpg'", specifier = ">=0.9.0" },
+    { name = "ifc-db", git = "https://github.com/marwiss/IFC-DB?rev=34d7d45" },
+    { name = "ifc-db", extras = ["ifcopenshell"], marker = "extra == 'ifc-db'", git = "https://github.com/marwiss/IFC-DB?rev=34d7d45" },
+    { name = "ifcclash", marker = "extra == 'ifc-db'", specifier = ">=0.9.0" },
     { name = "itsdangerous", specifier = ">=2.2" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "limits", specifier = ">=5.0" },
     { name = "neo4j", specifier = ">=6.4" },
     { name = "odata-query", specifier = ">=0.10" },
-    { name = "opencde-server", extras = ["ifc-lpg"], marker = "extra == 'ifcgraph'" },
+    { name = "opencde-server", extras = ["ifc-db"], marker = "extra == 'ifc-lpg'" },
+    { name = "opencde-server", extras = ["ifc-db"], marker = "extra == 'ifcgraph'" },
     { name = "pwdlib", extras = ["argon2"], specifier = ">=0.3.1" },
     { name = "pydantic", specifier = ">=2.12" },
     { name = "pydantic-settings", specifier = ">=2.11" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0" },
-    { name = "shapely", marker = "extra == 'ifc-lpg'", specifier = ">=2.0" },
+    { name = "shapely", marker = "extra == 'ifc-db'", specifier = ">=2.0" },
     { name = "slowapi", specifier = ">=0.1.10" },
     { name = "structlog", specifier = ">=26.1" },
     { name = "typer", specifier = ">=0.27" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
     { name = "zxcvbn", specifier = ">=4.5" },
 ]
-provides-extras = ["ifc-lpg", "ifcgraph", "redis"]
+provides-extras = ["ifc-db", "ifc-lpg", "ifcgraph", "redis"]
 
 [package.metadata.requires-dev]
 dev = [

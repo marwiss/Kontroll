@@ -23,7 +23,7 @@ from __future__ import annotations
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Request, Response
-from ifc_lpg.merge import MergeError
+from ifc_db.merge import MergeError
 from pydantic import BaseModel, Field, field_validator
 
 from opencde.accounts.roles import Role, at_least

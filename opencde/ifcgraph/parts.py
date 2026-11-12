@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
+from ifc_db.worker import keep_stdout_for_the_answer, limit_memory
 
 INVERSE_DEPTH = 4  # how far back from an instance named by its STEP id the objects that refer to it are looked for
 MAX_ERROR = 300
@@ -64,7 +64,7 @@ def touched(models: list[Any], changes: list[dict[str, Any]]) -> set[str]:
 
 def part(model: Any, ids_path: Path) -> set[str]:
     """The GlobalIds of what the specifications of the IDS file apply to in the model."""
-    from ifc_lpg.ids import read_ids
+    from ifc_db.ids import read_ids
 
     requirements = read_ids(ids_path.read_bytes())
     requirements.validate(model)

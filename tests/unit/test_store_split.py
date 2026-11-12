@@ -13,8 +13,8 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from ifc_lpg.graph import UNIQUE as LIBRARY_UNIQUE
-from ifc_lpg.validation import pack_report
+from ifc_db.graph import UNIQUE as LIBRARY_UNIQUE
+from ifc_db.validation import pack_report
 
 from opencde.graph.schema import EXPIRING_LABELS, UNIQUE
 from opencde.ids import new_id
@@ -75,7 +75,7 @@ async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,))
     """The workers, without IfcOpenShell: a clean check, a conversion's header, an applied change set and a clash
     check that finds nothing."""
     module = command[2]
-    if module == "ifc_lpg.worker":
+    if module == "ifc_db.worker":
         return json.dumps({"schema": "IFC4", "entities": 1})
     if module == "opencde.ifcgraph.apply":
         await asyncio.to_thread(Path(command[5]).write_bytes, b"ISO-10303-21;")  # the changed file

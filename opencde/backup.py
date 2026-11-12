@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.graph import UNIQUE as LIBRARY_UNIQUE
+from ifc_db.graph import UNIQUE as LIBRARY_UNIQUE
 
 from opencde import __version__
 from opencde.graph.graph import Graph

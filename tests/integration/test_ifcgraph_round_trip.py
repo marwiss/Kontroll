@@ -9,11 +9,11 @@ import re
 from pathlib import Path
 
 import pytest
-from ifc_lpg.convert import write_jsonl
-from ifc_lpg.equivalence import compare, compare_files
-from ifc_lpg.exporter import NotExportable, export_records
-from ifc_lpg.importer import delete_model, import_records
-from ifc_lpg.writer import write_records
+from ifc_db.convert import write_jsonl
+from ifc_db.equivalence import compare, compare_files
+from ifc_db.exporter import NotExportable, export_records
+from ifc_db.importer import delete_model, import_records
+from ifc_db.writer import write_records
 from typer.testing import CliRunner
 
 from opencde import backup

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from ifc_lpg.queries import NamedQuery, Parameter
+from ifc_db.queries import NamedQuery, Parameter
 
 from opencde.ifcgraph.queries import CHANGED_SINCE, QUERIES
 from opencde.mcp import routes

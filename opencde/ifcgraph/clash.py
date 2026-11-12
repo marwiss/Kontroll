@@ -19,7 +19,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
+from ifc_db.worker import keep_stdout_for_the_answer, limit_memory
 
 MODES = ("intersection", "clearance")
 # IfcClash's types, as Dataspatium names them: everything that goes into something is an intersection.

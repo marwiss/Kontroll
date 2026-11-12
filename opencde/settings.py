@@ -391,7 +391,7 @@ class Settings(BaseSettings):
         "",
         validation_alias=_ifc("gherkin_env"),
         description="Folder of the environment buildingSMART's ifc-gherkin-rules run in, made by "
-        "`python -m ifc_lpg.gherkin_install`; uploads are then checked against them too. Empty leaves them out.",
+        "`python -m ifc_db.gherkin_install`; uploads are then checked against them too. Empty leaves them out.",
     )
     ifcgraph_clash_enabled: bool = Field(
         False,

@@ -778,7 +778,7 @@ def ifcgraph_export(
 ) -> None:
     """Write a model back as an IFC file from what the graph holds, and validate it. Only a model converted with
     OPENCDE_IFC_LPG_LOSSLESS can be."""
-    from ifc_lpg.exporter import NotExportable
+    from ifc_db.exporter import NotExportable
 
     from opencde.bootstrap import make_storage
     from opencde.ifcgraph.service import IfcGraphService

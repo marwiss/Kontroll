@@ -9,9 +9,9 @@ startup and is idempotent on both Neo4j and Memgraph.
 
 from __future__ import annotations
 
-from ifc_lpg.graph import UNIQUE as LIBRARY_UNIQUE
-from ifc_lpg.graph import Dialect as LibraryDialect
-from ifc_lpg.graph import ensure_schema
+from ifc_db.graph import UNIQUE as LIBRARY_UNIQUE
+from ifc_db.graph import Dialect as LibraryDialect
+from ifc_db.graph import ensure_schema
 
 from opencde.graph.graph import Graph
 from opencde.logging import get_logger
@@ -50,7 +50,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("ChangeSetDraft", "changeset_id"),
 )
 
-#: Every label with a unique key, IFC-LPG's included (``ifc_lpg.graph.UNIQUE``): what the backup keys nodes by and
+#: Every label with a unique key, IFC-LPG's included (``ifc_db.graph.UNIQUE``): what the backup keys nodes by and
 #: the doctor counts. The library makes its own constraints and indexes (``ensure_schema``).
 KEYED: tuple[tuple[str, str], ...] = (*UNIQUE, *LIBRARY_UNIQUE)
 

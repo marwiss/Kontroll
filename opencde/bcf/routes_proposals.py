@@ -36,7 +36,7 @@ from typing import Any
 
 import anyio
 from fastapi import APIRouter, HTTPException
-from ifc_lpg.validation import pack_report
+from ifc_db.validation import pack_report
 from pydantic import BaseModel, ConfigDict, Field
 
 from opencde.accounts.roles import Role, at_least

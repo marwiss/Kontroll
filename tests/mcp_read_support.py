@@ -15,7 +15,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from ifc_lpg.validation import pack_report
+from ifc_db.validation import pack_report
 
 from opencde.ifcgraph import queries as server_queries
 from opencde.ifcgraph.queries import QUERIES

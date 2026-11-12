@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from ifc_lpg.validation import pack_report, unpack_report
+from ifc_db.validation import pack_report, unpack_report
 
 from opencde.ids import new_id
 from opencde.ifcgraph import service as service_module
@@ -20,7 +20,7 @@ from opencde.ifcgraph.service import IfcGraphService
 from opencde.storage import LocalStorage, make_key
 from tests.conftest import test_settings as make_settings  # aliased so pytest does not collect it as a test
 
-# An environment made with `python -m ifc_lpg.gherkin_install`, for the test with buildingSMART's rules.
+# An environment made with `python -m ifc_db.gherkin_install`, for the test with buildingSMART's rules.
 GHERKIN_ENV = os.environ.get("OPENCDE_TEST_GHERKIN_ENV", "")
 # What an issue may carry: a line of the uploaded file, which the log is not to have.
 LINE = "#9=IFCWALL('0KhR8hr7H8eewFRKm6V1bJ',#5,'what an owner history may hold',$,$,$,$,$,.NOSUCHWALL.);"
@@ -123,7 +123,7 @@ async def test_the_rules_findings_join_the_schemas_in_one_report(
     not_run = [{"rule": "GEM004", "error": "FileNotFoundError"}]
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        if command[2] == "ifc_lpg.gherkin":
+        if command[2] == "ifc_db.gherkin":
             assert command[command.index("--env") + 1] == str(tmp_path / "gherkin") and answers == (0, 1)
             ruleset = "ifc-gherkin-rules 893f827 with IfcOpenShell 0.8.6"
             reply = {"ruleset": ruleset, "issue_count": 1, "error_count": 0, "truncated": False, "issues": [found]}
@@ -146,7 +146,7 @@ async def test_the_rules_findings_join_the_schemas_in_one_report(
     assert log.events == [("ifc_validation_done", {"validation_id": "check-4", "issues": 2})]
 
 
-# What `python -m ifc_lpg.gherkin` answered on the file of `test_ifcgraph_elements.broken`, recorded on 2026-11-12 with
+# What `python -m ifc_db.gherkin` answered on the file of `test_ifcgraph_elements.broken`, recorded on 2026-11-12 with
 # ifc-gherkin-rules 893f827 and IfcOpenShell 0.8.6, as `gherkin_install` makes them: GEM111 names the polyline, which has
 # no GlobalId, and GEM004 could not run (its tables are looked for where this environment does not keep them).
 GEM111_ANSWER = {
@@ -190,7 +190,7 @@ async def test_a_rules_finding_names_the_element_its_instance_is_in(
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
         workers.append(command[2])
-        if command[2] == "ifc_lpg.gherkin":
+        if command[2] == "ifc_db.gherkin":
             return json.dumps(GEM111_ANSWER)
         if command[2] == "opencde.ifcgraph.elements":  # the real worker, on the file
             done = await asyncio.to_thread(subprocess.run, command, capture_output=True, text=True, check=False)
@@ -201,7 +201,7 @@ async def test_a_rules_finding_names_the_element_its_instance_is_in(
     monkeypatch.setattr(service, "_in_a_process", answer)
     await service._validate("check-9", "documents/x", "gem111.ifc")
 
-    assert workers == ["ifc_lpg.validation", "ifc_lpg.gherkin", "opencde.ifcgraph.elements"]
+    assert workers == ["ifc_db.validation", "ifc_db.gherkin", "opencde.ifcgraph.elements"]
     [finding] = unpack_report(graph.writes[-1][1]["fields"]["report"])
     assert finding == {
         **GEM111_ANSWER["issues"][0],
@@ -219,7 +219,7 @@ async def test_when_the_elements_cannot_be_read_the_findings_stay_as_the_rules_g
     with_rules(tmp_path, service)
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        if command[2] == "ifc_lpg.gherkin":
+        if command[2] == "ifc_db.gherkin":
             return json.dumps(GEM111_ANSWER)
         if command[2] == "opencde.ifcgraph.elements":
             raise RuntimeError(f"could not read {LINE}")
@@ -240,7 +240,7 @@ async def test_the_installed_rules_give_the_recorded_answer(tmp_path: Path) -> N
     pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
     from tests.unit.test_ifcgraph_elements import broken
 
-    command = [sys.executable, "-m", "ifc_lpg.gherkin", str(broken(tmp_path)), "--env", GHERKIN_ENV]
+    command = [sys.executable, "-m", "ifc_db.gherkin", str(broken(tmp_path)), "--env", GHERKIN_ENV]
     done = await asyncio.to_thread(subprocess.run, command, capture_output=True, text=True, check=False)
     assert done.returncode == 1, done.stderr
     assert json.loads(done.stdout.strip().splitlines()[-1]) == GEM111_ANSWER
@@ -253,7 +253,7 @@ async def test_when_the_rules_cannot_run_the_schemas_check_stands(
     with_rules(tmp_path, service)
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        if command[2] == "ifc_lpg.gherkin":
+        if command[2] == "ifc_db.gherkin":
             raise RuntimeError(f"behave stopped at {LINE}")
         return json.dumps(SCHEMA_ANSWER)
 
@@ -289,7 +289,7 @@ async def test_rules_that_are_configured_but_not_installed_are_left_out(
 
     monkeypatch.setattr(service, "_in_a_process", answer)
     await service._validate("check-6", "documents/x", "model.ifc")
-    assert [command[2] for command in commands] == ["ifc_lpg.validation"]
+    assert [command[2] for command in commands] == ["ifc_db.validation"]
     assert [check["name"] for check in json.loads(graph.writes[-1][1]["fields"]["checks"])] == ["schema"]
 
 
@@ -337,7 +337,7 @@ async def test_the_projects_ids_documents_join_the_report(
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
         commands.append(command)
-        if command[2] == "ifc_lpg.ids":
+        if command[2] == "ifc_db.ids":
             assert answers == (0, 1), "a specification that fails is an answer, not a failure"
             return json.dumps(
                 {
@@ -355,7 +355,7 @@ async def test_the_projects_ids_documents_join_the_report(
     monkeypatch.setattr(service, "_in_a_process", answer)
     await service._validate("check-7", "documents/x", "model.ifc")
 
-    (ids_command,) = [command for command in commands if command[2] == "ifc_lpg.ids"]
+    (ids_command,) = [command for command in commands if command[2] == "ifc_db.ids"]
     stored_files = [str(service.storage.path(document["storage_key"])) for document in IDS_DOCUMENTS]
     assert ids_command[ids_command.index("--") + 1 :] == [str(tmp_path / "model.ifc"), *stored_files], (
         "the worker gets the paths the server made, and nothing of a document's name"
@@ -384,7 +384,7 @@ async def test_when_the_ids_check_cannot_run_the_others_stand(
     with_ids_documents(service, monkeypatch)
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
-        if command[2] == "ifc_lpg.ids":
+        if command[2] == "ifc_db.ids":
             raise RuntimeError(f"IfcTester stopped at {LINE}")
         return json.dumps(SCHEMA_ANSWER)
 

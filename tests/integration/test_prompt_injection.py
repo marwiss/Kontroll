@@ -23,7 +23,7 @@ from urllib.parse import quote, unquote
 
 import pytest
 from fastapi.testclient import TestClient
-from ifc_lpg.ids import MAX_RULE
+from ifc_db.ids import MAX_RULE
 from neo4j import GraphDatabase
 
 from opencde.bcf.binary import sanitize_filename

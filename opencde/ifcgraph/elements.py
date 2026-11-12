@@ -6,7 +6,7 @@
 ``STEPS`` is a JSON list of STEP ids, which the server wrote. Answers with one JSON document on stdout,
 ``{"elements": {"<step id>": {"ifc_class": …, "root_global_id": …}}}``, for every id that is an instance of the file:
 its class, and the GlobalId of the nearest rooted entity that reaches it, its own when it is one. A rooted entity
-reaches an instance as IFC-LPG's paths do (``ifc_lpg.paths``): forward through explicit attributes and backward
+reaches an instance as IFC-LPG's paths do (``ifc_db.paths``): forward through explicit attributes and backward
 through inverse ones, within ``MAX_STEPS`` steps. Of the nearest, the one is taken whose path comes first as IFC-LPG
 orders them: forward steps before inverse ones, the attribute names in alphabetical order, the lowest position, then
 the lowest GlobalId. IFC-LPG orders an inverse set by its members' content in the graph; here every inverse step counts
@@ -25,9 +25,9 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.paths import MAX_STEPS
-from ifc_lpg.validation import MAX_REPORTED
-from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
+from ifc_db.paths import MAX_STEPS
+from ifc_db.validation import MAX_REPORTED
+from ifc_db.worker import keep_stdout_for_the_answer, limit_memory
 
 MAX_VISITED = 20_000  # steps searched back from one instance before it is left without its element
 MAX_SEARCHED = 1_000_000  # and from all of them together, each kept in memory once read
@@ -139,7 +139,7 @@ class Search:
 
 def answer(path: Path, steps: list[int]) -> dict[str, Any]:
     import ifcopenshell
-    from ifc_lpg.schema import Schema
+    from ifc_db.schema import Schema
 
     model = ifcopenshell.open(str(path))
     search = Search(model, Schema(model.schema_identifier))

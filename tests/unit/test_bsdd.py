@@ -14,7 +14,7 @@ from typing import Any
 
 import httpx
 import pytest
-from ifc_lpg.validation import pack_report, unpack_report
+from ifc_db.validation import pack_report, unpack_report
 from pydantic import ValidationError
 
 from opencde.ids import new_id
@@ -512,7 +512,7 @@ async def test_off_by_default_no_worker_reads_the_references(
     commands: list[list[str]] = []
     monkeypatch.setattr(service, "_in_a_process", answering(FOUND, commands))
     await service._validate("check-3", "documents/x", "model.ifc")
-    assert [command[2] for command in commands] == ["ifc_lpg.validation"] and service.bsdd is None
+    assert [command[2] for command in commands] == ["ifc_db.validation"] and service.bsdd is None
     assert [check["name"] for check in json.loads(graph.writes[-1][1]["fields"]["checks"])] == ["schema"]
 
 
@@ -537,7 +537,7 @@ def answering_with_ids(commands: list[list[str]], read: dict[str, dict[str, Any]
 
     async def answer(command: list[str], what: str, answers: tuple[int, ...] = (0,)) -> str:
         commands.append(command)
-        if command[2] == "ifc_lpg.ids":
+        if command[2] == "ifc_db.ids":
             return json.dumps(IDS_REPORT)
         if command[2:4] == ["opencde.ifcgraph.bsdd_refs", "--ids"]:
             if fail:

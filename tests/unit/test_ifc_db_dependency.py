@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
-"""What Dataregium relies on from IFC-LPG, the library its IFC graph comes from (ADR 0014).
+"""What Dataregium relies on from IFC-DB, the library its IFC graph comes from (ADR 0014).
 
-IFC-LPG's own tests cover the round trip. These cover how Dataregium uses it: the graph side in the server's process
+IFC-DB's own tests cover the round trip. These cover how Dataregium uses it: the graph side in the server's process
 without IfcOpenShell, the workers with the extra, and buildingSMART's rules without the server's settings.
 """
 
@@ -21,29 +21,31 @@ def _project() -> dict:
 
 def test_the_graph_side_is_always_installed_and_the_workers_come_with_the_extra() -> None:
     project = _project()
-    assert any(requirement.startswith("ifc-lpg>=") for requirement in project["dependencies"])
-    assert project["optional-dependencies"]["ifc-lpg"] == [
-        "ifc-lpg[ifcopenshell]>=1.0.0",
+    assert any(requirement.startswith("ifc-db>=") for requirement in project["dependencies"])
+    assert project["optional-dependencies"]["ifc-db"] == [
+        "ifc-db[ifcopenshell]>=1.0.0",
         "ifcclash>=0.9.0",
         "shapely>=2.0",
     ], "the rooms need shapely 2, which IfcOpenShell brings without a floor"
-    assert '"--extra ifc-lpg"' in (ROOT / "docker" / "Dockerfile").read_text(encoding="utf-8"), (
+    for old in ("ifc-lpg", "ifcgraph"):
+        assert project["optional-dependencies"][old] == ["opencde-server[ifc-db]"], "builds that name it keep working"
+    assert '"--extra ifc-db"' in (ROOT / "docker" / "Dockerfile").read_text(encoding="utf-8"), (
         "the image has the workers"
     )
 
 
 def test_the_server_process_needs_no_ifcopenshell() -> None:
     """The modules Dataregium imports in its own process; the slim image has no IfcOpenShell."""
-    import ifc_lpg.exporter
-    import ifc_lpg.importer
-    import ifc_lpg.validation
+    import ifc_db.exporter
+    import ifc_db.importer
+    import ifc_db.validation
 
-    assert callable(ifc_lpg.importer.delete_model) and callable(ifc_lpg.exporter.export_records)
-    assert ifc_lpg.validation.unpack_report(ifc_lpg.validation.pack_report([{"kind": "x"}])) == [{"kind": "x"}]
+    assert callable(ifc_db.importer.delete_model) and callable(ifc_db.exporter.export_records)
+    assert ifc_db.validation.unpack_report(ifc_db.validation.pack_report([{"kind": "x"}])) == [{"kind": "x"}]
 
 
 def test_the_rules_see_none_of_the_servers_settings(monkeypatch: pytest.MonkeyPatch) -> None:
-    from ifc_lpg import gherkin
+    from ifc_db import gherkin
 
     monkeypatch.setenv("OPENCDE_SECRET_KEY", "not for the rules")
     monkeypatch.setenv("OPENCDE_GRAPH_PASSWORD", "nor this")

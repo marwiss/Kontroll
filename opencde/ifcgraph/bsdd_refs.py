@@ -29,7 +29,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
+from ifc_db.worker import keep_stdout_for_the_answer, limit_memory
 
 from opencde.ifcgraph.bsdd import parse_uri
 
@@ -278,7 +278,7 @@ def answer(path: Path) -> dict[str, Any]:
 def ids_uris(path: Path) -> dict[str, Any]:
     """The bSDD URIs that one IDS document names in its classification and property facets, once a specification,
     read safely as the IDS check reads it; or ``error`` for a document that cannot be read."""
-    from ifc_lpg.ids import InvalidIds, read_ids
+    from ifc_db.ids import InvalidIds, read_ids
     from ifctester.facet import Classification, Property
 
     try:

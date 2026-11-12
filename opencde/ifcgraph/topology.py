@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
+from ifc_db.worker import keep_stdout_for_the_answer, limit_memory
 
 from opencde.ifcgraph.ops import DataspatiumError, _ifc_topology
 

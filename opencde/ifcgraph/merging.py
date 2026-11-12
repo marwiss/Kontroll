@@ -26,9 +26,9 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ifc_lpg.files import Limits
-from ifc_lpg.importer import delete_model
-from ifc_lpg.merge import (
+from ifc_db.files import Limits
+from ifc_db.importer import delete_model
+from ifc_db.merge import (
     RESOLUTIONS,
     MergeConflict,
     MergeError,
@@ -38,7 +38,7 @@ from ifc_lpg.merge import (
     merge_report,
     prepare_other,
 )
-from ifc_lpg.validation import pack_report, unpack_report
+from ifc_db.validation import pack_report, unpack_report
 
 from opencde.documents.schemas import DocumentMetadataEntry
 from opencde.ids import new_id

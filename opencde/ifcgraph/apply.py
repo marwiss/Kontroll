@@ -35,7 +35,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from ifc_lpg.worker import keep_stdout_for_the_answer, limit_memory
+from ifc_db.worker import keep_stdout_for_the_answer, limit_memory
 
 STEP = re.compile(r"^([A-Z][A-Za-z0-9]*)(?:\[([0-9]+)\])?$")
 GUID = re.compile(r"^[0-9A-Za-z_$]{22}$")
