@@ -8,7 +8,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from opencde.documents.changes import SCHEMA_PATH, SNIPPET_TYPE
+from opencde.documents.changes import OPS_FORM, OPS_TOOLS, SCHEMA_PATH, SNIPPET_TYPE
 from opencde.settings import Settings
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.test_bcf_links_documents import make_topic
@@ -37,6 +37,8 @@ def test_the_schema_is_public_and_the_snippet_is_held_to_it(client: TestClient, 
         "approve_url": "/bcf/3.0/projects/{project_id}/topics/{topic_guid}/ifc-proposal/approve",
         "ifc_proposals_url": "/documents/1.0/documents/{document_id}/ifc-proposals",
         "ops": ["set", "add", "remove", "delete"],
+        "ops_form": OPS_FORM,
+        "ops_tools": list(OPS_TOOLS),
         "unreachable_url": None,
     }, "the server proposes no removal without the IFC-LPG module"
 
