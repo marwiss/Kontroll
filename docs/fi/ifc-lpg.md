@@ -215,6 +215,50 @@ tarkistus on `failed` ja syy on sen kentässä `error`, ja muut tarkistukset pys
 ei ole koskaan mallin virhe. Ennakkotarkistus ja muutosjoukon kokeilu tekevät myös tämän tarkistuksen, ja
 kyvykkyysdokumentti kertoo, onko se päällä, nimellä `bsdd` kohdassa `ifc_validation`.
 
+### Kunkin kerroksen huoneet
+
+Asetuksella `OPENCDE_ROOMS_ENABLED=true` lähetyksen, ennakkotarkistuksen ja kokeilun raportti saa myös kunkin
+kerroksen huoneet, jotka löydetään sen seinistä samoin kuin Dataspatium ne löytää: työprosessi ajaa kopion sovelluksen
+koodista IfcOpenShellillä ja shapelyllä tarkistusten jälkeen ja samoin rajoin. Seinän keskilinja on sen
+`Axis`-esitys, joka Dataspatiumin tekemillä seinillä on, tai muuten sen kappaleen jalanjäljen pitkä akseli; päät
+liitetään yhteen kerroksen paksuimman seinän puolikkaan ja 0,05 m:n etäisyydellä, ja keskilinjat, jotka rajaavat
+vähintään 0,5 m² ja 0,5 m leveän alueen, muodostavat huoneen. Raportin `rooms` sisältää jokaisen kerroksen
+korkeusjärjestyksessä, ja kussakin on:
+
+- `rooms`: kunkin huoneen `index` kerroksessa, sen `area` (m²) ja `perimeter` (m) keskilinjoja pitkin, sen `walls`
+  GlobalId-tunnisteina ja sen `neighbours` indekseinä;
+- `external`: huoneiden ulkopuolta kulkevat seinät, kukin kenttineen `global_id`, `name` ja `length` sekä
+  ilmansuunta, johon se on suunnattu (`facing`, `N`, `NE` … `NW`); pohjoinen tulee karttamuunnoksesta, muuten
+  `TrueNorth`-suunnasta, muuten mallin y-akselista, kuten `north` kertoo (`map`, `true_north` tai `model`);
+- `dangles` ja `dangling_walls`: avoimet seinänpäät, `[x, y]` metreinä mallin tasossa, ja niiden seinät;
+- `closed`: onko kerroksessa huone eikä yhtään avointa päätä;
+- `walls`, `unread` ja `unread_walls`: kuinka monta seinää kerroksessa on ja kuinka moni ja mitkä niistä eivät
+  antaneet keskilinjaa;
+- `tolerance`: kuinka kaukana toisistaan, metreinä, kaksi päätä saavat olla ja silti liittyä yhteen.
+
+```json
+"rooms": {
+  "storeys": [
+    {
+      "storey": "Level 1", "elevation": 0.0, "closed": true,
+      "rooms": [{"index": 1, "area": 60.0, "perimeter": 32.0, "walls": ["0iZ0AvLQ5C8f7TH4npBFwH", "…"], "neighbours": []}],
+      "external": [{"global_id": "1pD0WEwnf1UeV30DigCQgn", "name": "North", "facing": "N", "length": 10.0}, "…"],
+      "dangles": [], "dangling_walls": [], "walls": 4, "unread": 0, "unread_walls": [],
+      "tolerance": 0.15, "north": "model"
+    }
+  ],
+  "cut": false
+}
+```
+
+Huoneet ovat oma osionsa eivätkä koskaan huomautus: ne eivät muuta tilaa eivätkä lukumääriä, projekti, joka hylkää
+virheelliset tiedostot, ei koskaan hylkää tiedostoa sen huoneiden vuoksi, ja kokeilu on `clean` tai `issues`
+huoneistaan riippumatta; ne ovat sovelletun tiedoston huoneet. Version sivu näyttää rivin jokaisesta kerroksesta,
+jossa on seiniä. Luettelot katkaistaan 100 kerrokseen, 500 huoneeseen kerrosta kohden ja 200 merkintään kaikissa
+muissa luetteloissa, ja `cut` kertoo siitä, eikä yli 2 000 seinän malli saa huoneita lainkaan. Kun huoneita ei voida
+löytää, raportissa ei ole kenttää `rooms`, ja loki kertoo syyn (`ifc_rooms_failed`) ilman sitä, mitä tiedosto sanoo.
+Oletuksena pois päältä; kyvykkyysdokumentti kertoo, onko se päällä, nimellä `rooms` kohdassa `ifc_validation`.
+
 ### Mitä muunnettu malli näyttää
 
 Kun malli on muunnettu, raporttiin tulee oma tarkistus, `graph`, jossa on kahdenlaisia huomautuksia. Instanssi, jota
@@ -531,13 +575,18 @@ luettelee toiminnot kentässä `ifc_changes.ops` ja osoitteen kentässä `ifc_ch
 Dataspatiumin kirjoitustyökaluilla tehty muutosjoukko kantaa myös niiden toiminnot kentässä `ops`, ja `ops_form` on
 `dataspatium-tools/1`, jotta uudet elementit, poistot ja suhteet tulevat mukaan ehdotukseen. Jokainen toiminto
 nimeää työkalunsa kentässä `tool` ja pitää työkalun argumentit rinnallaan, pituudet metreinä:
-`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`,
-`set_classification`, `assign`, `transform_elements`, `delete_elements` ja `set_site`. Palvelin ajaa ne kopiolla
-sovelluksen omasta koodista (`opencde/ifcgraph/ops.py`), joten samat toiminnot antavat saman mallin sovelluksessa
-ja palvelimella, tiedoston yksikössä, ja IfcOpenShellin tekemissä omistajahistorioissa ovat ehdottaja ja palvelin.
-Seinä-, laatta-, katto- ja aukkotoimintojen luomat nimetään `new-1`, `new-2` … niiden järjestyksessä. Toiminto
-nimeää elementin sen GlobalId:llä, STEP-tunnisteella vain, kun mikään GlobalId ei sitä tavoita, tai tällaisella
-ref-tunnuksella, ja kerroksen sen nimellä. `changes` saa silloin olla tyhjä: toimintojen rinnalla muutokset
+`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`,
+`set_properties`, `set_classification`, `assign`, `transform_elements`, `delete_elements` ja `set_site`. Palvelin
+ajaa ne kopiolla sovelluksen omasta koodista (`opencde/ifcgraph/ops.py`), joten samat toiminnot antavat saman mallin
+sovelluksessa ja palvelimella, tiedoston yksikössä, ja IfcOpenShellin tekemissä omistajahistorioissa ovat ehdottaja ja
+palvelin. Seinä-, laatta-, katto- ja aukkotoimintojen luomat nimetään `new-1`, `new-2` … niiden järjestyksessä, ja
+niin nimetään myös jokainen huone, jonka `create_spaces` luettelee. Toiminto nimeää elementin sen GlobalId:llä,
+STEP-tunnisteella vain, kun mikään GlobalId ei sitä tavoita, tai tällaisella ref-tunnuksella, ja kerroksen sen
+nimellä. `create_wall` antaa seinälle sen keskilinjan `Axis`-esityksenä, ja `create_spaces` tekee seinien rajaamista
+huoneista, jotka löydetään samoin kuin raportin `rooms`, kerroksensa tiloja (`IfcSpace`) tiedostosta sellaisena kuin
+se on tuossa vaiheessa: kukin saa huoneen ääriviivan seuraavaan kerrokseen asti, `Qto_SpaceBaseQuantities`-suureet
+ja fyysiset tilarajat reunansa seiniin ja niissä oleviin oviin ja ikkunoihin; myöhemmin tällaiseen seinään tehty ovi
+tai ikkuna rajaa myös tilaa. `changes` saa silloin olla tyhjä: toimintojen rinnalla muutokset
 kuvaavat, mitä toiminnot tekevät olemassa oleville instansseille, sellaisena kuin sovellus sen havaitsi,
 yhdistämistä varten, ja muutos, jonka toiminnot jo tekivät, lasketaan sovelletuksi. Kyvykkyysdokumentti ilmoittaa
 muodon nimellä `ifc_changes.ops_form` ja työkalut nimellä `ifc_changes.ops_tools`.

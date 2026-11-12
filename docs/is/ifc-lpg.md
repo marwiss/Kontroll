@@ -202,6 +202,48 @@ bSDD, eða það svarar ekki eins og API þess gerir, er prófunin `failed` með
 standa: að ekki náist í bSDD er aldrei villa í líkaninu. Forprófunin og prófun breytingasafns gera líka prófunina, og
 getuskjalið segir hvort hún er á, sem `bsdd` í `ifc_validation`.
 
+### Herbergin á hverri hæð
+
+Með `OPENCDE_ROOMS_ENABLED=true` fær skýrsla upphals, forprófunar og prófunar líka herbergin á hverri hæð, fundin út
+frá veggjum hennar eins og Dataspatium finnur þau: vinnsluferli keyrir afrit af kóða appsins með IfcOpenShell og
+shapely, á eftir prófununum og með sömu mörkum. Miðlína veggjar er `Axis`-framsetning hans, sem veggirnir sem
+Dataspatium býr til hafa, eða annars langás fótspors búks hans; endarnir eru tengdir saman innan helmings þykkasta
+veggjar hæðarinnar að viðbættum 0,05 m, og þær miðlínur sem loka minnst 0,5 m² og 0,5 m breiðu svæði mynda herbergi.
+`rooms` í skýrslunni hefur hverja hæð, í hæðarröð, með:
+
+- `rooms`: `index` hvers herbergis á hæðinni, `area` þess (m²) og `perimeter` (m) eftir miðlínunum, GlobalId fyrir
+  `walls` þess og `neighbours` þess eftir vísi;
+- `external`: veggirnir meðfram ytri hlið herbergjanna, hver með `global_id`, `name`, `length` sína þar og áttina sem
+  hann snýr að (`facing`, `N`, `NE` … `NW`), með norður úr kortavörpuninni, annars `TrueNorth`, annars y-ás
+  líkansins, eins og `north` segir (`map`, `true_north` eða `model`);
+- `dangles` og `dangling_walls`: lausu veggendarnir, `[x, y]` í metrum í grunnfleti líkansins, og veggir þeirra;
+- `closed`: hvort hæðin hefur herbergi og engan lausan enda;
+- `walls`, `unread` og `unread_walls`: hve marga veggi hæðin hefur, og hve margir og hverjir gáfu enga miðlínu;
+- `tolerance`: hve langt, í metrum, tveir endar mega vera hvor frá öðrum og samt tengjast saman.
+
+```json
+"rooms": {
+  "storeys": [
+    {
+      "storey": "Level 1", "elevation": 0.0, "closed": true,
+      "rooms": [{"index": 1, "area": 60.0, "perimeter": 32.0, "walls": ["0iZ0AvLQ5C8f7TH4npBFwH", "…"], "neighbours": []}],
+      "external": [{"global_id": "1pD0WEwnf1UeV30DigCQgn", "name": "North", "facing": "N", "length": 10.0}, "…"],
+      "dangles": [], "dangling_walls": [], "walls": 4, "unread": 0, "unread_walls": [],
+      "tolerance": 0.15, "north": "model"
+    }
+  ],
+  "cut": false
+}
+```
+
+Herbergin eru sérstakur hluti og aldrei athugasemd: þau breyta hvorki stöðu né fjölda, verkefni sem hafnar skrám með
+villum hafnar aldrei skrá vegna herbergja hennar, og prófun er `clean` eða `issues` hvernig sem herbergi hennar eru,
+en þau eru herbergi skrárinnar sem breytingunum var beitt á. Síða útgáfunnar sýnir eina línu fyrir hverja hæð með
+veggjum. Listarnir eru styttir við 100 hæðir, 500 herbergi á hæð og 200 færslur í hverjum öðrum lista, og `cut` segir
+til, og líkan með fleiri en 2.000 veggi fær engin. Þegar ekki tekst að finna herbergin hefur skýrslan engin `rooms`, og
+skráningin segir hvers vegna (`ifc_rooms_failed`) án þess sem skráin segir. Sjálfgefið af; getuskjalið segir hvort það
+er á, sem `rooms` í `ifc_validation`.
+
 ### Það sem umbreytta líkanið sýnir
 
 Þegar líkanið hefur verið umbreytt fær skýrslan eigin prófun, `graph`, með tvenns konar athugasemdum. Tilvik sem
@@ -512,12 +554,17 @@ líkan, og `409` þegar ekkert í henni er utan seilingar. Getuskjalið telur up
 Breytingasafn sem gert er með skrifverkfærum Dataspatium ber líka aðgerðir þeirra sem `ops`, með `ops_form`
 `dataspatium-tools/1`, svo að nýjar einingar, eyðingar og tengsl fylgi tillögunni. Hver aðgerð nefnir verkfæri sitt
 sem `tool` og hefur rök verkfærisins við hliðina, lengdir í metrum: `create_storeys_and_grid`, `create_wall`,
-`create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`, `assign`,
+`create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`, `set_classification`, `assign`,
 `transform_elements`, `delete_elements` og `set_site`. Þjónninn keyrir þær með afriti af eigin kóða appsins
 (`opencde/ifcgraph/ops.py`), svo að sömu aðgerðir gefa sama líkan í appinu og á þjóninum, í einingu skrárinnar,
 með þann sem lagði til og þjóninn í eigendasögunum sem IfcOpenShell býr til. Það sem vegg-, plötu-, þak- og
-opsaðgerðirnar búa til heitir `new-1`, `new-2` … í röð þeirra. Aðgerð nefnir einingu með GlobalId hennar, með
-STEP-auðkenni hennar aðeins þar sem ekkert GlobalId nær henni, eða með slíku ref, og hæð með nafni sínu. `changes`
+opsaðgerðirnar búa til heitir `new-1`, `new-2` … í röð þeirra, og það gerir líka hvert herbergi sem `create_spaces`
+telur upp. Aðgerð nefnir einingu með GlobalId hennar, með STEP-auðkenni hennar aðeins þar sem ekkert GlobalId nær
+henni, eða með slíku ref, og hæð með nafni sínu. `create_wall` gefur vegg miðlínu hans sem `Axis`-framsetningu, og
+`create_spaces` gerir herbergin sem veggirnir loka, fundin eins og `rooms` skýrslunnar finnast, að rýmum
+(`IfcSpace`) á hæð sinni, út frá skránni eins og hún er á því skrefi: hvert með útlínu herbergisins upp að næstu hæð,
+`Qto_SpaceBaseQuantities` og efnislegum rýmismörkum að veggjunum meðfram brún þess og að dyrum og gluggum í þeim; dyr
+eða gluggi sem gerður er síðar í slíkum vegg afmarkar líka rýmið. `changes`
 má þá vera tómt: við hlið aðgerðanna lýsa breytingarnar því sem aðgerðirnar gera við tilvik sem eru til, eins og
 appið fann það, fyrir sameininguna, og breyting sem aðgerðirnar hafa þegar gert telst beitt. Getuskjalið auglýsir
 sniðið sem `ifc_changes.ops_form` og verkfærin sem `ifc_changes.ops_tools`.

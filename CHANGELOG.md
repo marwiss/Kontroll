@@ -20,6 +20,13 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- With `OPENCDE_ROOMS_ENABLED=true` (off by default), the report of an upload, a precheck and a trial also has the
+  rooms of each storey as a section of its own, `rooms`, found from the walls with a copy of Dataspatium's code: per
+  storey the rooms with their area, perimeter, walls and neighbours, the external walls with the compass sector they
+  face, the open wall ends with their walls, whether the storey is closed, and the walls that could not be read, every
+  wall by GlobalId. The rooms are never issues: no status, refusal or state of a trial depends on them. The version's
+  page shows a row per storey, the capabilities document announces them as `rooms` in `ifc_validation`, and the
+  `ifc-lpg` extra declares shapely 2.
 - A token can be bound to the MCP endpoint for AI tools, which is off unless `OPENCDE_MCP_ENABLED` is true:
   `resource` (RFC 8707) on the authorization and the token request accepts `<public_url>/mcp` alone, anything else
   is `invalid_target`, and the code and its token family keep it through every refresh. Such a token holds `mcp`
@@ -43,12 +50,14 @@ cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
   first, the scopes `mcp` and `mcp:propose`, `default_ai_policy` and the policy's address as `ai_policy_url`.
   the OpenCDE specifications define do not carry it.
 - A change set carries Dataspatium's write tools as `ops` in the form `ops_form` `dataspatium-tools/1`:
-  `create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`,
-  `set_classification`, `assign`, `transform_elements`, `delete_elements` and `set_site`, lengths in metres, an
-  element named by its GlobalId (its STEP id where no GlobalId reaches it) and a created one by its ref `new-1`,
-  `new-2` …. The trial applies them to the base version with a copy of the app's own code before the changes, which
-  may then be empty, and a change the operations made already counts as applied; an operation that fails is an
-  issue of kind `op` with its index and tool, and the trial gives `created` (the GlobalId of each ref) and `notes`.
+  `create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`,
+  `set_properties`, `set_classification`, `assign`, `transform_elements`, `delete_elements` and `set_site`, lengths
+  in metres, an element named by its GlobalId (its STEP id where no GlobalId reaches it) and a created one by its ref
+  `new-1`, `new-2` …; `create_wall` gives a wall its centre line as an `Axis`, and `create_spaces` makes the rooms the
+  walls enclose spaces with their quantities and boundaries, a ref for each room it lists. The trial applies them to
+  the base version with a copy of the app's own code before the changes, which may then be empty, and a change the
+  operations made already counts as applied; an operation that fails is an issue of kind `op` with its index and
+  tool, and the trial gives `created` (the GlobalId of each ref) and `notes`.
   `keep_theirs` lists the conflicts the proposer gave up: the change set is then tried on the latest version and
   those attributes keep its values. The capabilities document announces `ifc_changes.ops_form` and
   `ifc_changes.ops_tools`.

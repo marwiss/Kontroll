@@ -209,6 +209,49 @@ kan nåast, eller ikkje svarar slik API-et gjer, er kontrollen `failed` med grun
 står seg: at bSDD ikkje kan nåast, er aldri ein feil i modellen. Førehandskontrollen og prøvinga av eit endringssett
 gjer òg kontrollen, og kapabilitetsdokumentet seier om han er slått på, som `bsdd` i `ifc_validation`.
 
+### Romma i kvar etasje
+
+Med `OPENCDE_ROOMS_ENABLED=true` får rapporten for ei opplasting, ein førehandskontroll og ei prøving òg romma i kvar
+etasje, funne ut frå veggane slik Dataspatium finn dei: ein arbeidsprosess køyrer ein kopi av koden til appen med
+IfcOpenShell og shapely, etter kontrollane og med dei same grensene. Midtlinja til ein vegg er
+`Axis`-representasjonen hans, som veggane Dataspatium lagar, har, eller elles den lange aksen i fotavtrykket til
+kroppen hans; endane blir føydde saman innanfor halvparten av den tjukkaste veggen i etasjen pluss 0,05 m, og dei
+midtlinjene som lukkar minst 0,5 m² og 0,5 m i breidda, dannar eit rom. `rooms` i rapporten har kvar etasje, etter
+høgd, med:
+
+- `rooms`: `index` for kvart rom i etasjen, `area` (m²) og `perimeter` (m) langs midtlinjene, GlobalId for `walls` og
+  `neighbours` etter indeks;
+- `external`: veggane langs utsida av romma, kvar med `global_id`, `name`, `length` der og himmelretninga han vender
+  mot (`facing`, `N`, `NE` … `NW`), med nord frå kartkonverteringa, elles `TrueNorth`, elles y-aksen til modellen,
+  slik `north` seier (`map`, `true_north` eller `model`);
+- `dangles` og `dangling_walls`: dei lause veggendane, `[x, y]` i meter i planet til modellen, og veggane deira;
+- `closed`: om etasjen har eit rom og ingen laus ende;
+- `walls`, `unread` og `unread_walls`: kor mange veggar etasjen har, og kor mange og kva for nokre som ikkje gav noka
+  midtlinje;
+- `tolerance`: kor langt frå kvarandre, i meter, to endar kan vere og likevel bli føydde saman.
+
+```json
+"rooms": {
+  "storeys": [
+    {
+      "storey": "Level 1", "elevation": 0.0, "closed": true,
+      "rooms": [{"index": 1, "area": 60.0, "perimeter": 32.0, "walls": ["0iZ0AvLQ5C8f7TH4npBFwH", "…"], "neighbours": []}],
+      "external": [{"global_id": "1pD0WEwnf1UeV30DigCQgn", "name": "North", "facing": "N", "length": 10.0}, "…"],
+      "dangles": [], "dangling_walls": [], "walls": 4, "unread": 0, "unread_walls": [],
+      "tolerance": 0.15, "north": "model"
+    }
+  ],
+  "cut": false
+}
+```
+
+Romma er ein eigen del og aldri ein merknad: dei endrar verken status eller tal, eit prosjekt som avviser filer med
+feil, avviser aldri ei fil for romma hennar, og ei prøving er `clean` eller `issues` same korleis romma er, og dei er
+romma i den brukte fila. Sida til versjonen viser ei rad per etasje med veggar. Listene blir korta av ved 100 etasjar,
+500 rom per etasje og 200 postar i kvar anna liste, og `cut` seier frå, og ein modell med meir enn 2 000 veggar får
+ingen. Når romma ikkje kan finnast, har rapporten ingen `rooms`, og loggen seier kvifor (`ifc_rooms_failed`) utan det
+fila seier. Slått av som standard; kapabilitetsdokumentet seier om det er slått på, som `rooms` i `ifc_validation`.
+
 ### Det den konverterte modellen viser
 
 Når modellen er konvertert, får rapporten ein eigen kontroll, `graph`, med to slag merknader. Ein instans som ingenting
@@ -525,13 +568,18 @@ viser operasjonane i `ifc_changes.ops` og adressa som `ifc_changes.unreachable_u
 Eit endringssett laga med skriveverktøya til Dataspatium ber òg operasjonane deira som `ops`, med `ops_form`
 `dataspatium-tools/1`, slik at nye element, slettingar og relasjonar kjem med i forslaget. Kvar operasjon oppgjev
 verktøyet sitt som `tool` og har argumenta til verktøyet ved sida av seg, lengder i meter:
-`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`,
-`assign`, `transform_elements`, `delete_elements` og `set_site`. Serveren køyrer dei med ein kopi av den eigne
-koden til appen (`opencde/ifcgraph/ops.py`), slik at dei same operasjonane gjev den same modellen i appen og på
-serveren, i eininga til fila, med den som foreslo og serveren i eigarhistorikkane som IfcOpenShell lagar. Det som
-vegg-, dekke-, tak- og opningsoperasjonane skaper, heiter `new-1`, `new-2` … i rekkjefølgja si. Ein operasjon oppgjev
-eit element med GlobalId-en sin, med STEP-id-en sin berre der ingen GlobalId når det, eller med ein slik ref, og ein
-etasje med namnet sitt. `changes` kan då vere tom: ved sida av operasjonane skildrar
+`create_storeys_and_grid`, `create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`,
+`set_properties`, `set_classification`, `assign`, `transform_elements`, `delete_elements` og `set_site`. Serveren
+køyrer dei med ein kopi av den eigne koden til appen (`opencde/ifcgraph/ops.py`), slik at dei same operasjonane gjev
+den same modellen i appen og på serveren, i eininga til fila, med den som foreslo og serveren i eigarhistorikkane som
+IfcOpenShell lagar. Det som vegg-, dekke-, tak- og opningsoperasjonane skaper, heiter `new-1`, `new-2` … i
+rekkjefølgja si, og det gjer òg kvart rom som `create_spaces` listar opp. Ein operasjon oppgjev eit element med
+GlobalId-en sin, med STEP-id-en sin berre der ingen GlobalId når det, eller med ein slik ref, og ein etasje med namnet
+sitt. `create_wall` gjev ein vegg midtlinja si som ein `Axis`-representasjon, og `create_spaces` gjer romma veggane
+lukkar, funne slik `rooms` i rapporten blir funne, til rom (`IfcSpace`) i etasjen sin, ut frå fila slik ho er ved det
+steget: kvart med omrisset til rommet opp til neste etasje, `Qto_SpaceBaseQuantities` og fysiske romavgrensingar mot
+veggane langs kanten og mot dørene og vindauga i dei; ei dør eller eit vindauge som blir laga seinare i ein slik vegg,
+avgrensar òg rommet. `changes` kan då vere tom: ved sida av operasjonane skildrar
 endringane kva operasjonane gjer med instansar som finst, slik appen fann det, for samanslåinga, og ei endring som
 operasjonane alt har gjort, tel som brukt. Kapabilitetsdokumentet kunngjer forma som `ifc_changes.ops_form` og
 verktøya som `ifc_changes.ops_tools`.

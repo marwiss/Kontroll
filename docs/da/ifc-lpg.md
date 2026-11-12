@@ -205,6 +205,48 @@ nås, eller ikke svarer, som dens API gør, er kontrollen `failed` med grunden i
 står ved magt: at bSDD ikke kan nås, er aldrig en fejl i modellen. Forhåndskontrollen og prøvningen af et ændringssæt
 foretager også kontrollen, og kapabilitetsdokumentet siger, om den er slået til, som `bsdd` i `ifc_validation`.
 
+### Rummene på hver etage
+
+Med `OPENCDE_ROOMS_ENABLED=true` får rapporten for en upload, en forhåndskontrol og en prøvning også rummene på hver
+etage, fundet ud fra dens vægge, som Dataspatium finder dem: en arbejdsproces kører en kopi af appens kode med
+IfcOpenShell og shapely, efter kontrollerne og med de samme grænser. En vægs midterlinje er dens
+`Axis`-repræsentation, som de vægge, Dataspatium laver, har, eller ellers den lange akse i dens krops fodaftryk;
+enderne føjes sammen inden for halvdelen af etagens tykkeste væg plus 0,05 m, og de midterlinjer, der lukker om mindst
+0,5 m² og 0,5 m i bredden, danner et rum. Rapportens `rooms` har hver etage, efter kote, med:
+
+- `rooms`: hvert rums `index` på etagen, dets `area` (m²) og `perimeter` (m) langs midterlinjerne, GlobalId for dets
+  `walls` og dets `neighbours` efter indeks;
+- `external`: væggene langs rummenes yderside, hver med sit `global_id`, `name`, sin `length` dér og det verdenshjørne,
+  den vender mod (`facing`, `N`, `NE` … `NW`), med nord fra kortkonverteringen, ellers `TrueNorth`, ellers modellens
+  y-akse, som `north` siger (`map`, `true_north` eller `model`);
+- `dangles` og `dangling_walls`: de løse vægender, `[x, y]` i meter i modellens plan, og deres vægge;
+- `closed`: om etagen har et rum og ingen løs ende;
+- `walls`, `unread` og `unread_walls`: hvor mange vægge etagen har, og hvor mange og hvilke der ikke gav nogen
+  midterlinje;
+- `tolerance`: hvor langt fra hinanden, i meter, to ender må være og stadig føjes sammen.
+
+```json
+"rooms": {
+  "storeys": [
+    {
+      "storey": "Level 1", "elevation": 0.0, "closed": true,
+      "rooms": [{"index": 1, "area": 60.0, "perimeter": 32.0, "walls": ["0iZ0AvLQ5C8f7TH4npBFwH", "…"], "neighbours": []}],
+      "external": [{"global_id": "1pD0WEwnf1UeV30DigCQgn", "name": "North", "facing": "N", "length": 10.0}, "…"],
+      "dangles": [], "dangling_walls": [], "walls": 4, "unread": 0, "unread_walls": [],
+      "tolerance": 0.15, "north": "model"
+    }
+  ],
+  "cut": false
+}
+```
+
+Rummene er et afsnit for sig og aldrig en anmærkning: de ændrer hverken status eller antal, et projekt, der afviser
+filer med fejl, afviser aldrig en fil for dens rum, og en prøvning er `clean` eller `issues`, uanset dens rum, som er
+den anvendte fils. Versionens side viser en række pr. etage med vægge. Listerne afkortes ved 100 etager, 500 rum pr.
+etage og 200 poster i hver anden liste, og `cut` siger til, og en model med mere end 2.000 vægge får ingen. Når rummene
+ikke kan findes, har rapporten ingen `rooms`, og loggen siger hvorfor (`ifc_rooms_failed`) uden det, filen siger.
+Slået fra som standard; kapabilitetsdokumentet siger, om det er slået til, som `rooms` i `ifc_validation`.
+
 ### Det, den konverterede model viser
 
 Når modellen er konverteret, får rapporten sin egen kontrol, `graph`, med to slags bemærkninger. En instans, som intet
@@ -521,12 +563,17 @@ handlingerne i `ifc_changes.ops` og adressen som `ifc_changes.unreachable_url`.
 Et ændringssæt lavet med Dataspatiums skriveværktøjer bærer også deres operationer som `ops`, med `ops_form`
 `dataspatium-tools/1`, så nye elementer, sletninger og relationer kommer med i forslaget. Hver operation angiver sit
 værktøj som `tool` og har værktøjets argumenter ved siden af sig, længder i meter: `create_storeys_and_grid`,
-`create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`, `assign`,
-`transform_elements`, `delete_elements` og `set_site`. Serveren kører dem med en kopi af appens egen kode
-(`opencde/ifcgraph/ops.py`), så de samme operationer giver den samme model i appen og på serveren, i filens enhed,
-med den, der foreslog, og serveren i de ejerhistorikker, som IfcOpenShell laver. Det, som væg-, dæk-, tag- og
-åbningsoperationerne skaber, hedder `new-1`, `new-2` … i deres rækkefølge. En operation angiver et element med dets
-GlobalId, med dets STEP-id kun, hvor intet GlobalId når det, eller med sådan en ref, og en etage med dens navn.
+`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
+`set_classification`, `assign`, `transform_elements`, `delete_elements` og `set_site`. Serveren kører dem med en kopi
+af appens egen kode (`opencde/ifcgraph/ops.py`), så de samme operationer giver den samme model i appen og på
+serveren, i filens enhed, med den, der foreslog, og serveren i de ejerhistorikker, som IfcOpenShell laver. Det, som
+væg-, dæk-, tag- og åbningsoperationerne skaber, hedder `new-1`, `new-2` … i deres rækkefølge, og det gør hvert rum,
+som `create_spaces` opregner, også. En operation angiver et element med dets GlobalId, med dets STEP-id kun, hvor
+intet GlobalId når det, eller med sådan en ref, og en etage med dens navn. `create_wall` giver en væg dens
+midterlinje som en `Axis`-repræsentation, og `create_spaces` gør de rum, væggene lukker om, fundet som rapportens
+`rooms` findes, til rum (`IfcSpace`) på deres etage, ud fra filen, som den er ved det trin: hvert med rummets omrids
+op til næste etage, `Qto_SpaceBaseQuantities` og fysiske rumafgrænsninger mod væggene langs dets kant og mod dørene
+og vinduerne i dem; en dør eller et vindue, der laves senere i sådan en væg, afgrænser også rummet.
 `changes` må da være tom: ved siden af operationerne beskriver ændringerne, hvad
 operationerne gør ved eksisterende instanser, som appen fandt det, til fletningen, og en ændring, som operationerne
 allerede har lavet, tæller som anvendt. Kapabilitetsdokumentet annoncerer formen som `ifc_changes.ops_form` og

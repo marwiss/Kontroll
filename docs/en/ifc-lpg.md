@@ -203,6 +203,48 @@ answer as its API does, the check is `failed` with the reason in its `error`, an
 reach is never an error of the model. The precheck and the trial of a change set make the check too, and the
 capabilities document says whether it is on, as `bsdd` in `ifc_validation`.
 
+### The rooms of each storey
+
+With `OPENCDE_ROOMS_ENABLED=true`, the report of an upload, of a precheck and of a trial also gets the rooms of each
+storey, found from its walls as Dataspatium finds them: a worker runs a copy of the app's code with IfcOpenShell and
+shapely, after the checks and with the same limits. A wall's centre line is its `Axis` representation, which the
+walls Dataspatium makes carry, or else the long axis of its body's footprint; the ends are joined within half the
+storey's thickest wall plus 0.05 m, and the centre lines that enclose at least 0.5 m² and 0.5 m across make a room.
+The report's `rooms` holds every storey, by elevation, with:
+
+- `rooms`: each room's `index` on the storey, its `area` (m²) and `perimeter` (m) along the centre lines, the
+  GlobalIds of its `walls`, and its `neighbours` by index;
+- `external`: the walls along the outside of the rooms, each with its `global_id`, `name`, `length` there and the
+  compass sector it faces (`facing`, `N`, `NE` … `NW`), north coming from the map conversion, else `TrueNorth`,
+  else the model's y axis, as `north` says (`map`, `true_north` or `model`);
+- `dangles` and `dangling_walls`: the open wall ends, `[x, y]` in metres in the model's plan, and their walls;
+- `closed`: whether the storey has a room and no open end;
+- `walls`, `unread` and `unread_walls`: how many walls the storey holds, and how many and which gave no centre line;
+- `tolerance`: how far apart, in metres, two ends may be and still be joined.
+
+```json
+"rooms": {
+  "storeys": [
+    {
+      "storey": "Level 1", "elevation": 0.0, "closed": true,
+      "rooms": [{"index": 1, "area": 60.0, "perimeter": 32.0, "walls": ["0iZ0AvLQ5C8f7TH4npBFwH", "…"], "neighbours": []}],
+      "external": [{"global_id": "1pD0WEwnf1UeV30DigCQgn", "name": "North", "facing": "N", "length": 10.0}, "…"],
+      "dangles": [], "dangling_walls": [], "walls": 4, "unread": 0, "unread_walls": [],
+      "tolerance": 0.15, "north": "model"
+    }
+  ],
+  "cut": false
+}
+```
+
+The rooms are a section of their own and never an issue: they change neither the status nor the counts, a project
+that refuses files with errors never refuses one for its rooms, and a trial is `clean` or `issues` whatever its rooms,
+which are those of the applied file. The version's page shows a row per storey with walls. The lists are cut at 100
+storeys, 500 rooms a storey and 200 entries in every other list, with `cut` saying so, and a model with more than
+2,000 walls gets none. When the rooms cannot be found, the report has no `rooms`, and the log says why
+(`ifc_rooms_failed`) without what the file says. Off by default; the capabilities document says whether it is on, as
+`rooms` in `ifc_validation`.
+
 ### What the converted model shows
 
 Once the model is converted, the report gets a check `graph` of its own, with two kinds of issues. An instance that
@@ -516,12 +558,17 @@ in `ifc_changes.ops` and the address as `ifc_changes.unreachable_url`.
 A change set made with Dataspatium's write tools also carries their operations as `ops`, with `ops_form`
 `dataspatium-tools/1`, so that new elements, deletions and relationships reach the proposal. Each operation names
 its tool as `tool` and holds the tool's arguments beside it, lengths in metres: `create_storeys_and_grid`,
-`create_wall`, `create_slab`, `create_roof`, `create_opening`, `set_properties`, `set_classification`, `assign`,
-`transform_elements`, `delete_elements` and `set_site`. The server runs them with a copy of the app's own code
-(`opencde/ifcgraph/ops.py`), so that the same operations give the same model in the app and on the server, in the
-file's unit, with the proposer and the server in the owner histories that IfcOpenShell makes. What the wall, slab,
-roof and opening operations create is named `new-1`, `new-2` … in their order. An operation names an element by its
-GlobalId, by its STEP id only where no GlobalId reaches it, or by such a ref, and a storey by its name.
+`create_wall`, `create_slab`, `create_roof`, `create_opening`, `create_spaces`, `set_properties`,
+`set_classification`, `assign`, `transform_elements`, `delete_elements` and `set_site`. The server runs them with a
+copy of the app's own code (`opencde/ifcgraph/ops.py`), so that the same operations give the same model in the app
+and on the server, in the file's unit, with the proposer and the server in the owner histories that IfcOpenShell
+makes. What the wall, slab, roof and opening operations create is named `new-1`, `new-2` … in their order, and so is
+each room that `create_spaces` lists. An operation names an element by its GlobalId, by its STEP id only where no
+GlobalId reaches it, or by such a ref, and a storey by its name. `create_wall` gives a wall its centre line as an
+`Axis` representation, and `create_spaces` makes the rooms the walls enclose, found as the report's `rooms` are,
+spaces (`IfcSpace`) of their storey, from the file as it stands at that step: each with the room's outline up to the
+next storey, `Qto_SpaceBaseQuantities`, and physical space boundaries to the walls along its edge and to the doors
+and windows in them; a door or window made later in such a wall bounds the space too.
 `changes` may then be empty: beside the operations they describe what the operations do to
 existing instances, as the app found it, for the merge, and a change the operations made already counts as applied.
 The capabilities document announces the form as `ifc_changes.ops_form` and the tools as `ifc_changes.ops_tools`.
