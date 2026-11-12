@@ -357,7 +357,7 @@ class Settings(BaseSettings):
     ifcgraph_enabled: bool = Field(
         False,
         validation_alias=_ifc("enabled"),
-        description="Convert uploaded IFC models to graph data (needs the ifc-lpg extra).",
+        description="Convert uploaded IFC models to graph data (needs the ifc-db extra).",
     )
     ifcgraph_timeout_seconds: int = Field(
         900, ge=10, validation_alias=_ifc("timeout_seconds"), description="Kill a conversion that takes longer."
@@ -385,7 +385,7 @@ class Settings(BaseSettings):
         True,
         validation_alias=_ifc("spatial"),
         description="After a conversion, work out where every product is: a box per product in the graph and the "
-        "geometry records that `GET …/ifc-geometry` builds glTF from (needs the ifc-lpg extra).",
+        "geometry records that `GET …/ifc-geometry` builds glTF from (needs the ifc-db extra).",
     )
     ifcgraph_geometry_threads: int = Field(
         2, ge=1, le=64, validation_alias=_ifc("geometry_threads"), description="Threads of the geometry worker."
@@ -406,7 +406,7 @@ class Settings(BaseSettings):
         False,
         validation_alias=_ifc("clash_enabled"),
         description="Offer the clash check between two IFC document versions, run with IfcClash in a worker process "
-        "(needs the ifc-lpg extra and the IFC-LPG module).",
+        "(needs the ifc-db extra and the IFC-DB module).",
     )
     ifcgraph_clash_max_clashes: int = Field(
         10_000,
@@ -444,7 +444,7 @@ class Settings(BaseSettings):
         False,
         description="Find the rooms of each storey of every IFC upload, precheck and trial of a change set from its "
         "walls, as Dataspatium does, and keep them as the report's section `rooms`, which never stops an upload or an "
-        "approval (needs the ifc-lpg extra and the IFC-LPG module).",
+        "approval (needs the ifc-db extra and the IFC-DB module).",
     )
 
     # --- logging ----------------------------------------------------------

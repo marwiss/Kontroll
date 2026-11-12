@@ -4,7 +4,7 @@ name for them and its arguments.
 
 The tool is built when the server starts, from the catalogue (``ifc_db.queries`` and ``changed-since``): ``name`` is
 an enumeration of the catalogue's names, the parameters are a nullable field each, the union of the queries' own, and
-the description lists every query with the library's description and parameters. A query that IFC-LPG adds appears
+the description lists every query with the library's description and parameters. A query that IFC-DB adds appears
 when the server is updated, without code here. The membership, the model's state, the working copy and the server's
 10,000 rows and 10 seconds are the REST routes', through the functions both answer from (``ifcgraph/queries.py``);
 an answer holds at most 500 rows, as Dataspatium's tool does, with ``count`` and ``truncated``, and a text from the

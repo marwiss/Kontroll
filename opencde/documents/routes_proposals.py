@@ -93,9 +93,9 @@ async def ifc_proposals(
     """One row per proposal: the topic, the trial's state, the base version, who proposed it, the version an
     approved one became, and the addresses of the trial and its approval. `$top` and `$skip` as in the BCF lists;
     a list the server cut carries `X-Total-Count` and `Link: <…>; rel="next"`. 404 for a document the member may
-    not see, and when the IFC-LPG module is off."""
+    not see, and when the IFC-DB module is off."""
     if not settings.ifcgraph_enabled:
-        raise HTTPException(404, "Change sets are not tried on this server: the IFC-LPG module is off")
+        raise HTTPException(404, "Change sets are not tried on this server: the IFC-DB module is off")
     if not is_uuid(document_id):
         raise HTTPException(404, "Document not found")
     document_id = normalize_guid(document_id)

@@ -18,7 +18,7 @@ from tests.integration.test_web_signin import web_sign_in
 from tests.unit.test_ifc_diff import edited_copy
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 
 @pytest.fixture

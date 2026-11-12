@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""glTF from IFC-LPG's geometry records (OB-37): the builder on the records of the fixture model, and the route's
+"""glTF from IFC-DB's geometry records (OB-37): the builder on the records of the fixture model, and the route's
 announcement and guard. The route against a database is in ``tests/integration/test_ifc_geometry.py``."""
 
 from __future__ import annotations

@@ -70,7 +70,7 @@ def refusing() -> Generator[None, None, None]:
 @dataclass(frozen=True)
 class ToolContext:
     """What a call knows: who calls, through which client, the server's own graph, the storage (the change
-    sets' snippets), and the IFC-LPG module's service while the module is on (the IFC graph, the working copy,
+    sets' snippets), and the IFC-DB module's service while the module is on (the IFC graph, the working copy,
     the trials and the clash checks)."""
 
     principal: Principal
@@ -109,7 +109,7 @@ class Tool:
     run: Callable[[ToolContext, Any], Awaitable[dict[str, Any]]]
     scope: str = MCP_READ
     read_only: bool = True
-    needs_ifcgraph: bool = False  # listed and called only while the IFC-LPG module is on, which tries change sets
+    needs_ifcgraph: bool = False  # listed and called only while the IFC-DB module is on, which tries change sets
 
     def offered(self, settings: Settings) -> bool:
         """Whether the tool is on this server: what is not on is not listed."""

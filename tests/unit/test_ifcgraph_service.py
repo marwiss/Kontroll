@@ -173,7 +173,7 @@ GEM111_ANSWER = {
 
 
 def gem111(tmp_path: Path, service: IfcGraphService, monkeypatch: pytest.MonkeyPatch) -> None:
-    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     from tests.unit.test_ifcgraph_elements import broken
 
     path = broken(tmp_path)
@@ -237,7 +237,7 @@ async def test_when_the_elements_cannot_be_read_the_findings_stay_as_the_rules_g
 
 @pytest.mark.skipif(not GHERKIN_ENV, reason="OPENCDE_TEST_GHERKIN_ENV names no environment for ifc-gherkin-rules")
 async def test_the_installed_rules_give_the_recorded_answer(tmp_path: Path) -> None:
-    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     from tests.unit.test_ifcgraph_elements import broken
 
     command = [sys.executable, "-m", "ifc_db.gherkin", str(broken(tmp_path)), "--env", GHERKIN_ENV]
@@ -445,7 +445,7 @@ class Versions:
 @pytest.fixture
 def trying(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[IfcGraphService, Versions, LocalStorage]:
     """A service whose apply worker is the real one, in a process of its own, and whose checks find nothing."""
-    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     storage = LocalStorage(tmp_path / "storage")
     keys = {index: make_key("documents", new_id(), "ifc") for index in (1, 2)}
     for key in keys.values():

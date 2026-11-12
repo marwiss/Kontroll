@@ -14,7 +14,7 @@ import pytest
 
 from tests.conftest import FIXTURES_DIR
 
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 from opencde.ifcgraph.apply import apply_all, from_ifc
 
@@ -161,7 +161,7 @@ def test_the_worker_reads_what_the_changes_point_at_in_the_change_sets_form(tmp_
 
 
 def test_an_instance_nothing_refers_to_is_deleted_and_one_still_referred_to_is_not(tmp_path: Path) -> None:
-    """IFC-LPG F13 a: what no GlobalId reaches can be deleted by its STEP id, never what something refers to."""
+    """IFC-DB F13 a: what no GlobalId reaches can be deleted by its STEP id, never what something refers to."""
     import ifcopenshell
 
     head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)

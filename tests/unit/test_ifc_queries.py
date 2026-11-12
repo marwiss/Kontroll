@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""The named queries come from IFC-LPG: each passes the administrators' read-only fence, and the listing is whole."""
+"""The named queries come from IFC-DB: each passes the administrators' read-only fence, and the listing is whole."""
 
 from __future__ import annotations
 

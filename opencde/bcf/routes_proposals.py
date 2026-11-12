@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The trial of a topic's change set: an extension of the BCF API (ADR 0021).
 
-When a topic's ``bim_snippet`` of the type ``DataregiumIfcChangeSet`` is uploaded and the IFC-LPG module is on, the
+When a topic's ``bim_snippet`` of the type ``DataregiumIfcChangeSet`` is uploaded and the IFC-DB module is on, the
 server applies the changes to the base version's file in a worker process (Dataspatium's write tools first, with the
 app's own code, where the change set carries them as ``ops``: ``ifcgraph/ops.py``), runs the checks an upload gets on
 the result and compares the findings with the base version's: the proposal is ``clean`` when every change and
@@ -192,9 +192,9 @@ async def _may_approve(topic: TopicCtx, teams: TeamStore, node: dict[str, Any]) 
 )
 async def proposal_get(topic: TopicCtx, ifcgraph: IfcGraphDep) -> IfcProposalReport:
     """The state of the trial and its findings. 404 when the topic's snippet is not a change set that was tried, or
-    the IFC-LPG module is off."""
+    the IFC-DB module is off."""
     if ifcgraph is None:
-        raise HTTPException(404, "Change sets are not tried on this server: the IFC-LPG module is off")
+        raise HTTPException(404, "Change sets are not tried on this server: the IFC-DB module is off")
     node = await ifcgraph.proposal(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid)
     if node is None:
         raise HTTPException(404, "This topic has no change set that was tried")
@@ -243,7 +243,7 @@ async def proposal_approve(
     `version_conflict` with the colliding attributes in `conflicts`. 403 for other roles, 409 when the trial is not
     clean or was approved already."""
     if ifcgraph is None:
-        raise HTTPException(404, "Change sets are not tried on this server: the IFC-LPG module is off")
+        raise HTTPException(404, "Change sets are not tried on this server: the IFC-DB module is off")
     node = await ifcgraph.proposal(user_id=topic.user_id, project_id=topic.project_id, topic_guid=topic.guid)
     if node is None:
         raise HTTPException(404, "This topic has no change set that was tried")

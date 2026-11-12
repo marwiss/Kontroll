@@ -302,7 +302,7 @@ def _restore(model: Any, held: list[tuple[int, dict[str, Any], Any]], problems: 
 
 
 def _delete(model: Any, entity: Any) -> int:
-    """Remove an instance that nothing refers to; one that is still referred to is skipped, as IFC-LPG's
+    """Remove an instance that nothing refers to; one that is still referred to is skipped, as IFC-DB's
     ``delete_nodes`` refuses it in the graph."""
     step = int(entity.id())
     if model.get_inverse(entity):

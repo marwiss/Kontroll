@@ -109,7 +109,7 @@ def test_without_the_ifc_db_module_there_are_no_change_sets(tmp_path: Path) -> N
     with endpoint(tmp_path, DraftGraph(), PROPOSER) as client:
         listed = [tool["name"] for tool in rpc(client, "tools/list").json()["result"]["tools"]]
         unknown = call(client, "open_changeset", {"document_id": DOCUMENT, "version_index": None})
-    assert listed == ["list_models", "get_publication"], "the tools of the IFC-LPG module only while it is on"
+    assert listed == ["list_models", "get_publication"], "the tools of the IFC-DB module only while it is on"
     assert unknown.status_code == 400 and unknown.json()["error"]["code"] == -32602
 
 

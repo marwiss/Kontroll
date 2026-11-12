@@ -3,7 +3,7 @@
 0028, the design's §2; ADR 0019).
 
 The tools start and read checks as ``POST`` and ``GET …/projects/{id}/ifc-clash`` do, through the same functions and
-the IFC-LPG module's service, for every member of a project this server may give to AI tools. A check runs in the
+the IFC-DB module's service, for every member of a project this server may give to AI tools. A check runs in the
 worker process, one job at a time, as every check does; ``get_clash_check`` waits for it at most 20 seconds, and a
 report holds at most 200 clashes. ``mcp.clash.started`` in the audit log names the project, the check and the two
 versions, never a text. Making BCF topics of the clashes stays with a person, who chooses them.

@@ -318,7 +318,7 @@ async def run_read_query(
 
 
 class ReadingGraph:
-    """A graph to IFC-LPG's named queries (``ifc_db.queries``): ``run`` as the library's ``Graph`` protocol, and
+    """A graph to IFC-DB's named queries (``ifc_db.queries``): ``run`` as the library's ``Graph`` protocol, and
     ``read`` for its reading statements through :func:`read_records`, with the read transaction, the time limit
     and the stop on the server. The server's own :class:`Graph` is not handed over as it is: its ``read`` runs a
     transaction function and means something else."""

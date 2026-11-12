@@ -343,7 +343,7 @@
   "admin.project.ext.stage": "Skeden",
   "admin.project.ext.custom_information": "Egen information",
   "admin.project.checks": "IFC-kontroller",
-  "admin.project.checks_lead": "Varje IFC-fil som laddas upp som dokumentversion kontrolleras mot IFC-schemat, buildingSMARTs regler och projektets IDS-dokument när IFC-LPG-modulen är på. Resultatet står i versionens metadata.",
+  "admin.project.checks_lead": "Varje IFC-fil som laddas upp som dokumentversion kontrolleras mot IFC-schemat, buildingSMARTs regler och projektets IDS-dokument när IFC-DB-modulen är på. Resultatet står i versionens metadata.",
   "admin.project.block_on_validation_errors": "Avvisa uppladdningar med valideringsfel",
   "admin.project.block_hint": "Kontrollerna körs då innan filen sparas, och en fil med ett eller flera fel avvisas; varningar släpps igenom. En fil som inte kunde kontrolleras släpps igenom.",
   "admin.project.save_checks": "Spara kontroller",

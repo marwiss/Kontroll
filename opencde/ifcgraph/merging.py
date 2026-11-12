@@ -1,8 +1,8 @@
 # This file was generated with the assistance of an AI coding tool.
-"""A building of one model brought into another model's project, as the next version of its document (IFC-LPG F21 a
+"""A building of one model brought into another model's project, as the next version of its document (IFC-DB F21 a
 and F22 a, ADR 0025).
 
-IFC-LPG's ``merge_report`` says what bringing the building of model B into the project of model A would do: what
+IFC-DB's ``merge_report`` says what bringing the building of model B into the project of model A would do: what
 comes along, which objects both have with a GlobalId, whether their content is the same, and the choice that holds
 for each (``a``, ``b`` or ``new``). ``merge_building`` makes the merged model C in the graph and checks it against A
 and B. Here a ``manager`` of A's project runs it as a job: C is written out as a file, the file becomes the next
@@ -10,9 +10,9 @@ version of A's document, with A's version as its parent, and is converted and ch
 then taken out of the graph again, and A and B do not change.
 
 Where B's schema or length unit is not A's, ``prepare_other`` first makes a copy of B migrated to A's schema and
-with its lengths in A's unit (IFC-LPG F25 a), as a job of its own whose model stands in for B in the report and the
+with its lengths in A's unit (IFC-DB F25 a), as a job of its own whose model stands in for B in the report and the
 merge for a day, and is then taken out by the cleanup. What A's schema has no equivalent of ends the job in
-``conflict`` with the problems and the options for each, until the caller chooses with ``resolutions`` (IFC-LPG
+``conflict`` with the problems and the options for each, until the caller chooses with ``resolutions`` (IFC-DB
 F32, ``RESOLUTIONS``); a copy with issues that B did not have is not made, and the job fails with them (F33 a).
 """
 
@@ -61,7 +61,7 @@ STATE_EXPIRED = "expired"  # a prepared model taken out again
 KIND_MERGE = "merge"
 KIND_PREPARE = "prepare"  # B made ready for A: migrated to its schema, with its lengths in its unit
 PREPARED_SECONDS = 24 * 3600  # how long a prepared model stands in for B
-__all__ = ["RESOLUTIONS"]  # the choices a preparation takes, as IFC-LPG names them
+__all__ = ["RESOLUTIONS"]  # the choices a preparation takes, as IFC-DB names them
 
 
 def limits_of(service: IfcGraphService) -> Limits:

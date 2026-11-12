@@ -29,7 +29,7 @@ from tests.integration.test_documents_api import save_metadata, start_upload, up
 from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 MODEL = FIXTURES_DIR / "three_walls_gtin.ifc"
 WALLS = ("1Xezbq735AdBO_4DerG66G", "3eT96F_cnDsOufCEsotwtp")
@@ -141,12 +141,12 @@ def test_an_upload_is_checked_and_the_report_names_its_elements(ifc_client: tupl
 
 
 def test_the_report_warns_of_what_no_global_id_reaches(ifc_client: tuple[TestClient, World]) -> None:
-    """IFC-LPG F13 a and OB-10.1: an instance that nothing with a GlobalId reaches is a warning of the converted model;
+    """IFC-DB F13 a and OB-10.1: an instance that nothing with a GlobalId reaches is a warning of the converted model;
     the upload is kept, and the rest of the report is as the checks of the file made it."""
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
-    # A loose actor role is a node of its own; a loose point would be kept among the geometry in a block, which IFC-LPG
+    # A loose actor role is a node of its own; a loose point would be kept among the geometry in a block, which IFC-DB
     # does not list.
     head, tail = MODEL.read_bytes().rsplit(b"ENDSEC;", 1)  # the end of the data section
     data = head + b"#9001=IFCACTORROLE(.ARCHITECT.,$,$);\r\n" + b"ENDSEC;" + tail

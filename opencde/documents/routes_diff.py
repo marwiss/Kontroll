@@ -105,10 +105,10 @@ async def ifc_diff(
     other_document_id: OtherDocument = None,
 ) -> IfcDiff:
     """What `other_index` (of this document, or of `other_document_id`) has that this version lacks, what it lacks,
-    and what differs, by GlobalId and path. Computed on request; a large model takes a while. 404 when the IFC-LPG
+    and what differs, by GlobalId and path. Computed on request; a large model takes a while. 404 when the IFC-DB
     module is off or a version is not yours, 400 when a version is not an IFC file."""
     if ifcgraph is None or not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
+        raise HTTPException(404, "The IFC-DB module is off on this server")
     a = await _version(documents, principal.user_id, document_id, version_index)
     b = await _version(documents, principal.user_id, other_document_id or document_id, other_index)
     if a.document_id == b.document_id and a.version_index == b.version_index:

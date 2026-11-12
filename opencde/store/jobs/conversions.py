@@ -1,6 +1,6 @@
 # This file was generated with the assistance of an AI coding tool.
 """The server's record of a conversion: one per IFC document version, or BCF project document, turned into a model
-of the graph, kept apart from the model itself (IFC-LPG's F38 a, step two).
+of the graph, kept apart from the model itself (IFC-DB's F38 a, step two).
 
 The library keeps the ``Model`` node and what it knows of it; the server keeps ``Conversion`` under the project:
 the file it came from, the lifecycle (``queued``, ``running``, ``done``, ``failed``) with its timestamps, the key of
@@ -40,7 +40,7 @@ FACTS = (
 #: What the geometry pass put on the model, copied the same way once the pass is over.
 SPATIAL_FACTS = ("spatial_at", "spatial_products", "spatial_failed")
 #: What the server kept on ``Model`` before 2026-11-11, moved to ``Conversion`` at startup (:func:`migrate_models`).
-#: ``state`` stays on those models: IFC-LPG 1.x counts a model whole by it when ``imported_at`` is missing.
+#: ``state`` stays on those models: IFC-DB 1.x counts a model whole by it when ``imported_at`` is missing.
 MOVED = (
     "project_id",
     "document_id",

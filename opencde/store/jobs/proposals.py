@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The trials of change sets as a document's list of proposals (ADR 0021).
 
-A ``Proposal`` hangs off the topic whose snippet is the change set (``HAS_PROPOSAL``); the IFC-LPG service makes
+A ``Proposal`` hangs off the topic whose snippet is the change set (``HAS_PROPOSAL``); the IFC-DB service makes
 and judges it (``ifcgraph/service.py``). This repository reads them the other way round, for the Documents API:
 every proposal against a document, found from the user through ``MEMBER_OF`` to the project, its document and the
 topics' proposals that name the document as their base. Rows are the columns a listing needs, never the report

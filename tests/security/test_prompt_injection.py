@@ -135,7 +135,7 @@ GTIN_TEXT = CYPHER
 
 def step_string(text: str) -> str:
     """``text`` as a STEP string literal: a quote doubled, and a control character as ``\\X\\HH``, which IfcOpenShell
-    and IFC-LPG's own reader both decode; the file stays ASCII, as ISO 10303-21 has it."""
+    and IFC-DB's own reader both decode; the file stays ASCII, as ISO 10303-21 has it."""
     if not text.isascii() or "\\" in text:
         raise ValueError("the fixture stays ASCII, without backslashes")
     pieces = []
@@ -226,9 +226,9 @@ def injected_ids(
 
 
 def test_the_generated_model_holds_the_text_and_checks_like_the_original(tmp_path: Path) -> None:
-    """IfcOpenShell and IFC-LPG's reader both give the text back as it was put in, and the file is as valid as the
+    """IfcOpenShell and IFC-DB's reader both give the text back as it was put in, and the file is as valid as the
     fixture it came from."""
-    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     from ifc_db.step import StepFile, string_of_atom
     from ifc_db.validation import report_of
 
@@ -258,7 +258,7 @@ def test_the_generated_model_holds_the_text_and_checks_like_the_original(tmp_pat
 def test_a_change_set_with_the_text_changes_only_what_it_names(tmp_path: Path) -> None:
     """The worker sets the attributes a change set names to the text, and nothing else in the file moves; its answer
     never quotes the text, so the trial's report cannot either."""
-    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     from opencde.ifcgraph.apply import apply_all
 
     changes = [
@@ -298,7 +298,7 @@ def test_a_change_set_with_the_text_changes_only_what_it_names(tmp_path: Path) -
 def test_the_write_tools_take_the_text_as_names_and_values_only(tmp_path: Path) -> None:
     """Text in the arguments of Dataspatium's write tools (``ops``) becomes a name or a value in the file and nothing
     else: no other operation runs, and the worker's answer carries refs and GlobalIds, never the text."""
-    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    ifcopenshell = pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     element = pytest.importorskip("ifcopenshell.util.element")
     from opencde.ifcgraph.apply import apply_all
 
@@ -830,9 +830,9 @@ def test_every_page_shows_the_text_as_data(template: str, text: str, tmp_path: P
 
 
 def test_the_ids_text_is_read_as_data_and_quoted_in_the_report(tmp_path: Path) -> None:
-    """IFC-LPG's check reads the specifications' names and identifiers as text, and every finding quotes its
+    """IFC-DB's check reads the specifications' names and identifiers as text, and every finding quotes its
     specification by that text; the long name is cut where the report has its limits."""
-    pytest.importorskip("ifctester", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifctester", reason="the ifc-db extra is not installed")
     from ifc_db.ids import MAX_RULE, read_ids, report_of
     from ifc_db.validation import MAX_MESSAGE
 
@@ -861,7 +861,7 @@ def test_the_ids_text_is_read_as_data_and_quoted_in_the_report(tmp_path: Path) -
 #
 # An assistant reads what the tools answer, so a text from the projects comes back in its field, as data, and nowhere
 # else: never in the list of tools, the instructions, an error, the request log, the application's log or the audit
-# log. The database and the IFC-LPG module are stood in for (tests/mcp_support.py, tests/mcp_read_support.py and,
+# log. The database and the IFC-DB module are stood in for (tests/mcp_support.py, tests/mcp_read_support.py and,
 # with the drafts of the change sets, tests/mcp_drafts_support.py).
 
 

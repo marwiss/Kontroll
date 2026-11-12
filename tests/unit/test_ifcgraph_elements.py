@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 from opencde.ifcgraph import elements
 from opencde.ifcgraph.elements import answer, main, steps_of
@@ -48,7 +48,7 @@ def test_an_instance_gets_its_class_and_the_nearest_rooted_entity(tmp_path: Path
 def test_a_path_may_go_backward_through_an_inverse_attribute(tmp_path: Path) -> None:
     found = answer(broken(tmp_path), [270, 32])["elements"]
     # A styled item is referred to only by a styled representation, which refers to its context, which the project's
-    # contexts reach as RepresentationsInContext: an inverse step, as IFC-LPG's paths take one.
+    # contexts reach as RepresentationsInContext: an inverse step, as IFC-DB's paths take one.
     assert found["270"] == {"ifc_class": "IfcStyledItem", "root_global_id": PROJECT}
     # Every rooted entity refers to the owner history; the lowest GlobalId of them is taken, the site's.
     assert found["32"] == {"ifc_class": "IfcOwnerHistory", "root_global_id": "01uPthe3Uixx0TRWar3Vt8"}

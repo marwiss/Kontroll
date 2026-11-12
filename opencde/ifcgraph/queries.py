@@ -2,7 +2,7 @@
 """The named queries on the IFC graph of a document version, for members of its project (ADR 0016).
 
 Reading a model is asking it questions by name with parameters, never with Cypher of one's own; free Cypher stays
-with administrators (``admin/graph_query.py``). The catalogue and its statements are IFC-LPG's (``ifc_db.queries``,
+with administrators (``admin/graph_query.py``). The catalogue and its statements are IFC-DB's (``ifc_db.queries``,
 F38 a): the library owns the graph's form and proves the queries on both databases, and a query added there appears
 in the listing. The server finds the model through the member's project, chooses the archive or the working copy,
 holds the limits, and adds ``changed-since``, answered from the versions' change sets without the graph. Those are
@@ -80,7 +80,7 @@ async def model_state(
     """How far the version's model has come, and its id; 404 when the user may not see the version or it has no
     model."""
     if not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
+        raise HTTPException(404, "The IFC-DB module is off on this server")
     if not is_uuid(document_id):
         raise HTTPException(404, "Document version not found")
     rows = await graph.run(
@@ -170,7 +170,7 @@ async def changed_since(
     :data:`MAX_ROWS` of them. Answered from the versions, so it needs no graph. 404 when the user may not see the
     version, 400 when ``since`` is not an earlier version."""
     if not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
+        raise HTTPException(404, "The IFC-DB module is off on this server")
     if not is_uuid(document_id):
         raise HTTPException(404, "Document version not found")
     if await documents.version(user_id=user_id, document_id=document_id, version_index=version_index) is None:

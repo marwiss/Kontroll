@@ -40,7 +40,7 @@ def test_the_schema_is_public_and_the_snippet_is_held_to_it(client: TestClient, 
         "ops_form": OPS_FORM,
         "ops_tools": list(OPS_TOOLS),
         "unreachable_url": None,
-    }, "the server proposes no removal without the IFC-LPG module"
+    }, "the server proposes no removal without the IFC-DB module"
 
     editor = login_as(client, world, "editor")
     viewer = login_as(client, world, "viewer")

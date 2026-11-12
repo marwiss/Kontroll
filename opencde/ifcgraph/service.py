@@ -132,7 +132,7 @@ def _ruleset_of(env: Path) -> str:
         return "ifc-gherkin-rules"
 
 
-GRAPH_RULESET = "IFC-LPG: the instances no GlobalId reaches, and the shapes of the geometry pass"
+GRAPH_RULESET = "IFC-DB: the instances no GlobalId reaches, and the shapes of the geometry pass"
 MAX_OPS_OBJECTS = 1_000  # what the operations created or changed that the approval's viewpoint may select
 
 
@@ -183,7 +183,7 @@ class IfcGraphService:
         store: Graph | None = None,
     ) -> None:
         self.workcopy = workcopy  # the second graph that holds the head model of every document (ADR 0024)
-        self.graph = graph  # IFC-LPG's models: the library's calls alone run here (ADR 0027)
+        self.graph = graph  # IFC-DB's models: the library's calls alone run here (ADR 0027)
         self.store = store or graph  # the server's own records, apart from the IFC graph (F24 a): every statement
         self.conversions: ConversionStore = ConversionRepository(self.store)
         self.storage = storage
@@ -361,10 +361,10 @@ class IfcGraphService:
     # -- where the products are, and the geometry (OB-37) ---------------------------------------------
 
     async def _add_spatial(self, model_id: str, source: Path, workdir: Path) -> list[dict[str, Any]]:
-        """Run IFC-LPG's geometry worker once: a box per product into the archive (and the working copy), and the
+        """Run IFC-DB's geometry worker once: a box per product into the archive (and the working copy), and the
         records kept in the storage for the glTF. A failure here is logged on the model and never fails the
         conversion: the graph is complete without the boxes. Returns the products whose shape could not be built, as
-        issues of a report (IFC-LPG F24 a)."""
+        issues of a report (IFC-DB F24 a)."""
         if not self.settings.ifcgraph_spatial:
             return []
         failed: list[dict[str, Any]] = []
@@ -410,7 +410,7 @@ class IfcGraphService:
 
     async def _graph_findings(self, model_id: str, geometry: list[dict[str, Any]]) -> None:
         """What the graph shows of a converted model, for the report of its version: the instances that no GlobalId
-        reaches, forward or backward, as warnings (IFC-LPG F13 a and OB-10.1: a check warns of them and refuses
+        reaches, forward or backward, as warnings (IFC-DB F13 a and OB-10.1: a check warns of them and refuses
         nothing), and the products whose shape could not be built. A failure here is logged and leaves the report as
         the checks of the file made it."""
         try:
@@ -440,7 +440,7 @@ class IfcGraphService:
 
     async def unreached(self, model_id: str) -> list[dict[str, Any]]:
         """The instances of a converted model that no GlobalId reaches, forward or backward, as ``{"step",
-        "ifc_class"}`` (IFC-LPG F13 a)."""
+        "ifc_class"}`` (IFC-DB F13 a)."""
         return await unreachable(self.graph, model_id)
 
     async def geometry(
@@ -1323,7 +1323,7 @@ class IfcGraphService:
         )
 
     async def _ids(self, source: Path, documents: list[dict[str, Any]]) -> dict[str, Any] | None:
-        """The file against the project's IDS documents, with IFC-LPG's check (ADR 0015). None when there are none.
+        """The file against the project's IDS documents, with IFC-DB's check (ADR 0015). None when there are none.
 
         The worker gets the documents' files by their storage paths, which the server made; each finding is tied back
         to its document by the position the worker reports.
@@ -1618,7 +1618,7 @@ class IfcGraphService:
         return await self._copy_gtin(model_id, _PROJECT_COMPONENTS, project_id=str(conversion["project_id"]))
 
     async def _copy_gtin(self, model_id: str, scope: str, **params: Any) -> int:
-        """Look the GlobalIds of the components a scope matches up in the model (IFC-LPG's ``property_values``)
+        """Look the GlobalIds of the components a scope matches up in the model (IFC-DB's ``property_values``)
         and copy the configured property, the GTIN, onto the components that name them; a component keeps its
         GTIN where the model lacks the property. No relationship into the model is made: the element is found by
         its ``GlobalId``. Returns how many of the GlobalIds the model has."""

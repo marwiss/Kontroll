@@ -65,7 +65,7 @@ def make_storage(settings: Settings) -> LocalStorage:
 
 
 class Graphs(NamedTuple):
-    """The two graphs of a command: IFC-LPG's models, and the server's own data, which is the same graph unless
+    """The two graphs of a command: IFC-DB's models, and the server's own data, which is the same graph unless
     ``OPENCDE_STORE_GRAPH_URI`` names another (F24 a, ADR 0027)."""
 
     graph: Graph

@@ -21,7 +21,7 @@ from tests.integration.test_web_signin import web_sign_in
 from tests.unit.test_ifc_ops import DOOR, FOUR_WALLS, STOREYS, new_model  # skips this module without IfcOpenShell
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("shapely", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("shapely", reason="the ifc-db extra is not installed")
 
 
 def closed_model(path: Path) -> list[str]:

@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """What the tests of ``server_query``, ``get_publication`` and the clash tools share: a graph that also answers the
 documents' versions, publications, conversions and change sets for the projects the user is a member of, and stand-ins
-for the IFC-LPG module's service and its IFC graph, which the endpoint is given in place of its own.
+for the IFC-DB module's service and its IFC graph, which the endpoint is given in place of its own.
 
 The database's own side is in ``tests/integration/test_mcp_server_query.py`` and ``tests/integration/test_mcp_clash.py``.
 """
@@ -116,7 +116,7 @@ class DocumentsGraph(FakeGraph):
 
 
 class IfcGraph:
-    """The IFC graph as IFC-LPG's named queries read it: the rows of each query, by its columns."""
+    """The IFC graph as IFC-DB's named queries read it: the rows of each query, by its columns."""
 
     def __init__(self, rows: dict[str, list[dict[str, Any]]] | None = None) -> None:
         self.rows = rows or {}
@@ -157,7 +157,7 @@ def pair(name: str | None = "Wall 1", storey: str | None = "Level 1") -> dict[st
 
 
 class FakeService:
-    """The IFC-LPG module's service as far as the tools ask it: its IFC graph, the working copy, and the clash checks,
+    """The IFC-DB module's service as far as the tools ask it: its IFC graph, the working copy, and the clash checks,
     whose reports come back in the order given and the last one ever after."""
 
     def __init__(
@@ -201,7 +201,7 @@ def tools(
     service: FakeService | None = None,
     **overrides: Any,
 ) -> Iterator[TestClient]:
-    """The endpoint with the IFC-LPG module and the clash check on, the graph and the service standing in; the
+    """The endpoint with the IFC-DB module and the clash check on, the graph and the service standing in; the
     module's settings can be turned off through ``overrides``. The stand-in IFC graph is asked as the library asks
     any graph, without the driver's read transaction."""
     settings = {"ifcgraph_enabled": True, "ifcgraph_clash_enabled": True, **overrides}

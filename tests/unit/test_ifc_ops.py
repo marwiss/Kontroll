@@ -20,7 +20,7 @@ import pytest
 
 from tests.conftest import FIXTURES_DIR
 
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 import ifcopenshell
 import ifcopenshell.api.aggregate

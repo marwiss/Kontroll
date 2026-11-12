@@ -79,7 +79,7 @@ from tests.security.test_prompt_injection import (
 )
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 SNIPPET = {
     "snippet_type": SNIPPET_TYPE,
@@ -96,7 +96,7 @@ MARKER = "DO-NOT-STORE-THIS-BODY"
 
 @pytest.fixture
 def injected(graph_target: GraphTarget, clean_database: None, tmp_path: Path) -> Iterator[tuple[TestClient, World]]:
-    """The server with the IFC-LPG module and the request log on."""
+    """The server with the IFC-DB module and the request log on."""
     settings = settings_for(graph_target, tmp_path, request_log_enabled=True)
     world = build_world(settings)
     with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
@@ -536,7 +536,7 @@ HOSTILE_FILE = f"{TEMPLATE}.ifc"
 def injected_mcp(
     graph_target: GraphTarget, clean_database: None, tmp_path: Path
 ) -> Iterator[tuple[TestClient, World, Settings]]:
-    """The server with the IFC-LPG module, the clash check, the request log and the MCP endpoint on, and the
+    """The server with the IFC-DB module, the clash check, the request log and the MCP endpoint on, and the
     project's AI policy cloud, so that a team server gives its data to AI tools."""
     settings = settings_for(
         graph_target, tmp_path, request_log_enabled=True, mcp_enabled=True, ifcgraph_clash_enabled=True
@@ -588,7 +588,7 @@ def test_the_mcp_tools_give_the_text_back_as_data_and_list_the_same_tools(
     verbatim, cut at its lengths, in ``structuredContent`` and as the same JSON in the text; a refusal and a JSON-RPC
     error never quote it; the tools and the instructions are what they were while the project held none of it; and
     neither the request log nor the audit log keeps any of it."""
-    pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcclash", reason="the ifc-db extra is not installed")
     from tests.integration.test_ifc_clash import shifted_copy
     from tests.integration.test_mcp_clash import waited
 

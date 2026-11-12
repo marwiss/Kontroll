@@ -2,7 +2,7 @@
 """The geometry of an IFC document version as glTF: an extension of the Documents API (OB-37).
 
 ``GET /documents/1.0/documents/{id}/versions/{index}/ifc-geometry`` answers with a binary glTF (``.glb``) of the
-version's products, built from the geometry records IFC-LPG's worker wrote when the version was converted: every
+version's products, built from the geometry records IFC-DB's worker wrote when the version was converted: every
 shared mesh once and a node per product that instances it, under one node per storey. ``lod=box`` gives the
 products' boxes instead, a few bytes each; ``classes`` (IFC classes, comma-separated) and ``storey`` (a GlobalId)
 pick the products. The file is built the first time it is asked for and kept; the ``ETag`` names the model and the
@@ -82,7 +82,7 @@ async def ifc_geometry(
     each product's own matrix). Every node is named by its product's GlobalId and carries its class, STEP id and
     storey in `extras`; the storey nodes are named by the storey's GlobalId."""
     if ifcgraph is None or not settings.ifcgraph_enabled or not settings.ifcgraph_spatial:
-        raise HTTPException(404, "The IFC-LPG module is off on this server, or its spatial layer is")
+        raise HTTPException(404, "The IFC-DB module is off on this server, or its spatial layer is")
     if lod not in LODS:
         raise HTTPException(400, f"lod is one of {', '.join(LODS)}")
     if storey is not None and not _GUID.match(storey):

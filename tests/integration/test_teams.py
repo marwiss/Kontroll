@@ -16,7 +16,7 @@ from tests.integration.test_ifc_validation import MODEL, WALLS, checked, upload
 from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 __all__ = ["ifc_client"]  # the fixture, shared with the trials of change sets
 BUILDING = "3AMeTOOFsdVLZuNV0$27s5"

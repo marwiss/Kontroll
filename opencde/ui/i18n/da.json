@@ -343,7 +343,7 @@
   "admin.project.ext.stage": "Faser",
   "admin.project.ext.custom_information": "Egne oplysninger",
   "admin.project.checks": "IFC-kontroller",
-  "admin.project.checks_lead": "Hver IFC-fil, der uploades som dokumentversion, kontrolleres mod IFC-skemaet, buildingSMARTs regler og projektets IDS-dokumenter, når IFC-LPG-modulet er slået til. Resultatet står i versionens metadata.",
+  "admin.project.checks_lead": "Hver IFC-fil, der uploades som dokumentversion, kontrolleres mod IFC-skemaet, buildingSMARTs regler og projektets IDS-dokumenter, når IFC-DB-modulet er slået til. Resultatet står i versionens metadata.",
   "admin.project.block_on_validation_errors": "Afvis uploads med valideringsfejl",
   "admin.project.block_hint": "Kontrollerne kører så, før filen gemmes, og en fil med en eller flere fejl afvises; advarsler slipper igennem. En fil, der ikke kunne kontrolleres, slipper igennem.",
   "admin.project.save_checks": "Gem kontroller",

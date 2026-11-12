@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""The server's own records on the store and IFC-LPG's models on the IFC graph (ADR 0027): the IFC-LPG service and
+"""The server's own records on the store and IFC-DB's models on the IFC graph (ADR 0027): the IFC-DB service and
 the merge with two stand-in graphs, each of which keeps every statement, so that a statement that lands on the wrong
 one shows by the labels it names."""
 

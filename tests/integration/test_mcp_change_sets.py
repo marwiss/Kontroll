@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""A change set made through the MCP endpoint against a real database and the IFC-LPG module (ADR 0028, step 2):
+"""A change set made through the MCP endpoint against a real database and the IFC-DB module (ADR 0028, step 2):
 an editor's AI opens a draft on an uploaded model, adds a wall and a door in it with Dataspatium's write tools,
 proposes it, and reads the trial: clean, with the GlobalIds of what the operations made by their refs. Proposed
 again with the same handle, the change set goes on the same topic; the draft expires and the cleaner takes it.
@@ -28,7 +28,7 @@ from tests.integration.test_web_signin import web_sign_in
 from tests.mcp_support import META, MODERN
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 RESOURCE = "http://testserver/mcp"
 WALL = {"storey": None, "start": [0, 0], "end": [4, 0], "thickness": 0.2, "height": 3, "name": "New wall",

@@ -124,7 +124,7 @@ def with_graph_findings(
         issues=[*validation.issues, *issues][:MAX_ISSUES],
         checks=[
             *validation.checks,
-            {"name": "graph", "state": "done", "ruleset": ruleset or "IFC-LPG", "issue_count": int(issue_count)},
+            {"name": "graph", "state": "done", "ruleset": ruleset or "IFC-DB", "issue_count": int(issue_count)},
         ],
     )
 
@@ -190,7 +190,7 @@ class IfcValidationIssue(_Report):
         None,
         description="For `gherkin`: the GlobalId of the nearest rooted entity that reaches the instance, the "
         "instance's own when it is one, so that a model view can point at the element where `global_id` is empty. "
-        "It reaches the instance as IFC-LPG's paths do: forward through attributes and backward through inverse "
+        "It reaches the instance as IFC-DB's paths do: forward through attributes and backward through inverse "
         "ones. Left out when none does.",
     )
     attribute: str | None = Field(

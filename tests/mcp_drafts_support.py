@@ -1,6 +1,6 @@
 # This file was generated with the assistance of an AI coding tool.
 """What the tests of the MCP endpoint's change sets share: a graph that keeps the drafts as the database would, by
-the repository's own statements, and stands in for the documents, the proposals and the IFC-LPG service.
+the repository's own statements, and stands in for the documents, the proposals and the IFC-DB service.
 
 The drafts are kept by ``changeset_id`` and answered only to their user while that user is a member of their
 project, as the statements' path from the user through ``MEMBER_OF`` has it; a transaction that raises leaves them
@@ -136,7 +136,7 @@ class DraftGraph(FakeGraph):
 
 
 class FakeTrials:
-    """The IFC-LPG service as far as the tools reach it: the trials they read, in turn, and the ones they queue."""
+    """The IFC-DB service as far as the tools reach it: the trials they read, in turn, and the ones they queue."""
 
     def __init__(self, *nodes: dict[str, Any] | None) -> None:
         self.nodes = list(nodes)

@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """The guards of ``server_query``, ``get_publication`` and the clash tools (ADR 0028): the AI policy of a project on
 every one of them, a text from a model or a project as data in its field, a value given only as a parameter, a refusal
-that quotes nothing, and nothing a client sends in a log or in the audit log. The database and the IFC-LPG service are
+that quotes nothing, and nothing a client sends in a log or in the audit log. The database and the IFC-DB service are
 stood in for (``tests/mcp_read_support.py``); ``tests/integration/test_mcp_server_query.py`` and
 ``tests/integration/test_mcp_clash.py`` have their side.
 """

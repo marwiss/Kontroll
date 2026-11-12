@@ -139,7 +139,7 @@ def _ask_for_values() -> tuple[str | None, list[str]]:
     """The public address, or None for this machine only, and the lines for .env that the answers add."""
     if not typer.confirm("Will other people use this server, over the internet?", default=False):
         if typer.confirm(
-            "Turn on what the quick start with Dataspatium uses (self-registration, request log, IFC-LPG)?",
+            "Turn on what the quick start with Dataspatium uses (self-registration, request log, IFC-DB)?",
             default=True,
         ):
             return None, [

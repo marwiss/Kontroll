@@ -21,12 +21,12 @@ def get_settings(request: Request) -> Settings:
 
 
 def get_graph(request: Request) -> Graph:
-    """The graph of the server's own data; the IFC graph is the IFC-LPG service's (F24 a)."""
+    """The graph of the server's own data; the IFC graph is the IFC-DB service's (F24 a)."""
     return request.app.state.store
 
 
 def get_model_graph(request: Request) -> Graph:
-    """The IFC graph, IFC-LPG's models apart from the server's own data (ADR 0027): for the models that go when a
+    """The IFC graph, IFC-DB's models apart from the server's own data (ADR 0027): for the models that go when a
     project goes, which a route asks of it through the library alone."""
     return request.app.state.graph
 

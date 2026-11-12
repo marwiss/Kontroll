@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""A building of one model into another project's model (IFC-LPG F21 a and F22 a): the report, the choices, the job
+"""A building of one model into another project's model (IFC-DB F21 a and F22 a): the report, the choices, the job
 a manager starts, and the next version of A's document that it becomes, while A and B stay as they were."""
 
 from __future__ import annotations
@@ -111,7 +111,7 @@ def test_a_manager_brings_a_building_into_the_model_as_its_next_version(ifc_clie
 
 @pytest.mark.parametrize(("choice", "kept"), [("b", (b"'YVT-Z'",)), ("new", (b"'YVT-A'", b"'YVT-Z'"))])
 def test_b_or_new_for_one_wall(ifc_client: tuple[TestClient, World], choice: str, kept: tuple[bytes, ...]) -> None:
-    """IFC-LPG 3ecc7e2: B's wall takes A's place and its relationships, or comes beside it with a GlobalId of its own."""
+    """IFC-DB 3ecc7e2: B's wall takes A's place and its relationships, or comes beside it with a GlobalId of its own."""
     client, world = ifc_client
     editor = login_as(client, world, "editor")
     web_sign_in(client, world, "editor")
@@ -167,7 +167,7 @@ def prepared_in_metres(client: TestClient, world: World) -> tuple[dict[str, Any]
 
 
 def test_a_model_in_another_length_unit_is_prepared_first(ifc_client: tuple[TestClient, World]) -> None:
-    """IFC-LPG F25 a: B in metres is refused as it is, and a copy of it with A's millimetres is made for a day."""
+    """IFC-DB F25 a: B in metres is refused as it is, and a copy of it with A's millimetres is made for a day."""
     client, world = ifc_client
     sides, prepared = prepared_in_metres(client, world)
     assert prepared["expires_at"] > prepared["finished_at"], "the copy stands in for a day"
@@ -202,7 +202,7 @@ def test_the_prepared_copy_stands_in_for_b(ifc_client: tuple[TestClient, World])
 
 
 def test_a_model_in_another_schema_is_prepared_with_a_choice(ifc_client: tuple[TestClient, World]) -> None:
-    """IFC-LPG F32 and F33 a: B in IFC4 cannot become IFC2X3 without owner histories and a representation context, so
+    """IFC-DB F32 and F33 a: B in IFC4 cannot become IFC2X3 without owner histories and a representation context, so
     the preparation asks; the caller chooses, the copy is checked, and it stands in for B."""
     client, world = ifc_client
     editor = login_as(client, world, "editor")

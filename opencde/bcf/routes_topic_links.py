@@ -60,7 +60,7 @@ async def snippet_put(
 
     A snippet of the type `DataregiumIfcChangeSet` proposes a change set: that takes the role `editor` or `manager`
     (403 otherwise), the snippet is held to the change set's schema (`GET /documents/1.0/ifc-changes/schema`), and
-    400 says what is wrong with it; when the IFC-LPG module is on, the change set is then tried on its base version
+    400 says what is wrong with it; when the IFC-DB module is on, the change set is then tried on its base version
     (`GET …/ifc-proposal`).
     """
     topic.require_topic_action("updateBimSnippet")

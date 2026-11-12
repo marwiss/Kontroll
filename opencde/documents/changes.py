@@ -110,7 +110,7 @@ Value = Item | list[Item | list[Item]]
 
 class Change(_Strict):
     """One attribute of one instance: set to a value, or an aggregate's member added or removed; or an instance that
-    only its STEP id names, deleted (IFC-LPG F13 a: what no GlobalId reaches)."""
+    only its STEP id names, deleted (IFC-DB F13 a: what no GlobalId reaches)."""
 
     step_id: int | None = Field(
         None,

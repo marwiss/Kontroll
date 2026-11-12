@@ -56,7 +56,7 @@ async def test_the_schema_can_be_applied_twice_at_once_on_an_empty_database(grap
 
 
 async def test_what_earlier_releases_labelled_with_ifc_is_relabelled_at_startup(graph: Graph) -> None:
-    """IFC-LPG's labels and the server's own records lost their Ifc (B-37, F23 a); nodes made before are relabelled."""
+    """IFC-DB's labels and the server's own records lost their Ifc (B-37, F23 a); nodes made before are relabelled."""
     ids = {old: new_id() for old, _ in RENAMED_LABELS}
     for old, id_ in ids.items():
         await graph.run(f"CREATE (:{old} {{id: $id}})", id=id_)
@@ -68,7 +68,7 @@ async def test_what_earlier_releases_labelled_with_ifc_is_relabelled_at_startup(
 
 
 async def test_the_same_as_relationships_of_earlier_releases_are_removed_at_startup(graph: Graph) -> None:
-    """A component reaches its element by GlobalId since step one of IFC-LPG's F38 a; the old edges go, the nodes stay."""
+    """A component reaches its element by GlobalId since step one of IFC-DB's F38 a; the old edges go, the nodes stay."""
     await graph.run(
         "CREATE (:Component {id: $c, ifc_guid: $guid})-[:SAME_AS]->(:Entity {id: $e, GlobalId: $guid})",
         c=new_id(),
@@ -82,7 +82,7 @@ async def test_the_same_as_relationships_of_earlier_releases_are_removed_at_star
 
 
 async def test_the_models_of_earlier_releases_get_their_conversion_at_startup(graph: Graph) -> None:
-    """Step two of IFC-LPG's F38 a: the server's properties move from Model to Conversion; state stays for the
+    """Step two of IFC-DB's F38 a: the server's properties move from Model to Conversion; state stays for the
     library's 1.x rule, and a model without a project, the working copy's, only loses the server's properties."""
     await graph.run(
         """

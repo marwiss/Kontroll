@@ -343,7 +343,7 @@
   "admin.project.ext.stage": "Vaiheet",
   "admin.project.ext.custom_information": "Omat tiedot",
   "admin.project.checks": "IFC-tarkistukset",
-  "admin.project.checks_lead": "Jokainen dokumenttiversiona lähetetty IFC-tiedosto tarkistetaan IFC-skeemaa, buildingSMARTin sääntöjä ja projektin IDS-dokumentteja vasten, kun IFC-LPG-moduuli on käytössä. Tulos on version metatiedoissa.",
+  "admin.project.checks_lead": "Jokainen dokumenttiversiona lähetetty IFC-tiedosto tarkistetaan IFC-skeemaa, buildingSMARTin sääntöjä ja projektin IDS-dokumentteja vasten, kun IFC-DB-moduuli on käytössä. Tulos on version metatiedoissa.",
   "admin.project.block_on_validation_errors": "Hylkää lähetykset, joissa on validointivirheitä",
   "admin.project.block_hint": "Tarkistukset ajetaan silloin ennen tiedoston tallennusta, ja tiedosto, jossa on yksi tai useampi virhe, hylätään; varoitukset päästetään läpi. Tiedosto, jota ei voitu tarkistaa, päästetään läpi.",
   "admin.project.save_checks": "Tallenna tarkistukset",

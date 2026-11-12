@@ -20,7 +20,7 @@ from tests.integration.test_ifc_validation import settings_for, upload
 from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 WALLS = {"1Xezbq735AdBO_4DerG66G", "3eT96F_cnDsOufCEsotwtp", "3k3LbXmTfDWODxdSuyCGYE"}
 

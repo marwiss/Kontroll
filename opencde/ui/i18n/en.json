@@ -343,7 +343,7 @@
   "admin.project.ext.stage": "Stages",
   "admin.project.ext.custom_information": "Custom information",
   "admin.project.checks": "IFC checks",
-  "admin.project.checks_lead": "Every IFC file uploaded as a document version is checked against the IFC schema, buildingSMART's rules and the project's IDS documents when the IFC-LPG module is on. The result is in the version's metadata.",
+  "admin.project.checks_lead": "Every IFC file uploaded as a document version is checked against the IFC schema, buildingSMART's rules and the project's IDS documents when the IFC-DB module is on. The result is in the version's metadata.",
   "admin.project.block_on_validation_errors": "Refuse uploads with validation errors",
   "admin.project.block_hint": "The checks then run before the file is stored, and a file with one or more errors is refused; warnings pass. A file that could not be checked goes through.",
   "admin.project.save_checks": "Save checks",

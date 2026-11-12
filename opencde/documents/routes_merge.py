@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""A building of one model into another project's model: an extension of the Documents API (IFC-LPG F21 a and
+"""A building of one model into another project's model: an extension of the Documents API (IFC-DB F21 a and
 F22 a, ADR 0025).
 
 The building of model B, a version of any project the caller is a member of, comes into the project of model A, a
@@ -12,10 +12,10 @@ against A and B, written out, made the next version of A's document with A's ver
 and checked as an upload is. ``GET …/ifc-merge/{id}`` follows the job.
 
 Where B's schema or length unit is not A's, ``POST …/ifc-merge/prepare`` first makes a copy of B migrated to A's
-schema and with its lengths in A's unit (IFC-LPG F25 a), as a job of its own; its id, given as ``other.prepared``,
+schema and with its lengths in A's unit (IFC-DB F25 a), as a job of its own; its id, given as ``other.prepared``,
 makes that copy stand in for B in the report and the merge for a day. What A's schema has no equivalent of, such as
 IFC2X3's IfcWindowStyle in IFC4X3, ends the preparation in ``conflict`` with the problems and the options for each;
-the caller prepares again with ``resolutions`` (IFC-LPG F32). A copy with issues B did not have is refused (F33 a).
+the caller prepares again with ``resolutions`` (IFC-DB F32). A copy with issues B did not have is refused (F33 a).
 """
 
 from __future__ import annotations
@@ -129,7 +129,7 @@ async def _service(
 ) -> tuple[IfcGraphService, str, Role]:
     """The service, the project id and the caller's role, for a member of the project with the module on."""
     if ifcgraph is None or not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
+        raise HTTPException(404, "The IFC-DB module is off on this server")
     if not is_uuid(project_id):
         raise HTTPException(404, "Project not found")
     pid = normalize_guid(project_id)
@@ -182,7 +182,7 @@ async def _resolved(
 
 
 def _public(report: dict[str, Any], spec: dict[str, Any]) -> dict[str, Any]:
-    """The report with the documents' versions where IFC-LPG names its models."""
+    """The report with the documents' versions where IFC-DB names its models."""
     shown = {key: value for key, value in report.items() if key not in ("base", "other", "model")}
     shown["base"] = {key: spec["base"][key] for key in ("document_id", "version_index")}
     shown["other"] = {key: spec["other"][key] for key in ("project_id", "document_id", "version_index")}

@@ -52,12 +52,12 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
     assert extensions["request_log"] == {"enabled": False, "retention_hours": 72, "url": "/admin/api/requests"}
     assert extensions["admin_api"] == {"enabled": True, "version": 1, "url": "/admin/api", "scope": "admin"}
     assert extensions["ifcgraph"] == {"enabled": False, "bolt": None, "workcopy": False, "graph_store": "neo4j"}
-    assert extensions["ifc_queries"] == {"enabled": False}, "the queries need the IFC-LPG module"
+    assert extensions["ifc_queries"] == {"enabled": False}, "the queries need the IFC-DB module"
     assert extensions["ifc_clash"] == {"enabled": False}, "the clash check is off until configured"
-    assert extensions["ifc_validation"] == {"enabled": False}, "the checks of an upload need the IFC-LPG module"
-    assert extensions["ifc_precheck"] == {"enabled": False}, "the precheck needs the IFC-LPG module"
-    assert extensions["ifc_diff"] == {"enabled": False}, "the diff needs the IFC-LPG module"
-    assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-LPG module"
+    assert extensions["ifc_validation"] == {"enabled": False}, "the checks of an upload need the IFC-DB module"
+    assert extensions["ifc_precheck"] == {"enabled": False}, "the precheck needs the IFC-DB module"
+    assert extensions["ifc_diff"] == {"enabled": False}, "the diff needs the IFC-DB module"
+    assert extensions["ifc_geometry"] == {"enabled": False}, "the geometry needs the IFC-DB module"
     assert extensions["ifc_changes"]["snippet_type"] == "DataregiumIfcChangeSet", "the form of a proposed change"
     assert extensions["ifc_changes"]["ifc_proposals_url"] == "/documents/1.0/documents/{document_id}/ifc-proposals"
     assert extensions["ifc_changes"]["ops_form"] == "dataspatium-tools/1", "the write tools' operations, too"
@@ -92,7 +92,7 @@ def test_capabilities_document_has_the_agreed_shape_and_no_secrets(client: TestC
         "roles": ["manager"],
         "formats": ["ifczip", "zip"],
     }, "a manager publishes a version (F9 a)"
-    assert extensions["ifc_merge"] == {"enabled": False}, "the merge needs the IFC-LPG module"
+    assert extensions["ifc_merge"] == {"enabled": False}, "the merge needs the IFC-DB module"
     assert extensions["graph_query"] == {"enabled": False}
     assert client.post("/admin/api/graph/query", json={"cypher": "RETURN 1"}).status_code == 404, "not mounted"
     assert extensions["mcp"] == {"enabled": False}, "the MCP endpoint is off until the operator turns it on"
@@ -223,7 +223,7 @@ def test_the_ai_policy_is_announced_whether_or_not_mcp_is_on(tmp_path: Path) -> 
 
 
 def test_the_rooms_are_announced_when_the_operator_turns_them_on(tmp_path: Path) -> None:
-    """The rooms of each storey are off by default, and need the IFC-LPG module (F36 a)."""
+    """The rooms of each storey are off by default, and need the IFC-DB module (F36 a)."""
     assert make_settings(tmp_path).rooms_enabled is False, "off until configured"
     for enabled in (False, True):
         settings = make_settings(tmp_path, ifcgraph_enabled=True, rooms_enabled=enabled)

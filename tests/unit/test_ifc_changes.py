@@ -107,7 +107,7 @@ def test_the_schema_names_itself_and_holds_the_example() -> None:
 
 
 def test_a_deletion_names_an_instance_by_its_step_id_and_nothing_else() -> None:
-    """IFC-LPG F13 a: what no GlobalId reaches is named by its STEP id alone, and a deletion changes no attribute."""
+    """IFC-DB F13 a: what no GlobalId reaches is named by its STEP id alone, and a deletion changes no attribute."""
     deleting = change_set(changes=[{"step_id": 9001, "op": "delete"}])
     assert problems(deleting) == []
     assert problems(change_set(changes=[{"guid": GUID, "op": "delete"}])), "a rooted entity is not deleted this way"

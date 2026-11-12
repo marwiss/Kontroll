@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Removing what no GlobalId reaches as a proposal (IFC-LPG F13 a, OB-10.4, F10 a): the report warns of a loose
+"""Removing what no GlobalId reaches as a proposal (IFC-DB F13 a, OB-10.4, F10 a): the report warns of a loose
 instance, the server proposes a change set that deletes it, the change set is tried, and a manager approves it into
 the next version, which no longer has the instance while the first one keeps it."""
 

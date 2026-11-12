@@ -50,7 +50,7 @@ UNIQUE: tuple[tuple[str, str], ...] = (
     ("ChangeSetDraft", "changeset_id"),
 )
 
-#: Every label with a unique key, IFC-LPG's included (``ifc_db.graph.UNIQUE``): what the backup keys nodes by and
+#: Every label with a unique key, IFC-DB's included (``ifc_db.graph.UNIQUE``): what the backup keys nodes by and
 #: the doctor counts. The library makes its own constraints and indexes (``ensure_schema``).
 KEYED: tuple[tuple[str, str], ...] = (*UNIQUE, *LIBRARY_UNIQUE)
 
@@ -100,7 +100,7 @@ EXPIRING_LABELS: tuple[str, ...] = (
 )
 
 
-#: A label that begins with Ifc is one of IFC's classes: IFC-LPG named its own labels without it on 2026-11-10 (its
+#: A label that begins with Ifc is one of IFC's classes: IFC-DB named its own labels without it on 2026-11-10 (its
 #: 61a2d69), and the server's own records followed on 2026-11-11 (F23 a). What earlier releases made is relabelled
 #: at startup, in batches, so that the queries and the exports find it. Idempotent and cheap once done.
 RENAMED_LABELS: tuple[tuple[str, str], ...] = (
@@ -134,12 +134,12 @@ async def relabel_after_the_rename(graph: Graph) -> int:
 
 
 def library_dialect(graph: Graph) -> LibraryDialect:
-    """The graph's dialect as IFC-LPG names it."""
+    """The graph's dialect as IFC-DB names it."""
     return graph.dialect.name.value
 
 
 class SchemaGraph:
-    """The graph to IFC-LPG's schema statements (its ``SchemaGraph`` protocol): one statement at a time, where one
+    """The graph to IFC-DB's schema statements (its ``SchemaGraph`` protocol): one statement at a time, where one
     that exists already is no error, as :meth:`Graph.ddl` does it."""
 
     def __init__(self, graph: Graph) -> None:
@@ -151,7 +151,7 @@ class SchemaGraph:
 
 async def drop_same_as(graph: Graph) -> int:
     """Remove the ``SAME_AS`` relationships earlier releases made from a BCF component to the element it names: since
-    2026-11-11 (step one of IFC-LPG's F38 a) the GTIN comes through the library's lookup and the element is found by
+    2026-11-11 (step one of IFC-DB's F38 a) the GTIN comes through the library's lookup and the element is found by
     the component's ``GlobalId``. In batches, idempotent and cheap once done. Returns how many went."""
     gone = 0
     while True:

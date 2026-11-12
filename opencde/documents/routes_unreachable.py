@@ -1,5 +1,5 @@
 # This file was generated with the assistance of an AI coding tool.
-"""Removing what no GlobalId reaches, as a proposal (an extension; IFC-LPG F13 a, OB-10.4, Dataregium F10 a).
+"""Removing what no GlobalId reaches, as a proposal (an extension; IFC-DB F13 a, OB-10.4, Dataregium F10 a).
 
 The report of a converted version warns of the instances that nothing with a GlobalId reaches, forward or backward
 (the check ``graph``). Here the server proposes their removal: a BCF topic whose ``bim_snippet`` is a change set
@@ -65,7 +65,7 @@ async def unreachable_proposal(
     404 when the version has no converted model, 409 when nothing in it is out of reach.
     """
     if ifcgraph is None or not settings.ifcgraph_enabled:
-        raise HTTPException(404, "The IFC-LPG module is off on this server")
+        raise HTTPException(404, "The IFC-DB module is off on this server")
     ctx.require(ctx.can("createTopic", entity="project"), "createTopic")
     ctx.require_proposer()
     if not is_uuid(body.document_id):

@@ -50,7 +50,7 @@ UNKNOWN = (
     "its last use. Open a new one with open_changeset."
 )
 NO_DOCUMENT = "There is no document with this id among your projects"
-MODULE_OFF = "Change sets are not tried on this server: the IFC-LPG module is off"
+MODULE_OFF = "Change sets are not tried on this server: the IFC-DB module is off"
 REFERENCE = "changes.json"  # the snippet's file name, as Dataspatium names it
 MAX_AUDIT_TEXT = 100  # how much of the AI model it names goes to the audit log
 #: What ``tool_call`` holds in the provenance, as Dataspatium writes it: the steps' tools after this.

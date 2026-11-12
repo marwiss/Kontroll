@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """``start_clash_check`` and ``get_clash_check`` through the MCP endpoint (ADR 0028, ADR 0019): a check started as the
 REST route starts one, with its defaults, and recorded as ``mcp.clash.started``; its report waited for at most 20
-seconds and held to 200 clashes and 256 kB; and the refusals. The database and the IFC-LPG service are stood in for
+seconds and held to 200 clashes and 256 kB; and the refusals. The database and the IFC-DB service are stood in for
 (``tests/mcp_read_support.py``)."""
 
 from __future__ import annotations

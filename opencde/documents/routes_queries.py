@@ -5,7 +5,7 @@
 model, with their parameters and columns, and says how far the model's conversion has come. ``GET …/ifc-queries/{name}``
 asks one, with its parameters in the query string, and answers ``{"name", "columns", "rows", "truncated"}``, rows as
 lists in the order of the columns, as the administrators' graph query does. The same bearer token as the Documents API
-reaches both; the statements are IFC-LPG's (``ifc_db.queries``), and the answers come from the functions of
+reaches both; the statements are IFC-DB's (``ifc_db.queries``), and the answers come from the functions of
 ``ifcgraph/queries.py``, which the MCP tool ``server_query`` answers from too.
 """
 

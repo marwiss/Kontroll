@@ -26,7 +26,7 @@ from tests.integration.test_mcp_server_query import bound, set_policy, tool
 from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
-pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcclash", reason="the ifc-db extra is not installed")
 
 
 def _events(settings: Settings, kind: str) -> list[dict[str, Any]]:

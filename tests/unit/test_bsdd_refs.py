@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 from opencde.ifcgraph import bsdd_refs
 from opencde.ifcgraph.bsdd_refs import answer, ids_uris

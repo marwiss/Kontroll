@@ -30,7 +30,7 @@ from tests.integration.test_web_signin import web_sign_in
 from tests.mcp_support import META, MODERN
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 NOTHING = {"name": None, "class": None, "pset": None, "property": None, "global_id": None, "since": None}
 

@@ -30,7 +30,7 @@ from tests import conftest
 from tests.integration.conftest import GraphTarget
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 HEAD = (
     b"ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('ViewDefinition [x]'),'2;1');\n"
@@ -290,7 +290,7 @@ def test_a_lost_block_stops_the_export(graph_target: GraphTarget, clean_database
         finally:
             await graph.close()
 
-    # the number of instances in blocks depends on IFC-LPG's form (98 with geometry in blocks, fewer in the skeleton)
+    # the number of instances in blocks depends on IFC-DB's form (98 with geometry in blocks, fewer in the skeleton)
     assert re.search(r"of the \d+ instances", asyncio.run(work()))
 
 

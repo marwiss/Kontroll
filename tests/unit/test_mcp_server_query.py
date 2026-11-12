@@ -1,7 +1,7 @@
 # This file was generated with the assistance of an AI coding tool.
 """``server_query`` through the MCP endpoint (ADR 0028): its schema and description follow the catalogue, a query
-added to IFC-LPG appears without code, and the listing, the answers and the refusals are the REST routes', held to 500
-rows and 256 kB. The database and the IFC-LPG service are stood in for (``tests/mcp_read_support.py``)."""
+added to IFC-DB appears without code, and the listing, the answers and the refusals are the REST routes', held to 500
+rows and 256 kB. The database and the IFC-DB service are stood in for (``tests/mcp_read_support.py``)."""
 
 from __future__ import annotations
 
@@ -74,7 +74,7 @@ def test_the_description_lists_every_query_with_the_librarys_words() -> None:
 
 
 def test_no_parameter_of_the_catalogue_is_named_as_an_argument_of_the_tool() -> None:
-    """A parameter IFC-LPG adds by the name of one of the tool's own arguments would not be offered: this fails when
+    """A parameter IFC-DB adds by the name of one of the tool's own arguments would not be offered: this fails when
     the lock brings one."""
     names = {parameter.name for query in QUERIES.values() for parameter in query.parameters}
     assert not names & set(OWN_ARGUMENTS)

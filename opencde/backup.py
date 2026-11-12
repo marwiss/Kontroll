@@ -8,7 +8,7 @@ by database-internal ids) plus a tar archive of the storage directory. The
 result restores into either database. See ADR 0006.
 
 When the server's own data has a graph of its own (``OPENCDE_STORE_GRAPH_URI``,
-ADR 0027), one backup holds both graphs: the store's nodes and IFC-LPG's from
+ADR 0027), one backup holds both graphs: the store's nodes and IFC-DB's from
 the IFC graph, in the same files. A restore puts each node where it belongs by
 its label, so a backup of one database restores into two and the other way round.
 """
@@ -38,7 +38,7 @@ MAX_BATCH_BYTES = 16 * 1024 * 1024
 _NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _KEY_PROPS = sorted({prop for _, prop in KEYED})
 _KEY_PROJECTION = "{" + ", ".join(f".{prop}" for prop in _KEY_PROPS) + "}"
-#: The labels of IFC-LPG's nodes, which live in the IFC graph; every other node is the server's own (ADR 0027).
+#: The labels of IFC-DB's nodes, which live in the IFC graph; every other node is the server's own (ADR 0027).
 MODEL_LABELS = frozenset(label for label, _ in LIBRARY_UNIQUE)
 
 
@@ -100,7 +100,7 @@ async def _present_labels(graph: Graph) -> set[str]:
 
 async def export(graph: Graph, storage: LocalStorage, target_dir: Path, *, store: Graph | None = None) -> Manifest:
     """Write ``nodes.jsonl.gz``, ``relationships.jsonl.gz``, ``storage.tar.gz`` and ``manifest.json``: from the IFC
-    graph ``graph``, and from the ``store`` when it is another graph, IFC-LPG's nodes from the one and the server's
+    graph ``graph``, and from the ``store`` when it is another graph, IFC-DB's nodes from the one and the server's
     own from the other."""
     # A command-line operation: nothing else runs on this event loop, so blocking file work is fine here.
     target_dir.mkdir(parents=True, exist_ok=False)  # noqa: ASYNC240
@@ -242,7 +242,7 @@ def read_manifest(source_dir: Path) -> Manifest:
 
 async def restore(graph: Graph, storage: LocalStorage, source_dir: Path, *, store: Graph | None = None) -> Manifest:
     """Load a backup into an empty database and storage; the caller wipes first when needed. With a ``store`` apart
-    from the IFC graph ``graph``, IFC-LPG's nodes go to the IFC graph and every other node to the store, whichever
+    from the IFC graph ``graph``, IFC-DB's nodes go to the IFC graph and every other node to the store, whichever
     graphs the backup was taken from; a relationship between the two, which no database can hold, is left out."""
     manifest = read_manifest(source_dir)
     store = store or graph

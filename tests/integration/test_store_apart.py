@@ -31,7 +31,7 @@ from tests.integration.test_ifc_validation import MODEL, WALLS, checked, setting
 from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
 
 MODEL_LABELS = ("Model", "Entity", "StepBlock")
 SERVER_LABELS = ("User", "Project", "Document", "DocumentVersion", "Conversion", "Validation", "Topic", "Proposal")

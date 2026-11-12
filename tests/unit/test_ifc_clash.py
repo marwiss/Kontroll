@@ -54,7 +54,7 @@ def test_a_topic_takes_type_status_and_label_only_where_the_extensions_allow() -
 @pytest.fixture(scope="module")
 def shifted_walls(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Path]:
     """The wall fixture, and a copy with new GlobalIds whose walls are moved sideways and up, so that they clash."""
-    pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcopenshell", reason="the ifc-db extra is not installed")
     import ifcopenshell
     import ifcopenshell.guid
 
@@ -72,7 +72,7 @@ def shifted_walls(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Path]
 
 
 def test_the_worker_finds_the_wall_that_was_moved_into_another(shifted_walls: tuple[Path, Path]) -> None:
-    pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcclash", reason="the ifc-db extra is not installed")
     from opencde.ifcgraph.clash import check
 
     a, b = shifted_walls
@@ -88,7 +88,7 @@ def test_the_worker_finds_the_wall_that_was_moved_into_another(shifted_walls: tu
 
 
 def test_the_worker_counts_clearance_and_keeps_only_so_many(shifted_walls: tuple[Path, Path]) -> None:
-    pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcclash", reason="the ifc-db extra is not installed")
     from opencde.ifcgraph.clash import check
 
     a, b = shifted_walls
@@ -100,7 +100,7 @@ def test_the_worker_counts_clearance_and_keeps_only_so_many(shifted_walls: tuple
 
 
 def test_the_worker_runs_as_a_process_and_answers_on_stdout(shifted_walls: tuple[Path, Path]) -> None:
-    pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+    pytest.importorskip("ifcclash", reason="the ifc-db extra is not installed")
     import json
     import subprocess
     import sys

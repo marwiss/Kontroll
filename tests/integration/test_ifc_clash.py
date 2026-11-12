@@ -18,7 +18,7 @@ from tests.integration.test_ifc_validation import settings_for, upload
 from tests.integration.test_web_signin import web_sign_in
 
 pytestmark = pytest.mark.integration
-pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+pytest.importorskip("ifcclash", reason="the ifc-db extra is not installed")
 
 
 def shifted_copy() -> bytes:

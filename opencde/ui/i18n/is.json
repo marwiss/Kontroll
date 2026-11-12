@@ -343,7 +343,7 @@
   "admin.project.ext.stage": "Áfangar",
   "admin.project.ext.custom_information": "Sérsniðnar upplýsingar",
   "admin.project.checks": "IFC-prófanir",
-  "admin.project.checks_lead": "Sérhver IFC-skrá sem er hlaðið upp sem útgáfu skjals er prófuð gagnvart IFC-skemanu, reglum buildingSMART og IDS-skjölum verkefnisins þegar IFC-LPG-einingin er á. Niðurstaðan er í lýsigögnum útgáfunnar.",
+  "admin.project.checks_lead": "Sérhver IFC-skrá sem er hlaðið upp sem útgáfu skjals er prófuð gagnvart IFC-skemanu, reglum buildingSMART og IDS-skjölum verkefnisins þegar IFC-DB-einingin er á. Niðurstaðan er í lýsigögnum útgáfunnar.",
   "admin.project.block_on_validation_errors": "Hafna upphölum með sannprófunarvillum",
   "admin.project.block_hint": "Prófanirnar keyra þá áður en skráin er vistuð, og skrá með einni eða fleiri villum er hafnað; viðvaranir sleppa í gegn. Skrá sem ekki var hægt að prófa sleppur í gegn.",
   "admin.project.save_checks": "Vista prófanir",

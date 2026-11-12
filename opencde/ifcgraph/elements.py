@@ -6,10 +6,10 @@
 ``STEPS`` is a JSON list of STEP ids, which the server wrote. Answers with one JSON document on stdout,
 ``{"elements": {"<step id>": {"ifc_class": …, "root_global_id": …}}}``, for every id that is an instance of the file:
 its class, and the GlobalId of the nearest rooted entity that reaches it, its own when it is one. A rooted entity
-reaches an instance as IFC-LPG's paths do (``ifc_db.paths``): forward through explicit attributes and backward
-through inverse ones, within ``MAX_STEPS`` steps. Of the nearest, the one is taken whose path comes first as IFC-LPG
+reaches an instance as IFC-DB's paths do (``ifc_db.paths``): forward through explicit attributes and backward
+through inverse ones, within ``MAX_STEPS`` steps. Of the nearest, the one is taken whose path comes first as IFC-DB
 orders them: forward steps before inverse ones, the attribute names in alphabetical order, the lowest position, then
-the lowest GlobalId. IFC-LPG orders an inverse set by its members' content in the graph; here every inverse step counts
+the lowest GlobalId. IFC-DB orders an inverse set by its members' content in the graph; here every inverse step counts
 as position 0, so that only the GlobalId tells such paths apart. ``root_global_id`` is None for an instance that none
 reaches, or whose search would take more than ``MAX_VISITED`` steps, or more than ``MAX_SEARCHED`` with those of the
 instances before it, so that a file with many findings is answered in time. Exit code 0 is an
