@@ -10,8 +10,8 @@ the commit history.
 
 ## 3.0.0 — 2026-11-12
 
-Released again on 2026-11-12 (the thirteenth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
-2026-11-10 and 2026-11-11 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
+Released again on 2026-11-12 (the fourteenth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
+2026-11-10, 2026-11-11 and earlier on 2026-11-12 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
 upload, the refusal of uploads with validation errors, the precheck of a file, the schema of a change set and its trial on its base version, the approval of a trial as a new version with
@@ -20,7 +20,8 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, a server in a
 cloud region of one's own or beside an nginx, the operations of Dataspatium's write tools in a change set, an MCP
 endpoint through which AI tools read the models and propose change sets that a person approves, the rooms of each
-storey, the check against bSDD, and the element of each rules finding. Works with Dataspatium 3.0.0.
+storey, the check against bSDD, the element of each rules finding, and the server's own data in a database of its
+own. Works with Dataspatium 3.0.0.
 
 - A change set's operations take Dataspatium's new write tools: `define_type` makes wall, slab, roof and covering
   types with their material layers and column, beam, footing, railing, door and window types, `create_element` makes
