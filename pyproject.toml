@@ -152,6 +152,8 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "f
 "docs/examples/**" = ["T20"]                      # examples print their results
 "tests/security/zap/*.py" = ["T20"]                           # they hand their results to the job through standard output
 "opencde/ifcgraph/ops.py" = ["UP031", "B007", "B904", "B905", "S110", "S112", "RUF005", "RUF046"]  # Dataspatium's code, as written
+"opencde/mcp/write_tools.py" = ["RUF001"]          # Dataspatium's lines, as written (× and –)
+"tests/unit/test_mcp_{write_tools,change_sets}.py" = ["RUF001"]  # and what they answer
 
 [tool.ruff.lint.isort]
 known-first-party = ["opencde", "opencde_client"]
