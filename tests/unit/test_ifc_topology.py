@@ -2,8 +2,9 @@
 """The rooms of each storey (F36 a, the server makes the client's room check) from the copy of Dataspatium's topology
 (``opencde/ifcgraph/ops.py``), through the worker (``opencde/ifcgraph/topology.py``), on small files made here with
 the copied write tools: a closed room of four walls, a room with a door, a storey with a dangling wall and an open
-one, walls with and without an Axis, a wall that cannot be read, north from the map conversion, and the answer's
-limits. The section in the reports is tried in ``test_ifc_rooms.py``."""
+one, walls with and without an Axis, a wall that cannot be read, north from the map conversion, the storeys of an
+IFC4X3 file by their placements, and the answer's limits. The section in the reports is tried in
+``test_ifc_rooms.py``."""
 
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ pytest.importorskip("ifcopenshell", reason="the ifc-lpg extra is not installed")
 import ifcopenshell
 import ifcopenshell.api.root
 import ifcopenshell.api.spatial
+import ifcopenshell.util.element
 
 from opencde.ifcgraph import ops
 from opencde.ifcgraph import topology as worker
@@ -122,6 +124,29 @@ def test_north_comes_from_the_map_conversion() -> None:
         refs["new-3"]: "W",
         refs["new-4"]: "S",
     }
+
+
+def test_the_storeys_of_an_ifc4x3_file_have_no_elevation_and_are_ordered_by_their_placement() -> None:
+    """IFC4X3 deprecates a storey's Elevation (bSI rule IFC102): create_storeys_and_grid gives the height to the
+    placement alone, and the lowest and the highest storey, and the topology's order, come from the placements."""
+    model = new_model("IFC4X3")
+    upside_down = {
+        "tool": "create_storeys_and_grid",
+        "storeys": [{"name": "Level 2", "elevation": 3.5}, {"name": "Level 1", "elevation": 0}],
+    }
+    outline = [[0, 0], [10, 0], [10, 6], [0, 6]]
+    slab = {"tool": "create_slab", "outline": outline}
+    roof = {"tool": "create_roof", "shape": "flat", "outline": outline, "base": 3}
+    answer = run(model, [upside_down, *FOUR_WALLS, slab, roof], proposer="anna")
+    assert answer["failed"] is None, answer
+    assert [(s.Name, s.Elevation) for s in model.by_type("IfcBuildingStorey")] == [("Level 2", None), ("Level 1", None)]
+    slab_at, roof_at = (
+        ifcopenshell.util.element.get_container(model.by_guid(answer["created"][ref])).Name
+        for ref in ("new-5", "new-6")
+    )
+    assert (slab_at, roof_at) == ("Level 1", "Level 2"), "no storey named: the lowest, and for a roof the highest"
+    assert [(s["storey"], s["elevation"]) for s in ops._ifc_topology(model)] == [("Level 1", 0.0), ("Level 2", 3.5)]
+    assert len(rooms_of(model)["rooms"]) == 1 and rooms_of(model)["closed"]
 
 
 def test_the_rooms_are_numbered_as_the_app_numbers_them() -> None:

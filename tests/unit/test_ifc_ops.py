@@ -1,9 +1,9 @@
 # This file was generated with the assistance of an AI coding tool.
 """Dataspatium's write tools applied with the app's own code (``opencde/ifcgraph/ops.py``), on small files made here:
 storeys, a grid, walls, slabs, roofs and openings with their refs, elements named by GlobalId, properties, a
-classification, a storey and a material, a move, a deletion, the site with an EPSG code, the units of a millimetre
-file and the owner histories. The trial around it is proved against a database in
-``tests/integration/test_ifc_proposal.py``."""
+classification with its system's facts, a storey and a material, a move, a deletion, the site with an EPSG code, the
+units of a millimetre file, the owner histories, and the classes and values the schema allows. The trial around it is
+proved against a database in ``tests/integration/test_ifc_proposal.py``."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ import ifcopenshell.util.placement
 
 from opencde import __version__
 from opencde.documents.changes import OPS_TOOLS
-from opencde.ifcgraph.ops import SERVER, ServerChangeSet, _ChangeSet, run
+from opencde.ifcgraph.ops import SERVER, DataspatiumError, ServerChangeSet, _ChangeSet, run
 
 FIXTURE = FIXTURES_DIR / "three_walls_gtin.ifc"  # IFC2X3 in millimetres, with an owner history and one storey
 
@@ -225,6 +225,90 @@ def test_properties_a_classification_a_storey_and_a_material() -> None:
     assert ifcopenshell.util.element.get_material(wall).Name == "Concrete"
 
 
+@pytest.mark.parametrize(("schema", "address"), [("IFC4", "Location"), ("IFC4X3", "Specification"), ("IFC2X3", None)])
+def test_a_classification_carries_its_systems_facts_and_reuses_only_the_same_class(
+    schema: str, address: str | None
+) -> None:
+    """set_classification's edition, source and dictionary_uri go on the system's IfcClassification, the address as
+    Location in IFC4 and Specification in IFC4X3; the same class of the same system is one reference with one
+    relationship, a system of the same name with another edition is another, and IFC2X3 gets empty labels for the
+    Source and Edition it requires."""
+    model = new_model(schema)
+    uri = "https://identifier.buildingsmart.org/uri/molio/cciconstruction/1.0"
+    cci = {"tool": "set_classification", "system": "CCI Construction", "name": "Wall", "code": "QQA",
+           "edition": "1.0", "source": "Molio", "dictionary_uri": uri}  # fmt: skip
+    own = {"tool": "set_classification", "ids": ["new-1"], "system": "Own", "name": "Wall"}
+    answer = run(
+        model,
+        [STOREYS, WALL, WALL, {**cci, "ids": ["new-1"]}, {**cci, "ids": ["new-2"]},
+         {**cci, "ids": ["new-2"], "edition": "2.0"}, own],
+        proposer="anna",
+    )  # fmt: skip
+    assert answer["failed"] is None, answer
+    systems = {(c.Name, c.Edition): c for c in model.by_type("IfcClassification")}
+    first, second = systems["CCI Construction", "1.0"], systems["CCI Construction", "2.0"]
+    assert first.Source == second.Source == "Molio" and len(systems) == 3
+    assert address is None or getattr(first, address) == uri
+    blank = "" if schema == "IFC2X3" else None
+    assert (systems["Own", blank].Source, systems["Own", blank].Edition) == (blank, blank)
+    code = "ItemReference" if schema == "IFC2X3" else "Identification"
+    refs = {
+        (r.ReferencedSource.Name, r.ReferencedSource.Edition): r for r in model.by_type("IfcClassificationReference")
+    }
+    assert len(refs) == 3 and getattr(refs["CCI Construction", "1.0"], code) == "QQA"
+    related = {
+        r.RelatingClassification.id(): [o.GlobalId for o in r.RelatedObjects]
+        for r in model.by_type("IfcRelAssociatesClassification")
+    }
+    walls = [answer["created"][ref] for ref in ("new-1", "new-2")]
+    assert related[refs["CCI Construction", "1.0"].id()] == walls, "one relationship for both walls"
+    assert related[refs["CCI Construction", "2.0"].id()] == walls[1:]
+    findings, errors = ServerChangeSet(model, "anna").findings()
+    assert errors == 0, findings
+
+
+@pytest.mark.parametrize("schema", ["IFC4", "IFC4X3", "IFC2X3"])
+def test_a_wall_is_solid_or_with_partition_partitioning(schema: str) -> None:
+    """STANDARD is deprecated (bSI rule IFC102): a wall is SOLIDWALL, and PARTITIONING with partition true only;
+    IFC2X3's walls have no PredefinedType."""
+    model = new_model(schema)
+    answer = run(model, [STOREYS, WALL, {**WALL, "partition": True}, {**WALL, "partition": "yes"}], proposer="anna")
+    assert answer["failed"] is None, answer
+    walls = [model.by_guid(answer["created"][ref]) for ref in ("new-1", "new-2", "new-3")]
+    kinds = [getattr(wall, "PredefinedType", None) for wall in walls]
+    assert kinds == ([None] * 3 if schema == "IFC2X3" else ["SOLIDWALL", "PARTITIONING", "SOLIDWALL"])
+
+
+def test_a_deprecated_or_unknown_value_and_a_class_the_schema_lacks_are_refused() -> None:
+    """B-57.2, the right IFC class: every class and enumeration value the copy sets is checked against the file's
+    schema, and a value the release deprecates is never written (IFC102)."""
+    model = new_model("IFC4X3")
+    built = run(model, [STOREYS, WALL], proposer="anna")
+    wall = model.by_guid(built["created"]["new-1"])
+    changeset = ServerChangeSet(model, "anna")
+    with pytest.raises(
+        DataspatiumError, match=r"^STANDARD is deprecated for IfcWall in IFC4X3_ADD2 \(bSI rule IFC102\)"
+    ):
+        changeset.predefined(wall, "STANDARD")
+    with pytest.raises(DataspatiumError, match=r"^INTERNAL is deprecated for IfcSpace"):
+        changeset.predefined(model.create_entity("IfcSpace"), "INTERNAL")
+    with pytest.raises(DataspatiumError, match=r"^BOGUS is not a PredefinedType of IfcWall in IFC4X3_ADD2; it takes "):
+        changeset.predefined(wall, "BOGUS")
+    with pytest.raises(DataspatiumError, match=r"^IfcWall USERDEFINED needs ObjectType"):
+        changeset.predefined(wall, "USERDEFINED")
+    assert wall.PredefinedType == "SOLIDWALL", "as it was"
+    with pytest.raises(DataspatiumError, match=r"^IfcElement is abstract in IFC4X3_ADD2; use one of "):
+        changeset.root("IfcElement", "Element")
+    with pytest.raises(DataspatiumError, match=r"^IfcBuildingElement is not an entity of IFC4X3_ADD2; near: "):
+        changeset.root("IfcBuildingElement", "Element")
+    older = ServerChangeSet(new_model("IFC4"), "anna")
+    with pytest.raises(DataspatiumError, match=r"^STANDARD is deprecated for IfcWall in IFC4 "):
+        older.predefined(older.m.create_entity("IfcWall"), "STANDARD")
+    open_outline = {"tool": "create_slab", "outline": [[0, 0], [1, 0], [0, 0]]}
+    refused = run(model, [open_outline], proposer="anna")
+    assert refused["failed"]["error"] == "an outline needs at least three different corners"
+
+
 def test_a_move_and_a_deletion_that_takes_the_door_along() -> None:
     model = new_model()
     built = run(model, [STOREYS, WALL, DOOR], proposer="anna")
@@ -364,13 +448,16 @@ def quantities(space: Any) -> dict[str, float]:
     return ifcopenshell.util.element.get_psets(space, qtos_only=True)["Qto_SpaceBaseQuantities"]
 
 
-@pytest.mark.parametrize(("schema", "prefix", "per_metre"), [("IFC4", None, 1), ("IFC2X3", "MILLI", 1000)])
+@pytest.mark.parametrize(
+    ("schema", "prefix", "per_metre"), [("IFC4", None, 1), ("IFC2X3", "MILLI", 1000), ("IFC4X3", None, 1)]
+)
 def test_create_spaces_makes_a_closed_room_with_a_door_a_space_bounded_by_its_walls_and_the_door(
     schema: str, prefix: str | None, per_metre: int
 ) -> None:
     """F37 a, the rooms become IfcSpace through a proposal: a listed room, found by a point inside it, is an IfcSpace in
     its storey with the next ref, the room's outline extruded up to the next storey, its quantities, and a physical
-    boundary to each of the four walls along its edge and to the door in one of them, external as the walls are."""
+    boundary to each of the four walls along its edge and to the door in one of them, external as the walls are. It is
+    INTERNAL, except in IFC4X3, which deprecates that (bSI rule IFC102): there it is SPACE, with IsExternal false."""
     model = new_model(schema, prefix)
     kitchen = {"at": [5, 3], "name": "Kitchen", "long_name": "Kök"}
     spaces = {"tool": "create_spaces", "storey": "Level 1", "rooms": [kitchen], "height": None}
@@ -379,7 +466,15 @@ def test_create_spaces_makes_a_closed_room_with_a_door_a_space_bounded_by_its_wa
     assert list(answer["created"]) == ["new-1", "new-2", "new-3", "new-4", "new-5", "new-6"], "walls, door, room"
     space = model.by_guid(answer["created"]["new-6"])
     assert (space.is_a(), space.Name, space.LongName) == ("IfcSpace", "Kitchen", "Kök")
-    assert (space.InteriorOrExteriorSpace if schema == "IFC2X3" else space.PredefinedType) == "INTERNAL"
+    kind = space.InteriorOrExteriorSpace if schema == "IFC2X3" else space.PredefinedType
+    assert kind == ("SPACE" if schema == "IFC4X3" else "INTERNAL")
+    psets = ifcopenshell.util.element.get_psets(space)
+    if schema == "IFC4X3":
+        assert psets["Pset_SpaceCommon"]["IsExternal"] is False, "inside, as IFC4X3 says it"
+    else:
+        assert "Pset_SpaceCommon" not in psets
+    points = extrusion(space).SweptArea.OuterCurve.Points
+    assert len(points) == 5 and points[-1].id() == points[0].id(), "closed on its first point (bSI rule GEM111)"
     (aggregate,) = space.Decomposes
     assert aggregate.RelatingObject.Name == "Level 1" and space.GlobalId in answer["objects"]
     walls = [answer["created"][ref] for ref in ("new-1", "new-2", "new-3", "new-4")]

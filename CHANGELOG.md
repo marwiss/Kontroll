@@ -20,6 +20,14 @@ uploads, IFC-LPG's labels without Ifc, the geometry as glTF with a box per eleme
 instance with the three values of a conflict, the check graph in the report with the removal of what no GlobalId reaches, the publication of a version as a whole archive, the building of one model brought into another project's model, the administration of a project by its managers, and a server in a
 cloud region of one's own or beside an nginx. Works with Dataspatium 3.0.0.
 
+- The operations of a change set (`ops`) give the model Dataspatium 3.0.0 gives: every class and enumeration value
+  they set is checked against the file's schema, and a value the release deprecates (bSI rule IFC102) is never
+  written. A wall is `SOLIDWALL`, or `PARTITIONING` with `"partition": true`, never `STANDARD`; in IFC4X3 a storey
+  has its height in its placement alone, without `Elevation`, and the lowest and the highest storey are found by
+  placement, and a room is `SPACE` with `Pset_SpaceCommon.IsExternal` false instead of `INTERNAL`. Outlines close
+  on their first point (GEM111). `set_classification` takes the system's `edition`, `source` and `dictionary_uri`
+  (as `Location` in IFC4, `Specification` in IFC4X3), and reuses a reference only for the same system, code and
+  `uri`, and without a code the same name.
 - The MCP endpoint has four more tools (ADR 0028), each for every member of a project the server may give to AI
   tools, with the same refusals as the REST routes. `server_query` asks the named queries of a version's model, by
   `document_id` and `version_index` (null for the latest), with `name` an enumeration of the catalogue and a field
