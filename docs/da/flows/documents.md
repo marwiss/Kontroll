@@ -94,7 +94,7 @@ metadata; dets live-suiter kører disse forløb mod udviklingsstakken.
 |---|---|
 | Starte en upload eller et valg | en bearer-token med scopet `documents` |
 | Bruge browsersiderne | en browsersession som samme bruger (`/signin`) |
-| Gemme metadata, afslutte en upload, uploade fra siden | projekthandlingen `createDocument` (editor, manager) |
+| Gemme metadata, afslutte en upload, uploade fra siden | rollen editor eller manager |
 | Se, vælge og downloade dokumenter | medlemskab af projektet (enhver rolle) |
 | Publicere en version | rollen `manager` |
 

@@ -79,7 +79,7 @@ def test_documents_and_files_information(client: TestClient, world: World) -> No
     unnamed = upload(client, world, editor, None, data=b"%PDF-1.7 ...")
     assert unnamed.status_code == 201 and unnamed.json()["filename"] == "document"
 
-    assert upload(client, world, contributor, None).status_code == 403, "contributors lack createDocument"
+    assert upload(client, world, contributor, None).status_code == 201, "a contributor attaches documents (B-67)"
     assert upload(client, world, viewer, None).status_code == 403
     assert upload(client, world, outsider, None).status_code == 404
     too_big = client.post(base, content=b"x", headers={**editor.headers, "Content-Length": str(2 * 1024**3)})

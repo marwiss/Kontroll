@@ -95,7 +95,7 @@ lifandi svítur þess keyra þessi ferli gegn þróunarstaflanum.
 |---|---|
 | Hefja upphal eða val | bearer-tóka með heimildinni `documents` |
 | Nota vafrasíðurnar | vafrasetu sem sami notandi (`/signin`) |
-| Vista lýsigögn, ljúka upphali, hlaða upp frá síðunni | verkefnisaðgerðina `createDocument` (editor, manager) |
+| Vista lýsigögn, ljúka upphali, hlaða upp frá síðunni | hlutverkið editor eða manager |
 | Sjá, velja og hala niður skjölum | aðild að verkefninu (hvaða hlutverk sem er) |
 | Gefa út útgáfu | hlutverkið `manager` |
 

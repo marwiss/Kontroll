@@ -6,7 +6,7 @@ document, and runs the checks an upload gets: the IFC schema, buildingSMART's ru
 IDS documents. ``GET …/ifc-precheck/{id}`` gives the report in the form of a version's report, with the file's name
 and when the precheck expires: a day after it was made, when the cleanup job deletes it and the file. An upload a
 project refused for its errors is kept the same way, so that its report can be read. The same bearer token as the
-Documents API; starting a precheck needs the ``createDocument`` action, reading one needs membership.
+Documents API; starting a precheck needs the role editor or manager, reading one needs membership.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, HTTPException, Path, Request, Response
 from pydantic import Field
 
-from opencde.accounts.roles import project_actions
+from opencde.accounts.roles import may_upload
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.bcf.binary import filename_from_content_disposition, receive_upload
 from opencde.deps import SettingsDep, StorageDep, UsersDep
@@ -78,7 +78,7 @@ async def _service(
     role = await users.project_role(user_id, pid)
     if role is None:
         raise HTTPException(404, "Project not found")
-    if to_start and "createDocument" not in project_actions(role):
+    if to_start and not may_upload(role):
         raise HTTPException(403, "You may not add documents to this project")
     return ifcgraph, pid
 
@@ -104,7 +104,7 @@ async def start_precheck(
     """The file is the request body and its name is in `Content-Disposition`; `.ifc`, `.ifczip` and `.ifcxml`.
 
     The checks run in the background; `GET` the answer's `url` until its status is no longer `pending`. Needs the
-    `createDocument` action. 404 when the project is not yours or the server does not check uploads.
+    role editor or manager. 404 when the project is not yours or the server does not check uploads.
     """
     service, pid = await _service(ifcgraph, settings, users, principal.user_id, project_id, to_start=True)
     file_name = filename_from_content_disposition(request.headers.get("content-disposition")) or DEFAULT_FILENAME

@@ -55,6 +55,7 @@ som pekar på den fortsätter att peka på samma sak.
 | Läsa ärenden, kommentarer och viewpoints | Medlemskap i projektet, i vilken roll som helst |
 | Skapa ett ärende | Åtgärden `createTopic`: contributor, editor eller manager |
 | Lägga till en viewpoint eller en kommentar | Åtgärden `createViewpoint` eller `createComment`: contributor, editor eller manager |
+| Lägga till ett dokument i projektet och hänvisa till det från ett ärende | Åtgärden `createDocument`: contributor, editor eller manager; en contributor hänvisar från sina egna ärenden |
 | Ta bort en viewpoint | Dess författare som contributor; editor och manager tar bort vilken som helst |
 
 Ett projekt som användaren inte är medlem i finns inte för hen (404).

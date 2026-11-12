@@ -95,7 +95,7 @@ utvecklingsstacken.
 |---|---|
 | Starta en uppladdning eller ett urval | en bearer-token med scopet `documents` |
 | Använda webbläsarsidorna | en webbläsarsession som samma användare (`/signin`) |
-| Spara metadata, slutföra en uppladdning, ladda upp från sidan | projekthandlingen `createDocument` (editor, manager) |
+| Spara metadata, slutföra en uppladdning, ladda upp från sidan | rollen editor eller manager |
 | Se, välja och ladda ned dokument | medlemskap i projektet (vilken roll som helst) |
 | Publicera en version | rollen `manager` |
 

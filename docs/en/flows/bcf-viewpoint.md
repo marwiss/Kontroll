@@ -55,6 +55,7 @@ comment that points at it keeps pointing at the same thing.
 | Read topics, comments and viewpoints | Membership of the project, in any role |
 | Create a topic | The `createTopic` action: contributor, editor or manager |
 | Add a viewpoint or a comment | The `createViewpoint` or `createComment` action: contributor, editor or manager |
+| Add a document to the project and refer to it from a topic | The `createDocument` action: contributor, editor or manager; a contributor refers from their own topics |
 | Delete a viewpoint | Its author as contributor; editors and managers delete any |
 
 A project the user is not a member of does not exist for them (404).

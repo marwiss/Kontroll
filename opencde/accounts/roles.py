@@ -33,6 +33,9 @@ class Role(StrEnum):
 _RANK = {Role.VIEWER: 0, Role.CONTRIBUTOR: 1, Role.EDITOR: 2, Role.MANAGER: 3}
 # The least role that proposes a change set (F35 a, ADR 0028): a contributor reports, an editor proposes.
 PROPOSER = Role.EDITOR
+# The least role that adds a document or a version through the Documents API (B-67): a contributor attaches BCF
+# documents to its own topics through createDocument, and files of the project are an editor's.
+UPLOADER = Role.EDITOR
 
 PROJECT_ACTIONS_ALL = ("update", "createTopic", "createDocument")
 TOPIC_ACTIONS_ALL = (
@@ -56,12 +59,15 @@ def at_least(role: Role | None, minimum: Role) -> bool:
     return role is not None and _RANK[role] >= _RANK[minimum]
 
 
+def may_upload(role: Role | None) -> bool:
+    """Whether the role adds documents and versions through the Documents API, and starts a precheck."""
+    return at_least(role, UPLOADER)
+
+
 def project_actions(role: Role | None) -> list[str]:
     if role is None or role is Role.VIEWER:
         return []
-    if role is Role.CONTRIBUTOR:
-        return ["createTopic"]
-    if role is Role.EDITOR:
+    if role in (Role.CONTRIBUTOR, Role.EDITOR):
         return ["createTopic", "createDocument"]
     return list(PROJECT_ACTIONS_ALL)
 

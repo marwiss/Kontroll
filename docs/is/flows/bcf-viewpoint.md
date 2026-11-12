@@ -55,6 +55,7 @@ lagi, svo að athugasemd sem vísar á það vísar áfram á það sama.
 | Lesa mál, athugasemdir og sjónarhorn | Aðildar að verkefninu, í hvaða hlutverki sem er |
 | Stofna mál | Aðgerðarinnar `createTopic`: contributor, editor eða manager |
 | Bæta við sjónarhorni eða athugasemd | Aðgerðarinnar `createViewpoint` eða `createComment`: contributor, editor eða manager |
+| Bæta skjali við verkefnið og vísa í það úr máli | Aðgerðarinnar `createDocument`: contributor, editor eða manager; contributor vísar úr eigin málum |
 | Eyða sjónarhorni | Höfundur þess sem contributor; editor og manager eyða hvaða sjónarhorni sem er |
 
 Verkefni sem notandinn á ekki aðild að er ekki til fyrir hann (404).

@@ -55,6 +55,7 @@ kommentar som peikar på det, framleis peikar på det same.
 | Lese saker, kommentarar og viewpointar | Medlemskap i prosjektet, i kva rolle som helst |
 | Opprette ei sak | Handlinga `createTopic`: contributor, editor eller manager |
 | Leggje til eit viewpoint eller ein kommentar | Handlinga `createViewpoint` eller `createComment`: contributor, editor eller manager |
+| Leggje til eit dokument i prosjektet og vise til det frå ei sak | Handlinga `createDocument`: contributor, editor eller manager; ein contributor viser til det frå sine eigne saker |
 | Slette eit viewpoint | Forfattaren som contributor; editor og manager slettar kva som helst |
 
 Eit prosjekt brukaren ikkje er medlem av, finst ikkje for vedkomande (404).

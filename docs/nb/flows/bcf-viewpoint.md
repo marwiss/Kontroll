@@ -55,6 +55,7 @@ peker på det, fortsatt peker på det samme.
 | Lese saker, kommentarer og viewpoints | Medlemskap i prosjektet, i hvilken som helst rolle |
 | Opprette en sak | Handlingen `createTopic`: contributor, editor eller manager |
 | Legge til et viewpoint eller en kommentar | Handlingen `createViewpoint` eller `createComment`: contributor, editor eller manager |
+| Legge til et dokument i prosjektet og vise til det fra en sak | Handlingen `createDocument`: contributor, editor eller manager; en contributor viser til det fra sine egne saker |
 | Slette et viewpoint | Forfatteren som contributor; editor og manager sletter hvilket som helst |
 
 Et prosjekt brukeren ikke er medlem av, finnes ikke for vedkommende (404).

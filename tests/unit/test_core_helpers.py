@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from neo4j.exceptions import TransientError
 
-from opencde.accounts.roles import Role, comment_actions, project_actions, topic_actions, viewpoint_actions
+from opencde.accounts.roles import Role, comment_actions, may_upload, project_actions, topic_actions, viewpoint_actions
 from opencde.auth.passwords import hash_password, password_problems, verify_password
 from opencde.graph import graph as graph_module
 from opencde.graph.dialect import FORBIDDEN_CYPHER, MEMGRAPH, NEO4J
@@ -69,7 +69,8 @@ def test_password_policy_and_hashing() -> None:
 
 def test_roles_map_to_spec_actions() -> None:
     assert project_actions(None) == [] and project_actions(Role.VIEWER) == []
-    assert project_actions(Role.CONTRIBUTOR) == ["createTopic"]
+    assert project_actions(Role.CONTRIBUTOR) == ["createTopic", "createDocument"], "BCF documents (B-67)"
+    assert [may_upload(role) for role in Role] == [False, False, True, True], "the Documents API an editor's"
     assert project_actions(Role.MANAGER) == ["update", "createTopic", "createDocument"]
     assert topic_actions(Role.CONTRIBUTOR, is_author=False) == ["createComment", "createViewpoint"]
     assert "delete" in topic_actions(Role.CONTRIBUTOR, is_author=True)

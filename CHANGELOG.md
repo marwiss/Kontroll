@@ -34,6 +34,9 @@ storey, the check against bSDD, and the element of each rules finding. Works wit
   know, with the document in `document_id` and its specification named in the message, in the report of every file
   checked against that document. Each IDS version is read once, the lookups share the check's cache, and a trial of a
   change set never counts such a URI among its own findings.
+- A contributor has the `createDocument` project action and attaches documents through the BCF API's documents
+  service, referred to from their own topics; adding documents and versions through the Documents API, and a
+  precheck, stay with an editor or a manager.
 - IFC-LPG at d3ccc5f: the named queries `storeys` and `areas` give each storey's height in metres, `elevation_m`,
   and where it comes from, `elevation_source` (`attribute`, or `placement` for a storey without `Elevation`, as
   in IFC4X3), beside `elevation` as the file has it; and an IDS document that restricts a value with

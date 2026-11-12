@@ -95,7 +95,7 @@ utviklingsstakken.
 |---|---|
 | Starte ei opplasting eller eit utval | eit bearer-token med scopet `documents` |
 | Bruke nettlesarsidene | ein nettlesarsesjon som same brukar (`/signin`) |
-| Lagre metadata, fullføre ei opplasting, laste opp frå sida | prosjekthandlinga `createDocument` (editor, manager) |
+| Lagre metadata, fullføre ei opplasting, laste opp frå sida | rolla editor eller manager |
 | Sjå, velje og laste ned dokument | medlemskap i prosjektet (kva rolle som helst) |
 | Publisere ein versjon | rolla `manager` |
 

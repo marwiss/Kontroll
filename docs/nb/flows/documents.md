@@ -94,7 +94,7 @@ for metadata; live-suitene dets kjører disse flytene mot utviklingsstakken.
 |---|---|
 | Starte en opplasting eller et utvalg | et bearer-token med scopet `documents` |
 | Bruke nettlesersidene | en nettlesersesjon som samme bruker (`/signin`) |
-| Lagre metadata, fullføre en opplasting, laste opp fra siden | prosjekthandlingen `createDocument` (editor, manager) |
+| Lagre metadata, fullføre en opplasting, laste opp fra siden | rollen editor eller manager |
 | Se, velge og laste ned dokumenter | medlemskap i prosjektet (enhver rolle) |
 | Publisere en versjon | rollen `manager` |
 

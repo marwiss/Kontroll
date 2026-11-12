@@ -26,7 +26,7 @@ from fastapi import APIRouter, HTTPException, Path, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from opencde import audit
-from opencde.accounts.roles import project_actions
+from opencde.accounts.roles import may_upload
 from opencde.auth.dependencies import DocumentsPrincipal
 from opencde.bcf.binary import file_response, receive_upload
 from opencde.deps import ClientsDep, GraphDep, ProjectsDep, SettingsDep, StorageDep, UsersDep, client_ip
@@ -109,7 +109,7 @@ async def _own_upload_session(sessions: UploadSessionsDep, session_id: str, prin
 
 async def _may_upload(users: UsersDep, user_id: str, project_id: str | None) -> None:
     role = await users.project_role(user_id, project_id) if project_id else None
-    if role is None or "createDocument" not in project_actions(role):
+    if not may_upload(role):
         raise HTTPException(403, "You may not add documents to this project")
 
 

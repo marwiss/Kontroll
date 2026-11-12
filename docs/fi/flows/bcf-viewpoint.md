@@ -55,6 +55,7 @@ osoittava kommentti osoittaa yhä samaan asiaan.
 | Lukea asioita, kommentteja ja näkymiä | Jäsenyyden projektissa, missä tahansa roolissa |
 | Luoda asian | Toiminnon `createTopic`: contributor, editor tai manager |
 | Lisätä näkymän tai kommentin | Toiminnon `createViewpoint` tai `createComment`: contributor, editor tai manager |
+| Lisätä dokumentin projektiin ja viitata siihen asiasta | Toiminnon `createDocument`: contributor, editor tai manager; contributor viittaa omista asioistaan |
 | Poistaa näkymän | Sen tekijä roolissa contributor; editor ja manager poistavat minkä tahansa |
 
 Projekti, jonka jäsen käyttäjä ei ole, ei ole hänelle olemassa (404).

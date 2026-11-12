@@ -323,7 +323,7 @@ def test_project_management_reaches_the_bcf_api(client: TestClient, world: World
     assert {p["name"] for p in projects} == {"Building permit", "Renovation 2026"}
     extensions = client.get(f"/bcf/3.0/projects/{project_id}/extensions", headers=viewer.headers).json()
     assert extensions["topic_status"] == ["Open", "Closed"] and extensions["users"] == ["viewer"]
-    assert extensions["project_actions"] == ["createTopic"], "contributor role"
+    assert extensions["project_actions"] == ["createTopic", "createDocument"], "contributor role (B-67)"
 
     assert (
         notice_of(post(client, project_path, page, action="remove_member", user_id=world.users["viewer"]))

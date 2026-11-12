@@ -17,7 +17,7 @@ import anyio
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from fastapi.responses import RedirectResponse, Response
 
-from opencde.accounts.roles import project_actions
+from opencde.accounts.roles import may_upload
 from opencde.auth.forms import FormTokenError
 from opencde.bcf.binary import file_response, sanitize_filename
 from opencde.deps import ProjectsDep, SettingsDep, StorageDep, UsersDep
@@ -137,9 +137,7 @@ def _callback(
 
 async def _upload_projects(users: UsersDep, projects: ProjectsDep, user_id: str) -> list[Any]:
     """Projects where the user may add documents."""
-    return [
-        project for project, role in await projects.list_for_user(user_id) if "createDocument" in project_actions(role)
-    ]
+    return [project for project, role in await projects.list_for_user(user_id) if may_upload(role)]
 
 
 def _read_form_token(request: Request, token: str | None, purpose: str, session_id: str) -> bool:
@@ -439,7 +437,7 @@ async def select_ui_upload(
         raise HTTPException(400, "The form has expired. Please try again.")
     project_id = form.get("project_id")
     role = await users.project_role(web_user.user.id, project_id) if isinstance(project_id, str) else None
-    if role is None or "createDocument" not in project_actions(role) or not isinstance(project_id, str):
+    if not may_upload(role) or not isinstance(project_id, str):
         raise HTTPException(403, "You may not add documents to this project")
     upload = form.get("file")
     if upload is None or isinstance(upload, str) or not upload.filename:
