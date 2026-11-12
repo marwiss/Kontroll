@@ -3,12 +3,15 @@
 
 The strings and the fixtures made at test time are ``tests/security/test_prompt_injection.py``'s, which proves the
 same without a database. Here they go in as an IFC file, an IDS document, BCF topics, comments and viewpoints, a change
-set, Documents API titles and file names, and requests; and come back verbatim from the APIs and the named queries,
-change nothing but what they name, are escaped on every page, and are one string each in the request and audit logs.
+set, Documents API titles and file names, and requests; and come back verbatim from the APIs, the named queries and
+the MCP endpoint's tools, change nothing but what they name, are escaped on every page, are one string each in the
+request and audit logs, and leave the MCP endpoint's list of tools as it was.
 """
 
 from __future__ import annotations
 
+import asyncio
+import base64
 import csv
 import io
 import json
@@ -21,17 +24,23 @@ from urllib.parse import quote, unquote
 import pytest
 from fastapi.testclient import TestClient
 from ifc_lpg.ids import MAX_RULE
+from neo4j import GraphDatabase
 
 from opencde.bcf.binary import sanitize_filename
 from opencde.bcf.events import TEXT_VALUE_LIMIT, TITLE_VALUE_LIMIT
 from opencde.bcf.schemas import TITLE_MAX, URL_MAX, VALUE_MAX
 from opencde.documents.changes import SCHEMA_PATH, SNIPPET_TYPE
+from opencde.documents.routes_publication import archive_names
 from opencde.documents.schemas import MAX_VERSION_NUMBER
 from opencde.ids import is_uuid
 from opencde.main import create_app
+from opencde.mcp.queries import MAX_TEXT
+from opencde.mcp.registry import MAX_NAME as MCP_NAME
+from opencde.settings import Settings
 from opencde.store.accounts.projects import MAX_NAME
 from tests.integration.conftest import GraphTarget
 from tests.integration.conftest_accounts import World, build_world, login_as, login_with_scope
+from tests.integration.helpers import Session
 from tests.integration.test_bcf_comments_viewpoints import PERSPECTIVE
 from tests.integration.test_bcf_links_documents import make_topic
 from tests.integration.test_bcf_links_documents import upload as bcf_upload
@@ -39,12 +48,16 @@ from tests.integration.test_documents_api import CALLBACK, save_metadata, start_
 from tests.integration.test_ifc_proposal import change_set, tried
 from tests.integration.test_ifc_queries import ask, converted, rows_of
 from tests.integration.test_ifc_validation import MODEL, checked, settings_for, settled, upload
+from tests.integration.test_mcp_server_query import NOTHING, bound, set_policy, tool
+from tests.integration.test_mcp_server_query import ask as ask_mcp
 from tests.integration.test_web_signin import form_token, web_sign_in
+from tests.mcp_support import META, MODERN
 from tests.security.test_prompt_injection import (
     CONTROL,
     CONTROL_XML,
     CYPHER,
     GTIN_PATH,
+    HANDSHAKE,
     IDS_IDENTIFIERS,
     IDS_NAMES,
     IDS_SPECIFICATIONS,
@@ -61,6 +74,7 @@ from tests.security.test_prompt_injection import (
     injected_ids,
     injected_model,
     step_string,
+    untraced,
     within,
 )
 
@@ -510,3 +524,173 @@ def test_the_logs_keep_the_text_as_one_string_each(injected: tuple[TestClient, W
     details = [json.loads(row[5]) for row in table[1:]]
     assert all(len(row) == 6 for row in table), "one row per event, whatever the text holds"
     assert {entry.get("username") for entry in details} >= set(within(128))
+
+
+# ---------------------------------------------------------------------------- 7. the MCP endpoint
+
+#: The model's title and file name: without a folder, so that the published archive keeps the name whole.
+HOSTILE_FILE = f"{TEMPLATE}.ifc"
+
+
+@pytest.fixture
+def injected_mcp(
+    graph_target: GraphTarget, clean_database: None, tmp_path: Path
+) -> Iterator[tuple[TestClient, World, Settings]]:
+    """The server with the IFC-LPG module, the clash check, the request log and the MCP endpoint on, and the
+    project's AI policy cloud, so that a team server gives its data to AI tools."""
+    settings = settings_for(
+        graph_target, tmp_path, request_log_enabled=True, mcp_enabled=True, ifcgraph_clash_enabled=True
+    )
+    world = build_world(settings)
+    asyncio.run(set_policy(settings, world.project_id, "cloud"))
+    with TestClient(create_app(settings, startup_wait_seconds=30)) as client:
+        yield client, world, settings
+
+
+def _said_of_itself(client: TestClient, session: Session) -> list[Any]:
+    """The tools, the discovery with the instructions, and the handshake, as an AI program's client asks them."""
+    found = []
+    for method in ("tools/list", "server/discover"):
+        message = {"jsonrpc": "2.0", "id": 1, "method": method, "params": {"_meta": META}}
+        sent = {**session.headers, "MCP-Protocol-Version": MODERN, "Mcp-Method": method}
+        answer = client.post("/mcp", json=message, headers=sent)
+        assert answer.status_code == 200, answer.text
+        found.append(answer.json()["result"])
+    handshake = {"jsonrpc": "2.0", "id": 2, "method": "initialize", "params": HANDSHAKE}
+    answer = client.post("/mcp", json=handshake, headers=session.headers)
+    assert answer.status_code == 200, answer.text
+    return [*found, answer.json()["result"]]
+
+
+def data_of(result: dict[str, Any]) -> dict[str, Any]:
+    """A tool's answer: no error, and its text the same JSON as its ``structuredContent``."""
+    assert result["isError"] is False, result["content"][0]["text"]
+    assert json.loads(result["content"][0]["text"]) == result["structuredContent"]
+    return result["structuredContent"]
+
+
+def _mcp_events(settings: Settings) -> list[dict[str, Any]]:
+    password = settings.graph_password.get_secret_value()
+    with GraphDatabase.driver(settings.graph_uri, auth=(settings.graph_user, password)) as driver:
+        rows, _, _ = driver.execute_query(
+            "MATCH (e:AuditEvent) WHERE e.type STARTS WITH $prefix RETURN e.type AS type, e.details AS details",
+            prefix="mcp.",
+            database_=settings.database_name,
+        )
+    return [dict(row) for row in rows]
+
+
+def test_the_mcp_tools_give_the_text_back_as_data_and_list_the_same_tools(
+    injected_mcp: tuple[TestClient, World, Settings],
+) -> None:
+    """The text in a project's name, a model's title and file name, the names, descriptions and properties of its
+    elements, its publication and its clashes, and in BCF topics, comments and an IDS: every read tool gives it back
+    verbatim, cut at its lengths, in ``structuredContent`` and as the same JSON in the text; a refusal and a JSON-RPC
+    error never quote it; the tools and the instructions are what they were while the project held none of it; and
+    neither the request log nor the audit log keeps any of it."""
+    pytest.importorskip("ifcclash", reason="the ifc-lpg extra is not installed")
+    from tests.integration.test_ifc_clash import shifted_copy
+    from tests.integration.test_mcp_clash import waited
+
+    client, world, settings = injected_mcp
+    ai = bound(client, world, "viewer")
+    before = _said_of_itself(client, ai)
+    untraced(json.dumps(before))
+    assert data_of(tool(client, ai, "list_models", {"project_id": None}))["models"] == []
+
+    editor = login_as(client, world, "editor")
+    manager = login_as(client, world, "manager")
+    renamed = client.put(f"/bcf/3.0/projects/{world.project_id}", json={"name": INSTRUCTION}, headers=manager.headers)
+    assert renamed.status_code == 200, renamed.text
+    web_sign_in(client, world, "editor")  # the upload page asks for a browser session
+    hostile = upload(client, world, editor, HOSTILE_FILE, injected_model())
+    assert checked(client, editor, hostile)["ifc_validation_status"] == ["passed"]
+    assert converted(client, editor, hostile)["model_state"] == "done"
+    published = client.post(hostile["links"]["document_version"]["url"] + "/publication", headers=manager.headers)
+    assert published.status_code == 201, published.text
+    moved = upload(client, world, editor, "walls-moved.ifc", shifted_copy())
+
+    listed = data_of(tool(client, ai, "list_models", {"project_id": None}))["models"]
+    models = {row["document_id"]: row for row in listed}
+    assert set(models) == {hostile["document_id"], moved["document_id"]}
+    row = models[hostile["document_id"]]
+    assert (row["project_name"], row["title"], row["file_name"]) == (INSTRUCTION[:MCP_NAME], HOSTILE_FILE, HOSTILE_FILE)
+
+    walls = rows_of(data_of(ask_mcp(client, ai, hostile, name="elements", **{"class": "IfcWall"})))
+    assert {row["global_id"]: (row["name"], row["container"]) for row in walls} == {
+        WALL_OF[wall]: (name[:MAX_TEXT], STOREY) for wall, (name, _description) in WALLS_TEXT.items()
+    }
+    for wall, (name, description) in WALLS_TEXT.items():
+        (entity,) = rows_of(data_of(ask_mcp(client, ai, hostile, name="entity", global_id=WALL_OF[wall])))
+        assert entity["attributes"]["Name"] == name[:MAX_TEXT]
+        assert entity["attributes"]["Description"] == description[:MAX_TEXT]
+    gtin = rows_of(data_of(ask_mcp(client, ai, hostile, name="property", pset="Reuse", property="GTIN")))
+    assert {row["global_id"]: row["value"] for row in gtin} == {WALL_A: CYPHER, WALL_B: "2", WALL_C: "1"}
+    where = {"document_id": hostile["document_id"], "version_index": hostile["version_index"]}
+    publication = data_of(tool(client, ai, "get_publication", where))
+    assert publication["published"] is True and publication["file_name"] == archive_names(HOSTILE_FILE)[1]
+
+    sides = {
+        "a": where | {"types": None},
+        "b": {"document_id": moved["document_id"], "version_index": moved["version_index"], "types": ["IfcWall"]},
+    }
+    check = {"project_id": world.project_id, **sides, "mode": None, "tolerance": None, "clearance": None}
+    clash_id = data_of(tool(client, ai, "start_clash_check", check))["clash_id"]
+    assert waited(client, ai, world.project_id, clash_id)["state"] == "done"
+    asked = {"project_id": world.project_id, "clash_id": clash_id, "wait_seconds": None}
+    report = data_of(tool(client, ai, "get_clash_check", asked))
+    assert report["count"] >= 1 and report["clashes"], "the moved walls go into the hostile ones"
+    assert {clash["a"]["name"] for clash in report["clashes"]} <= {name[:MCP_NAME] for name, _ in WALLS_TEXT.values()}
+    assert {clash["a"]["storey"] for clash in report["clashes"]} == {STOREY}
+
+    topics = f"/bcf/3.0/projects/{world.project_id}/topics"
+    for text in INJECTIONS:
+        topic = client.post(topics, json={"title": text[:TITLE_MAX], "description": text}, headers=editor.headers)
+        assert topic.status_code == 201, topic.text
+        comments = f"{topics}/{topic.json()['guid']}/comments"
+        assert client.post(comments, json={"comment": text}, headers=editor.headers).status_code == 201
+    rules = upload(client, world, editor, "rules.ids", injected_ids())
+    after = {row["document_id"] for row in data_of(tool(client, ai, "list_models", {"project_id": None}))["models"]}
+    assert rules["document_id"] not in after and after == set(models), "an IDS is no model"
+    assert _said_of_itself(client, ai) == before, "the tools and the instructions are the code's own"
+
+    # The text in the arguments, the id, the tool's name and _meta: refusals and errors in the code's own words.
+    for text in INJECTIONS:
+        for name, arguments in (
+            ("list_models", {"project_id": text[:64]}),
+            ("server_query", {"document_id": text[:64], "version_index": None, **NOTHING}),
+            ("get_publication", {"document_id": text[:64], "version_index": 1}),
+            ("get_clash_check", asked | {"clash_id": text[:64]}),
+            ("start_clash_check", check | {"a": sides["a"] | {"document_id": text[:64]}}),
+        ):
+            refused = tool(client, ai, name, arguments)
+            assert refused["isError"] is True, name
+            untraced(refused["content"][0]["text"])
+        query = tool(client, ai, "server_query", where | NOTHING | {"name": "property", "pset": text, "property": "x"})
+        if query["isError"]:  # control characters, or longer than a parameter
+            untraced(query["content"][0]["text"])
+        else:
+            assert data_of(query)["rows"] == [], "the text is a value the graph is asked for, and holds nowhere"
+        encoded = "=?base64?" + base64.b64encode(text.encode("utf-8")).decode("ascii") + "?="
+        message = {
+            "jsonrpc": "2.0",
+            "id": text,
+            "method": "tools/call",
+            "params": {"name": text, "arguments": {text: text}, "_meta": META | {text: text}},
+        }
+        sent = {**ai.headers, "MCP-Protocol-Version": MODERN, "Mcp-Method": "tools/call", "Mcp-Name": encoded}
+        answer = client.post("/mcp", json=message, headers=sent)
+        assert answer.status_code == 400
+        error = {"code": -32602, "message": "Unknown tool: tools/list names the tools"}
+        assert answer.json() == {"jsonrpc": "2.0", "id": text, "error": error}, "the id comes back, as JSON-RPC has it"
+
+    client.portal.call(client.app.state.requestlog.wait_idle)  # type: ignore[attr-defined]
+    admin_api = login_with_scope(client, world, "admin", "profile admin")
+    logged = client.get("/admin/api/requests", params={"path": "/mcp", "limit": 1000}, headers=admin_api.headers)
+    assert logged.status_code == 200, logged.text
+    entries = logged.json()["requests"]
+    assert entries and all(entry["operation"].startswith("MCP ") for entry in entries)
+    untraced(json.dumps(entries))
+    events = _mcp_events(settings)
+    assert [event["type"] for event in events] == ["mcp.clash.started"]
+    untraced(events[0]["details"])
