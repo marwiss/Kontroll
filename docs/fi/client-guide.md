@@ -221,6 +221,9 @@ pyytää sitä silloin käyttäjältä.
   `topic_label`, `priority`, `stage`, `users`) sekä käyttäjän oletusarvot
   `project_actions`, `topic_actions`, `comment_actions`. Listojen
   ulkopuoliset arvot hylätään koodilla `400`.
+- Ylläpitäjä asettaa luettelot projektin sivulla kohdassa `/admin`, jossa
+  Praxin kuusi ruotsalaisen tarkastuksen tilaa (Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad ja
+  Godkänd) ovat valmis joukko kenttään `topic_status`.
 - Lisää `?includeAuthorization=true` projektien, asioiden, kommenttien tai
   viewpointien `GET`-kutsuun saadaksesi `authorization`-objektin jokaiselle
   entiteetille.

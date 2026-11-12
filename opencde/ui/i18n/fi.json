@@ -329,6 +329,8 @@
   "admin.project.extensions": "BCF-extensions",
   "admin.project.extensions_lead": "Arvot, joita asiakkaat saavat käyttää asioissa, yksi riviä kohden (BCF API 3.1.4). Käyttäjät luetellaan automaattisesti jäsenistä.",
   "admin.project.save_extensions": "Tallenna extensions",
+  "admin.project.praxi_lead": "Praxin kuusi ruotsalaisen tarkastuksen tilaa korvaavat asioiden tilat: Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad ja Godkänd.",
+  "admin.project.use_praxi_statuses": "Käytä Praxin tiloja",
   "admin.project.delete_confirm": "Poistetaanko {name} kaikkine asioineen, kommentteineen, viewpointeineen ja asiakirjoineen? Tätä ei voi perua.",
   "admin.project.delete": "Poista projekti",
   "admin.project.delete_hint": "Poistaa projektin kaikki asiat, kommentit, viewpointit, asiakirjat ja tiedostot.",

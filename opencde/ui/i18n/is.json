@@ -329,6 +329,8 @@
   "admin.project.extensions": "BCF-extensions",
   "admin.project.extensions_lead": "Gildin sem biðlarar mega nota fyrir mál, eitt í hverri línu (BCF API 3.1.4). Notendur eru taldir upp sjálfkrafa úr þátttakendum.",
   "admin.project.save_extensions": "Vista extensions",
+  "admin.project.praxi_lead": "Sex stöður Praxi fyrir sænska yfirferð koma í stað stöðu mála: Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad og Godkänd.",
+  "admin.project.use_praxi_statuses": "Nota stöður Praxi",
   "admin.project.delete_confirm": "Eyða {name} með öllum málum, athugasemdum, viewpoint og skjölum? Þetta er ekki hægt að afturkalla.",
   "admin.project.delete": "Eyða verkefni",
   "admin.project.delete_hint": "Eyðir öllum málum, athugasemdum, viewpoint, skjölum og skrám verkefnisins.",

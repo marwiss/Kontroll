@@ -23,7 +23,7 @@ from opencde.admin.access import (
 from opencde.deps import GraphDep, ModelGraphDep, ProjectsDep, StorageDep, UsersDep
 from opencde.ids import is_uuid, normalize_guid
 from opencde.ifcgraph.maintenance import delete_project
-from opencde.store.accounts.projects import AI_POLICIES, EXTENSION_LISTS, AccountError, Project
+from opencde.store.accounts.projects import AI_POLICIES, EXTENSION_LISTS, PRAXI_STATUSES, AccountError, Project
 from opencde.store.protocols import ProjectStore
 from opencde.ui.i18n import tr_error
 from opencde.ui.links import dataspatium_link
@@ -165,6 +165,13 @@ async def project_action(
             values = {name: lines(data, name, max_items=200, max_length=100) for name in EXTENSION_LISTS}
             await projects.set_extensions(project.project_id, values)
             await form.record(graph, "project.extensions", project_id=project.project_id)
+            return redirect_with_notice(page, "extensions_saved")
+
+        if action == "praxi_statuses":  # the ready set for topic_status; the other lists stay as they are
+            kept = await projects.extensions(project.project_id) or {}
+            values = {name: list(kept.get(name, [])) for name in EXTENSION_LISTS}
+            await projects.set_extensions(project.project_id, values | {"topic_status": list(PRAXI_STATUSES)})
+            await form.record(graph, "project.extensions", project_id=project.project_id, preset="praxi")
             return redirect_with_notice(page, "extensions_saved")
 
         if action == "checks":

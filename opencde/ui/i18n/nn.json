@@ -329,6 +329,8 @@
   "admin.project.extensions": "BCF-extensions",
   "admin.project.extensions_lead": "Verdiane klientar kan bruke for saker, éin per line (BCF API 3.1.4). Brukarar blir lista automatisk frå medlemmene.",
   "admin.project.save_extensions": "Lagre extensions",
+  "admin.project.praxi_lead": "Dei seks statusane til Praxi for ein svensk gjennomgang erstattar saksstatusane: Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad og Godkänd.",
+  "admin.project.use_praxi_statuses": "Bruk statusane til Praxi",
   "admin.project.delete_confirm": "Slette {name} med alle saker, kommentarar, viewpoints og dokument? Dette kan ikkje angrast.",
   "admin.project.delete": "Slett prosjekt",
   "admin.project.delete_hint": "Slettar alle saker, kommentarar, viewpoints, dokument og filer i prosjektet.",

@@ -212,6 +212,9 @@ verkfæri sem leggur fram tillögur þarf samþykki sem tókann skortir, og bið
   `topic_label`, `priority`, `stage`, `users`) og sjálfgefin
   `project_actions`, `topic_actions`, `comment_actions` notandans. Gildum
   utan listanna er hafnað með `400`.
+- Stjórnandi setur listana á síðu verkefnisins undir `/admin`, þar sem
+  sex stöður Praxi fyrir sænska yfirferð (Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad og
+  Godkänd) eru tilbúið sett fyrir `topic_status`.
 - Bættu `?includeAuthorization=true` við `GET` á verkefnum, málum,
   athugasemdum eða viewpoint til að fá `authorization`-hlut fyrir hverja
   einingu.

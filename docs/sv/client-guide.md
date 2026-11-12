@@ -210,6 +210,9 @@ då ber användaren om.
   `topic_label`, `priority`, `stage`, `users`) och användarens standardvärden
   för `project_actions`, `topic_actions`, `comment_actions`. Värden utanför
   listorna avvisas med `400`.
+- En administratör sätter listorna på projektets sida under `/admin`, där
+  Praxis sex statusar för en svensk granskning (Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad och
+  Godkänd) finns som en färdig uppsättning för `topic_status`.
 - Lägg till `?includeAuthorization=true` på en `GET` av projekt, ärenden,
   kommentarer eller viewpoints för att få ett `authorization`-objekt per
   entitet.

@@ -207,6 +207,9 @@ asks the user for.
   `topic_label`, `priority`, `stage`, `users`) and the user's default
   `project_actions`, `topic_actions`, `comment_actions`. Values outside the
   lists are refused with `400`.
+- An administrator sets the lists on the project's page under `/admin`, where
+  Praxi's six statuses of a Swedish review (Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad and
+  Godkänd) are a ready set for `topic_status`.
 - Add `?includeAuthorization=true` to a `GET` of projects, topics, comments
   or viewpoints to receive an `authorization` object per entity.
 - Collections accept OData: `$filter` (e.g. `topic_status eq 'Open' and

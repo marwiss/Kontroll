@@ -58,6 +58,8 @@ OWNED_RELATIONSHIPS = (
     "HAS_DRAFT",
 )
 
+#: The six statuses of a Swedish review after Praxi, a ready set for ``topic_status`` (B-68); they are data, in Swedish.
+PRAXI_STATUSES = ("Ny kommentar", "Ska åtgärdas", "Ny granskning", "Har åtgärdats", "Avvisad", "Godkänd")
 EXTENSION_LISTS = (
     "topic_type",
     "topic_status",

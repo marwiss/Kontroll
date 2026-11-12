@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from opencde.settings import Settings
+from opencde.store.accounts.projects import PRAXI_STATUSES
 from tests.integration.conftest_accounts import World, build_world, login_as
 from tests.integration.helpers import authorize, exchange
 from tests.integration.test_web_signin import form_token, web_sign_in
@@ -324,6 +325,9 @@ def test_project_management_reaches_the_bcf_api(client: TestClient, world: World
     extensions = client.get(f"/bcf/3.0/projects/{project_id}/extensions", headers=viewer.headers).json()
     assert extensions["topic_status"] == ["Open", "Closed"] and extensions["users"] == ["viewer"]
     assert extensions["project_actions"] == ["createTopic", "createDocument"], "contributor role (B-67)"
+    assert notice_of(post(client, project_path, page, action="praxi_statuses")) == "extensions_saved"
+    praxi = client.get(f"/bcf/3.0/projects/{project_id}/extensions", headers=viewer.headers).json()
+    assert praxi["topic_status"] == list(PRAXI_STATUSES) and praxi["topic_type"] == ["Issue", "Request"], "B-68"
 
     assert (
         notice_of(post(client, project_path, page, action="remove_member", user_id=world.users["viewer"]))

@@ -329,6 +329,8 @@
   "admin.project.extensions": "BCF extensions",
   "admin.project.extensions_lead": "The values clients may use for topics, one per line (BCF API 3.1.4). Users are listed automatically from the members.",
   "admin.project.save_extensions": "Save extensions",
+  "admin.project.praxi_lead": "Praxi's six statuses of a Swedish review replace the topic statuses: Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad and Godkänd.",
+  "admin.project.use_praxi_statuses": "Use Praxi's statuses",
   "admin.project.delete_confirm": "Delete {name} with all its topics, comments, viewpoints and documents? This cannot be undone.",
   "admin.project.delete": "Delete project",
   "admin.project.delete_hint": "Deletes every topic, comment, viewpoint, document and file of the project.",

@@ -214,6 +214,9 @@ ber brukaren om.
   `topic_status`, `topic_label`, `priority`, `stage`, `users`) og
   standardverdiane til brukaren for `project_actions`, `topic_actions`,
   `comment_actions`. Verdiar utanfor listene blir avviste med `400`.
+- Ein administrator set listene på sida til prosjektet under `/admin`, der
+  dei seks statusane til Praxi for ein svensk gjennomgang (Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad og
+  Godkänd) finst som eit ferdig sett for `topic_status`.
 - Legg til `?includeAuthorization=true` på ein `GET` av prosjekt, saker,
   kommentarar eller viewpoints for å få eit `authorization`-objekt per
   entitet.

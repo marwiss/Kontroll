@@ -80,6 +80,12 @@
     </div>
     <div class="cluster">{{ button(t("admin.project.save_extensions")) }}</div>
   </form>
+  <form method="post" data-inline action="/admin/projects/{{ project.project_id }}" class="stack">
+    <input type="hidden" name="form_token" value="{{ form_token }}">
+    <input type="hidden" name="action" value="praxi_statuses">
+    <p class="muted">{{ t("admin.project.praxi_lead") }}</p>
+    <div class="cluster">{{ button(t("admin.project.use_praxi_statuses"), "secondary") }}</div>
+  </form>
 </section>
 
 <section class="card">

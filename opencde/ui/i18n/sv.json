@@ -329,6 +329,8 @@
   "admin.project.extensions": "BCF-extensions",
   "admin.project.extensions_lead": "Värdena som klienter får använda för ärenden, ett per rad (BCF API 3.1.4). Användare listas automatiskt från medlemmarna.",
   "admin.project.save_extensions": "Spara extensions",
+  "admin.project.praxi_lead": "Praxis sex statusar för en svensk granskning ersätter ärendestatusarna: Ny kommentar, Ska åtgärdas, Ny granskning, Har åtgärdats, Avvisad och Godkänd.",
+  "admin.project.use_praxi_statuses": "Använd Praxis statusar",
   "admin.project.delete_confirm": "Ta bort {name} med alla ärenden, kommentarer, viewpoints och dokument? Det går inte att ångra.",
   "admin.project.delete": "Ta bort projekt",
   "admin.project.delete_hint": "Tar bort alla ärenden, kommentarer, viewpoints, dokument och filer i projektet.",

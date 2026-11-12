@@ -34,6 +34,8 @@ storey, the check against bSDD, and the element of each rules finding. Works wit
   know, with the document in `document_id` and its specification named in the message, in the report of every file
   checked against that document. Each IDS version is read once, the lookups share the check's cache, and a trial of a
   change set never counts such a URI among its own findings.
+- The administration's project page offers Praxi's six statuses of a Swedish review (Ny kommentar, Ska åtgärdas,
+  Ny granskning, Har åtgärdats, Avvisad, Godkänd) as a ready set for the project's `topic_status`.
 - A contributor has the `createDocument` project action and attaches documents through the BCF API's documents
   service, referred to from their own topics; adding documents and versions through the Documents API, and a
   precheck, stay with an editor or a manager.
