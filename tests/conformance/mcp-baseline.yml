@@ -1,0 +1,13 @@
+# This file was generated with the assistance of an AI coding tool.
+# What MCP's conformance suite (@modelcontextprotocol/conformance) is expected to find missing in the MCP endpoint
+# (ADR 0028): the checks that call the suite's own diagnostic tools, which a server of real tools does not have, and
+# the caching of prompts and resources, which the endpoint does not offer. The nightly job runs the scenarios that
+# concern what the endpoint offers; a check that starts to pass must leave this list (the suite then fails the job).
+server:
+  - server-stateless:sep-2575-server-rejects-undeclared-capability
+  - server-stateless:sep-2575-missing-capability-http-400
+  - server-stateless:sep-2575-http-server-no-independent-requests-on-stream
+  - server-stateless:sep-2575-server-no-log-without-loglevel
+  - caching:sep-2549-prompts-list-caching-hints
+  - caching:sep-2549-resources-list-caching-hints
+  - caching:sep-2549-resources-templates-list-caching-hints

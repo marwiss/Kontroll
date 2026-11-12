@@ -15,6 +15,7 @@ limit is not multiplied by their number.
 
 from __future__ import annotations
 
+import math
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request, Response
@@ -40,6 +41,7 @@ RATE_UPLOAD = "120/minute"
 RATE_ADMIN = "240/minute"
 RATE_REGISTRATION = "5/hour"
 RATE_REGISTRATION_DEVELOPMENT = "60/hour"  # someone trying a server out registers again and again
+RATE_MCP_TOOL_CALLS = "120/minute"  # per token, on the MCP endpoint (ADR 0028): an AI's loop, not a person
 
 STORE_TIMEOUT_SECONDS = 1.0  # a shared store that stops answering must not hold up the server
 
@@ -73,6 +75,18 @@ class _FailOpen(FixedWindowRateLimiter):
             return super().get_window_stats(item, *identifiers)
         except Exception:
             return WindowStats(datetime.now(UTC).timestamp() + item.get_expiry(), item.amount)
+
+
+def wait_seconds(rule: str, *identifiers: str) -> int | None:
+    """Count one request against ``rule`` for ``identifiers``, outside the decorators: None while it is within the
+    limit (or the limits are off), else the seconds until the window frees."""
+    if not limiter.enabled:
+        return None
+    item = parse(rule)
+    if limiter.limiter.hit(item, *identifiers):
+        return None
+    reset, _remaining = limiter.limiter.get_window_stats(item, *identifiers)
+    return max(1, math.ceil(reset - datetime.now(UTC).timestamp()))
 
 
 class PathRateLimitMiddleware:

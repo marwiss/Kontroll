@@ -2,7 +2,8 @@ name: Nightly security
 
 # Slow or noisy checks that do not belong in every push: the Memgraph contract
 # run, an image vulnerability scan, an OWASP ZAP baseline scan of the running
-# server's pages and API, the same scanner signed in, and a restart of the stack.
+# server's pages and API, the same scanner signed in, a restart of the stack,
+# and MCP's conformance suite against the MCP endpoint.
 
 on:
   schedule:
@@ -74,6 +75,59 @@ jobs:
           name: zap-signed-in
           path: tests/security/zap/zap-authenticated.*
           include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Server log
+        if: always()
+        run: docker compose logs api | tail -200
+
+  mcp-conformance:
+    name: MCP conformance suite against the MCP endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: Start the server with demo data and the MCP endpoint on
+        run: |
+          uv run opencde init --dev
+          # The suite comes through the proxy below, on its port; the endpoint takes a browser origin it names.
+          sed -i 's|^OPENCDE_CORS_ORIGINS=.*|OPENCDE_CORS_ORIGINS=["http://127.0.0.1:8001", "http://localhost:8001"]|' .env
+          echo "OPENCDE_MCP_ENABLED=true" >> .env
+          echo "OPENCDE_RATE_LIMITS_ENABLED=false" >> .env
+          docker compose up -d --build --wait
+          docker compose exec -T api opencde seed --password demo-password-for-mcp-only > seed.txt
+          echo "CLIENT_ID=$(awk '/client +public/ {print $3}' seed.txt)" >> "$GITHUB_ENV"
+      - name: A token bound to the endpoint, and a proxy that adds it to the suite's requests
+        run: |
+          uv run python -m tests.conformance.mcp_proxy http://127.0.0.1:8000 "$CLIENT_ID" demo-password-for-mcp-only 8001 &
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:8001/healthz && break
+            sleep 1
+          done
+      # The scenarios that concern what the endpoint offers, at both eras it answers; the suite's Node comes with
+      # the runner. tests/conformance/mcp-baseline.yml names what the endpoint is known not to have.
+      - name: The conformance suite
+        run: |
+          suite="npx --yes @modelcontextprotocol/conformance@0.2.0-alpha.12 server --url http://127.0.0.1:8001/mcp"
+          baseline="--expected-failures tests/conformance/mcp-baseline.yml -o results"
+          failed=0
+          for scenario in server-stateless tools-list caching dns-rebinding-protection server-sse-multiple-streams; do
+            $suite --scenario "$scenario" --spec-version 2026-07-28 $baseline || failed=1
+          done
+          for scenario in server-initialize ping tools-list dns-rebinding-protection; do
+            $suite --scenario "$scenario" --spec-version 2025-11-25 $baseline || failed=1
+          done
+          exit "$failed"
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mcp-conformance
+          path: results/
           if-no-files-found: ignore
       - name: Server log
         if: always()

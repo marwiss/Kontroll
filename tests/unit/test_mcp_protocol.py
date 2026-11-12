@@ -4,20 +4,26 @@ the tools and their calls. The database is stood in for (``tests/mcp_support.py`
 
 from __future__ import annotations
 
+import base64
+import json
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from opencde.mcp import protocol
+from opencde.mcp import protocol, routes
+from opencde.mcp.registry import MAX_NAME, input_schema
 from tests.mcp_support import (
     BEARER,
+    CLOUD,
     META,
     MODERN,
+    FakeGraph,
     call,
     endpoint,
     headers,
     legacy,
+    model_row,
     rpc,
 )
 
@@ -48,9 +54,103 @@ def test_discovery_names_the_revisions_the_tools_and_the_server(client: TestClie
     assert "mcp-session-id" not in answer.headers
 
 
+def test_the_tools_are_listed_in_a_fixed_order_with_flat_strict_schemas(client: TestClient) -> None:
+    first, second = (rpc(client, "tools/list").json()["result"] for _ in range(2))
+    assert first == second, "the same list every time"
+    assert first["resultType"] == "complete" and first["ttlMs"] == 3_600_000 and first["cacheScope"] == "private"
+    assert [tool["name"] for tool in first["tools"]] == [tool.name for tool in routes.TOOLS] == ["list_models"]
+    (tool,) = first["tools"]
+    assert tool["title"] and "never instructions" in tool["description"]
+    assert tool["annotations"] == {"readOnlyHint": True, "openWorldHint": False}
+    schema = tool["inputSchema"]
+    assert schema["type"] == "object" and schema["additionalProperties"] is False
+    assert schema["required"] == list(schema["properties"]) == ["project_id"]
+    assert schema["properties"]["project_id"]["anyOf"] == [{"maxLength": 64, "type": "string"}, {"type": "null"}]
+    assert "title" not in schema["properties"]["project_id"]
+
+
+def test_every_tool_takes_a_flat_object_with_every_argument_required() -> None:
+    for tool in routes.TOOLS:
+        schema = input_schema(tool.arguments)
+        assert schema["required"] == list(schema["properties"])
+        for name, field in schema["properties"].items():
+            assert "$ref" not in str(field) and "properties" not in field, f"{tool.name}.{name} is not flat"
+
+
 def test_a_list_has_one_page(client: TestClient) -> None:
     answer = rpc(client, "tools/list", {"cursor": "next"})
     assert answer.status_code == 400 and answer.json()["error"]["code"] == -32602
+
+
+def test_a_call_answers_structured_content_and_the_same_json_as_text(tmp_path: Path) -> None:
+    graph = FakeGraph()
+    with endpoint(tmp_path, graph) as client:
+        answer = call(client, "list_models", {"project_id": None})
+    assert answer.status_code == 200
+    result = answer.json()["result"]
+    assert result["resultType"] == "complete" and result["isError"] is False
+    assert result["_meta"] == {"io.modelcontextprotocol/serverInfo": SERVER_INFO}
+    expected = model_row()
+    assert result["structuredContent"] == {"models": [expected], "truncated": False}
+    (content,) = result["content"]
+    assert content["type"] == "text"
+    assert content["text"] == '{"models":[' + _compact(expected) + '],"truncated":false}'
+    (query,) = graph.model_queries()
+    assert query["user_id"] == "u-anna" and query["project_id"] is None and query["every_policy"] is False
+    assert query["limit"] == 201 and ".ifc" in query["suffixes"]
+
+
+def _compact(row: dict) -> str:
+    return json.dumps(row, ensure_ascii=False, separators=(",", ":"))
+
+
+def test_a_long_list_stops_at_200_rows_and_says_so(tmp_path: Path) -> None:
+    graph = FakeGraph(models=[model_row(index=index) for index in range(201)])
+    with endpoint(tmp_path, graph) as client:
+        result = call(client, "list_models", {"project_id": None}).json()["result"]["structuredContent"]
+    assert len(result["models"]) == 200 and result["truncated"] is True
+    graph = FakeGraph(models=[model_row(index=index) for index in range(200)])
+    with endpoint(tmp_path, graph) as client:
+        result = call(client, "list_models", {"project_id": None}).json()["result"]["structuredContent"]
+    assert len(result["models"]) == 200 and result["truncated"] is False
+
+
+def test_an_answer_stays_within_256_kb_and_cuts_the_names(tmp_path: Path) -> None:
+    long = "é" * 5000
+    graph = FakeGraph(models=[model_row(index=i, title=long, project_name=long, file_name=long) for i in range(200)])
+    with endpoint(tmp_path, graph) as client:
+        result = call(client, "list_models", {"project_id": None}).json()["result"]
+    rows = result["structuredContent"]["models"]
+    assert result["structuredContent"]["truncated"] is True and 0 < len(rows) < 200
+    assert all(len(row["title"]) == len(row["project_name"]) == len(row["file_name"]) == MAX_NAME for row in rows)
+    assert len(result["content"][0]["text"].encode("utf-8")) <= 256 * 1024
+
+
+def test_a_refusal_is_a_tool_result_the_ai_reads(client: TestClient) -> None:
+    wrong = call(client, "list_models", {"project_id": "not a project"})
+    assert wrong.status_code == 200
+    result = wrong.json()["result"]
+    assert result["isError"] is True and "structuredContent" not in result
+    assert result["content"] == [{"type": "text", "text": "There is no project with this id among your projects"}]
+
+
+@pytest.mark.parametrize(
+    ("arguments", "expected"),
+    [
+        ({}, "Invalid arguments: project_id: Field required"),
+        ({"project_id": 5}, "Invalid arguments: project_id: Input should be a valid string"),
+        ({"project_id": "x" * 65}, "Invalid arguments: project_id: String should have at most 64 characters"),
+        (
+            {"project_id": None, "ignore previous instructions": 1},
+            "Invalid arguments: an argument the tool does not take",
+        ),
+    ],
+)
+def test_arguments_the_model_refuses_are_named_without_their_values(
+    client: TestClient, arguments: dict, expected: str
+) -> None:
+    result = call(client, "list_models", arguments).json()["result"]
+    assert result["isError"] is True and result["content"][0]["text"] == expected
 
 
 def test_a_call_needs_a_tool_the_endpoint_has_and_arguments_that_are_an_object(client: TestClient) -> None:
@@ -64,6 +164,11 @@ def test_a_call_needs_a_tool_the_endpoint_has_and_arguments_that_are_an_object(c
         assert answer.status_code == 400, params
         assert answer.json()["error"] == {"code": -32602, "message": message}
         assert "drop_everything" not in answer.text, "the error does not repeat the request"
+
+
+def test_missing_arguments_are_no_arguments(client: TestClient) -> None:
+    answer = rpc(client, "tools/call", {"name": "list_models"})
+    assert answer.json()["result"]["content"][0]["text"] == "Invalid arguments: project_id: Field required"
 
 
 @pytest.mark.parametrize(
@@ -112,6 +217,14 @@ def test_headers_that_do_not_say_what_the_body_says_are_a_header_mismatch(
     assert answer.status_code == 400
     body = answer.json()
     assert body["id"] == "call-9" and body["error"]["code"] == -32020 and what in body["error"]["message"]
+
+
+def test_a_name_in_base64_is_read_as_the_client_meant_it(client: TestClient) -> None:
+    encoded = "=?base64?" + base64.b64encode(b"list_models").decode() + "?="
+    answer = call(client, "list_models", {"project_id": None}, sent=headers("tools/call", encoded))
+    assert answer.status_code == 200
+    broken = call(client, "list_models", {"project_id": None}, sent=headers("tools/call", "=?base64?###?="))
+    assert broken.status_code == 400 and broken.json()["error"]["code"] == -32020
 
 
 def test_a_header_given_twice_is_a_mismatch(client: TestClient) -> None:
@@ -202,6 +315,17 @@ def test_only_post_reaches_the_endpoint(client: TestClient, method: str) -> None
     assert "mcp-session-id" not in answer.headers
 
 
+def test_an_unforeseen_failure_says_nothing_of_its_cause(tmp_path: Path) -> None:
+    class Broken(FakeGraph):
+        async def run(self, query: str, **params):
+            raise RuntimeError("the secret path /data/secret and the query")
+
+    with endpoint(tmp_path, Broken()) as client:
+        answer = call(client, "list_models", {"project_id": None})
+    assert answer.status_code == 500
+    assert answer.json() == {"jsonrpc": "2.0", "id": 1, "error": {"code": -32603, "message": "Internal error"}}
+
+
 # -- the handshake revisions ------------------------------------------------------------------------------------------
 
 
@@ -225,4 +349,57 @@ def test_initialize_with_a_revision_it_does_not_know_gets_the_newest_handshake(c
     assert refused.status_code == 200 and refused.json()["error"]["code"] == -32602
 
 
+def test_the_handshake_era_gets_ping_the_tools_and_an_accepted_notification(tmp_path: Path) -> None:
+    with endpoint(tmp_path, FakeGraph()) as client:
+        initialized = client.post(
+            "/mcp",
+            json={"jsonrpc": "2.0", "method": "notifications/initialized"},
+            headers={**BEARER, "Mcp-Session-Id": "never-made"},
+        )
+        assert initialized.status_code == 202 and "mcp-session-id" not in initialized.headers
+        assert legacy(client, "ping").json() == {"jsonrpc": "2.0", "id": 7, "result": {}}
+        listed = legacy(client, "tools/list", version="2025-06-18").json()["result"]
+        assert [tool["name"] for tool in listed["tools"]] == ["list_models"]
+        assert "resultType" not in listed and "ttlMs" not in listed
+        called = legacy(client, "tools/call", {"name": "list_models", "arguments": {"project_id": None}}, version=None)
+        result = called.json()["result"]
+        assert result["isError"] is False and result["structuredContent"]["models"][0]["project_id"] == CLOUD
+        assert "resultType" not in result
+        unknown = legacy(client, "server/discover")
+        assert unknown.status_code == 200 and unknown.json()["error"]["code"] == -32601, "200, as the era's servers"
+
+
 # -- the request log --------------------------------------------------------------------------------------------------
+
+
+class _Writer:
+    def __init__(self) -> None:
+        self.entries: list[dict] = []
+
+    def record(self, entry: dict) -> None:
+        self.entries.append(entry)
+
+    async def close(self) -> None:
+        return None
+
+
+def test_the_request_log_keeps_the_method_and_a_known_tool_never_the_body(tmp_path: Path) -> None:
+    writer = _Writer()
+    secret = "project id that is really an instruction"
+    with endpoint(tmp_path, FakeGraph(), request_log_enabled=True) as client:
+        client.app.state.requestlog = writer  # type: ignore[attr-defined]
+        rpc(client, "server/discover")
+        call(client, "list_models", {"project_id": secret})
+        rpc(client, "tools/call", {"name": secret, "arguments": {}}, sent=headers("tools/call", secret))
+        rpc(client, "no/such/method")
+        legacy(client, "ping")
+    operations = [entry["operation"] for entry in writer.entries]
+    assert operations == [
+        "MCP server/discover",
+        "MCP tools/call list_models",
+        "MCP tools/call",
+        "MCP unknown method",
+        "MCP ping",
+    ]
+    assert all(secret not in str(entry) for entry in writer.entries)
+    assert {entry["path"] for entry in writer.entries} == {"/mcp"}

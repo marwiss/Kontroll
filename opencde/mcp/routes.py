@@ -8,7 +8,8 @@ and no batch (400). A notification is accepted with 202. A request of revision 2
 checked (``-32602``), its headers against its body (``-32020``) and its revision (``-32022``), all 400, and is one of
 ``server/discover``, ``tools/list`` and ``tools/call`` (else 404 and ``-32601``). A request of a handshake revision
 (2025-11-25, 2025-06-18, 2025-03-26) may be ``initialize``, ``ping``, ``tools/list`` or ``tools/call``, and is answered
-without a session: no ``Mcp-Session-Id`` is ever made, and one sent is ignored. GET and DELETE answer 405. The
+without a session: no ``Mcp-Session-Id`` is ever made, and one sent is ignored. GET and DELETE answer 405. A tool
+needs its scope (403 ``insufficient_scope`` for a step-up), and a token makes at most 120 tool calls a minute. The
 request log gets the method and the tool's name, never the body; nothing a client sends is logged.
 """
 
@@ -23,11 +24,13 @@ from fastapi.responses import JSONResponse
 from neo4j.exceptions import ServiceUnavailable
 
 from opencde.auth.resources import MCP_PATH
-from opencde.deps import SettingsDep
+from opencde.deps import GraphDep, SettingsDep, client_ip
 from opencde.errors import CODE_FORBIDDEN, CODE_PAYLOAD_TOO_LARGE, ApiError, error_response
+from opencde.graph.graph import Graph
 from opencde.logging import get_logger
-from opencde.mcp import protocol
-from opencde.mcp.auth import McpPrincipal
+from opencde.mcp import protocol, registry
+from opencde.mcp.auth import McpPrincipal, require_mcp_scope
+from opencde.mcp.ifc_models import LIST_MODELS
 from opencde.mcp.protocol import (
     CLIENT_CAPABILITIES_KEY,
     HANDSHAKE_VERSIONS,
@@ -41,13 +44,16 @@ from opencde.mcp.protocol import (
     PROTOCOL_VERSION_KEY,
     McpError,
 )
+from opencde.ratelimit import RATE_MCP_TOOL_CALLS, wait_seconds
 from opencde.settings import Settings
+from opencde.store.oauth2.tokens import Principal
 
 TAG = "MCP (extension)"
 MAX_BODY_BYTES = 1_048_576
 
-#: The tools in the order ``tools/list`` gives them; none until the registry brings them.
-TOOLS: tuple[str, ...] = ()
+#: The tools in the order ``tools/list`` gives them, which stays the same between releases but for what is added.
+TOOLS: tuple[registry.Tool, ...] = (LIST_MODELS,)
+_BY_NAME = {tool.name: tool for tool in TOOLS}
 _MODERN_METHODS = ("server/discover", "tools/list", "tools/call")
 _HANDSHAKE_METHODS = ("initialize", "ping", "tools/list", "tools/call")
 
@@ -88,7 +94,7 @@ _JSONRPC_BODY = {"type": "object", "description": "One JSON-RPC 2.0 request or n
         413: {"description": "The body is larger than 1 MB"},
     },
 )
-async def mcp_endpoint(request: Request, caller: McpPrincipal, settings: SettingsDep) -> Response:
+async def mcp_endpoint(request: Request, caller: McpPrincipal, settings: SettingsDep, graph: GraphDep) -> Response:
     """One JSON-RPC message per request, answered with one JSON object (Streamable HTTP without SSE). Revision
     2026-07-28, and 2025-11-25 to 2025-03-26 without sessions. The answers are data from the projects."""
     content_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
@@ -123,7 +129,7 @@ async def mcp_endpoint(request: Request, caller: McpPrincipal, settings: Setting
             raise McpError(INVALID_PARAMS, "params must be an object")
         if modern:
             _check_modern(request, method, params)
-        result = _answer(method, params, modern)
+        result = await _answer(request, caller, settings, graph, method, params, modern)
     except McpError as failure:
         return _error(request_id, failure, modern)
     except (ApiError, ServiceUnavailable):
@@ -190,10 +196,18 @@ def _operation(method: str, params: Any, modern: bool) -> str:
     if method not in (_MODERN_METHODS if modern else _HANDSHAKE_METHODS):
         return "unknown method"
     name = params.get("name") if isinstance(params, dict) else None
-    return f"{method} {name}" if method == "tools/call" and isinstance(name, str) and name in TOOLS else method
+    return f"{method} {name}" if method == "tools/call" and isinstance(name, str) and name in _BY_NAME else method
 
 
-def _answer(method: str, params: dict[str, Any], modern: bool) -> dict[str, Any]:
+async def _answer(
+    request: Request,
+    caller: Principal,
+    settings: Settings,
+    graph: Graph,
+    method: str,
+    params: dict[str, Any],
+    modern: bool,
+) -> dict[str, Any]:
     if modern and method == "server/discover":
         discovery = {
             "supportedVersions": list(protocol.PROTOCOL_VERSIONS),
@@ -208,9 +222,10 @@ def _answer(method: str, params: dict[str, Any], modern: bool) -> dict[str, Any]
     if method == "tools/list":
         if params.get("cursor") is not None:
             raise McpError(INVALID_PARAMS, "There is one page of tools and no cursor")
-        return protocol.complete({"tools": []}, modern=modern, cacheable=True)
+        tools = [tool.definition() for tool in TOOLS]
+        return protocol.complete({"tools": tools}, modern=modern, cacheable=True)
     if method == "tools/call":
-        return protocol.complete(_call(params), modern=modern)
+        return protocol.complete(await _call(request, caller, settings, graph, params), modern=modern)
     raise McpError(METHOD_NOT_FOUND, "Method not found")
 
 
@@ -228,10 +243,35 @@ def _initialize(params: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _call(params: dict[str, Any]) -> dict[str, Any]:
+async def _call(
+    request: Request, caller: Principal, settings: Settings, graph: Graph, params: dict[str, Any]
+) -> dict[str, Any]:
     name, arguments = params.get("name"), params.get("arguments", {})
     if not isinstance(name, str):
         raise McpError(INVALID_PARAMS, "tools/call needs the tool's name")
-    if arguments is not None and not isinstance(arguments, dict):
+    tool = _BY_NAME.get(name)
+    if tool is None:
+        raise McpError(INVALID_PARAMS, "Unknown tool: tools/list names the tools")
+    if arguments is None:
+        arguments = {}
+    if not isinstance(arguments, dict):
         raise McpError(INVALID_PARAMS, "The arguments must be an object")
-    raise McpError(INVALID_PARAMS, "Unknown tool: tools/list names the tools")
+    context = registry.ToolContext(
+        principal=caller,
+        settings=settings,
+        graph=graph,
+        tool=tool.name,
+        ip=client_ip(request),
+        client_info=registry.client_info(params.get("_meta")),
+    )
+    if not caller.has_scope(tool.scope):
+        await context.record("mcp.denied", reason="scope", scope=tool.scope)
+        require_mcp_scope(caller, tool.scope, settings)
+    wait = wait_seconds(RATE_MCP_TOOL_CALLS, "mcp-tool-calls", caller.token_hash)
+    if wait is not None:
+        log.warning("mcp_tool_calls_limited", client_id=caller.client_id)
+        return registry.error_result(
+            f"Too many tool calls: at most {RATE_MCP_TOOL_CALLS.replace('/', ' a ')} for each token. "
+            f"Try again in {wait} seconds."
+        )
+    return await registry.call(tool, context, arguments)

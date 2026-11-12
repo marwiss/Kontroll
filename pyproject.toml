@@ -74,6 +74,7 @@ dev = [
     "testcontainers>=4.15",
     "redis>=5.0",  # the shared store for the rate limits, tested against a real one
     "jsonschema>=4.26",
+    "mcp>=2.3",  # the official MCP SDK, only as the client that drives /mcp in the tests (ADR 0028, F32 c)
     "openapi-core>=0.23",
     "openapi-spec-validator>=0.8",
     "pyyaml>=6.0",

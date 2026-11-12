@@ -2,7 +2,8 @@
 """The MCP endpoint's answers against the schema of revision 2026-07-28, as pinned in ``spec/mcp/`` (ADR 0028).
 
 Every result and every error the endpoint gives at 2026-07-28 is validated against its definition in the official
-JSON Schema. The database is stood in for (``tests/mcp_support.py``).
+JSON Schema, and every tool's ``inputSchema`` is itself valid JSON Schema 2020-12 that accepts what the tool's model
+accepts and refuses what it refuses. The database is stood in for (``tests/mcp_support.py``).
 """
 
 from __future__ import annotations
@@ -16,8 +17,9 @@ import pytest
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator
 
+from opencde.mcp import routes
 from tests.conftest import SPEC_DIR
-from tests.mcp_support import META, MODERN, endpoint, headers, rpc
+from tests.mcp_support import META, MODERN, FakeGraph, call, endpoint, headers, rpc
 
 pytestmark = pytest.mark.conformance
 
@@ -41,7 +43,7 @@ def conforms(instance: Any, definition: str) -> None:
 
 @pytest.fixture
 def client(tmp_path: Path) -> TestClient:
-    with endpoint(tmp_path) as client:
+    with endpoint(tmp_path, FakeGraph()) as client:
         yield client
 
 
@@ -60,6 +62,26 @@ def test_the_list_of_tools_and_each_tool_conform(client: TestClient) -> None:
     for tool in body["result"]["tools"]:
         conforms(tool, "Tool")
         Draft202012Validator.check_schema(tool["inputSchema"])
+
+
+@pytest.mark.parametrize("tool", routes.TOOLS, ids=lambda tool: tool.name)
+def test_a_tools_schema_takes_what_its_model_takes(tool: Any) -> None:
+    schema = Draft202012Validator(tool.definition()["inputSchema"])
+    accepted = {name: None for name in tool.arguments.model_fields}
+    tool.arguments.model_validate(accepted)
+    assert schema.is_valid(accepted)
+    for refused in ({}, {**accepted, "more": 1}):
+        assert not schema.is_valid(refused), refused
+        with pytest.raises(ValueError):
+            tool.arguments.model_validate(refused)
+
+
+def test_a_call_and_a_refused_call_conform(client: TestClient) -> None:
+    conforms(call(client, "list_models", {"project_id": None}).json(), "CallToolResultResponse")
+    refused = call(client, "list_models", {"project_id": "not a project"}).json()
+    assert refused["result"]["isError"] is True
+    conforms(refused, "CallToolResultResponse")
+    conforms(call(client, "list_models", {}).json(), "CallToolResultResponse")
 
 
 def test_the_errors_conform(client: TestClient) -> None:
