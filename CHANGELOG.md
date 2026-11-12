@@ -10,7 +10,7 @@ the commit history.
 
 ## 3.0.0 — 2026-11-12
 
-Released again on 2026-11-12 (the fourteenth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
+Released again on 2026-11-12 (the fifteenth time) in step with Dataspatium 3.0.0; the releases of 2026-11-08,
 2026-11-10, 2026-11-11 and earlier on 2026-11-12 are withdrawn and their notes are folded in here. The first release of the 3 series: everything in 2.0.0, and the IFC graph as a lossless model that
 can be written back as a file, every upload checked against the IFC schema, buildingSMART's rules
 and the IDS documents of its project, named queries for members, IFC-LPG as a library, the clash check between two versions, the base version of an
@@ -23,6 +23,9 @@ endpoint through which AI tools read the models and propose change sets that a p
 storey, the check against bSDD, the element of each rules finding, and the server's own data in a database of its
 own. Works with Dataspatium 3.0.0.
 
+- The administration's audit page, its CSV and the overview's recent events show each event's actor, which they
+  left empty; and the demo project of `opencde seed` takes change sets (`DataregiumIfcChangeSet`) as a new project
+  does.
 - The IFC library IFC-LPG is now IFC-DB ([IFC-DB](https://github.com/marwiss/IFC-DB), package `ifc-db`, module
   `ifc_db`), with the same calls and the same form of the graph. The module's extra is now `ifc-db`, its settings
   `OPENCDE_IFC_DB_*`, its command `opencde ifc-db` and its page [docs/en/ifc-db.md](docs/en/ifc-db.md). The old
