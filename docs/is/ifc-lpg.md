@@ -815,6 +815,42 @@ og getuskjalið segir í `ifcgraph.workcopy` hvort eitt sé stillt.
 docker compose up -d
 ```
 
+## Eigin gögn þjónsins aðskilin frá IFC-grafinu
+
+Þjónninn heldur eigin gögnum sínum (aðgöngum, verkefnum, teymum, skjölum og
+útgáfum þeirra, málum, athugasemdum og sjónarhornum, og verkum sínum:
+athugunum, forathugunum, prófunum, árekstraprófunum, sameiningum og
+umbreytingum) aðskildum frá IFC-grafinu, sem heldur líkönum IFC-LPG (`Model`,
+`Entity`, `StepBlock`); þau tvö mætast aðeins gegnum gildi, eins og `model_id`
+umbreytingar og GlobalId íhlutar (ADR 0027). Sjálfgefið deila þau tengingu
+IFC-grafsins. `OPENCDE_STORE_GRAPH_URI` gefur eigin gögnum þjónsins eigið
+graf, með `OPENCDE_STORE_GRAPH_DIALECT` (sjálfgefið `neo4j`), `_USER`,
+`_PASSWORD` og `_DATABASE` við hliðina; framleiðsla og staðbundna umhverfið
+krefjast lykilorðsins. Geymslan og IFC-grafið geta verið ólíkir gagnagrunnar í
+sömu vöru, tveir Neo4j eða tveir Memgraph, eða í ólíkum vörum, eins og eigin
+gögn þjónsins í Neo4j og líkönin í Memgraph; community-útgáfa Neo4j heldur
+einum gagnagrunni á hvern þjón, svo að þar eru tveir gagnagrunnar tveir
+þjónar. IFC-LPG-þjónustan skrifar líkönin í IFC-grafið og færslur sínar í
+geymsluna, og hver önnur leið les og skrifar geymsluna. Skipanalínan opnar
+geymsluna fyrir það sem snertir eigin gögn þjónsins og bæði fyrir `seed`,
+`backup`, `restore`, `ifc-lpg prune` og `ifc-lpg export`; `opencde doctor` og
+síðan Stillingar athuga bæði, og `/readyz` segir í `store` hvort geymslan sé
+`shared`, `ok` eða `unavailable`, og er tilbúinn aðeins þegar bæði svara.
+Birt Bolt-gátt ([deploy/bolt.md](deploy/bolt.md)) og graffyrirspurn
+stjórnunarinnar ná hvor sínu grafi: gáttin IFC-grafinu, fyrirspurnin
+geymslunni. Þjónninn flytur ekki það sem gagnagrunnur heldur þegar: settu
+geymsluna á nýja uppsetningu, eða fluttu gögnin með `opencde backup` og
+`opencde restore` ([deploy/backup.md](deploy/backup.md)).
+
+```sh
+# .env
+OPENCDE_STORE_GRAPH_URI=bolt://store:7687
+OPENCDE_STORE_GRAPH_DIALECT=neo4j
+OPENCDE_STORE_GRAPH_USER=neo4j
+OPENCDE_STORE_GRAPH_PASSWORD=<eigið lykilorð>
+OPENCDE_STORE_GRAPH_DATABASE=neo4j
+```
+
 ## Hvar byggingarhlutarnir eru, og rúmfræðin
 
 Eftir umbreytingu keyrir þjónninn rúmfræðivinnslu IFC-LPG einu sinni yfir

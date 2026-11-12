@@ -15,6 +15,15 @@ gendannes i Memgraph og omvendt (ADR 0006). Databasen kører videre under
 sikkerhedskopieringen; en kopi taget, mens uploads er i gang, kan mangle
 delene af de uploads, hvilket klienterne blot gør om.
 
+Med serverens egne data i en graf for sig (`OPENCDE_STORE_GRAPH_URI`,
+[ifc-lpg.md](../ifc-lpg.md)) holder én sikkerhedskopi begge grafer i de samme
+filer, IFC-LPG's knuder fra IFC-grafen og resten fra lageret, og
+`manifest.json` angiver lagerets dialekt i `store_dialect`. En gendannelse
+lægger hver knude, hvor dens etiket hører hjemme, uanset hvilke grafer kopien
+kom fra, så en kopi af én database gendannes i to og omvendt; den nægter,
+medmindre begge er tomme eller `--force` gives, og udelader en relation mellem
+de to slags, som kun en database fra før ADR 0027 kan holde.
+
 ## Gendannelse
 
 ```sh

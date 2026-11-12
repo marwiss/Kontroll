@@ -142,10 +142,16 @@ storey, the check against bSDD, and the element of each rules finding. Works wit
 - The server's record of a conversion is its own node, `Conversion`, under the project (`HAS_CONVERSION`): the
   file, the lifecycle, the geometry key, the graph check and a copy of the import's facts; `Model` is IFC-LPG's
   alone, written by the library and marked whole with `imported_at`. The models of earlier releases get their
-  `Conversion` when the server starts. The server's own data has a connection of its own in the code, shared with
-  the IFC graph until every statement of the server follows (`OPENCDE_STORE_GRAPH_URI` is refused until then).
-  Cypher of one's own that read `Model.state` or walked `HAS_MODEL` reads `Conversion` and
-  `HAS_CONVERSION` instead, joined to the model by `model_id`.
+  `Conversion` when the server starts. Cypher of one's own that read `Model.state` or walked `HAS_MODEL` reads
+  `Conversion` and `HAS_CONVERSION` instead, joined to the model by `model_id`.
+- The server's own data can live in a graph of its own, apart from the IFC graph (ADR 0027):
+  `OPENCDE_STORE_GRAPH_URI` with `OPENCDE_STORE_GRAPH_DIALECT`, `_USER`, `_PASSWORD` (required in production) and
+  `_DATABASE`, another database of the same product or of another product; by default it shares the IFC graph's
+  connection. The IFC-LPG service writes the models to the IFC graph and its records to the store; the command
+  line, the seed, the doctor and the Settings page open both where they need both, and `/readyz` says in `store`
+  whether the store is `shared`, `ok` or `unavailable` and is ready only when both answer. A backup holds both
+  graphs in the same files and a restore puts each node where its label belongs, so a backup of one database
+  restores into two; a user's relationships are no longer written twice into a backup.
 
 - The named queries, the GTIN of a viewpoint's components and the constraints of the IFC graph come from IFC-LPG
   1.0.0 at 6f6d05b: a query added to the library's catalogue appears in `GET …/ifc-queries` as it is, and the

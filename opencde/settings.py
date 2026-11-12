@@ -211,7 +211,8 @@ class Settings(BaseSettings):
     store_graph_uri: str | None = Field(
         None,
         description="Bolt URI of a graph for the server's own data (accounts, documents, topics, jobs), apart from the "
-        "IFC graph; the two meet by values only. Refused until every statement of the server follows; empty: the IFC graph's connection holds both.",
+        "IFC graph: another database of the same product or another product; the two meet by values only. Empty: the "
+        "IFC graph's connection holds both.",
     )
     store_graph_dialect: GraphDialect = Field(GraphDialect.NEO4J, description="The server's own graph's dialect.")
     store_graph_user: str = ""
@@ -481,13 +482,10 @@ class Settings(BaseSettings):
 
     @field_validator("store_graph_uri")
     @classmethod
-    def _store_not_yet(cls, value: str | None) -> str | None:
-        """The server's own data cannot be put in another graph yet: the IFC-LPG service's own records, the command
-        line, the backup and the doctor still open the IFC graph alone (ADR 0027, the third step)."""
-        if value is not None:
-            raise ValueError(
-                "OPENCDE_STORE_GRAPH_URI is not supported yet: the server's own data shares the IFC graph's connection"
-            )
+    def _store_uri(cls, value: str | None) -> str | None:
+        value = (value or "").strip() or None
+        if value is not None and not value.startswith(GRAPH_URI_SCHEMES):
+            raise ValueError(f"OPENCDE_STORE_GRAPH_URI must use one of {', '.join(GRAPH_URI_SCHEMES)}")
         return value
 
     @field_validator("workcopy_graph_uri")
@@ -529,6 +527,8 @@ class Settings(BaseSettings):
                 )
             if not self.graph_password.get_secret_value():
                 raise ValueError("OPENCDE_GRAPH_PASSWORD is required in production")
+            if self.has_store and not self.store_graph_password.get_secret_value():
+                raise ValueError("OPENCDE_STORE_GRAPH_PASSWORD is required in production with OPENCDE_STORE_GRAPH_URI")
             if len(self.secret_key.get_secret_value()) < MIN_SECRET_KEY_LENGTH:
                 raise ValueError(
                     f"OPENCDE_SECRET_KEY must have at least {MIN_SECRET_KEY_LENGTH} characters in production"
@@ -545,6 +545,10 @@ class Settings(BaseSettings):
                 )
             if not self.graph_password.get_secret_value():
                 raise ValueError("OPENCDE_GRAPH_PASSWORD is required in the local environment (opencde init --local)")
+            if self.has_store and not self.store_graph_password.get_secret_value():
+                raise ValueError(
+                    "OPENCDE_STORE_GRAPH_PASSWORD is required in the local environment with a store of its own"
+                )
             if len(self.secret_key.get_secret_value()) < MIN_SECRET_KEY_LENGTH:
                 raise ValueError(
                     f"OPENCDE_SECRET_KEY must have at least {MIN_SECRET_KEY_LENGTH} characters in the local environment"

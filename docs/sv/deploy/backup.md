@@ -15,6 +15,15 @@ aldrig med databasinterna id:n, så en säkerhetskopia tagen från Neo4j kan
 säkerhetskopieringen; en kopia tagen medan uppladdningar pågår kan sakna
 delarna av de uppladdningarna, vilket klienterna helt enkelt gör om.
 
+Med serverns egna data i en egen graf (`OPENCDE_STORE_GRAPH_URI`,
+[ifc-lpg.md](../ifc-lpg.md)) håller en säkerhetskopia båda graferna i samma
+filer, IFC-LPG:s noder från IFC-grafen och resten från lagret, och
+`manifest.json` anger lagrets dialekt i `store_dialect`. En återställning
+lägger varje nod där dess etikett hör hemma, vilka grafer kopian än kom från,
+så en kopia av en databas återställs i två och tvärtom; den vägrar om inte
+båda är tomma eller `--force` ges, och utelämnar en relation mellan de två
+slagen, som bara en databas från före ADR 0027 kan hålla.
+
 ## Återställning
 
 ```sh

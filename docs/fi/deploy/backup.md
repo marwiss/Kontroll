@@ -17,6 +17,16 @@ Tietokanta jatkaa toimintaansa varmuuskopioinnin aikana; latausten ollessa
 kesken otetusta kopiosta voivat puuttua niiden latausten osat, jotka asiakkaat
 yksinkertaisesti tekevät uudelleen.
 
+Kun palvelimen omat tiedot ovat omassa graafissaan (`OPENCDE_STORE_GRAPH_URI`,
+[ifc-lpg.md](../ifc-lpg.md)), yksi varmuuskopio pitää molemmat graafit
+samoissa tiedostoissa, IFC-LPG:n solmut IFC-graafista ja muut varastosta, ja
+`manifest.json` nimeää varaston dialektin kentässä `store_dialect`. Palautus
+vie jokaisen solmun sinne, minne sen nimiö kuuluu, mistä graafeista kopio
+tahansa tuli, joten yhden tietokannan kopio palautuu kahteen ja päinvastoin;
+se kieltäytyy, elleivät molemmat ole tyhjiä tai `--force` ole annettu, ja
+jättää pois näiden kahden lajin välisen suhteen, jonka vain ennen ADR 0027:ää
+syntynyt tietokanta voi pitää.
+
 ## Palautus
 
 ```sh

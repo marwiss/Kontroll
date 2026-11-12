@@ -843,6 +843,44 @@ kentässä `ifcgraph.workcopy`, onko sellainen määritetty.
 docker compose up -d
 ```
 
+## Palvelimen omat tiedot erillään IFC-graafista
+
+Palvelin pitää omat tietonsa (tilit, projektit, tiimit, asiakirjat ja niiden
+versiot, aiheet, kommentit ja näkymäpisteet sekä omat työnsä: tarkistukset,
+ennakkotarkistukset, kokeilut, törmäystarkistukset, yhdistämiset ja
+muunnokset) erillään IFC-graafista, jossa ovat IFC-LPG:n mallit (`Model`,
+`Entity`, `StepBlock`); nämä kaksi kohtaavat vain arvojen kautta, kuten
+muunnoksen `model_id` ja komponentin GlobalId (ADR 0027). Oletuksena ne
+jakavat IFC-graafin yhteyden. `OPENCDE_STORE_GRAPH_URI` antaa palvelimen
+omille tiedoille oman graafin, ja sen rinnalla ovat
+`OPENCDE_STORE_GRAPH_DIALECT` (oletuksena `neo4j`), `_USER`, `_PASSWORD` ja
+`_DATABASE`; tuotanto ja paikallinen ympäristö vaativat salasanan. Varasto ja
+IFC-graafi voivat olla saman tuotteen eri tietokantoja, kaksi Neo4j:tä tai
+kaksi Memgraphia, tai eri tuotteiden, kuten palvelimen omat tiedot Neo4j:ssä
+ja mallit Memgraphissa; Neo4j:n community-versio pitää yhden tietokannan
+palvelinta kohden, joten siinä kaksi tietokantaa ovat kaksi palvelinta.
+IFC-LPG-palvelu kirjoittaa mallit IFC-graafiin ja omat tietueensa varastoon,
+ja jokainen muu reitti lukee ja kirjoittaa varastoa. Komentorivi avaa
+varaston sille, mikä koskee palvelimen omia tietoja, ja molemmat komennoille
+`seed`, `backup`, `restore`, `ifc-lpg prune` ja `ifc-lpg export`;
+`opencde doctor` ja Asetukset-sivu tarkistavat molemmat, ja `/readyz` kertoo
+kentässä `store`, onko varasto `shared`, `ok` vai `unavailable`, ja on valmis
+vain, kun molemmat vastaavat. Julkaistu Bolt-portti
+([deploy/bolt.md](deploy/bolt.md)) ja hallinnan graafikysely ulottuvat
+kumpikin yhteen graafiin: portti IFC-graafiin, kysely varastoon. Palvelin ei
+siirrä sitä, mitä tietokannassa jo on: aseta varasto uuteen asennukseen, tai
+siirrä tiedot komennoilla `opencde backup` ja `opencde restore`
+([deploy/backup.md](deploy/backup.md)).
+
+```sh
+# .env
+OPENCDE_STORE_GRAPH_URI=bolt://store:7687
+OPENCDE_STORE_GRAPH_DIALECT=neo4j
+OPENCDE_STORE_GRAPH_USER=neo4j
+OPENCDE_STORE_GRAPH_PASSWORD=<oma salasana>
+OPENCDE_STORE_GRAPH_DATABASE=neo4j
+```
+
 ## Missä rakennusosat ovat, ja geometria
 
 Muunnoksen jälkeen palvelin ajaa IFC-LPG:n geometriatyöläisen kerran

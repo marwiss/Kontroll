@@ -820,6 +820,42 @@ configured.
 docker compose up -d
 ```
 
+## The server's own data apart from the IFC graph
+
+The server keeps its own data (accounts, projects, teams, documents and their
+versions, topics, comments and viewpoints, and its jobs: checks, prechecks,
+trials, clash checks, merges and conversions) apart from the IFC graph, which
+holds IFC-LPG's models (`Model`, `Entity`, `StepBlock`); the two meet by values
+only, such as a conversion's `model_id` and a component's GlobalId (ADR 0027).
+By default both share the IFC graph's connection. `OPENCDE_STORE_GRAPH_URI`
+gives the server's own data a graph of its own, with
+`OPENCDE_STORE_GRAPH_DIALECT` (`neo4j` by default), `_USER`, `_PASSWORD` and
+`_DATABASE` beside it; production and the local environment want the password.
+The store and the IFC graph can be different databases of the same product,
+two Neo4j or two Memgraph, or of different products, such as the server's own
+data in Neo4j and the models in Memgraph; Neo4j's community edition holds one
+database per server, so there two databases are two servers. The IFC-LPG
+service writes the models to the IFC graph and its records to the store, and
+every other route reads and writes the store. The command line opens the store
+for what touches the server's own data and both for `seed`, `backup`,
+`restore`, `ifc-lpg prune` and `ifc-lpg export`; `opencde doctor` and the
+Settings page check both, and `/readyz` says in `store` whether the store is
+`shared`, `ok` or `unavailable`, and is ready only when both answer. A
+published Bolt port ([deploy/bolt.md](deploy/bolt.md)) and the administration's
+graph query reach one graph each: the port the IFC graph, the query the store.
+The server does not move what a database already holds: set the store on a
+new installation, or move the data with `opencde backup` and `opencde restore`
+([deploy/backup.md](deploy/backup.md)).
+
+```sh
+# .env
+OPENCDE_STORE_GRAPH_URI=bolt://store:7687
+OPENCDE_STORE_GRAPH_DIALECT=neo4j
+OPENCDE_STORE_GRAPH_USER=neo4j
+OPENCDE_STORE_GRAPH_PASSWORD=<a password of its own>
+OPENCDE_STORE_GRAPH_DATABASE=neo4j
+```
+
 ## Where the products are, and the geometry
 
 After a conversion the server runs IFC-LPG's geometry worker once over the

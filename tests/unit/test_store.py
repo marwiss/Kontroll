@@ -55,9 +55,25 @@ REPOSITORIES = (
 def test_the_store_shares_the_ifc_graphs_connection_unless_configured(tmp_path: Path) -> None:
     settings = make_settings(tmp_path)
     assert not settings.has_store and make_store(settings) is None
+    assert not make_settings(tmp_path, store_graph_uri="  ").has_store, "an empty value is none"
 
-    with pytest.raises(ValidationError, match="not supported yet"):  # until the split is whole (ADR 0027)
-        make_settings(tmp_path, store_graph_uri="bolt://127.0.0.1:9", store_graph_dialect=GraphDialect.MEMGRAPH)
+    own = make_settings(tmp_path, store_graph_uri="bolt://127.0.0.1:9", store_graph_dialect=GraphDialect.MEMGRAPH)
+    assert own.has_store and own.store_database_name == "memgraph"
+    store = make_store(own)
+    assert store is not None and store.dialect.name is GraphDialect.MEMGRAPH and store.database == "memgraph"
+    named = make_settings(tmp_path, store_graph_uri="neo4j://127.0.0.1:9", store_graph_database="cde")
+    assert named.store_database_name == "cde", "another database of the same product"
+
+    with pytest.raises(ValidationError, match="OPENCDE_STORE_GRAPH_URI must use one of"):
+        make_settings(tmp_path, store_graph_uri="http://127.0.0.1:9")
+
+
+def test_production_wants_the_stores_password_too(tmp_path: Path) -> None:
+    production = {"environment": "production", "public_url": "https://cde.example.org", "graph_password": "x" * 20}
+    with pytest.raises(ValidationError, match="OPENCDE_STORE_GRAPH_PASSWORD is required"):
+        make_settings(tmp_path, store_graph_uri="bolt://store:7687", **production)
+    settings = make_settings(tmp_path, store_graph_uri="bolt://store:7687", store_graph_password="y" * 20, **production)
+    assert settings.has_store
 
 
 @pytest.mark.parametrize("repository", REPOSITORIES, ids=lambda cls: cls.__name__)

@@ -16,6 +16,16 @@ køyrer vidare under tryggingskopieringa; ein kopi teken medan opplastingar
 er i gang, kan mangle delane av dei opplastingane, som klientane ganske enkelt
 gjer om igjen.
 
+Med dei eigne dataa til serveren i ein eigen graf (`OPENCDE_STORE_GRAPH_URI`,
+[ifc-lpg.md](../ifc-lpg.md)) held éin tryggingskopi begge grafane i dei same
+filene, nodane til IFC-LPG frå IFC-grafen og resten frå lageret, og
+`manifest.json` oppgjev dialekten til lageret i `store_dialect`. Ei
+gjenoppretting legg kvar node der etiketten høyrer heime, kva grafar kopien
+enn kom frå, slik at ein kopi av éin database blir gjenoppretta i to og
+omvendt; ho nektar med mindre begge er tomme eller `--force` blir gjeve, og
+utelèt ein relasjon mellom dei to slaga, som berre ein database frå før
+ADR 0027 kan halde.
+
 ## Gjenoppretting
 
 ```sh

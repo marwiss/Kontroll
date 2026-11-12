@@ -835,6 +835,43 @@ ein er konfigurert.
 docker compose up -d
 ```
 
+## Dei eigne dataa til serveren skilde frå IFC-grafen
+
+Serveren held dei eigne dataa sine (kontoar, prosjekt, team, dokument og
+versjonane deira, saker, kommentarar og visingspunkt, og jobbane sine:
+kontrollar, førehandskontrollar, utprøvingar, kollisjonskontrollar,
+samanslåingar og konverteringar) skilde frå IFC-grafen, som held modellane til
+IFC-LPG (`Model`, `Entity`, `StepBlock`); dei to møtest berre gjennom verdiar,
+som `model_id` til ei konvertering og GlobalId-en til ein komponent
+(ADR 0027). Som standard deler dei sambandet til IFC-grafen.
+`OPENCDE_STORE_GRAPH_URI` gjev dei eigne dataa til serveren ein eigen graf, med
+`OPENCDE_STORE_GRAPH_DIALECT` (`neo4j` som standard), `_USER`, `_PASSWORD` og
+`_DATABASE` ved sida av; produksjon og det lokale miljøet krev passordet.
+Lageret og IFC-grafen kan vere ulike databasar i det same produktet, to Neo4j
+eller to Memgraph, eller i ulike produkt, som dei eigne dataa til serveren i
+Neo4j og modellane i Memgraph; community-utgåva av Neo4j held éin database per
+server, så der er to databasar to serverar. IFC-LPG-tenesta skriv modellane
+til IFC-grafen og postane sine til lageret, og kvar anna rute les og skriv
+lageret. Kommandolinja opnar lageret for det som gjeld dei eigne dataa til
+serveren, og begge for `seed`, `backup`, `restore`, `ifc-lpg prune` og
+`ifc-lpg export`; `opencde doctor` og sida Innstillingar kontrollerer begge,
+og `/readyz` seier i `store` om lageret er `shared`, `ok` eller `unavailable`,
+og er klar berre når begge svarar. Ein publisert Bolt-port
+([deploy/bolt.md](deploy/bolt.md)) og grafspørjinga i administrasjonen når
+kvar sin graf: porten IFC-grafen, spørjinga lageret. Serveren flyttar ikkje
+det ein database alt held: set lageret på ein ny installasjon, eller flytt
+data med `opencde backup` og `opencde restore`
+([deploy/backup.md](deploy/backup.md)).
+
+```sh
+# .env
+OPENCDE_STORE_GRAPH_URI=bolt://store:7687
+OPENCDE_STORE_GRAPH_DIALECT=neo4j
+OPENCDE_STORE_GRAPH_USER=neo4j
+OPENCDE_STORE_GRAPH_PASSWORD=<eit eige passord>
+OPENCDE_STORE_GRAPH_DATABASE=neo4j
+```
+
 ## Kvar bygningsdelane er, og geometrien
 
 Etter ei konvertering køyrer serveren IFC-LPGs geometriarbeidar éin gong over
