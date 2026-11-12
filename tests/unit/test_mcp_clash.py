@@ -58,6 +58,27 @@ def test_a_check_starts_as_the_route_starts_one_and_is_recorded(tmp_path: Path) 
     }
 
 
+class BusyGraph(FakeGraph):
+    """A graph where the user already has two checks waiting or running in the project."""
+
+    async def run(self, query: str, **params: Any) -> list[dict[str, Any]]:
+        if "c.state IN ['queued', 'running']" in query:
+            self.calls.append((query, params))
+            return [{"n": clash.MAX_OPEN_CHECKS}]
+        return await super().run(query, **params)
+
+
+def test_a_user_with_two_checks_under_way_starts_no_third(tmp_path: Path) -> None:
+    """The worker runs one job at a time: an AI in a loop must not hold up a project's conversions and trials."""
+    service, graph = FakeService(), BusyGraph()
+    with tools(tmp_path, graph, service) as client:
+        refused = result(client, "start_clash_check", START)
+    assert refused["isError"] is True and "2 clash checks waiting or running" in refused["content"][0]["text"]
+    assert service.scheduled == [], "nothing is queued"
+    (event,) = graph.events()
+    assert event["type"] == "mcp.denied" and event["details"]["reason"] == "limit"
+
+
 def test_a_check_takes_the_mode_its_distances_and_the_classes_of_each_side(tmp_path: Path) -> None:
     service = FakeService()
     walls = {**SIDE, "types": ["IfcWall", "IfcSlab"]}

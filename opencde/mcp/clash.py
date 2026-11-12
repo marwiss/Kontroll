@@ -65,6 +65,18 @@ class GetClashCheckArguments(Arguments):
     )
 
 
+#: The checks a user may have queued or running through the endpoint at once: the worker runs one job at a time, and
+#: an AI in a loop must not hold up the conversions and trials of a project behind its clash checks.
+MAX_OPEN_CHECKS = 2
+
+#: The user's queued or running clash checks in the project, from the user's node through MEMBER_OF.
+_OPEN_CHECKS = """
+MATCH (:User {id: $user_id})-[:MEMBER_OF]->(:Project {project_id: $project_id})-[:HAS_CLASH]->(c:Clash)
+WHERE c.author = $author AND c.state IN ['queued', 'running']
+RETURN count(c) AS n
+"""
+
+
 def _service(context: ToolContext) -> IfcGraphService:
     with refusing():
         return clash_service(context.ifcgraph, context.settings)
@@ -85,6 +97,19 @@ async def start_clash_check(context: ToolContext, arguments: StartClashCheckArgu
             **{key: value for key, value in options.items() if value is not None},
         }
     )
+    open_checks = await context.graph.run(
+        _OPEN_CHECKS,
+        user_id=context.principal.user_id,
+        project_id=project.project_id,
+        author=context.principal.username,
+    )
+    if open_checks and int(open_checks[0]["n"]) >= MAX_OPEN_CHECKS:
+        await context.deny(
+            "limit",
+            f"You already have {MAX_OPEN_CHECKS} clash checks waiting or running in this project; read them with "
+            "get_clash_check before you start another",
+            project_id=project.project_id,
+        )
     with refusing():
         row = await start_check(
             service,
