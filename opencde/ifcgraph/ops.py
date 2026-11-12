@@ -1704,7 +1704,9 @@ def _topo_axis(wall, scale):
         for item in r.Items or ():
             pts = _topo_curve(item)
             if pts and len(pts) >= 2:
-                m = placement.get_local_placement(wall.ObjectPlacement)
+                m = (getattr(placement, "get_local_placement", None) or placement.get_placement)(
+                    wall.ObjectPlacement
+                )  # get_placement since IfcOpenShell 0.9.1
                 return [
                     ((m[0][0] * x + m[0][1] * y + m[0][3]) * scale, (m[1][0] * x + m[1][1] * y + m[1][3]) * scale)
                     for x, y in pts
@@ -2023,7 +2025,14 @@ def _topo_elevation(storey, scale):
     try:
         import ifcopenshell.util.placement as placement
 
-        return float(placement.get_local_placement(storey.ObjectPlacement)[2][3]) * scale
+        return (
+            float(
+                (getattr(placement, "get_local_placement", None) or placement.get_placement)(storey.ObjectPlacement)[2][
+                    3
+                ]
+            )
+            * scale
+        )  # get_placement since 0.9.1
     except Exception:
         return 0.0
 
